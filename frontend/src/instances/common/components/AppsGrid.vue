@@ -41,6 +41,7 @@ import PageState from '@/instances/common/components/PageState.vue'
 // states
 import { useTrayStates } from '@/stores/TrayStates';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useIconStore } from '@/stores/icons';
 import { useTemplateStore } from '@/stores/template';
 import { useStageStore } from '@/stores/stages';
 import { useUserStore } from '@/stores/users';
@@ -49,6 +50,7 @@ import { useSettingsStore } from '@/stores/settings';
 // states
 const trayStates = useTrayStates();
 const modals = useDesktopModalStore();
+const iconStore = useIconStore();
 const templateStore = useTemplateStore();
 const stage = useStageStore();
 const userStore = useUserStore();

@@ -577,6 +577,53 @@ img.no-filter {
   opacity: 1;
 }
 
+/* SVG icon component base styles */
+.ci-icon {
+  flex-shrink: 0;
+  display: inline-block;
+  vertical-align: middle;
+  color: var(--white);
+}
+
+/* When ci-icon is used with legacy sizing classes, remove padding and let :size prop control dimensions */
+.ci-icon.small-icons {
+  padding: 0;
+  height: auto;
+  overflow: visible;
+}
+
+.ci-icon.large-icons {
+  min-height: unset;
+  min-width: unset;
+  height: auto;
+  width: auto;
+}
+
+/* Color utility classes for icon components */
+.ci-icon.use-alert {
+  color: #c47a1a;
+}
+
+[data-theme="dark"] .ci-icon.use-alert {
+  color: #e8a838;
+}
+
+.ci-icon.use-danger {
+  color: var(--danger);
+}
+
+.ci-icon.use-go {
+  color: #4caf50;
+}
+
+.ci-icon.force-light {
+  color: white;
+}
+
+.ci-icon.force-dark {
+  color: var(--black);
+}
+
 .profile-img{
   width: 100%;
   height: 100%;

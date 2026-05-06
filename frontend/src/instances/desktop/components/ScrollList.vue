@@ -8,7 +8,7 @@
           <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
         </div>
         <div v-else-if="useIcons" class="asset-item-icon-container">
-          <img class="large-icons" :src="resolveIcon(item.icon)">
+          <component :is="resolveIcon(item.icon)" :size="24" />
         </div>
         <div v-else-if="customIcons" class="asset-item-icon-container">
           <img class="large-icons no-filter" :src="item.icon">
@@ -63,7 +63,7 @@
             <img class="profile-img" :src="item.profile ? item.profile : generateAvatar(item.id)">
           </div>
           <div v-else-if="useIcons" class="asset-item-icon-container">
-            <img class="large-icons" :src="resolveIcon(item.icon)">
+            <component :is="resolveIcon(item.icon)" :size="24" />
           </div>
           <div v-else-if="customIcons" class="asset-item-icon-container">
             <img class="large-icons no-filter" :src="item.icon">

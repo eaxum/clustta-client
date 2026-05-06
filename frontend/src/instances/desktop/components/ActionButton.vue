@@ -9,10 +9,10 @@
     </Teleport>
     <span v-if="emoji" class="button-emoji no-cursor no-filter">{{ decodeEmoji(emoji) }}</span>
     <img v-else-if="customIconUrl" class="small-icons no-cursor"  :class="{ 'no-filter' : noFilter}" :src="customIconUrl">
-    <component v-else-if="showIcon && !iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon no-cursor" :class="{ 'loading-icon' : isLoading, 'loading-icon-reverse' : reverseLoading }" />
+    <component v-else-if="showIcon && !iconAfter && isIconComponent" :is="icon" class="ci-btn-icon no-cursor" :class="{ 'loading-icon' : isLoading, 'loading-icon-reverse' : reverseLoading }" />
     <img v-else-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading, 'loading-icon-reverse' : reverseLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor" :class="{ 'label-force-light': forceIconColor === 'light', 'label-force-dark': forceIconColor === 'dark' }">{{ label }}</div>
-    <component v-if="showIcon && iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon no-cursor" />
+    <component v-if="showIcon && iconAfter && isIconComponent" :is="icon" class="ci-btn-icon no-cursor" />
     <img v-else-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
   </span>
 </template>
@@ -364,43 +364,43 @@ onBeforeUnmount(() => {
 }
 
 .ci-btn-icon {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  min-height: 20px;
-  stroke: var(--white);
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+  color: var(--white);
 }
 
 [data-theme="dark"] .use-alert .ci-btn-icon {
-  stroke: #e8a838;
+  color: #e8a838;
 }
 
 .use-alert .ci-btn-icon {
-  stroke: #c47a1a;
+  color: #c47a1a;
 }
 
 [data-theme="dark"] .use-danger .ci-btn-icon {
-  stroke: #c41a1a;
+  color: #c41a1a;
 }
 
 .use-danger .ci-btn-icon {
-  stroke: #c41a1a;
+  color: #c41a1a;
 }
 
 [data-theme="dark"] .use-go .ci-btn-icon {
-  stroke: #4caf50;
+  color: #4caf50;
 }
 
 .use-go .ci-btn-icon {
-  stroke: #4caf50;
+  color: #4caf50;
 }
 
 .force-light .ci-btn-icon {
-  stroke: white !important;
+  color: white !important;
 }
 
 .force-dark .ci-btn-icon {
-  stroke: var(--black) !important;
+  color: var(--black) !important;
 }
 
 .is-mini .ci-btn-icon {

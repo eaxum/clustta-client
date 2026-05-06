@@ -38,7 +38,7 @@
           <!-- Icon container at bottom left when preview is present -->
           <div class="asset-item-icon-container asset-item-icon-overlay">
             <img v-if="asset.icon" class="small-icons no-filter overlay-icons" :src="asset.icon">
-            <img v-else-if="isUntracked" class="small-icons overlay-icons" :src="resolveIcon(getFileTypeIcon(asset))" @error="$event.target.src = CiFile">
+            <component v-else-if="isUntracked" :is="resolveIcon(getFileTypeIcon(asset))" :size="18" class="overlay-icons" />
             <span v-else class="app-ext">
             </span>
           </div>
@@ -142,7 +142,7 @@
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
-              <ActionButton v-else-if="asset.file_status == 'normal'" :icon="CiCircleCheckGo" :noFilter="true" 
+              <ActionButton v-else-if="asset.file_status == 'normal'" :icon="CiCircleCheckGo" :useGo="true"
                 v-tooltip="$t('blocks.noChanges')"  />
               <ActionButton :icon="CiCircleCheck" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="asset.file_status == 'outdated'" 
@@ -207,7 +207,7 @@
 
         <div class="asset-item-icon-container" @click="console.log(asset)" >
           <img v-if="asset.icon" class="large-icons no-filter" :src="asset.icon">
-          <img v-else-if="isUntracked" class="large-icons " :src="resolveIcon(getFileTypeIcon(asset))" @error="$event.target.src = CiFile">
+          <component v-else-if="isUntracked" :is="resolveIcon(getFileTypeIcon(asset))" :size="24" />
           <span v-else class="app-ext">
           </span>
         </div>
@@ -299,7 +299,7 @@
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
-              <ActionButton :icon="CiCircleCheckGo" :noFilter="true" @click="handleClick(index, asset, $event)"
+              <ActionButton :icon="CiCircleCheckGo" :useGo="true" @click="handleClick(index, asset, $event)"
                 v-tooltip="$t('blocks.noChanges')" v-else-if="asset.file_status == 'normal'" />
               <ActionButton :icon="CiCircleCheck" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
                 v-else-if="asset.file_status == 'outdated'" @click="revertAsset(index, asset, $event)" />

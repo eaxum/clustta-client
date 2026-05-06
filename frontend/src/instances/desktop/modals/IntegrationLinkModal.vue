@@ -7,7 +7,7 @@
       <div v-if="linkedIntegration" class="linked-container">
         <div class="linked-info">
           <div class="linked-header">
-            <img :src="resolveIcon(linkedIntegration.integration_id)" class="integration-icon" />
+            <component :is="resolveIcon(linkedIntegration.integration_id)" :size="24" class="integration-icon" />
             <div class="linked-details">
               <span class="project-name">{{ linkedIntegration.external_project_name }}</span>
               <span class="integration-name">{{ linkedIntegration.integration_id }}</span>
@@ -25,7 +25,7 @@
         <div class="integration-list">
           <div v-for="integration in authenticatedIntegrations" :key="integration.id" class="integration-item"
             @click="selectIntegration(integration)">
-            <img :src="resolveIcon(integration.icon)" class="integration-icon" />
+            <component :is="resolveIcon(integration.icon)" :size="24" class="integration-icon" />
             <span class="integration-name">{{ integration.name }}</span>
           </div>
         </div>

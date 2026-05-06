@@ -16,7 +16,7 @@
           </div>
 
           <div v-else-if="message.type === 'tool-group'" class="msg-tool">
-            <img class="msg-tool-icon small-icons" :src="resolveIcon(getToolIcon(message.toolName))">
+            <component :is="resolveIcon(getToolIcon(message.toolName))" :size="18" class="msg-tool-icon" />
             <span class="msg-tool-label">{{ formatToolLabel(message.toolName, message.count) }}</span>
           </div>
 

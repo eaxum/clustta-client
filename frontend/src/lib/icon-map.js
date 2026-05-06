@@ -595,6 +595,7 @@ const iconMap = {
 
 export function resolveIcon(name) {
   if (!name) return null;
+  if (typeof name !== 'string') return name;
   const normalized = name.toLowerCase().replace(/[_\s]/g, '-');
   return iconMap[normalized] || null;
 }

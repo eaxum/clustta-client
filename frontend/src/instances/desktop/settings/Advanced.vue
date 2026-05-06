@@ -12,7 +12,7 @@
 
           <!-- Linked Integration -->
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openIntegrationLink">
-            <div class="settings-icon"><img class="small-icons" :src="resolveIcon(linkedIntegration.integration_id)"></div>
+            <div class="settings-icon"><component :is="resolveIcon(linkedIntegration.integration_id)" :size="20" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ linkedIntegration.external_project_name }}</div>
               <div class="settings-body">{{ $t('settings.linkedTo', { integration: linkedIntegration.integration_id }) }}</div>

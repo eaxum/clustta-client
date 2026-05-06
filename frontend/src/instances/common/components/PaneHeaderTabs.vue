@@ -7,7 +7,7 @@
       @click="filterList(index, dataType.id || dataType.name)" class="tab-button"
       :class="{ 'selected-tab-button': selectedTab === (dataType.id || dataType.name), 'fullwidth-tab-button': fullWidth }">
       <div class="tab-content">
-        <component :is="resolveIcon(dataType.icon)" :size="16" class="tab-icon" />
+        <component :is="resolveIcon(dataType.icon)" class="tab-icon" />
         <div v-if="!iconsOnly && (selectedTab === (dataType.id || dataType.name) || fullWidth)" class="selected-tab-button-text"> {{
           dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</div>
       </div>
@@ -180,11 +180,14 @@ onMounted(() => {
 }
 
 .tab-icon {
-  stroke: var(--light-steel);
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
 }
 
 .selected-tab-button .tab-icon {
-  stroke: var(--white);
+  color: var(--white);
 }
 
 .alert-items {

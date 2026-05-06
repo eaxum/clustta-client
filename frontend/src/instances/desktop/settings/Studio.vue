@@ -24,7 +24,7 @@
             <div class="studio-details">
               <div v-if="studioInfo?.id" class="info-item" @click="copyStudioId">
                 <span>{{ studioInfo.id }}</span>
-                <img class="info-icon small-icons" :src="resolveIcon(idCopied ? 'check-circle' : 'copy')">
+                <component :is="resolveIcon(idCopied ? 'check-circle' : 'copy')" :size="18" class="info-icon" />
               </div>
 
               <div v-if="!isCloudHosted" class="info-item">

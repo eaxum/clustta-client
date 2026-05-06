@@ -121,10 +121,6 @@ onMounted(() => {
 
 <style scoped>
 
-.ci-icon {
-  stroke: var(--light-steel);
-}
-
 .header-icons {
   padding: 2px;
   height: 30px;

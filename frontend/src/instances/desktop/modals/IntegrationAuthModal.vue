@@ -7,7 +7,7 @@
       <div v-if="!selectedIntegration" class="integration-list">
         <div v-for="integration in availableIntegrations" :key="integration.id" class="integration-item"
           :class="{ 'authenticated': isAuthenticated(integration.id) }" v-stop-propagation @click="selectIntegration(integration)">
-          <img :src="resolveIcon(integration.icon)" :alt="integration.name" class="integration-icon" />
+          <component :is="resolveIcon(integration.icon)" :size="24" class="integration-icon" />
           <div class="integration-info">
             <span class="integration-name">{{ integration.name }}</span>
             <span class="integration-desc">{{ integration.description }}</span>

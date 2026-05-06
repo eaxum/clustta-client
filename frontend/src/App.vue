@@ -7,7 +7,7 @@
 <script setup>
 
 import { ref, provide, onMounted, computed } from 'vue';
-import { CI_ICON_VARIANT_KEY } from '@clustta/icons-vue';
+import { CI_ICON_VARIANT_KEY, CI_ICON_SIZE_KEY } from '@clustta/icons-vue';
 import { useNotificationStore } from './stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useSyncConflictStore } from '@/stores/syncConflict';
@@ -49,6 +49,10 @@ const entitlementStore = useEntitlementStore();
 // Icon variant — controls global icon style (outline-1.5, outline-1, solid, twotone)
 const iconVariant = ref('outline-1.5');
 provide(CI_ICON_VARIANT_KEY, iconVariant);
+
+// Icon size — controls global default icon size when :size is not explicitly set
+const iconSize = ref(18);
+provide(CI_ICON_SIZE_KEY, iconSize);
 
 const disableMenu = () => {
     // Only disable context menu on desktop

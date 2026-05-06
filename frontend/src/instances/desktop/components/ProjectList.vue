@@ -12,7 +12,7 @@
 			class="pinned-indicator" :class="{ 'clickable': isHoveringPinned }"
 			@mouseenter="isHoveringPinned = true" @mouseleave="isHoveringPinned = false" @click="togglePinProject">
 			<div class="menu-divider"></div>
-			<component :is="resolveIcon(pinnedIndicatorIcon)" :size="14" class="tiny-icon" />
+			<component :is="resolveIcon(pinnedIndicatorIcon)" :size="16" class="tiny-icon" />
 			<div class="menu-divider"></div>
 		</div>
 
@@ -36,7 +36,7 @@
 			 class="pinned-indicator" :class="{ 'clickable': isHoveringRecents }"
 			 @mouseenter="isHoveringRecents = true" @mouseleave="isHoveringRecents = false" @click="clearRecents">
 			<div class="menu-divider"></div>
-			<component :is="resolveIcon(isHoveringRecents ? 'broom' : 'clock')" :size="14" class="tiny-icon" />
+			<component :is="resolveIcon(isHoveringRecents ? 'broom' : 'clock')" :size="16" class="tiny-icon" />
 			<div class="menu-divider"></div>
 		</div>
 
@@ -222,6 +222,8 @@ const handleScroll = () => {
 .pinned-indicator{
 	display: flex;
 	align-items: center;
+	min-height: 16px;
+	flex-shrink: 0;
 	/* background-color: hotpink; */
 }
 
@@ -242,7 +244,10 @@ const handleScroll = () => {
 
 .tiny-icon {
 	opacity: .3;
-	stroke: var(--light-steel);
+	padding-top: .3rem;
+	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
 }
 
 .alert-items {

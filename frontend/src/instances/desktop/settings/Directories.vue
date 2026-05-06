@@ -13,7 +13,7 @@
           <div class="location-item">
             <!-- Location Icon -->
             <div class="location-icon">
-              <CiFolder :size="20" />
+              <CiFolder />
             </div>
             
             <!-- Location Content -->
@@ -43,7 +43,7 @@
           <div class="location-item" v-if="!accountStore.isOfflineMode">
             <!-- Location Icon -->
             <div class="location-icon">
-              <CiFolder :size="20" />
+              <CiFolder />
             </div>
             
             <!-- Location Content -->
@@ -88,15 +88,8 @@
               
               <!-- Location Icon - shows alert if path doesn't exist -->
               <div class="location-icon">
-                <!-- <ActionButton 
-                  v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists"
-                  :icon="CiAlert" 
-                  :useAlert="true"
-                  :isInactive="true"
-                  v-tooltip="'Path does not exist'"
-                /> -->
-                <CiAlert :size="20" />
-                <CiFolder :size="20" />
+                <CiAlert v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists" class="use-alert" />
+                <CiFolder />
               </div>
               
               <!-- Location Content -->

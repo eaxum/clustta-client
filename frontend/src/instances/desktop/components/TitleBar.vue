@@ -21,7 +21,7 @@
 
                 <div v-for="(studio, index) in studioList" :key="index" class="studio-instance" @click="selectStudio(studio)">
                   <div class="studio-instance-meta">
-                    <img class="large-icons" :src="studio.name === 'Personal' ? CiTwoDrives : CiWebsite">
+                    <component :is="studio.name === 'Personal' ? CiTwoDrives : CiWebsite" :size="24" />
                     <div>{{ studio.name }}</div>
                   </div>
                 </div>
@@ -72,7 +72,7 @@
         <CiCollapseWindow :size="20" />
       </div>
       <div class="titlebar-button maximize" @click="toggleMaximize">
-        <img class="small-icons" :src="isWindowMaximized ? CiMinimizeWindow : CiMaximizeWindow" alt="Maximize">
+        <component :is="isWindowMaximized ? CiMinimizeWindow : CiMaximizeWindow" :size="20" />
       </div>
       <div class="titlebar-button close" @click="closeWindow">
         <CiClose :size="20" />

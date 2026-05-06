@@ -16,8 +16,8 @@
       <div class="collection-item-container drop-zone">
 
         <div class="collection-item-icon-container">
-          <img v-if="!collection.asset_type_id" class="large-icons" :src="resolveIcon(workflowItemIcon)">
-          <img v-else class="large-icons" :src="resolveIcon(workflowAssetIcon)">
+          <component v-if="!collection.asset_type_id" :is="resolveIcon(workflowItemIcon)" :size="24" />
+          <component v-else :is="resolveIcon(workflowAssetIcon)" :size="24" />
         </div>
 
         <div class="collection-item-content selection-area">

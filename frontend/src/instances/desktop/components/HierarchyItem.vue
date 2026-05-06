@@ -18,7 +18,7 @@
       <div class="hierarchy-item-title" @click="handleClick($event, item)">
 
         <div class="hierarchy-item-type-icon-container">
-          <img v-if="itemIcon" class="large-icons" :src="resolveIcon(itemIcon)">
+          <component v-if="itemIcon" :is="resolveIcon(itemIcon)" :size="24" />
         </div>
 
         <div v-if="item.icon" class="hierarchy-item-icon-container">

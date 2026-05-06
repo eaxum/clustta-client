@@ -29,7 +29,7 @@
 
         <div v-if="notification" ref="notificationItem" :class="['message', notification.type]" @mouseenter="stopTimer()"
             @mouseleave="showMessage(notification)">
-            <img :src="resolveIcon(notificationIcon)" class="notification-icon" alt="">
+            <component :is="resolveIcon(notificationIcon)" :size="18" class="notification-icon" />
             <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 

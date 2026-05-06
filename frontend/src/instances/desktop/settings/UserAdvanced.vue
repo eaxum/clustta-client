@@ -11,13 +11,13 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" v-stop-propagation @click="openAgentConfig">
-            <div class="settings-icon"><CiBrain :size="20" /></div>
+            <div class="settings-icon"><CiBrain /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.llmProvider') }}</div>
               <div class="settings-body">{{ agentKeyConfigured ? $t('settings.providerConfigured') : $t('settings.configureProvider') }}</div>
             </div>
             <div class="settings-action">
-              <CiChevronRight :size="20" />
+              <CiChevronRight />
             </div>
           </div>
 
@@ -32,7 +32,7 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleMinimizeOnClose">
-            <div class="settings-icon"><CiMinimize :size="20" /></div>
+            <div class="settings-icon"><CiMinimize /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.minimizeOnClose') }}</div>
               <div class="settings-body">{{ $t('settings.minimizeOnCloseDescription') }}</div>
@@ -54,7 +54,7 @@
 
           <!-- Connected Integrations List -->
           <div v-for="integration in connectedIntegrations" :key="integration.id" class="settings-item" @click="openIntegrationAuth">
-            <div class="settings-icon"><img class="small-icons" :src="resolveIcon(integration.icon)"></div>
+            <div class="settings-icon"><component :is="resolveIcon(integration.icon)" /></div>
             <div class="settings-content">
               <div class="settings-header">{{ integration.name }}</div>
               <div class="settings-body">{{ $t('settings.connected') }}</div>
@@ -66,13 +66,13 @@
 
           <!-- Connect New Integration -->
           <div class="settings-item" v-stop-propagation @click="openIntegrationAuth">
-            <div class="settings-icon"><CiPlug :size="20" /></div>
+            <div class="settings-icon"><CiPlug /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.connectIntegration') }}</div>
               <div class="settings-body">{{ $t('settings.connectIntegrationDescription') }}</div>
             </div>
             <div class="settings-action">
-              <CiChevronRight :size="20" />
+              <CiChevronRight />
             </div>
           </div>
 
@@ -87,7 +87,7 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleBridgeEnabled">
-            <div class="settings-icon"><CiBrick :size="20" /></div>
+            <div class="settings-icon"><CiBrick /></div>
             <div class="settings-content">
               <div class="settings-header">{{ bridgeEnabled ? $t('settings.disableBridge') : $t('settings.enableBridge') }}</div>
               <div class="settings-body">{{ $t('settings.bridgeEnabledDescription') }}</div>
@@ -98,13 +98,13 @@
           </div>
 
           <div class="settings-item" @click="Browser.OpenURL('https://www.clustta.com/plugins')">
-            <div class="settings-icon"><CiDownload :size="20" /></div>
+            <div class="settings-icon"><CiDownload /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.downloadPlugins') }}</div>
               <div class="settings-body">{{ $t('settings.downloadPluginsDescription') }}</div>
             </div>
             <div class="settings-action">
-              <CiChevronRight :size="20" />
+              <CiChevronRight />
             </div>
           </div>
 
@@ -119,7 +119,7 @@
         <div class="settings-section-card-content">
 
           <div class="settings-item" @click="toggleSyncAfterCheckpoint">
-            <div class="settings-icon"><CiRefresh :size="20" /></div>
+            <div class="settings-icon"><CiRefresh /></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.syncAfterCheckpoint') }}</div>
               <div class="settings-body">{{ $t('settings.syncAfterCheckpointDescription') }}</div>

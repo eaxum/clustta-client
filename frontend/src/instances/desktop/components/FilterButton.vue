@@ -1,7 +1,7 @@
 <template>
 	<span v-stop-propagation @click="buttonFunction" class="filter-button"
 		:class="{ 'button-background': alert, 'full-width': fullWidth, 'icon-after': iconAfter, 'centered': centered }">
-		<component v-if="isIconComponent" :is="icon" :size="16" class="ci-btn-icon no-cursor" :class="{ 'inverted-icon': alert }" />
+		<component v-if="isIconComponent" :is="icon" class="ci-btn-icon no-cursor" :class="{ 'inverted-icon': alert }" />
 		<img v-else class="small-icons no-cursor" :class="{ 'inverted-icon': alert }" :src="icon">
 		<div v-if="showLabel && label" class="label-text no-cursor" :class="{ 'label-text-inverted': alert }">{{ label }}</div>
 		<img class="small-icons chevron no-cursor" :class="{ 'inverted-icon': alert }" src="/icons/chevron_down_white.svg">
@@ -30,6 +30,14 @@ const isIconComponent = computed(() => props.icon && typeof props.icon !== 'stri
 
 .centered {
 	justify-content: space-around;
+}
+
+.ci-btn-icon {
+	width: 18px;
+	height: 18px;
+	min-width: 18px;
+	min-height: 18px;
+	color: var(--white);
 }
 
 .chevron {

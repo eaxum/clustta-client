@@ -3,11 +3,11 @@
   :class="{'button-background': useBackground, 'full-width' : fullWidth, 'active-button' : isActive, 
   'icon-after' : iconAfter, 'centered' : centered, 'is-disabled': stage.operationActive }" class="action-button">
     <component v-if="!iconAfter && isIconComponent && smallIcons" :is="icon" :size="16" class="ci-btn-icon" />
-    <component v-else-if="!iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon" />
+    <component v-else-if="!iconAfter && isIconComponent" :is="icon" :size="28" class="ci-btn-icon" />
     <img v-else-if="!iconAfter && smallIcons" class="small-icons" :src="icon">
     <img v-else-if="!iconAfter && !smallIcons" class="extra-large-icons" :src="icon">
     <div v-if="showLabel">{{ label }}</div>
-    <component v-if="iconAfter && isIconComponent" :is="icon" :size="20" class="ci-btn-icon" />
+    <component v-if="iconAfter && isIconComponent" :is="icon" :size="28" class="ci-btn-icon" />
     <img v-else-if="iconAfter" class="extra-large-icons" :src="icon">
   </span>
 </template>
@@ -87,11 +87,14 @@ const isIconComponent = computed(() => {
 }
 
 .ci-btn-icon {
-  stroke: var(--light-steel);
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
 }
 
 .active-button .ci-btn-icon {
-  stroke: var(--white);
+  color: var(--white);
 }
 
 .action-button-pressed {
