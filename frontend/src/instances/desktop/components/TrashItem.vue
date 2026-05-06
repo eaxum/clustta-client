@@ -34,7 +34,7 @@
 import { nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
-import { CiCategories, CiCheckpointStone, CiChevronRight, CiFolder, CiGeneric } from '@clustta/icons-vue';
+import { CiCheckpointStone, CiChevronRight, CiFolder, CiFourSquares, CiGeneric } from '@clustta/icons-vue';
 import { resolveIcon as resolveIconComponent } from '@/lib/icon-map';
 
 // components
@@ -108,7 +108,7 @@ const toggleVersions = (index) => {
 const trashItemIcon = (type) => {
   if (type === 'collection') return CiFolder;
   if (type === 'asset') return CiGeneric;
-  if (type === 'template') return CiCategories;
+  if (type === 'template') return CiFourSquares;
   return CiGeneric;
 };
 

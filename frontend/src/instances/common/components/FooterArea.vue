@@ -5,7 +5,7 @@
     <span v-if="showProject" class="footer-item" @click="modalStore.setModalVisibility('projectMenu', true)"
       v-stop-propagation>
       <CiBriefcase v-if="projectStore.projects.length" class="small-icons" :size="20" />
-      <img v-else class="small-icons" :src="iconStore.CiStudio">
+      <CiStorefront v-else class="small-icons" :size="20" />
 
       <div class="list-item-text" @mouseenter="trayStates.handleHover($event)"
         @mouseleave="trayStates.resetScroll($event)">
@@ -21,7 +21,7 @@
 
       <!-- <span v-if="showSync && hasRemote" class="single-action-button" :class="{ 'project-unsynced': unSynced }"
         @click="syncProject()" v-tooltip="'Sync Project'">
-        <CiSyncAll :size="20" />
+        <CiCloudSync :size="20" />
       </span> -->
 
       <!-- :class="{ 'button-disabled': processRunning }" -->
@@ -39,9 +39,7 @@
 </template>
 
 <script setup>
-import { useIconStore } from '@/stores/icons';
-const iconStore = useIconStore();
-import { CiArrowDownRamp, CiArrowLeft, CiBriefcase, CiLogout, CiPin, CiStudio, CiSyncAll, CiUnpin } from '@clustta/icons-vue';
+import { CiArrowDownRamp, CiArrowLeft, CiBriefcase, CiCloudSync, CiLogout, CiPin, CiStorefront, CiUnpin } from '@clustta/icons-vue';
 
 // imports
 import { ref, computed } from 'vue';

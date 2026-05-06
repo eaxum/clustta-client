@@ -6,7 +6,8 @@
 
 <script setup>
 
-import { ref, onMounted, computed } from 'vue';
+import { ref, provide, onMounted, computed } from 'vue';
+import { CI_ICON_VARIANT_KEY } from '@clustta/icons-vue';
 import { useNotificationStore } from './stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useSyncConflictStore } from '@/stores/syncConflict';
@@ -45,7 +46,9 @@ const userStore = useUserStore();
 const accountStore = useAccountStore();
 const entitlementStore = useEntitlementStore();
 
-
+// Icon variant — controls global icon style (outline-1.5, outline-1, solid, twotone)
+const iconVariant = ref('outline-1.5');
+provide(CI_ICON_VARIANT_KEY, iconVariant);
 
 const disableMenu = () => {
     // Only disable context menu on desktop

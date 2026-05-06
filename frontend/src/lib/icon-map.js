@@ -17,7 +17,6 @@ import {
   CiArrowDownRampAlert,
   CiArrowLeft,
   CiArrowLeftRamp,
-  CiArrowRight,
   CiArrowUpRamp,
   CiArrowUpRampAlert,
   CiArrowsExpand,
@@ -48,7 +47,6 @@ import {
   CiCamera,
   CiCameraFlash,
   CiCanva,
-  CiCategories,
   CiCdr,
   CiCharacterCreator,
   CiCheck,
@@ -268,12 +266,10 @@ import {
   CiStatusWfa,
   CiStatusWip,
   CiStorefront,
-  CiStudio,
   CiSun,
   CiSvg,
   CiSwitch,
   CiSwitches,
-  CiSyncAll,
   CiTag,
   CiTexture,
   CiTif,
@@ -318,7 +314,6 @@ const iconMap = {
   'arrow-down-ramp-alert': CiArrowDownRampAlert,
   'arrow-left': CiArrowLeft,
   'arrow-left-ramp': CiArrowLeftRamp,
-  'arrow-right': CiArrowRight,
   'arrow-up-ramp': CiArrowUpRamp,
   'arrow-up-ramp-alert': CiArrowUpRampAlert,
   'arrows-expand': CiArrowsExpand,
@@ -349,7 +344,6 @@ const iconMap = {
   'camera': CiCamera,
   'camera-flash': CiCameraFlash,
   'canva': CiCanva,
-  'categories': CiCategories,
   'cdr': CiCdr,
   'character-creator': CiCharacterCreator,
   'check': CiCheck,
@@ -569,12 +563,10 @@ const iconMap = {
   'status-wfa': CiStatusWfa,
   'status-wip': CiStatusWip,
   'storefront': CiStorefront,
-  'studio': CiStudio,
   'sun': CiSun,
   'svg': CiSvg,
   'switch': CiSwitch,
   'switches': CiSwitches,
-  'sync-all': CiSyncAll,
   'tag': CiTag,
   'texture': CiTexture,
   'tif': CiTif,
@@ -603,7 +595,6 @@ const iconMap = {
 
 export function resolveIcon(name) {
   if (!name) return null;
-  if (typeof name !== 'string') return name;
   const normalized = name.toLowerCase().replace(/[_\s]/g, '-');
   return iconMap[normalized] || null;
 }

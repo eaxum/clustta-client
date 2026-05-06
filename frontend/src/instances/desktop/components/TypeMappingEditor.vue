@@ -19,7 +19,7 @@
               <span class="type-name">{{ mapping.external_name || mapping.external_type }}</span>
             </div>
 
-            <CiArrowRight :size="20" class="arrow-icon" />
+            <CiArrowLeft :size="20" class="arrow-icon" />
 
             <div class="local-type">
               <DropDownBox :items="localCollectionTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateCollectionMapping(mapping.external_type, value)"
@@ -41,7 +41,7 @@
               <span class="type-name">{{ mapping.external_name || mapping.external_type }}</span>
             </div>
 
-            <CiArrowRight :size="20" class="arrow-icon" />
+            <CiArrowLeft :size="20" class="arrow-icon" />
 
             <div class="local-type">
               <DropDownBox :items="localAssetTypes" :selectedItem="mapping.local_type" :onSelect="(value) => updateAssetMapping(mapping.external_type, value)"
@@ -57,7 +57,7 @@
 <script setup>
 // imports
 import { computed } from 'vue';
-import { CiArrowRight, CiCheckpointStone } from '@clustta/icons-vue';
+import { CiArrowLeft, CiCheckpointStone } from '@clustta/icons-vue';
 import { resolveIcon } from '@/lib/icon-map';
 
 // components
@@ -216,6 +216,7 @@ const updateAssetMapping = (externalType, localType) => {
   height: 16px;
   opacity: 0.4;
   flex-shrink: 0;
+  transform: scaleX(-1);
 }
 
 .local-type {

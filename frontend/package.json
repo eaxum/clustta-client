@@ -17,7 +17,7 @@
     "proto:generate": "pbjs -t static-module -w es6 -o src/protos/example.js src/protos/example.proto && pbts -o src/protos/example.d.ts src/protos/example.js"
   },
   "dependencies": {
-    "@clustta/icons-vue": "0.1.1",
+    "@clustta/icons-vue": "0.3.0",
     "@clustta/web-adapters": "file:../../clustta-app/packages/web-adapters",
     "@dagrejs/dagre": "^1.1.4",
     "@dicebear/big-smile": "^9.3.2",
