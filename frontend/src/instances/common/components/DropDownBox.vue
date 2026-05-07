@@ -3,7 +3,7 @@
     'list-box-container-full' : fullWidth,
     'list-box-container-fixed' : fixedWidth
     }" >
-    <div class="list-box-parent" :class="{ 'is-disabled': stage.operationActive}" ref="listBoxParent" @click="toggleList()">
+    <div class="list-box-parent" :class="{ 'is-disabled': stage.operationActive, 'is-expanded': isExpanded}" ref="listBoxParent" @click="toggleList()">
       <div class="list-box-parent-content" @mouseenter="utils.handleHover($event)"
         @mouseleave="utils.resetScroll($event)">
         <div class="list-box-parent-text" :class="{ 'placeholder-text': isPlaceholder }" style="overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5rem;">
@@ -18,7 +18,7 @@
         :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px', width: listItemsWidth + 'px', maxHeight: listItemMaxHeight + 'px' }">
         <div class="listbox-list-items">
           <div v-for="(item, index) in filteredItems" :key="getItemKey(item, index)" :value="getItemValue(item)" @click="selectItem(item, items)"
-            class="listbox-item" :class="{ 'listbox-item-closed': isUnique(getItemValue(item)) === true }">
+            class="listbox-item" :class="{ 'listbox-item-closed': isUnique(getItemValue(item)) === true, 'listbox-item-selected': getItemValue(item) === props.selectedItem }">
             <div class="listbox-item-text-mask" @mouseenter="startScrollText($event, index)"
               @mouseleave="stopScrollText($event)">
               <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -86,15 +86,19 @@ const listItemsAnchor = ref(0);
 const listItemsLeft = ref(0);
 const listItemsWidth = ref(0);
 const listItemMaxHeight = ref(0);
+const listItemsPaddingTop = ref(0);
+
+// horizontal/vertical breathing room around the wrapped input
+const WRAP_PAD_X = 6;
+const WRAP_PAD_Y = 6;
 const filteredItems = computed(() => {
-  if (props.useFilter) {
-    return props.items.length ? props.items.filter(item => {
-      const itemValue = getItemValue(item);
-      return itemValue !== props.selectedItem;
-    }) : []
-  } else {
-    return props.items.length ? props.items : []
-  }
+  if (!props.items.length) return [];
+  const selectedIdx = props.items.findIndex(item => getItemValue(item) === props.selectedItem);
+  if (selectedIdx <= 0) return props.items;
+  const reordered = props.items.slice();
+  const [selected] = reordered.splice(selectedIdx, 1);
+  reordered.unshift(selected);
+  return reordered;
 });
 
 const isPlaceholder = computed(() => !props.selectedItem);
@@ -152,14 +156,19 @@ const stopScrollText = (event) => {
 
 const toggleList = () => {
   const containerHeight = listItemsBoundary.value ? listItemsBoundary.value.getBoundingClientRect().height : 200;
-  const listParentLeft = listBoxParent.value.getBoundingClientRect().left;
-  const listParentGlobalY = listBoxParent.value.getBoundingClientRect().top;
-  const listParentHeight = listBoxParent.value.getBoundingClientRect().height;
+  const parentRect = listBoxParent.value.getBoundingClientRect();
+  const listParentLeft = parentRect.left;
+  const listParentGlobalY = parentRect.top;
+  const listParentHeight = parentRect.height;
+  const listParentWidth = parentRect.width;
+
+  const baseWidth = props.fullWidth ? listParentWidth : 200;
 
   listItemsLeft.value = listParentLeft;
-  listItemsAnchor.value = listParentGlobalY + listParentHeight + 5;
-  listItemsWidth.value = props.fullWidth ? listBoxParent.value.getBoundingClientRect().width : 200;
-  listItemMaxHeight.value = containerHeight - listParentHeight - listParentGlobalY;
+  listItemsAnchor.value = listParentGlobalY;
+  listItemsWidth.value = baseWidth;
+  listItemsPaddingTop.value = 0;
+  listItemMaxHeight.value = containerHeight - listParentGlobalY;
   // listItemMaxHeight.value = 200;
 
   if (filteredItems.value.length) {
@@ -277,6 +286,12 @@ onUnmounted(() => {
     background-color: var(--dark-steel);
 }
 
+.list-box-parent.is-expanded {
+    position: relative;
+    z-index: 100001;
+    background-color: transparent;
+}
+
 .list-box-parent-content {
   position: relative;
   box-sizing: border-box;
@@ -313,7 +328,7 @@ onUnmounted(() => {
   color: var(--white);
   box-sizing: border-box;
   z-index: 100000;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   min-height: 32px;
   line-height: 1.4 !important;
   background-color: var(--dark-steel);
@@ -329,6 +344,7 @@ onUnmounted(() => {
   position: absolute;
   outline: var(--transparent-line);
   width: min-content;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 
@@ -385,6 +401,14 @@ onUnmounted(() => {
 
 .listbox-item:hover {
   background-color: var(--light-steel);
+}
+
+.listbox-item-selected {
+  background-color: var(--light-steel);
+}
+
+.listbox-item-selected .listbox-item-text {
+  font-weight: 500;
 }
 
 .listbox-item-closed {
