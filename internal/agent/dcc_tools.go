@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"clustta/internal/repository"
@@ -35,7 +35,7 @@ func GetDCCToolDefinitions() []ToolDefinition {
 		},
 		{
 			Name:        "blender_render",
-			Description: "Launch a Blender headless render in a visible terminal window. Renders the specified .blend file(s) with optional frame range, output path, and engine settings. Fire-and-forget — the terminal stays open so the user can monitor progress.",
+			Description: "Launch a Blender headless render in a visible terminal window. Renders the specified .blend file(s) with optional frame range, output path, and engine settings. Fire-and-forget - the terminal stays open so the user can monitor progress.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -90,7 +90,7 @@ func GetDCCToolDefinitions() []ToolDefinition {
 		},
 		{
 			Name:        "run_terminal_command",
-			Description: "Run a command in a new visible terminal window. Fire-and-forget — the terminal stays open after the command finishes. Use for custom scripts, batch processing, or any command-line task.",
+			Description: "Run a command in a new visible terminal window. Fire-and-forget - the terminal stays open after the command finishes. Use for custom scripts, batch processing, or any command-line task.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -455,7 +455,6 @@ func execBlenderRunPython(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	// Write the Python code to a temp file, appending a save at the end
 	tmpScript, err := os.CreateTemp("", "clustta-py-*.py")
 	if err != nil {
 		return ToolResult{Success: false, Error: "failed to create temp script: " + err.Error()}
@@ -502,7 +501,6 @@ func execBlenderSetSettings(projectPath string, args map[string]interface{}) Too
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	// Build Python statements for each setting
 	var stmts []string
 	stmts = append(stmts, "import bpy", "s = bpy.context.scene")
 
@@ -531,7 +529,6 @@ func execBlenderSetSettings(projectPath string, args map[string]interface{}) Too
 		stmts = append(stmts, fmt.Sprintf("s.cycles.samples = %d", samples))
 	}
 
-	// Must have at least one setting change beyond the imports
 	if len(stmts) <= 2 {
 		return ToolResult{Success: false, Error: "at least one setting must be specified (engine, resolution_x, resolution_y, fps, output_format, or samples)"}
 	}
@@ -581,7 +578,6 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 		return ToolResult{Success: false, Error: "Blender not found: " + err.Error()}
 	}
 
-	// Resolve target file
 	targetPaths, err := resolveAssetFilePaths(projectPath, []string{targetAssetID})
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
@@ -591,11 +587,9 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 		return ToolResult{Success: false, Error: fmt.Sprintf("target %s is not a .blend file", filepath.Base(targetFile))}
 	}
 
-	// Resolve source files — explicit IDs or from dependency graph
 	sourceAssetIDs := getStringSliceArg(args, "source_asset_ids")
 
 	if len(sourceAssetIDs) == 0 {
-		// Auto-resolve from Clustta dependency graph
 		dbConn, err := utils.OpenDb(projectPath)
 		if err != nil {
 			return ToolResult{Success: false, Error: "failed to open database: " + err.Error()}
@@ -624,7 +618,6 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	// Filter to only .blend source files
 	var blendSources []string
 	for _, sp := range sourcePaths {
 		if strings.HasSuffix(strings.ToLower(sp), ".blend") {
@@ -635,9 +628,6 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 		return ToolResult{Success: false, Error: "no .blend files found among source assets"}
 	}
 
-	// Build Python script that links/appends from each source.
-	// We write a multi-line script to a temp .py file since --python-expr has quoting issues
-	// with complex scripts. The script uses bpy.data.libraries.load() for reliable linking.
 	var pyLines []string
 	pyLines = append(pyLines, "import bpy")
 
@@ -646,7 +636,6 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 		linkBool = "False"
 	}
 
-	// Build a Python set of allowed names for filtering
 	hasNameFilter := len(dataNames) > 0
 	if hasNameFilter {
 		nameSet := make([]string, 0, len(dataNames))
@@ -661,7 +650,6 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 		for _, objType := range objectTypes {
 			dataAttr := strings.ToLower(objType) + "s"
 			if hasNameFilter {
-				// Only load data blocks whose names match the filter
 				pyLines = append(pyLines, fmt.Sprintf(
 					`with bpy.data.libraries.load(r'%s', link=%s) as (src, dst): dst.%s = [n for n in src.%s if n in _names]`,
 					srcFileEscaped, linkBool, dataAttr, dataAttr,
@@ -675,7 +663,6 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 		}
 	}
 
-	// Instance loaded data into the active scene
 	for _, objType := range objectTypes {
 		switch strings.ToLower(objType) {
 		case "collection":
@@ -697,7 +684,6 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 
 	pyLines = append(pyLines, "bpy.ops.wm.save_mainfile()")
 
-	// Write script to a temp .py file
 	tmpScript, err := os.CreateTemp("", "clustta-link-*.py")
 	if err != nil {
 		return ToolResult{Success: false, Error: "failed to create temp script: " + err.Error()}
@@ -723,10 +709,7 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 // --- Shared helpers ---
 
 // resolveAssetFilePaths looks up asset IDs and returns their absolute file paths.
-// All resolved paths are validated to live inside the project directory so that
-// a maliciously crafted asset.GetFilePath() (e.g. "../../etc/passwd" or an
-// absolute path to a system file) cannot trick DCC tools into opening files
-// outside the project root.
+// Each path is validated to live inside the project directory so a malicious asset path cannot escape it.
 func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -778,7 +761,6 @@ func validateAssetPath(projectPath, fp string) (string, error) {
 		return "", fmt.Errorf("invalid file path: %w", err)
 	}
 
-	// Compare with a trailing separator so "/projectAbc" doesn't match "/project".
 	rootWithSep := projectDir + string(filepath.Separator)
 	if !strings.EqualFold(abs, projectDir) && !strings.HasPrefix(strings.ToLower(abs)+string(filepath.Separator), strings.ToLower(rootWithSep)) {
 		return "", fmt.Errorf("path %s is outside the project directory", abs)
@@ -812,7 +794,6 @@ func detectDCCFromExtension(ext string) string {
 
 // findDCCExecutable locates a DCC application executable on the system.
 func findDCCExecutable(name string) (string, error) {
-	// Check environment variable first (e.g., BLENDER_PATH, MAYA_PATH)
 	envKey := strings.ToUpper(name) + "_PATH"
 	if envPath := os.Getenv(envKey); envPath != "" {
 		if _, err := os.Stat(envPath); err == nil {
@@ -820,19 +801,17 @@ func findDCCExecutable(name string) (string, error) {
 		}
 	}
 
-	// Check common installation paths
 	for _, p := range dccDefaultPaths(name) {
 		if _, err := os.Stat(p); err == nil {
 			return p, nil
 		}
 	}
 
-	// Fall back to PATH lookup
 	if p, err := exec.LookPath(name); err == nil {
 		return p, nil
 	}
 
-	return "", fmt.Errorf("%s not found — set %s environment variable or add it to PATH", name, envKey)
+	return "", fmt.Errorf("%s not found - set %s environment variable or add it to PATH", name, envKey)
 }
 
 // dccDefaultPaths returns common installation paths for a DCC application.

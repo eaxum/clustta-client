@@ -3,13 +3,13 @@ package agent
 // knowledgeBase contains curated documentation about Clustta's features and concepts.
 // Used to provide the LLM with context about how Clustta works so it can answer user questions.
 var knowledgeBase = map[string]string{
-	"overview": `Clustta is a distributed version control and collaboration system for creative workflows — like Git/GitHub but designed for creative work (3D, VFX, animation, game dev). It manages binary files, large assets, and creative pipelines.
+	"overview": `Clustta is a distributed version control and collaboration system for creative workflows - like Git/GitHub but designed for creative work (3D, VFX, animation, game dev). It manages binary files, large assets, and creative pipelines.
 
 Key concepts:
 - Projects: A .clst SQLite database file that stores all metadata for a creative project
 - Collections (also called Entities): Folder-like containers that organize assets (e.g., "Characters", "Environments", "Props")
 - Assets (also called Tasks): Individual files being version-controlled (e.g., a Blender file, a texture, a rig)
-- Checkpoints: Saved versions/snapshots of assets — like Git commits but for binary files
+- Checkpoints: Saved versions/snapshots of assets - like Git commits but for binary files
 - Studios: Team/organization servers for collaboration
 - Statuses: Track the state of assets (e.g., Todo, In Progress, Review, Done)
 - Task Types: Categorize assets by their role (e.g., Model, Rig, Animation, Texture)
@@ -49,7 +49,7 @@ Asset operations:
 - Create checkpoints (save versions)
 - View dependencies between assets`,
 
-	"checkpoints": `Checkpoints are saved versions of assets — similar to Git commits but designed for large binary files.
+	"checkpoints": `Checkpoints are saved versions of assets - similar to Git commits but designed for large binary files.
 
 How checkpoints work:
 - When you checkpoint an asset, Clustta saves the current state of the file
@@ -228,18 +228,18 @@ Common script scenarios:
 - Automated exports: Export assets from DCCs (Digital Content Creation tools)
 - File analysis: Scan assets for issues (missing textures, broken references)
 
-Scripts are generated for review and manual execution — they are never auto-executed by the agent.
+Scripts are generated for review and manual execution - they are never auto-executed by the agent.
 Alternatively, you can use the run_terminal_command tool to launch a command in a visible terminal window.`,
 
-	"dcc_tools": `Clustta has built-in DCC (Digital Content Creation) tool integration. All DCC operations are fire-and-forget — they launch in a visible terminal window so the user can monitor progress.
+	"dcc_tools": `Clustta has built-in DCC (Digital Content Creation) tool integration. All DCC operations are fire-and-forget - they launch in a visible terminal window so the user can monitor progress.
 
 Supported DCC applications:
-- Blender (.blend) — full integration: render, export, link, settings, custom scripts
-- Maya (.ma, .mb) — open files
-- Houdini (.hip, .hipnc, .hiplc) — open files
-- Nuke (.nk) — open files
-- Substance Painter (.spp) — open files
-- Cinema 4D (.c4d) — open files
+- Blender (.blend) - full integration: render, export, link, settings, custom scripts
+- Maya (.ma, .mb) - open files
+- Houdini (.hip, .hipnc, .hiplc) - open files
+- Nuke (.nk) - open files
+- Substance Painter (.spp) - open files
+- Cinema 4D (.c4d) - open files
 
 DCC executable discovery (in order):
 1. Environment variable (e.g., BLENDER_PATH, MAYA_PATH)
@@ -250,7 +250,7 @@ Blender tools:
 - open_in_dcc: Open files in the correct DCC app (auto-detected from extension or specified)
 - blender_render: Headless render with optional frame range, engine, and output path
 - blender_export: Export to FBX, OBJ, glTF, or USD
-- blender_run_python: Run inline Python code on .blend files — the agent writes the code, saves to a temp file, and launches Blender headless. The file is auto-saved after execution. Use this for any Blender-internal operation: creating Blender collections, modifying objects, materials, scenes, etc.
+- blender_run_python: Run inline Python code on .blend files - the agent writes the code, saves to a temp file, and launches Blender headless. The file is auto-saved after execution. Use this for any Blender-internal operation: creating Blender collections, modifying objects, materials, scenes, etc.
 - blender_run_script: Run a custom .py script file on .blend files
 - blender_set_settings: Batch-modify render engine, resolution, FPS, samples, output format
 - blender_link: Link or append objects from dependency .blend files into a target file

@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 // Risk levels classify tool calls for approval gating.
 const (
@@ -10,12 +10,10 @@ const (
 // destructiveTools enumerates tool names that require explicit user approval
 // before execution unless auto-approve is enabled.
 var destructiveTools = map[string]bool{
-	// Single-item destructive
 	"delete_asset":      true,
 	"delete_collection": true,
 	"remove_user":       true,
 
-	// Type/workflow management (mass impact)
 	"delete_asset_type":            true,
 	"delete_collection_type":       true,
 	"apply_workflow":               true,
@@ -23,7 +21,6 @@ var destructiveTools = map[string]bool{
 	"batch_update_asset_types":     true,
 	"batch_update_collection_types": true,
 
-	// Bulk asset operations
 	"bulk_delete_assets":     true,
 	"bulk_change_asset_type": true,
 	"bulk_change_collection_type": true,
@@ -34,14 +31,12 @@ var destructiveTools = map[string]bool{
 	"batch_create_assets":    true,
 	"batch_create_collections": true,
 
-	// Server-side membership changes
 	"add_project_collaborator":       true,
 	"remove_project_collaborator":    true,
 	"add_studio_collaborator":        true,
 	"change_studio_collaborator_role": true,
 	"remove_studio_collaborator":     true,
 
-	// Arbitrary code execution
 	"run_terminal_command": true,
 	"blender_run_script":   true,
 	"blender_run_python":   true,

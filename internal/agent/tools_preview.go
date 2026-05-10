@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"clustta/internal/repository"
@@ -12,7 +12,7 @@ import (
 type ToolPreview struct {
 	Summary string                 `json:"summary"`          // one-line human-readable description
 	Items   []map[string]string    `json:"items,omitempty"`  // affected items (name + optional context)
-	Counts  map[string]int         `json:"counts,omitempty"` // category → count (e.g. "assets": 12)
+	Counts  map[string]int         `json:"counts,omitempty"` // category â†’ count (e.g. "assets": 12)
 	Notes   []string               `json:"notes,omitempty"`  // extra warnings or context lines
 	Args    map[string]interface{} `json:"args,omitempty"`   // raw arguments for transparency
 }
@@ -170,18 +170,15 @@ func previewBulkDelete(projectPath string, args map[string]interface{}) []map[st
 			continue
 		}
 		out = append(out, map[string]string{"name": a.Name, "id": a.Id})
-		if len(out) >= 100 { // cap preview size
+		if len(out) >= 100 {
 			break
 		}
 	}
 	return out
 }
 
-// verifyToolPreview re-checks that the target items still match the preview the
-// user was shown in the approval modal. If a name has changed, an item has been
-// deleted, or the matched set differs, returns a non-nil error and the agent
-// loop treats this as a denial. Closes the TOCTOU window between approval and
-// execution for the highest-blast-radius tools.
+// verifyToolPreview re-checks that the target items still match the preview the user approved,
+// closing the TOCTOU window between approval and execution for the highest-blast-radius tools.
 func verifyToolPreview(projectPath, toolName string, args map[string]interface{}, preview ToolPreview) error {
 	switch toolName {
 	case "delete_asset":
@@ -195,7 +192,7 @@ func verifyToolPreview(projectPath, toolName string, args map[string]interface{}
 		}
 		expected := preview.Items[0]["name"]
 		if expected != "" && current != expected {
-			return fmt.Errorf("asset was renamed since you approved (%q → %q); please retry", expected, current)
+			return fmt.Errorf("asset was renamed since you approved (%q â†’ %q); please retry", expected, current)
 		}
 	case "delete_collection":
 		id, _ := args["collection_id"].(string)
@@ -208,7 +205,7 @@ func verifyToolPreview(projectPath, toolName string, args map[string]interface{}
 		}
 		expected := preview.Items[0]["name"]
 		if expected != "" && current != expected {
-			return fmt.Errorf("collection was renamed since you approved (%q → %q); please retry", expected, current)
+			return fmt.Errorf("collection was renamed since you approved (%q â†’ %q); please retry", expected, current)
 		}
 	case "bulk_delete_assets":
 		previewIDs := map[string]bool{}
@@ -224,7 +221,6 @@ func verifyToolPreview(projectPath, toolName string, args map[string]interface{}
 				currentIDs[id] = true
 			}
 		}
-		// Any change to the matched set invalidates the user's approval.
 		for id := range currentIDs {
 			if !previewIDs[id] {
 				return fmt.Errorf("asset set changed since you approved (new asset matches the filters); please retry")

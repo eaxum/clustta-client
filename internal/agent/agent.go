@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"bytes"
@@ -58,18 +58,12 @@ type FunctionCall struct {
 // EventEmitter is a callback for sending events to the frontend.
 type EventEmitter func(eventName string, data interface{})
 
-// ApprovalRequester is a callback that asks the user for permission before executing
-// a destructive tool call. Implementations should block until the user responds (or
-// the context is cancelled). It returns true to allow execution, false to skip.
-// preview is an optional structured summary describing what would happen.
+// ApprovalRequester asks the user to approve a destructive tool call and blocks until they respond.
+// It returns true to allow execution, false to skip; preview is an optional structured summary.
 type ApprovalRequester func(ctx context.Context, toolCallID, toolName, riskLevel string, args map[string]interface{}, preview interface{}) bool
 
-// RunAgent executes the agent loop: user message → LLM → tool calls → repeat.
-// It takes existing conversation history and returns the updated history after the interaction.
-// The context can be cancelled to stop the run; on cancel a summary assistant message is appended
-// listing the tool calls that had already been executed.
-// requestApproval may be nil; when non-nil it is consulted before running each destructive tool.
-// The returned mutated flag is true if at least one tool call that modifies the project DB succeeded.
+// RunAgent executes the agent loop: user message â†’ LLM â†’ tool calls â†’ repeat,
+// returning the updated history, whether any mutating tool succeeded, and any error.
 func RunAgent(ctx context.Context, projectPath string, history []Message, userMessage, attachmentContent, apiKey, provider, model string, emit EventEmitter, requestApproval ApprovalRequester) ([]Message, bool, error) {
 	if apiKey == "" && provider != "ollama" {
 		return history, false, fmt.Errorf("no API key configured")
@@ -78,7 +72,6 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 		ctx = context.Background()
 	}
 
-	// Build project context
 	projectContext, err := BuildProjectContext(projectPath)
 	if err != nil {
 		projectContext = "Could not load project context: " + err.Error()
@@ -86,33 +79,26 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 
 	systemPrompt := buildSystemPrompt(projectContext)
 
-	// Start from existing history or create new
 	messages := make([]Message, 0, len(history)+2)
 	messages = append(messages, Message{Role: "system", Content: systemPrompt})
 
-	// Add prior conversation turns (skip old system messages)
 	for _, m := range history {
 		if m.Role != "system" {
 			messages = append(messages, m)
 		}
 	}
 
-	// Build user message content
 	userContent := userMessage
 	if attachmentContent != "" {
 		userContent += "\n\n--- Attached Content ---\n" + attachmentContent
 	}
 	messages = append(messages, Message{Role: "user", Content: userContent})
 
-	// Get tool definitions in OpenAI format
 	tools := buildOpenAITools()
 
-	// Track executed tool calls for cancellation summary.
 	var executedTools []string
-	// Track whether any successful tool call mutated the project DB.
 	mutated := false
 
-	// Agent loop
 	for range maxIterations {
 		if err := ctx.Err(); err != nil {
 			return finalizeCancelled(messages, executedTools, emit), mutated, ErrCancelled
@@ -129,16 +115,13 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 
 		choice := response.Choices[0]
 
-		// If the LLM wants to call tools
 		if len(choice.Message.ToolCalls) > 0 {
-			// Add assistant message with tool calls
 			messages = append(messages, Message{
 				Role:      "assistant",
 				Content:   choice.Message.Content,
 				ToolCalls: choice.Message.ToolCalls,
 			})
 
-			// Execute each tool call
 			for _, tc := range choice.Message.ToolCalls {
 				if err := ctx.Err(); err != nil {
 					return finalizeCancelled(messages, executedTools, emit), mutated, ErrCancelled
@@ -148,16 +131,11 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 					"id":   tc.ID,
 				})
 
-				// Parse arguments
 				var args map[string]interface{}
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
 					args = map[string]interface{}{}
 				}
 
-				// Approval gate for destructive tools.
-				// Fail-closed: if the caller didn't supply an approver, refuse to run
-				// the tool rather than silently executing it. Callers that want
-				// auto-approve must pass an explicit always-approve function.
 				if IsDestructive(tc.Function.Name) {
 					if requestApproval == nil {
 						denied := ToolResult{Success: false, Error: "Destructive tool blocked: no approver configured for this agent run."}
@@ -194,8 +172,6 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 						})
 						continue
 					}
-					// Re-verify that the targets the user saw in the preview still
-					// match what we're about to do. Closes the TOCTOU window.
 					if verifyErr := verifyToolPreview(projectPath, tc.Function.Name, args, preview); verifyErr != nil {
 						aborted := ToolResult{Success: false, Error: verifyErr.Error()}
 						emit("agent-tool-result", map[string]interface{}{
@@ -213,7 +189,6 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 					}
 				}
 
-				// Execute tool
 				result := ExecuteTool(projectPath, tc.Function.Name, args)
 				if result.Success {
 					executedTools = append(executedTools, tc.Function.Name)
@@ -228,7 +203,6 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 					"success": result.Success,
 				})
 
-				// Sync updated ignore list to frontend when modified
 				if result.Success && (tc.Function.Name == "add_ignore_pattern" || tc.Function.Name == "remove_ignore_pattern") {
 					if dataMap, ok := result.Data.(map[string]interface{}); ok {
 						if updatedList, ok := dataMap["ignore_list"]; ok {
@@ -237,12 +211,17 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 					}
 				}
 
-				// Forward reveal-in-browser navigation requests to the frontend
 				if result.Success && tc.Function.Name == "reveal_in_browser" {
 					emit("agent-reveal-in-browser", result.Data)
 				}
 
-				// Add tool result message
+				if result.Success && tc.Function.Name == "apply_browser_filter" {
+					emit("agent-apply-filter", result.Data)
+				}
+				if result.Success && tc.Function.Name == "clear_browser_filter" {
+					emit("agent-clear-filter", result.Data)
+				}
+
 				messages = append(messages, Message{
 					Role:       "tool",
 					Content:    SerializeToolResult(result),
@@ -252,7 +231,6 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 			continue
 		}
 
-		// LLM returned a text response — we're done
 		if choice.Message.Content != nil {
 			content := fmt.Sprintf("%v", choice.Message.Content)
 			messages = append(messages, Message{Role: "assistant", Content: content})
@@ -283,7 +261,6 @@ func finalizeCancelled(messages []Message, executedTools []string, emit EventEmi
 	if len(executedTools) == 0 {
 		summary = "Cancelled. No tool calls had run yet."
 	} else {
-		// Group identical tool names with counts.
 		counts := map[string]int{}
 		order := []string{}
 		for _, name := range executedTools {
@@ -330,19 +307,20 @@ var readOnlyTools = map[string]bool{
 	"list_ignore_patterns":      true,
 	"generate_script":           true,
 
-	// Phase 1a read-only additions
 	"list_workflows":       true,
 	"list_roles":           true,
 	"reveal_asset_on_disk": true,
 	"reveal_in_browser":    true,
 	"search_project_text":  true,
 
-	// Phase 1a-ii read-only additions (collaborator listings)
 	"list_project_collaborators": true,
 	"list_studios":               true,
 	"list_studio_users":          true,
 
-	// DCC tools don't modify the project database
+	"list_filter_dimensions": true,
+	"apply_browser_filter":   true,
+	"clear_browser_filter":   true,
+
 	"open_in_dcc":    true,
 	"blender_render": true,
 	"blender_export": true, "blender_run_script": true,
@@ -361,7 +339,7 @@ func isMutatingTool(toolName string) bool {
 func buildSystemPrompt(projectContext string) string {
 	var sb strings.Builder
 
-	sb.WriteString(`You are Clustta Assistant, an AI that helps manage creative projects in Clustta — a version control and collaboration system for creative workflows (3D, VFX, animation, game dev).
+	sb.WriteString(`You are Clustta Assistant, an AI that helps manage creative projects in Clustta â€” a version control and collaboration system for creative workflows (3D, VFX, animation, game dev).
 
 ## Your Capabilities
 1. Answer questions about how Clustta works using the search_knowledge tool
@@ -389,7 +367,7 @@ func buildSystemPrompt(projectContext string) string {
 23. Link or append objects from dependency .blend files into a target .blend file (auto-resolves from Clustta dependency graph)
 
 ## Rules
-- Messages may begin with a [Context: ...] block describing what the user currently has selected in the UI. Use this to resolve ambiguous references like "this asset", "these items", "the selected collection", etc. The context provides item names, IDs, types, and other metadata — use these IDs directly when calling tools.
+- Messages may begin with a [Context: ...] block describing what the user currently has selected in the UI. Use this to resolve ambiguous references like "this asset", "these items", "the selected collection", etc. The context provides item names, IDs, types, and other metadata â€” use these IDs directly when calling tools.
 
 ## Citing entities in your replies
 - Whenever you mention a specific asset, collection, or user that exists in the project, write it inline using this exact token format so the UI can render it as an interactive chip:
@@ -397,27 +375,38 @@ func buildSystemPrompt(projectContext string) string {
   - Collection: [[collection:<id>|Display Name]]
   - User:       [[user:<id>|Display Name]]
 - Use the id returned by the most recent tool call. Never invent ids. If you do not have an id, write the name as plain text instead.
-- Never write a raw id, UUID, or hash in your reply. The user must never see ids — they only ever see the display name inside the chip.
+- Never write a raw id, UUID, or hash in your reply. The user must never see ids â€” they only ever see the display name inside the chip.
 - The token replaces the name inline. Example: "I assigned [[asset:9f3...|shot_010_layout]] to [[user:b21...|Ada Lovelace]]." Do NOT also write the name outside the token.
-- Never wrap a token in Markdown emphasis or code formatting. Do NOT write **[[asset:...|...]]**, *[[...]]*, _[[...]]_, or place tokens inside backticks. Plain tokens only — the UI styles the chip.
-- Lists work the same way — render each item as a chip on its own line, e.g.
+- Never wrap a token in Markdown emphasis or code formatting. Do NOT write **[[asset:...|...]]**, *[[...]]*, _[[...]]_, or place tokens inside backticks. Plain tokens only â€” the UI styles the chip.
+- Lists work the same way â€” render each item as a chip on its own line, e.g.
   - [[asset:<id>|Name]]
   - [[asset:<id>|Name]]
-- When the user asks for Blender-internal operations (creating Blender collections, modifying objects, changing materials, etc.), use blender_run_python to execute inline Python code directly — do not use generate_script.
+- When the user asks for Blender-internal operations (creating Blender collections, modifying objects, changing materials, etc.), use blender_run_python to execute inline Python code directly â€” do not use generate_script.
 - Blender Python best practices: when creating a Blender collection, always link it to the scene with bpy.context.scene.collection.children.link(). When creating objects, always link them to a collection. Data blocks not linked to the scene are invisible in the Outliner.
-- Before any mutating operation (create, delete, rename, assign, etc.), FIRST call get_my_permissions to check the user's role. If the user lacks the required permission, tell them immediately — do not attempt the action.
-- Use search_assets (with no filters) to list all assets directly. Do not assume assets must be inside collections — assets can exist at root level. search_assets returns paginated results (default 50). Use offset to page through large result sets.
+- Before any mutating operation (create, delete, rename, assign, etc.), FIRST call get_my_permissions to check the user's role. If the user lacks the required permission, tell them immediately â€” do not attempt the action.
+- Use search_assets (with no filters) to list all assets directly. Do not assume assets must be inside collections â€” assets can exist at root level. search_assets returns paginated results (default 50). Use offset to page through large result sets.
 - For destructive operations (delete, remove user), warn the user and ask for confirmation first
-- For bulk operations (assign all X, change status of all Y), use bulk_assign or bulk_change_status with filter parameters — these operate server-side and do NOT require searching first. Never search+collect IDs+loop when a bulk tool with filters can do the job in one call.
-- For script generation, display the script for user review — never claim to execute it
-- Use exact IDs from the project data when calling tools — never guess IDs
+- For bulk operations (assign all X, change status of all Y), use bulk_assign or bulk_change_status with filter parameters â€” these operate server-side and do NOT require searching first. Never search+collect IDs+loop when a bulk tool with filters can do the job in one call.
+- bulk_assign / bulk_change_status accept filter_extension, filter_unassigned, plus limit, limit_fraction (0-1), and random. Use these for requests like "assign half the .clip files to me" (filter_extension:"clip", limit_fraction:0.5, random:true) â€” do NOT fall back to search_assets and claim you can't pick a subset.
+- For script generation, display the script for user review â€” never claim to execute it
+- Use exact IDs from the project data when calling tools â€” never guess IDs
 - Be concise and direct in responses
 - When the user asks about Clustta features, use search_knowledge to find accurate information
 - If creating multiple items, use batch tools (batch_create_collections, batch_create_assets) instead of calling single-item tools repeatedly
-- DCC tools (open_in_dcc, blender_render, blender_export) are fire-and-forget — they launch a terminal or process and return immediately. Inform the user the operation was started.
+- DCC tools (open_in_dcc, blender_render, blender_export) are fire-and-forget â€” they launch a terminal or process and return immediately. Inform the user the operation was started.
 - For DCC tool detection: .blend files use Blender, .ma/.mb use Maya, .hip use Houdini. Users can also set BLENDER_PATH, MAYA_PATH, etc. environment variables.
-- run_terminal_command launches any command in a visible terminal — use it for custom scripts or operations not covered by other tools
-- blender_link auto-resolves source files from the target asset's Clustta dependency graph when source_asset_ids is omitted. Prefer this for linking dependent assets. Use data_names to link only specific named data blocks (e.g., the asset name) — without data_names, ALL data blocks of the specified types are linked from each source file.
+- run_terminal_command launches any command in a visible terminal â€” use it for custom scripts or operations not covered by other tools
+- blender_link auto-resolves source files from the target asset's Clustta dependency graph when source_asset_ids is omitted. Prefer this for linking dependent assets. Use data_names to link only specific named data blocks (e.g., the asset name) â€” without data_names, ALL data blocks of the specified types are linked from each source file.
+
+## Filtering the browser view
+- When the user asks to view, list, or filter assets/collections (e.g. "show all rigging assets", "list done tasks", "tasks assigned to me", "only modified files", "all .blend files"), call apply_browser_filter â€” do NOT use search_assets just to display things in the browser. search_assets is for analytical queries that return data to you; apply_browser_filter changes what the user sees.
+- If you do not already know the available statuses / asset types / users / tags, call list_filter_dimensions FIRST so your filter terms match real values.
+- Use the literal string "@me" inside assignees for the current user.
+- Use no_assignees:true for "unassigned".
+- Set deep:true when the user says things like "across the project", "everywhere", or "the whole project".
+- Call clear_browser_filter to undo all filtering.
+- Filtering does not modify any project data and never requires confirmation.
+- The result of apply_browser_filter includes match_count and unmatched. If match_count is 0, tell the user no items matched (and mention any unmatched terms) instead of pretending the filter succeeded. If unmatched is non-empty but match_count > 0, mention which terms were ignored.
 
 `)
 
@@ -551,8 +540,7 @@ func GetDefaultModel(provider string) string {
 }
 
 // VerifyOllamaModel checks that the local Ollama server is reachable and that
-// the requested model is pulled. Returns a user-friendly error otherwise so
-// the agent doesn't surface a generic 404 from the LLM call.
+// the requested model is pulled, returning a user-friendly error otherwise.
 func VerifyOllamaModel(ctx context.Context, model string) error {
 	if model == "" {
 		model = GetDefaultModel("ollama")
@@ -582,7 +570,6 @@ func VerifyOllamaModel(ctx context.Context, model string) error {
 		return fmt.Errorf("could not parse Ollama tag list: %w", err)
 	}
 	for _, m := range payload.Models {
-		// Ollama returns names like "llama3.2:latest"; accept exact match or prefix-with-colon.
 		if m.Name == model || strings.HasPrefix(m.Name, model+":") {
 			return nil
 		}
@@ -598,8 +585,8 @@ func resolveModel(provider, model string) string {
 	return GetDefaultModel(provider)
 }
 
-// callLLM calls the LLM API (OpenAI-compatible or Anthropic) and returns the response.
-// If model is empty the provider's default is used.
+// callLLM dispatches to the right provider's API and returns the response.
+// Falls back to the provider default when model is empty.
 func callLLM(ctx context.Context, apiKey, provider, model string, messages []Message, tools []openAITool) (openAIResponse, error) {
 	switch provider {
 	case "anthropic":
@@ -651,7 +638,6 @@ func callOpenAICompat(ctx context.Context, apiKey, endpoint, model string, messa
 
 	var result openAIResponse
 	if err := json.Unmarshal(respBody, &result); err != nil {
-		// Include a snippet of the response body for debugging
 		snippet := string(respBody)
 		if len(snippet) > 200 {
 			snippet = snippet[:200]
@@ -672,7 +658,6 @@ func callOpenAICompat(ctx context.Context, apiKey, endpoint, model string, messa
 
 // parseAPIError extracts a user-friendly message from an LLM API error response.
 func parseAPIError(statusCode int, body []byte, model string) error {
-	// Try to extract the message from JSON error response
 	var parsed struct {
 		Error struct {
 			Message string `json:"message"`
@@ -695,7 +680,6 @@ func parseAPIError(statusCode int, body []byte, model string) error {
 		return fmt.Errorf("The LLM service (%s) is temporarily unavailable. Please try again later.", model)
 	default:
 		if msg != "" {
-			// Truncate long messages
 			if len(msg) > 200 {
 				msg = msg[:200] + "..."
 			}
@@ -707,7 +691,6 @@ func parseAPIError(statusCode int, body []byte, model string) error {
 
 // callAnthropic calls the Anthropic messages API, translating to/from OpenAI format.
 func callAnthropic(ctx context.Context, apiKey, model string, messages []Message, tools []openAITool) (openAIResponse, error) {
-	// Extract system message
 	var systemPrompt string
 	var anthropicMessages []anthropicMessage
 
@@ -754,7 +737,6 @@ func callAnthropic(ctx context.Context, apiKey, model string, messages []Message
 		anthropicMessages = append(anthropicMessages, msg)
 	}
 
-	// Convert tools
 	anthropicTools := make([]anthropicTool, 0, len(tools))
 	for _, t := range tools {
 		anthropicTools = append(anthropicTools, anthropicTool{
@@ -809,7 +791,6 @@ func callAnthropic(ctx context.Context, apiKey, model string, messages []Message
 		return openAIResponse{}, fmt.Errorf("Anthropic API error: %s", anthropicResp.Error.Message)
 	}
 
-	// Convert back to OpenAI format
 	return convertAnthropicResponse(anthropicResp), nil
 }
 
@@ -893,14 +874,13 @@ func convertAnthropicResponse(resp anthropicResponse) openAIResponse {
 	}
 }
 
-// ReadAttachment reads and returns the text content of an attached file.
-// Supports plain text files and PDFs.
+// ReadAttachment returns the text content of an attached file, supporting
+// plain text files and PDFs.
 func ReadAttachment(filePath string) (string, error) {
 	if filePath == "" {
 		return "", nil
 	}
 
-	// Handle PDF files
 	if strings.HasSuffix(strings.ToLower(filePath), ".pdf") {
 		return readPDFAttachment(filePath)
 	}
@@ -910,10 +890,9 @@ func ReadAttachment(filePath string) (string, error) {
 		return "", fmt.Errorf("failed to read attachment: %w", err)
 	}
 
-	// Limit to ~50KB to avoid overwhelming the context
 	content := string(data)
 	if len(content) > 50000 {
-		content = content[:50000] + "\n\n[Content truncated — file too large]"
+		content = content[:50000] + "\n\n[Content truncated â€” file too large]"
 	}
 
 	return content, nil
@@ -940,14 +919,14 @@ func readPDFAttachment(filePath string) (string, error) {
 		}
 		sb.WriteString(text)
 		if sb.Len() > 50000 {
-			sb.WriteString("\n\n[Content truncated — PDF too large]")
+			sb.WriteString("\n\n[Content truncated â€” PDF too large]")
 			break
 		}
 	}
 
 	content := sb.String()
 	if content == "" {
-		return "", fmt.Errorf("could not extract text from PDF — it may be image-based or scanned")
+		return "", fmt.Errorf("could not extract text from PDF â€” it may be image-based or scanned")
 	}
 
 	return content, nil

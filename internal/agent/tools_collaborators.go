@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"bytes"
@@ -20,10 +20,8 @@ import (
 
 // --- Project (server) collaborator HTTP helpers ---
 //
-// These tools talk to the project's own remote URL (read from the project DB
-// via utils.GetRemoteUrl). They mirror the CollaboratorService HTTP plumbing
-// in services/collaborator_service.go so internal/agent stays free of the
-// services import (which would create a cycle).
+// These tools call the project's remote URL directly so that internal/agent
+// stays free of the services import (which would otherwise create a cycle).
 
 // projectCollaborator matches the JSON returned by GET {remoteUrl}/collaborators.
 type projectCollaborator struct {
@@ -61,13 +59,8 @@ func resolveRemoteUrl(projectPath string) (string, error) {
 	return remoteUrl, nil
 }
 
-// validateOutboundURL rejects URLs that look like SSRF targets.
-//   - Scheme must be http or https
-//   - Plain http only allowed when host is loopback (self-hosted dev)
-//   - Reject link-local 169.254/16 (cloud instance metadata service / IMDS)
-//   - Reject multicast/unspecified addresses
-// Private RFC1918 ranges are intentionally allowed because Clustta servers
-// are commonly self-hosted on a LAN.
+// validateOutboundURL rejects URLs that look like SSRF targets: it requires http/https,
+// permits plain http only for loopback, and blocks link-local, multicast, and unspecified addresses.
 func validateOutboundURL(raw string) error {
 	u, err := url.Parse(raw)
 	if err != nil {
@@ -91,7 +84,6 @@ func validateOutboundURL(raw string) error {
 		}
 	}
 
-	// IP-literal hosts: block link-local + multicast + unspecified up front.
 	if ip := net.ParseIP(host); ip != nil {
 		if ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsMulticast() || ip.IsUnspecified() {
 			return fmt.Errorf("URL host %s is in a blocked address range", host)
@@ -99,10 +91,8 @@ func validateOutboundURL(raw string) error {
 		return nil
 	}
 
-	// DNS-resolvable hosts: resolve and screen each address.
 	addrs, err := net.LookupIP(host)
 	if err != nil {
-		// DNS failure surfaces later as a transport error; don't block here.
 		return nil
 	}
 	for _, ip := range addrs {
@@ -113,10 +103,8 @@ func validateOutboundURL(raw string) error {
 	return nil
 }
 
-// agentHTTPClient is the shared client for outbound calls from agent tools.
-// Bounded timeouts at every layer to prevent slowloris-style hangs.
-// CheckRedirect strips Authorization on cross-origin redirects so a
-// compromised remote cannot leak the user's bearer token.
+// agentHTTPClient is the shared client for outbound calls from agent tools, with bounded
+// timeouts and a CheckRedirect that strips Authorization on cross-origin redirects.
 var agentHTTPClient = &http.Client{
 	Timeout: 30 * time.Second,
 	Transport: &http.Transport{

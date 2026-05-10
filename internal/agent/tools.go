@@ -1,4 +1,4 @@
-package agent
+﻿package agent
 
 import (
 	"clustta/internal/auth_service"
@@ -31,7 +31,6 @@ type ToolResult struct {
 // GetToolDefinitions returns all tool schemas the LLM can call.
 func GetToolDefinitions() []ToolDefinition {
 	tools := []ToolDefinition{
-		// Query tools
 		{
 			Name:        "list_collections",
 			Description: "List all collections (entities) in the project. Returns collection names, IDs, types, and hierarchy.",
@@ -147,7 +146,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// CRUD tools
 		{
 			Name:        "create_asset_type",
 			Description: "Create a new asset type (e.g., Model, Rig, Animation, Character, Prop, Shot). Use list_task_types first to check what already exists.",
@@ -191,7 +189,7 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 		{
 			Name:        "create_asset",
-			Description: "Create a new asset (file). It can belong to a collection or exist at the project root. Requires a template — use list_templates first to find available templates.",
+			Description: "Create a new asset (file). It can belong to a collection or exist at the project root. Requires a template - use list_templates first to find available templates.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -220,7 +218,6 @@ func GetToolDefinitions() []ToolDefinition {
 				"required": []string{"name", "task_type_id", "template_id"},
 			},
 		},
-		// Batch creation tools
 		{
 			Name:        "batch_create_collections",
 			Description: "Create multiple collections in one operation. Supports nesting: use 'parent_name' to reference another collection being created in the same batch, or 'parent_id' for an existing collection. All collections are created in a single transaction.",
@@ -478,7 +475,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Checkpoint tools
 		{
 			Name:        "list_checkpoints",
 			Description: "List checkpoint (version) history for an asset. Returns checkpoint IDs, comments, timestamps, and file sizes.",
@@ -494,7 +490,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Tag management tools
 		{
 			Name:        "create_tag",
 			Description: "Create a new tag in the project.",
@@ -560,7 +555,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Dependency tools
 		{
 			Name:        "list_dependencies",
 			Description: "List all dependencies for a specific asset.",
@@ -625,7 +619,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Collection type tools
 		{
 			Name:        "list_collection_types",
 			Description: "List all collection types (entity types) in the project.",
@@ -683,7 +676,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Search tool
 		{
 			Name:        "search_assets",
 			Description: "Search for assets across all collections. Returns paginated results (default 50 per page). Use offset to page through large result sets. The response includes total_count so you know how many matched overall.",
@@ -723,7 +715,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Project summary tool
 		{
 			Name:        "get_project_summary",
 			Description: "Get a high-level summary of the project: total collections, total assets, breakdown by status, breakdown by assignee.",
@@ -734,10 +725,9 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Bulk operation tools
 		{
 			Name:        "bulk_change_status",
-			Description: "Change the status of multiple assets at once. Accepts explicit asset_ids OR filter criteria (same as search_assets) to match assets server-side — no need to search first.",
+			Description: "Change the status of multiple assets at once. Accepts explicit asset_ids OR filter criteria (same as search_assets) to match assets server-side - no need to search first.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -770,13 +760,33 @@ func GetToolDefinitions() []ToolDefinition {
 						"type":        "string",
 						"description": "Filter: match assets with this tag.",
 					},
+					"filter_extension": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets by file extension (e.g. 'clip', '.blend').",
+					},
+					"filter_unassigned": map[string]interface{}{
+						"type":        "boolean",
+						"description": "Filter: match only assets that have no assignee.",
+					},
+					"limit": map[string]interface{}{
+						"type":        "integer",
+						"description": "Cap the number of matched assets to act on (applied after filtering / shuffling).",
+					},
+					"limit_fraction": map[string]interface{}{
+						"type":        "number",
+						"description": "Take this fraction (0-1) of the matched assets - e.g. 0.5 for half.",
+					},
+					"random": map[string]interface{}{
+						"type":        "boolean",
+						"description": "Shuffle the matched assets before applying limit / limit_fraction (use this for 'random half' etc.).",
+					},
 				},
 				"required": []string{"status_id"},
 			},
 		},
 		{
 			Name:        "bulk_assign",
-			Description: "Assign a user to multiple assets at once. Accepts explicit asset_ids OR filter criteria (same as search_assets) to match assets server-side — no need to search first.",
+			Description: "Assign a user to multiple assets at once. Accepts explicit asset_ids OR filter criteria (same as search_assets) to match assets server-side - no need to search first.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -808,6 +818,26 @@ func GetToolDefinitions() []ToolDefinition {
 					"filter_tag_name": map[string]interface{}{
 						"type":        "string",
 						"description": "Filter: match assets with this tag.",
+					},
+					"filter_extension": map[string]interface{}{
+						"type":        "string",
+						"description": "Filter: match assets by file extension (e.g. 'clip', '.blend').",
+					},
+					"filter_unassigned": map[string]interface{}{
+						"type":        "boolean",
+						"description": "Filter: match only assets that have no assignee.",
+					},
+					"limit": map[string]interface{}{
+						"type":        "integer",
+						"description": "Cap the number of matched assets to act on (applied after filtering / shuffling).",
+					},
+					"limit_fraction": map[string]interface{}{
+						"type":        "number",
+						"description": "Take this fraction (0-1) of the matched assets - e.g. 0.5 for half.",
+					},
+					"random": map[string]interface{}{
+						"type":        "boolean",
+						"description": "Shuffle the matched assets before applying limit / limit_fraction (use this for 'random half' etc.).",
 					},
 				},
 				"required": []string{"user_id"},
@@ -849,7 +879,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// User management
 		{
 			Name:        "remove_user",
 			Description: "Remove a user/collaborator from the project. This requires user confirmation.",
@@ -865,7 +894,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Ignore list tools
 		{
 			Name:        "list_ignore_patterns",
 			Description: "List all current ignore patterns in the project.",
@@ -904,7 +932,6 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Project type setup
 		{
 			Name:        "setup_project_types",
 			Description: "Set up asset types and collection types for a specific project type (e.g., 'animation', 'game', 'vfx', 'film'). Creates a standard set of types appropriate for that pipeline. Use list_task_types and list_collection_types to see what already exists before calling this.",
@@ -921,10 +948,9 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// Script generation
 		{
 			Name:        "generate_script",
-			Description: "Generate a shell or Python script for file system operations on project assets. The script is displayed to the user for review — it is never auto-executed. Use this for batch operations like rendering, file conversion, exports, etc.",
+			Description: "Generate a shell or Python script for file system operations on project assets. The script is displayed to the user for review - it is never auto-executed. Use this for batch operations like rendering, file conversion, exports, etc.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -947,10 +973,8 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 	}
 
-	// Append DCC tool definitions
 	tools = append(tools, GetDCCToolDefinitions()...)
 
-	// Phase 1a additions: type maintenance, reveal, workflows, roles, project text search.
 	iconEnum := []string{"bezier", "bone", "book", "boxes", "bulb", "camera-flash", "camera", "clapboard", "compass", "cube", "drum", "film-reel", "film-strip", "fire", "flow-chart", "four-squares", "home", "image", "lamp", "link", "man-running", "masks", "music", "mystery-ball", "open-book", "package", "palette", "scissors", "shapes", "stall", "texture", "tree", "video-camera", "website"}
 
 	tools = append(tools, []ToolDefinition{
@@ -1190,7 +1214,7 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 		{
 			Name:        "update_role",
-			Description: "Update a role's name and permission attributes. Provide a full set of permission booleans — fields not provided default to false. Use list_roles first to read the current values, then resubmit with the desired changes.",
+			Description: "Update a role's name and permission attributes. Provide a full set of permission booleans - fields not provided default to false. Use list_roles first to read the current values, then resubmit with the desired changes.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -1205,7 +1229,7 @@ func GetToolDefinitions() []ToolDefinition {
 		// --- Knowledge ---
 		{
 			Name:        "search_project_text",
-			Description: "Search project content (asset names/descriptions, collection names/descriptions, checkpoint comments, tag names, role names) for the given query. Use this when the user asks about specific notes, comments, descriptions, or named items in their actual project (as opposed to general Clustta concepts — for those use search_knowledge).",
+			Description: "Search project content (asset names/descriptions, collection names/descriptions, checkpoint comments, tag names, role names) for the given query. Use this when the user asks about specific notes, comments, descriptions, or named items in their actual project (as opposed to general Clustta concepts - for those use search_knowledge).",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -1216,7 +1240,7 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// --- Phase 1a-ii: Project collaborators (server-side membership) ---
+		// --- Project collaborators (server-side membership) ---
 		{
 			Name:        "list_project_collaborators",
 			Description: "List all users who have been invited to the active project's remote (server-side membership). Different from list_users, which lists users known to the local project DB. Requires the project to be synced to a remote.",
@@ -1251,7 +1275,7 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
-		// --- Phase 1a-ii: Studio collaborators (separate studio server) ---
+		// --- Studio collaborators (separate studio server) ---
 		{
 			Name:        "list_studios",
 			Description: "List the studios configured locally with their IDs, names, URLs and hosting modes. Use this to discover the studio_id required by the studio_* tools.",
@@ -1274,7 +1298,7 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 		{
 			Name:        "add_studio_collaborator",
-			Description: "Invite a user (by email) to a studio with the given role. The studio server applies authorization — the caller must have permission to add studio members.",
+			Description: "Invite a user (by email) to a studio with the given role. The studio server applies authorization - the caller must have permission to add studio members.",
 			Parameters: map[string]interface{}{
 				"type": "object",
 				"properties": map[string]interface{}{
@@ -1310,12 +1334,53 @@ func GetToolDefinitions() []ToolDefinition {
 				"required": []string{"user_id", "studio_id"},
 			},
 		},
+
+		// --- Browser filter tools ---
+		{
+			Name:        "list_filter_dimensions",
+			Description: "Return the project's filter vocabulary (statuses, asset types, collection types, tags, users, file extensions, file states, and the current user id). Call this BEFORE apply_browser_filter when you don't already know the available values, so the filter terms you supply match real entries.",
+			Parameters: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+			},
+		},
+		{
+			Name:        "apply_browser_filter",
+			Description: "Apply filters to the asset/collection browser view. Each list contains names or ids; the backend resolves them against the project vocabulary and tells the UI to display matching items only. Use the special value '@me' inside `assignees` to refer to the current user. Use `no_assignees` for 'unassigned'. Set `deep` to true when the user wants the search to span the whole project. This does NOT modify any project data - it only changes what is visible in the browser.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"statuses":         map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Status names, short_names, or ids to include."},
+					"asset_types":      map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Asset type names or ids."},
+					"collection_types": map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Collection type names or ids."},
+					"tags":             map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Tag names or ids."},
+					"assignees":        map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "User ids, usernames, emails, names, or '@me'."},
+					"states":           map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "File states: normal, modified, outdated, rebuildable, missing."},
+					"extensions":       map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "File extensions, with or without leading dot (e.g. 'blend' or '.blend')."},
+					"has_assignees":    map[string]interface{}{"type": "boolean", "description": "Show only items that have any assignee."},
+					"no_assignees":     map[string]interface{}{"type": "boolean", "description": "Show only items with no assignee (unassigned)."},
+					"deep":             map[string]interface{}{"type": "boolean", "description": "Search across the entire project rather than the current collection."},
+					"search":           map[string]interface{}{"type": "string", "description": "Text query applied to item names."},
+					"show_collections": map[string]interface{}{"type": "boolean", "description": "Toggle visibility of collections in the view (optional)."},
+					"show_assets":      map[string]interface{}{"type": "boolean", "description": "Toggle visibility of assets in the view (optional)."},
+					"show_resources":   map[string]interface{}{"type": "boolean", "description": "Toggle visibility of resources in the view (optional)."},
+					"only_assets":      map[string]interface{}{"type": "boolean", "description": "When true, hide collections and resources entirely (optional)."},
+				},
+			},
+		},
+		{
+			Name:        "clear_browser_filter",
+			Description: "Reset all browser filters back to the default empty state (equivalent to clicking the Clear button in the filter bar).",
+			Parameters: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+			},
+		},
 	}...)
 
 	return tools
 }
 
-// ExecuteTool runs a tool by name with the given arguments against the project.
 // toolPermission maps a tool to the Role field getter that must return true.
 type toolPermission struct {
 	Check func(role models.Role) bool
@@ -1324,13 +1389,11 @@ type toolPermission struct {
 
 // toolPermissions maps mutating tools to the permission(s) they require.
 var toolPermissions = map[string]toolPermission{
-	// Collection operations
 	"create_collection":        {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
 	"batch_create_collections": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
 	"rename_collection":        {func(r models.Role) bool { return r.UpdateCollection }, "Update Collection"},
 	"delete_collection":        {func(r models.Role) bool { return r.DeleteCollection }, "Delete Collection"},
 
-	// Asset operations
 	"create_asset":           {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"batch_create_assets":    {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"create_asset_type":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
@@ -1346,31 +1409,25 @@ var toolPermissions = map[string]toolPermission{
 	"delete_asset_type":      {func(r models.Role) bool { return r.DeleteAsset }, "Delete Asset"},
 	"delete_collection_type": {func(r models.Role) bool { return r.DeleteAsset }, "Delete Asset"},
 
-	// Assignment
 	"assign_asset":        {func(r models.Role) bool { return r.AssignAsset }, "Assign Asset"},
 	"bulk_assign":         {func(r models.Role) bool { return r.AssignAsset }, "Assign Asset"},
 	"random_assign":       {func(r models.Role) bool { return r.AssignAsset }, "Assign Asset"},
 	"unassign_asset":      {func(r models.Role) bool { return r.UnassignAsset }, "Unassign Asset"},
 	"unassign_all_assets": {func(r models.Role) bool { return r.UnassignAsset }, "Unassign Asset"},
 
-	// Status
 	"change_asset_status": {func(r models.Role) bool { return r.ChangeStatus }, "Change Status"},
 	"bulk_change_status":  {func(r models.Role) bool { return r.ChangeStatus }, "Change Status"},
 
-	// Dependencies
 	"add_dependency":    {func(r models.Role) bool { return r.ManageDependencies }, "Manage Dependencies"},
 	"remove_dependency": {func(r models.Role) bool { return r.ManageDependencies }, "Manage Dependencies"},
 
-	// User management
 	"remove_user":              {func(r models.Role) bool { return r.RemoveUser }, "Remove User"},
 	"change_collaborator_role": {func(r models.Role) bool { return r.ChangeRole }, "Change Role"},
 	"update_role":              {func(r models.Role) bool { return r.ChangeRole }, "Change Role"},
 
-	// Project collaborator HTTP tools (server-side membership)
 	"add_project_collaborator":    {func(r models.Role) bool { return r.AddUser }, "Add User"},
 	"remove_project_collaborator": {func(r models.Role) bool { return r.RemoveUser }, "Remove User"},
 
-	// Type maintenance
 	"change_asset_type":             {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"bulk_change_asset_type":        {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"change_collection_type":        {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
@@ -1382,15 +1439,12 @@ var toolPermissions = map[string]toolPermission{
 	"batch_update_asset_types":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"batch_update_collection_types": {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 
-	// Workflows
 	"apply_workflow": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
 
-	// Project setup
 	"setup_project_types":   {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"add_ignore_pattern":    {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"remove_ignore_pattern": {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 
-	// DCC tools
 	"blender_render":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"blender_export":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"blender_run_script":   {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
@@ -1404,7 +1458,7 @@ var toolPermissions = map[string]toolPermission{
 func checkPermission(projectPath string, toolName string) error {
 	perm, ok := toolPermissions[toolName]
 	if !ok {
-		return nil // Read-only tool, no permission needed
+		return nil
 	}
 
 	user, err := auth_service.GetActiveUser()
@@ -1442,7 +1496,6 @@ func checkPermission(projectPath string, toolName string) error {
 
 // ExecuteTool runs a tool by name with the given arguments against the project.
 func ExecuteTool(projectPath string, toolName string, args map[string]interface{}) ToolResult {
-	// Check permissions before executing any tool
 	if err := checkPermission(projectPath, toolName); err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -1551,7 +1604,6 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 	case "generate_script":
 		return execGenerateScript(args)
 
-	// DCC tools
 	case "open_in_dcc":
 		return execOpenInDCC(projectPath, args)
 	case "blender_render":
@@ -1569,7 +1621,6 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 	case "run_terminal_command":
 		return execRunTerminalCommand(projectPath, args)
 
-	// Phase 1a additions
 	case "change_asset_type":
 		return execChangeAssetType(projectPath, args)
 	case "bulk_change_asset_type":
@@ -1607,7 +1658,6 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 	case "search_project_text":
 		return execSearchProjectText(projectPath, args)
 
-	// Phase 1a-ii: collaborator HTTP tools
 	case "list_project_collaborators":
 		return execListProjectCollaborators(projectPath)
 	case "add_project_collaborator":
@@ -1624,6 +1674,13 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 		return execChangeStudioCollaboratorRole(args)
 	case "remove_studio_collaborator":
 		return execRemoveStudioCollaborator(args)
+
+	case "list_filter_dimensions":
+		return execListFilterDimensions(projectPath)
+	case "apply_browser_filter":
+		return execApplyBrowserFilter(projectPath, args)
+	case "clear_browser_filter":
+		return execClearBrowserFilter(projectPath, args)
 
 	default:
 		return ToolResult{Success: false, Error: fmt.Sprintf("unknown tool: %s", toolName)}
@@ -2019,7 +2076,6 @@ func execGetUserActivity(projectPath string) ToolResult {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	// Build user name lookup and activity tracking
 	userNames := map[string]string{}
 	for _, u := range users {
 		userNames[u.Id] = strings.TrimSpace(u.FirstName + " " + u.LastName)
@@ -2033,7 +2089,6 @@ func execGetUserActivity(projectPath string) ToolResult {
 		LastComment      string `json:"last_comment,omitempty"`
 	}
 
-	// Group checkpoints by author
 	activityMap := map[string]*userActivity{}
 	for _, u := range users {
 		activityMap[u.Id] = &userActivity{
@@ -2121,7 +2176,6 @@ func execCreateCollection(projectPath string, args map[string]interface{}) ToolR
 	}
 	defer tx.Rollback()
 
-	// Get the first collection type as default
 	collectionTypes, err := repository.GetCollectionTypes(tx)
 	if err != nil || len(collectionTypes) == 0 {
 		return ToolResult{Success: false, Error: "no collection types available in project"}
@@ -2172,7 +2226,6 @@ func execCreateAsset(projectPath string, args map[string]interface{}) ToolResult
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	// Materialize the file on disk from stored chunks
 	err = repository.RevertToLatestCheckpoint(tx, asset.Id, asset.GetFilePath(), func(int, int, string, string) {})
 	if err != nil {
 		return ToolResult{Success: false, Error: fmt.Sprintf("asset created but failed to build file: %s", err.Error())}
@@ -2479,7 +2532,6 @@ func execBulkDeleteAssets(projectPath string, args map[string]interface{}) ToolR
 	}
 	defer tx.Rollback()
 
-	// If specific IDs provided, use those directly
 	if len(assetIDs) > 0 {
 		deleted := 0
 		for _, id := range assetIDs {
@@ -2495,7 +2547,6 @@ func execBulkDeleteAssets(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: true, Data: map[string]interface{}{"deleted": deleted}}
 	}
 
-	// Otherwise, get all assets and filter
 	assets, err := repository.GetAssets(tx, false)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
@@ -3017,7 +3068,6 @@ func execSearchAssets(projectPath string, args map[string]interface{}) ToolResul
 		})
 	}
 
-	// Pagination
 	totalCount := len(results)
 	limit := getIntArg(args, "limit", 50)
 	offset := getIntArg(args, "offset", 0)
@@ -3072,7 +3122,6 @@ func execGetProjectSummary(projectPath string) ToolResult {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	// Status breakdown
 	statusCounts := map[string]int{}
 	assigneeCounts := map[string]int{}
 	typeCounts := map[string]int{}
@@ -3103,52 +3152,96 @@ func execGetProjectSummary(projectPath string) ToolResult {
 // filterAssetIDs resolves asset IDs from explicit IDs or filter criteria.
 func filterAssetIDs(tx *sqlx.Tx, args map[string]interface{}) ([]string, error) {
 	explicitIDs := getStringSliceArg(args, "asset_ids")
-	if len(explicitIDs) > 0 {
-		return explicitIDs, nil
-	}
 
 	nameFilter := strings.ToLower(getStringArg(args, "filter_name", ""))
 	statusFilter := getStringArg(args, "filter_status_id", "")
 	typeFilter := getStringArg(args, "filter_task_type_id", "")
 	assigneeFilter := getStringArg(args, "filter_assignee_id", "")
 	tagFilter := strings.ToLower(getStringArg(args, "filter_tag_name", ""))
-
-	if nameFilter == "" && statusFilter == "" && typeFilter == "" && assigneeFilter == "" && tagFilter == "" {
-		return nil, fmt.Errorf("either asset_ids or at least one filter (filter_name, filter_status_id, filter_task_type_id, filter_assignee_id, filter_tag_name) is required")
-	}
-
-	assets, err := repository.GetAssets(tx, false)
-	if err != nil {
-		return nil, err
+	extFilter := strings.ToLower(strings.TrimPrefix(getStringArg(args, "filter_extension", ""), "."))
+	unassignedOnly := false
+	if v, ok := args["filter_unassigned"].(bool); ok {
+		unassignedOnly = v
 	}
 
 	var ids []string
-	for _, a := range assets {
-		if nameFilter != "" && !strings.Contains(strings.ToLower(a.Name), nameFilter) {
-			continue
+	if len(explicitIDs) > 0 {
+		ids = explicitIDs
+	} else {
+		hasFilter := nameFilter != "" || statusFilter != "" || typeFilter != "" ||
+			assigneeFilter != "" || tagFilter != "" || extFilter != "" || unassignedOnly
+		if !hasFilter {
+			return nil, fmt.Errorf("either asset_ids or at least one filter (filter_name, filter_status_id, filter_task_type_id, filter_assignee_id, filter_tag_name, filter_extension, filter_unassigned) is required")
 		}
-		if statusFilter != "" && a.StatusId != statusFilter {
-			continue
+
+		assets, err := repository.GetAssets(tx, false)
+		if err != nil {
+			return nil, err
 		}
-		if typeFilter != "" && a.AssetTypeId != typeFilter {
-			continue
-		}
-		if assigneeFilter != "" && a.AssigneeId != assigneeFilter {
-			continue
-		}
-		if tagFilter != "" {
-			hasTag := false
-			for _, t := range a.Tags {
-				if strings.ToLower(t) == tagFilter {
-					hasTag = true
-					break
-				}
-			}
-			if !hasTag {
+
+		for _, a := range assets {
+			if nameFilter != "" && !strings.Contains(strings.ToLower(a.Name), nameFilter) {
 				continue
 			}
+			if statusFilter != "" && a.StatusId != statusFilter {
+				continue
+			}
+			if typeFilter != "" && a.AssetTypeId != typeFilter {
+				continue
+			}
+			if assigneeFilter != "" && a.AssigneeId != assigneeFilter {
+				continue
+			}
+			if unassignedOnly && a.AssigneeId != "" {
+				continue
+			}
+			if extFilter != "" {
+				ae := strings.ToLower(strings.TrimPrefix(a.Extension, "."))
+				if ae != extFilter {
+					continue
+				}
+			}
+			if tagFilter != "" {
+				hasTag := false
+				for _, t := range a.Tags {
+					if strings.ToLower(t) == tagFilter {
+						hasTag = true
+						break
+					}
+				}
+				if !hasTag {
+					continue
+				}
+			}
+			ids = append(ids, a.Id)
 		}
-		ids = append(ids, a.Id)
+	}
+
+	randomize := false
+	if v, ok := args["random"].(bool); ok {
+		randomize = v
+	}
+	limitFraction := 0.0
+	if v, ok := args["limit_fraction"].(float64); ok {
+		limitFraction = v
+	}
+	limit := 0
+	if v, ok := args["limit"].(float64); ok {
+		limit = int(v)
+	}
+
+	if randomize && len(ids) > 1 {
+		rand.Shuffle(len(ids), func(i, j int) { ids[i], ids[j] = ids[j], ids[i] })
+	}
+	if limitFraction > 0 && limitFraction < 1 && len(ids) > 0 {
+		n := int(float64(len(ids)) * limitFraction)
+		if n < 1 {
+			n = 1
+		}
+		ids = ids[:n]
+	}
+	if limit > 0 && limit < len(ids) {
+		ids = ids[:limit]
 	}
 	return ids, nil
 }
@@ -3247,7 +3340,6 @@ func execUnassignAllAssets(projectPath string, args map[string]interface{}) Tool
 	}
 	defer tx.Rollback()
 
-	// If no specific IDs provided, get all assets
 	if len(assetIDs) == 0 {
 		assets, err := repository.GetAssets(tx, false)
 		if err != nil {
@@ -3294,12 +3386,10 @@ func execRandomAssign(projectPath string, args map[string]interface{}) ToolResul
 	}
 	defer tx.Rollback()
 
-	// Shuffle asset IDs for random distribution
 	rand.Shuffle(len(assetIDs), func(i, j int) {
 		assetIDs[i], assetIDs[j] = assetIDs[j], assetIDs[i]
 	})
 
-	// Round-robin assign
 	assignments := map[string]int{}
 	for i, assetID := range assetIDs {
 		userID := userIDs[i%len(userIDs)]
@@ -3375,10 +3465,6 @@ func execAddIgnorePattern(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: false, Error: "pattern is required"}
 	}
 
-	// Normalize extension patterns to proper glob format:
-	// ".json" → "*.json", "blend1" → "*.blend1"
-	// Short bare words (≤10 chars, no spaces) without dots are treated as extensions.
-	// Longer names or names with spaces are left as-is (likely folder names).
 	if !strings.ContainsAny(pattern, "*?/\\ ") {
 		if strings.HasPrefix(pattern, ".") {
 			pattern = "*" + pattern
@@ -3403,7 +3489,6 @@ func execAddIgnorePattern(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	// Check for duplicates
 	for _, p := range existing {
 		if p == pattern {
 			return ToolResult{Success: true, Data: "Pattern already exists in ignore list."}
@@ -3602,14 +3687,12 @@ func execBatchCreateCollections(projectPath string, args map[string]interface{})
 	}
 	defer tx.Rollback()
 
-	// Get default collection type
 	collectionTypes, err := repository.GetCollectionTypes(tx)
 	if err != nil || len(collectionTypes) == 0 {
 		return ToolResult{Success: false, Error: "no collection types available in project"}
 	}
 	collectionTypeId := collectionTypes[0].Id
 
-	// Track created collections by name for parent_name resolution
 	nameToID := map[string]string{}
 
 	type createdItem struct {
@@ -3627,7 +3710,6 @@ func execBatchCreateCollections(projectPath string, args map[string]interface{})
 		description := getStringArg(item, "description", "")
 		parentID := getStringArg(item, "parent_id", "")
 
-		// Resolve parent_name to parent_id from this batch
 		if parentID == "" {
 			parentName := getStringArg(item, "parent_name", "")
 			if parentName != "" {
@@ -3694,7 +3776,6 @@ func execBatchCreateAssets(projectPath string, args map[string]interface{}) Tool
 			return ToolResult{Success: false, Error: fmt.Sprintf("failed to create asset '%s': %s", name, err.Error())}
 		}
 
-		// Materialize the file on disk from stored chunks
 		err = repository.RevertToLatestCheckpoint(tx, asset.Id, asset.GetFilePath(), func(int, int, string, string) {})
 		if err != nil {
 			return ToolResult{Success: false, Error: fmt.Sprintf("asset '%s' created but failed to build file: %s", name, err.Error())}
@@ -3764,7 +3845,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 
 	var context strings.Builder
 
-	// Collections
 	collections, err := repository.GetCollections(tx, false)
 	if err == nil && len(collections) > 0 {
 		context.WriteString(fmt.Sprintf("Collections (%d):\n", len(collections)))
@@ -3780,7 +3860,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 		context.WriteString("Collections: None yet\n\n")
 	}
 
-	// Asset summary per collection (counts only to save context space)
 	for _, c := range collections {
 		assets, err := repository.GetCollectionAssets(tx, c.Id)
 		if err == nil && len(assets) > 0 {
@@ -3797,7 +3876,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 	}
 	context.WriteString("\n")
 
-	// Root-level assets summary
 	allAssets, err := repository.GetAssets(tx, false)
 	if err == nil {
 		rootCount := 0
@@ -3811,7 +3889,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 		}
 	}
 
-	// Statuses
 	statuses, err := repository.GetStatuses(tx)
 	if err == nil && len(statuses) > 0 {
 		context.WriteString("Available statuses:\n")
@@ -3821,7 +3898,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 		context.WriteString("\n")
 	}
 
-	// Asset types
 	assetTypes, err := repository.GetAssetTypes(tx)
 	if err == nil && len(assetTypes) > 0 {
 		context.WriteString("Available asset types:\n")
@@ -3831,7 +3907,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 		context.WriteString("\n")
 	}
 
-	// Users
 	users, err := repository.GetUsers(tx)
 	if err == nil && len(users) > 0 {
 		context.WriteString("Users:\n")
@@ -3842,7 +3917,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 		context.WriteString("\n")
 	}
 
-	// Tags
 	tags, err := repository.GetTags(tx)
 	if err == nil && len(tags) > 0 {
 		context.WriteString("Tags:\n")
@@ -3852,7 +3926,6 @@ func BuildProjectContext(projectPath string) (string, error) {
 		context.WriteString("\n")
 	}
 
-	// Templates
 	templates, err := repository.GetTemplates(tx, true)
 	if err == nil && len(templates) > 0 {
 		context.WriteString("Templates:\n")
@@ -3873,7 +3946,7 @@ func SerializeToolResult(result ToolResult) string {
 	}
 	content := string(data)
 	if len(content) > 30000 {
-		content = content[:30000] + `... [truncated — result too large. Use pagination or filters to narrow results.]"`
+		content = content[:30000] + `... [truncated - result too large. Use pagination or filters to narrow results.]"`
 	}
 	return content
 }
