@@ -52,7 +52,7 @@
       </div>
 
       <div class="console-input-container">
-        <div class="console-input-wrapper">
+        <div class="console-input-wrapper" id="agent-console-drop-zone" data-file-drop-target>
           <div v-if="attachmentPath" class="console-attachment-row">
             <Chip :icon="getAppIcon('paper-clip')" :label="attachmentName" :onRemove="removeAttachment" />
           </div>
@@ -105,7 +105,7 @@ import ConsoleChip from '@/instances/desktop/components/ConsoleChip.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 
 // services
-import { AgentService, CollectionService, DialogService } from '@/services';
+import { AgentService, CollectionService, DialogService, FSService } from '@/services';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -426,11 +426,72 @@ const scrollToBottom = () => {
   });
 };
 
+// Allowed extensions and max size for agent attachments. Kept in sync with
+// what agent.ReadAttachment can usefully parse (text + PDF).
+const ATTACHMENT_ALLOWED_EXTENSIONS = [
+  'txt', 'md', 'markdown', 'rst', 'log',
+  'json', 'yml', 'yaml', 'toml', 'xml', 'csv', 'tsv', 'ini', 'env',
+  'html', 'htm', 'css', 'scss',
+  'js', 'jsx', 'ts', 'tsx', 'vue', 'svelte',
+  'py', 'go', 'rs', 'java', 'kt', 'swift', 'c', 'h', 'cpp', 'hpp', 'cs',
+  'rb', 'php', 'sh', 'bash', 'ps1', 'bat',
+  'sql', 'graphql', 'proto',
+  'pdf',
+];
+const ATTACHMENT_MAX_BYTES = 5 * 1024 * 1024;
+const ATTACHMENT_DIALOG_FILTER = ATTACHMENT_ALLOWED_EXTENSIONS.map((e) => '*.' + e).join(';');
+
+// Validates an attachment path against the allowed extension list and size cap.
+// Returns true when the path can be used as an attachment; otherwise surfaces a
+// notification and returns false.
+const validateAttachment = async (path) => {
+  if (!path) return false;
+  const name = path.split(/[/\\]/).pop() || path;
+  const ext = (name.includes('.') ? name.split('.').pop() : '').toLowerCase();
+  if (!ext || !ATTACHMENT_ALLOWED_EXTENSIONS.includes(ext)) {
+    notificationStore.errorNotification(
+      t('panes.attachmentTypeNotSupported', { name }),
+      ATTACHMENT_ALLOWED_EXTENSIONS.join(', ')
+    );
+    return false;
+  }
+  try {
+    const info = await FSService.FileStat(path);
+    if (info.IsDir) {
+      notificationStore.errorNotification(t('panes.attachmentMustBeFile', { name }), '');
+      return false;
+    }
+    if (typeof info.Size === 'number' && info.Size > ATTACHMENT_MAX_BYTES) {
+      notificationStore.errorNotification(
+        t('panes.attachmentTooLarge', { name }),
+        info.FormattedSize || ''
+      );
+      return false;
+    }
+  } catch (err) {
+    notificationStore.errorNotification(t('panes.attachmentReadFailed', { name }), `${err}`);
+    return false;
+  }
+  return true;
+};
+
 const selectAttachment = async () => {
   try {
-    const path = await DialogService.SelectFileDialog('Select file to attach', '');
-    if (path) attachmentPath.value = path;
+    const path = await DialogService.SelectFileDialog(t('panes.attachFile'), ATTACHMENT_DIALOG_FILTER);
+    if (!path) return;
+    if (await validateAttachment(path)) attachmentPath.value = path;
   } catch { /* user cancelled */ }
+};
+
+// Accepts files dropped onto the console area as the message attachment.
+// Only the first file is used; folders and additional files are ignored.
+const onFilesDropped = async (event) => {
+  const details = event?.data?.details;
+  if (details?.id !== 'agent-console-drop-zone') return;
+  const files = event?.data?.files;
+  if (!files || !files.length) return;
+  const path = files[0];
+  if (await validateAttachment(path)) attachmentPath.value = path;
 };
 
 // Describes the user's current selection (collection, items, active stage) for the agent.
@@ -612,6 +673,32 @@ const onAgentRevealInBrowser = async (event) => {
   }
 };
 
+// Applies a filter payload the agent built so the browser narrows to the
+// requested items. Mirrors the field assignments the filter menus do, so the
+// existing FilterBar Clear button and "modified workspace" indicator both work.
+const onAgentApplyFilter = (event) => {
+  const payload = event?.data?.applied;
+  if (!payload) return;
+  if (Array.isArray(payload.asset_filters)) commonStore.assetFilters = payload.asset_filters;
+  if (Array.isArray(payload.collection_filters)) commonStore.collectionFilters = payload.collection_filters;
+  if (Array.isArray(payload.resource_filters)) commonStore.resourceFilters = payload.resource_filters;
+  if (typeof payload.has_assignees === 'boolean') commonStore.hasAssignees = payload.has_assignees;
+  if (typeof payload.no_assignees === 'boolean') commonStore.noAssignees = payload.no_assignees;
+  if (typeof payload.use_deep === 'boolean') commonStore.useDeep = payload.use_deep;
+  if (typeof payload.view_search_query === 'string') commonStore.viewSearchQuery = payload.view_search_query;
+  if (typeof payload.show_collections === 'boolean') commonStore.showCollections = payload.show_collections;
+  if (typeof payload.show_assets === 'boolean') commonStore.showAssets = payload.show_assets;
+  if (typeof payload.show_resources === 'boolean') commonStore.showResources = payload.show_resources;
+  if (typeof payload.only_assets === 'boolean') commonStore.onlyAssets = payload.only_assets;
+  emitter.emit('refresh-browser');
+};
+
+// Clears all browser filters when the agent issues clear_browser_filter.
+const onAgentClearFilter = () => {
+  commonStore.resetFilters();
+  emitter.emit('refresh-browser');
+};
+
 // watchers
 watch(() => projectStore.activeProject, async () => {
   messages.value = [];
@@ -637,6 +724,9 @@ onMounted(async () => {
   Events.On('agent-cancelled', onAgentCancelled);
   Events.On('ignore-list-updated', onIgnoreListUpdated);
   Events.On('agent-reveal-in-browser', onAgentRevealInBrowser);
+  Events.On('agent-apply-filter', onAgentApplyFilter);
+  Events.On('agent-clear-filter', onAgentClearFilter);
+  Events.On('files-dropped', onFilesDropped);
 });
 
 onUnmounted(() => {
@@ -649,6 +739,9 @@ onUnmounted(() => {
   Events.Off('agent-cancelled');
   Events.Off('ignore-list-updated');
   Events.Off('agent-reveal-in-browser');
+  Events.Off('agent-apply-filter');
+  Events.Off('agent-clear-filter');
+  Events.Off('files-dropped');
 });
 </script>
 
@@ -721,7 +814,6 @@ onUnmounted(() => {
   height: min-content;
   padding-bottom: 0.4rem;
   box-sizing: border-box;
-  /* background-color: forestgreen; */
 }
 
 .console-input-wrapper {

@@ -824,6 +824,7 @@ const handleFileDrop = async (files, details) => {
 	if (!files || files.length === 0) return;
 
 	const elementId = details?.id || '';
+	if (elementId === 'agent-console-drop-zone') return;
 	let destinationDir;
 	if (elementId.startsWith('drop-')) {
 		const collectionId = elementId.replace('drop-', '');
