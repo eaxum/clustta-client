@@ -14,12 +14,13 @@
     <div class="progress-bar">
 
       <div class="progress-bar-header">
-        <div class="header-with-minimize">
-          <HeaderArea :title="notificationStore.getProgress.title" :icon="progressIcon" :showSearch="showSearch" :notModal="true" />
-          <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="$t('components.flashMessage.minimize')">
-            <img :src="getAppIcon('chevron-down')" class="minimize-icon small-icons" />
-          </button>
+        <div class="header-title">
+          <img :src="getAppIcon(progressIcon)" class="header-icon" />
+          <span class="header-text">{{ notificationStore.getProgress.title }}</span>
         </div>
+        <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="$t('components.flashMessage.minimize')">
+          <img :src="getAppIcon('chevron-down')" class="minimize-icon small-icons" />
+        </button>
       </div>
 
       <div class="progress-bar-meta">
@@ -61,7 +62,6 @@ import { watch, ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useTrayStates } from '@/stores/TrayStates';
 import ProgressBar from '@/instances/common/components/ProgressBar.vue';
 import { useNotificationStore } from '@/stores/notifications';
-import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
@@ -70,9 +70,6 @@ import { useIconStore } from '@/stores/icons';
 import { usePlatformStore } from '@/stores/platform';
 
 const platformStore = usePlatformStore();
-
-// vars
-let showSearch = false;
 
 const iconStore = useIconStore();
 
@@ -388,16 +385,32 @@ onBeforeUnmount(() => {
   align-items: center;
   font-size: 16px;
   justify-content: space-between;
-  /* background-color: #FF3333; */
   width: 100%;
+  gap: .5rem;
 }
 
-.header-with-minimize {
-  width: 100%;
+.header-title {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: .5rem;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.header-text {
+  font-family: Inter, sans-serif;
+  color: var(--white);
+  font-size: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .minimize-button {
