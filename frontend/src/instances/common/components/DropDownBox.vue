@@ -155,21 +155,38 @@ const stopScrollText = (event) => {
 };
 
 const toggleList = () => {
-  const containerHeight = listItemsBoundary.value ? listItemsBoundary.value.getBoundingClientRect().height : 200;
+  const boundaryRect = listItemsBoundary.value ? listItemsBoundary.value.getBoundingClientRect() : null;
+  const boundaryTop = boundaryRect ? boundaryRect.top : 0;
+  const boundaryBottom = boundaryRect ? boundaryRect.bottom : window.innerHeight;
   const parentRect = listBoxParent.value.getBoundingClientRect();
   const listParentLeft = parentRect.left;
-  const listParentGlobalY = parentRect.top;
-  const listParentHeight = parentRect.height;
+  const listParentTop = parentRect.top;
+  const listParentBottom = parentRect.bottom;
   const listParentWidth = parentRect.width;
 
   const baseWidth = props.fullWidth ? listParentWidth : 200;
+  const spaceBelow = boundaryBottom - listParentBottom;
+  const spaceAbove = listParentTop - boundaryTop;
+  // Flip up when there's clearly more room above than below (and below is too tight).
+  const MIN_BELOW = 120;
+  const flipUp = spaceBelow < MIN_BELOW && spaceAbove > spaceBelow;
 
   listItemsLeft.value = listParentLeft;
-  listItemsAnchor.value = listParentGlobalY;
   listItemsWidth.value = baseWidth;
   listItemsPaddingTop.value = 0;
-  listItemMaxHeight.value = containerHeight - listParentGlobalY;
-  // listItemMaxHeight.value = 200;
+
+  if (flipUp) {
+    const maxH = Math.max(80, spaceAbove + parentRect.height - 4);
+    // Estimate actual list height so the panel hugs the parent and overlaps it
+    // (mirrors the downward case where the panel anchors at listParentTop).
+    const estimatedItemHeight = 32;
+    const estimatedHeight = Math.min(maxH, filteredItems.value.length * estimatedItemHeight + 8);
+    listItemMaxHeight.value = maxH;
+    listItemsAnchor.value = listParentBottom - estimatedHeight;
+  } else {
+    listItemsAnchor.value = listParentTop;
+    listItemMaxHeight.value = Math.max(80, boundaryBottom - listParentTop);
+  }
 
   if (filteredItems.value.length) {
     isExpanded.value = !isExpanded.value;
@@ -223,6 +240,7 @@ onUnmounted(() => {
 .listbox-list-items-root {
   opacity: 0;
   animation: fadeIn .1s ease-in-out forwards;
+  z-index: 1000;
 }
 
 @keyframes fadeIn {
