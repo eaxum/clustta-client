@@ -158,7 +158,7 @@ const deleteProject = async ({ deleteWorkingFiles } = {}) => {
     await FSService.DeleteFolder(project.working_directory);
   }
 
-  await projectStore.loadProjects();
+  projectStore.removeProjectFromList(project.uri);
 };
 
 // Deletes a remote project from the studio server.
@@ -181,7 +181,7 @@ const deleteRemoteProject = async ({ deleteWorkingFiles } = {}) => {
     await FSService.DeleteFolder(project.working_directory);
   }
   
-  await projectStore.loadProjects();
+  projectStore.removeProjectFromList(project.uri);
   refreshEntitlements();
   notificationStore.addNotification(
     t('notifications.projectDeleted'),
@@ -377,7 +377,7 @@ const leaveProject = async () => {
     if (project.is_downloaded) {
       await FSService.DeleteFile(project.uri);
     }
-    await projectStore.loadProjects();
+    projectStore.removeProjectFromList(project.uri);
     notificationStore.addNotification(
       t('notifications.leftProject'),
       t('notifications.leftProjectDesc', { name: project.name }),
@@ -419,7 +419,7 @@ const removeProject = async ({ deleteWorkingFiles } = {}) => {
     await FSService.DeleteFolder(project.working_directory);
   }
 
-  await projectStore.loadProjects();
+  projectStore.removeProjectFromList(project.uri);
 };
 
 // Reveals the project directory in the file explorer.

@@ -148,6 +148,28 @@ export const useProjectStore = defineStore("projects", {
         }
       );
     },
+    addProjectToList(project) {
+      if (!project) return;
+      if (this.projects.some((p) => p.id === project.id || p.uri === project.uri)) return;
+      const name = (project.name || "").toLowerCase();
+      const insertAt = this.projects.findIndex(
+        (p) => (p.name || "").toLowerCase().localeCompare(name) > 0
+      );
+      if (insertAt === -1) {
+        this.projects.push(project);
+      } else {
+        this.projects.splice(insertAt, 0, project);
+      }
+    },
+    removeProjectFromList(uri) {
+      if (!uri) return;
+      this.projects = this.projects.filter((p) => p.uri !== uri);
+      this.pinnedProjects = this.pinnedProjects.filter((p) => p.uri !== uri);
+      this.recentProjects = this.recentProjects.filter((p) => p.uri !== uri);
+      if (this.activeProject?.uri === uri) {
+        this.activeProject = null;
+      }
+    },
     async loadProjects() {
       const notificationStore = useNotificationStore();
       this.projectsLoaded = false;

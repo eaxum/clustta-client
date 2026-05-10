@@ -331,9 +331,9 @@ const deleteProjectWorkData = async () => {
 };
 
 const deleteProject = async () => {
-  await FSService.DeleteFile(projectStore.activeProject.uri).then((data) => {
-    projectStore.loadProjects()
-    getProjectData()
+  const uri = projectStore.activeProject.uri;
+  await FSService.DeleteFile(uri).then(() => {
+    projectStore.removeProjectFromList(uri);
   }).catch(error => {
     console.log(error)
   })

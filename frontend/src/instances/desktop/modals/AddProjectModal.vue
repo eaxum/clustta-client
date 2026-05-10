@@ -321,18 +321,27 @@ const createProject = async () => {
     }
 
     resetProjectData();
-    await projectStore.loadProjects();
-    projectStore.activeProject = project;
 
-        
-    if(studio.name !== 'Personal'){
+    if (studio.name !== 'Personal') {
+      // Studio projects need the full reload so the in-list entry has the local .clst URI
+      // (CreateProject returns the remote URL as `uri`). cloneProject relies on this to
+      // pick up the correct local path when it finishes.
+      await projectStore.loadProjects();
+      projectStore.activeProject = projectStore.projects.find(p => p.id === project.id) || project;
       await cloneProject();
-    } else if (makeRemote.value) {
-      await makeProjectRemote(project);
     } else {
-      closeModal();
+      project.is_tracked = true;
+      project.is_downloaded = true;
+      projectStore.addProjectToList(project);
+      projectStore.activeProject = project;
+
+      if (makeRemote.value) {
+        await makeProjectRemote(project);
+      } else {
+        closeModal();
+      }
     }
-    
+
     isAwaitingResponse.value = false;
 
   }).catch((error) => {
