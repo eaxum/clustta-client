@@ -6,7 +6,7 @@
     <div class="general-container">
 
       <div class="horizontal-flex">
-        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="isCloudHosted ? [] : studioUsers"
+        <CollaboratorSuggestions :allowMultipleEntries="true" :placeholder="placeholder" :selectedItems="selectedUsers" :allItems="studioUsers"
           @tagAdded="addUser" @tagRemoved="removeUser" />
       </div>
 
@@ -130,7 +130,7 @@ const nonStudioUsers = computed(() => {
 });
 
 const selectedUsers = computed(() => {
-  if (isCloudHosted.value) {
+  if (isCloudHosted.value && !isStudioProject.value) {
     const registeredUsers = selectedUserEmails.value.map(email => ({
       id: email,
       email: email,
@@ -201,12 +201,10 @@ const addCollaborators = async () => {
   isAwaitingResponse.value = true;
 
   try {
-    if (isCloudHosted.value) {
-      console.log('one')
-      await addPersonalRemoteCollaborators();
-    } else if (isStudioProject.value) {
-      console.log('two')
+    if (isStudioProject.value) {
       await addStudioProjectCollaborators();
+    } else if (isCloudHosted.value) {
+      await addPersonalRemoteCollaborators();
     } else {
       await addLocalCollaborators();
     }
@@ -449,7 +447,7 @@ const addUser = async (user) => {
     return;
   }
 
-  if (isCloudHosted.value) {
+  if (isCloudHosted.value && !isStudioProject.value) {
     try {
       const emailExists = await AuthService.CheckEmailExists(userEmail);
       if (emailExists) {
