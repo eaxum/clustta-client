@@ -30,7 +30,13 @@
           </div>
 
           <div v-else class="msg-assistant">
-            <div class="msg-assistant-text" v-html="formatContent(message.content)"></div>
+            <div class="msg-assistant-text">
+              <template v-for="(segment, segIndex) in parseAssistantSegments(message.content)" :key="segIndex">
+                <ConsoleChip v-if="segment.type === 'chip'" :type="segment.entityType" :entityId="segment.id" :fallbackLabel="segment.label" />
+
+                <span v-else class="msg-assistant-segment" v-html="segment.html"></span>
+              </template>
+            </div>
           </div>
         </template>
 
@@ -95,6 +101,7 @@ import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import Chip from '@/instances/common/components/Chip.vue';
+import ConsoleChip from '@/instances/desktop/components/ConsoleChip.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 
 // services
@@ -226,7 +233,6 @@ const toolIconMap = {
   setup_project_types: 'brush',
   unassign_all_assets: 'person-minus',
   unassign_asset: 'person-minus',
-  // Phase 1a additions
   apply_workflow: 'flow-chart',
   batch_update_asset_types: 'brush',
   batch_update_collection_types: 'brush',
@@ -245,7 +251,6 @@ const toolIconMap = {
 
 // methods
 
-// Checks agent API key status on mount.
 const checkApiKeyStatus = async () => {
   try {
     const status = await AgentService.GetAPIKeyStatus();
@@ -265,7 +270,6 @@ const checkApiKeyStatus = async () => {
   }
 };
 
-// Loads available models for the current provider and the user's selection.
 const loadModelOptions = async () => {
   try {
     const [models, chosen] = await Promise.all([
@@ -280,7 +284,6 @@ const loadModelOptions = async () => {
   }
 };
 
-// Persists the user's model choice for the active provider.
 const selectModel = async (newModel) => {
   selectedModel.value = newModel || '';
   if (!currentProvider.value) return;
@@ -291,12 +294,10 @@ const selectModel = async (newModel) => {
   }
 };
 
-// Opens the console in an expanded modal view.
 const openConsoleModal = () => {
   modals.setModalVisibility('consoleModal', true);
 };
 
-// Clears the chat history for the current project.
 const clearChat = async () => {
   const projectPath = projectStore.activeProject?.uri;
   if (!projectPath) return;
@@ -306,25 +307,62 @@ const clearChat = async () => {
   } catch { /* ignore */ }
 };
 
-// Escapes HTML to prevent injection when rendering message content.
 const escapeHtml = (text) => {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
 };
 
-// Formats a tool name and count into a readable label.
 const formatToolLabel = (toolName, count) => {
   const label = toolName.replace(/_/g, ' ');
   if (count > 1) return `${label} (${count})`;
   return label;
 };
 
-// Formats message content with basic markdown-like rendering.
+// Matches inline entity references in agent text, e.g. [[asset:abc-123|My Asset]].
+const ENTITY_TOKEN_REGEX = /\[\[(asset|collection|user):([A-Za-z0-9_-]+)\|([\s\S]*?)\]\]/g;
+
+// Splits assistant text into a list of formatted text segments and entity chip
+// segments, removing any leftover markdown emphasis around the chip boundaries.
+const parseAssistantSegments = (text) => {
+  if (!text) return [];
+  const stripTrailingEmphasis = (s) => s.replace(/(\*{1,3}|_{1,3}|`)$/, '');
+  const stripLeadingEmphasis = (s) => s.replace(/^(\*{1,3}|_{1,3}|`)/, '');
+
+  const rawChunks = [];
+  let lastIndex = 0;
+  const regex = new RegExp(ENTITY_TOKEN_REGEX.source, 'g');
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      rawChunks.push({ type: 'text', raw: text.slice(lastIndex, match.index) });
+    }
+    rawChunks.push({ type: 'chip', entityType: match[1], id: match[2], label: match[3] });
+    lastIndex = match.index + match[0].length;
+  }
+  if (lastIndex < text.length) {
+    rawChunks.push({ type: 'text', raw: text.slice(lastIndex) });
+  }
+
+  const segments = [];
+  for (let i = 0; i < rawChunks.length; i++) {
+    const chunk = rawChunks[i];
+    if (chunk.type === 'chip') {
+      segments.push(chunk);
+      continue;
+    }
+    let raw = chunk.raw;
+    if (i > 0 && rawChunks[i - 1].type === 'chip') raw = stripLeadingEmphasis(raw);
+    if (i < rawChunks.length - 1 && rawChunks[i + 1].type === 'chip') raw = stripTrailingEmphasis(raw);
+    if (raw) segments.push({ type: 'text', html: formatContent(raw) });
+  }
+  return segments;
+};
+
+// Renders a small subset of markdown: ISO dates, code blocks, inline code, bold, line breaks.
 const formatContent = (text) => {
   if (!text) return '';
   let escaped = escapeHtml(text);
-  // Format ISO dates (e.g. 2025-04-17T23:36:15Z or 2025-04-17 at 23:36:15Z)
   escaped = escaped.replace(/(\d{4}-\d{2}-\d{2})[T ](?:at )?((\d{2}):(\d{2})(?::\d{2})?Z?)/g, (match, datePart, timePart, hours, minutes) => {
     try {
       const date = new Date(datePart + 'T' + timePart.replace('at ', '') + (timePart.endsWith('Z') ? '' : 'Z'));
@@ -332,49 +370,40 @@ const formatContent = (text) => {
       return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ' at ' + date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
     } catch { return match; }
   });
-  // Code blocks
   escaped = escaped.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code class="code-block">$2</code></pre>');
-  // Inline code
   escaped = escaped.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
-  // Bold
   escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  // Line breaks
   escaped = escaped.replace(/\n/g, '<br>');
   return escaped;
 };
 
-// Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
-// Extracts [Context: ...] prefix from a user message into separate display tag and body.
+// Pulls a leading `[Context: ...]` block off a user message and returns it separately from the body.
 const parseUserContext = (content) => {
   if (!content) return { context: '', body: content };
   const match = content.match(/^\[Context:\s*(.+?)\]\n?/);
   if (match) {
-    // Strip parenthetical metadata (IDs, types) for display — those are for the agent, not the user
     const display = match[1].replace(/\s*\([^)]*\)/g, '').replace(/"/g, '');
     return { context: display, body: content.slice(match[0].length) };
   }
   return { context: '', body: content };
 };
 
-// Opens settings page directly to the Advanced tab.
 const openAdvancedSettings = () => {
   settings.pendingTab = 'advanced';
   stage.setStageVisibility('settings', true);
 };
 
-// Returns the icon name for a given tool function name.
 const getToolIcon = (toolName) => toolIconMap[toolName] || 'cog';
 
-// Auto-resizes the textarea based on content.
+// Grows or shrinks the input textarea to match its content.
 const handleInput = () => {
   if (!textareaRef.value) return;
   textareaRef.value.style.height = 'auto';
   textareaRef.value.style.height = textareaRef.value.scrollHeight + 'px';
 };
 
-// Loads persisted chat history from the backend and renders it.
 const loadChatHistory = async () => {
   const projectPath = projectStore.activeProject?.uri;
   if (!projectPath) return;
@@ -387,19 +416,16 @@ const loadChatHistory = async () => {
   } catch { /* no history available */ }
 };
 
-// Removes the attached file.
 const removeAttachment = () => {
   attachmentPath.value = '';
 };
 
-// Scrolls the messages container to the bottom.
 const scrollToBottom = () => {
   nextTick(() => {
     if (messagesContainer.value) messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
   });
 };
 
-// Opens a file dialog to select an attachment.
 const selectAttachment = async () => {
   try {
     const path = await DialogService.SelectFileDialog('Select file to attach', '');
@@ -407,7 +433,7 @@ const selectAttachment = async () => {
   } catch { /* user cancelled */ }
 };
 
-// Builds a selection context string to inform the agent of what the user is currently viewing.
+// Describes the user's current selection (collection, items, active stage) for the agent.
 const buildSelectionContext = () => {
   const parts = [];
 
@@ -437,7 +463,6 @@ const buildSelectionContext = () => {
   return `[Context: ${parts.join(' | ')}]\n`;
 };
 
-// Sends the current message to the agent backend.
 const sendMessage = async () => {
   if (!currentMessage.value.trim() || isProcessing.value) return;
   if (!isApiKeyConfigured.value) return;
@@ -464,7 +489,6 @@ const sendMessage = async () => {
   }
 };
 
-// Adds a message to the messages list.
 const addMessage = (type, content) => {
   messages.value.push({ id: messages.value.length + 1, type, content });
   scrollToBottom();
@@ -472,7 +496,6 @@ const addMessage = (type, content) => {
 
 // --- Wails event handlers ---
 
-// Handles agent status updates (e.g., "Thinking...").
 const onAgentStatus = (event) => {
   const lastMsg = messages.value[messages.value.length - 1];
   if (lastMsg && lastMsg.type === 'status') {
@@ -483,7 +506,7 @@ const onAgentStatus = (event) => {
   scrollToBottom();
 };
 
-// Handles tool execution start events, grouping consecutive calls of the same tool.
+// Folds repeated calls of the same tool into one row with a count.
 const onAgentToolStart = (event) => {
   const data = event.data;
   const toolName = data.tool;
@@ -499,16 +522,14 @@ const onAgentToolStart = (event) => {
   scrollToBottom();
 };
 
-// Handles the final agent text response.
+// Appends the agent's reply and clears any pending status row above it.
 const onAgentResponse = (event) => {
-  // Remove any trailing status message
   if (messages.value.length && messages.value[messages.value.length - 1].type === 'status') {
     messages.value.pop();
   }
   addMessage('assistant', event.data);
 };
 
-// Handles agent errors.
 const onAgentError = (event) => {
   if (messages.value.length && messages.value[messages.value.length - 1].type === 'status') {
     messages.value.pop();
@@ -517,7 +538,6 @@ const onAgentError = (event) => {
   isProcessing.value = false;
 };
 
-// Handles agent completion signal.
 const onAgentDone = (event) => {
   if (messages.value.length && messages.value[messages.value.length - 1].type === 'status') {
     messages.value.pop();
@@ -529,7 +549,6 @@ const onAgentDone = (event) => {
   }
 };
 
-// Handles user-initiated cancellation acknowledged by the backend.
 const onAgentCancelled = (event) => {
   if (messages.value.length && messages.value[messages.value.length - 1].type === 'status') {
     messages.value.pop();
@@ -540,7 +559,6 @@ const onAgentCancelled = (event) => {
   }
 };
 
-// Requests the backend to cancel the in-flight agent run.
 const stopAgent = async () => {
   if (!projectStore.activeProject) return;
   try {
@@ -550,14 +568,14 @@ const stopAgent = async () => {
   }
 };
 
-// Syncs the ignore list from the agent's DB update to the in-memory project store.
+// Refreshes the project's ignore_list when the agent edits it server-side.
 const onIgnoreListUpdated = (event) => {
   if (projectStore.activeProject && event.data) {
     projectStore.activeProject.ignore_list = event.data;
   }
 };
 
-// Navigates the in-app browser to focus the asset or collection requested by the agent.
+// Jumps the browser to an asset or collection the agent points the user at.
 const onAgentRevealInBrowser = async (event) => {
   const data = event.data;
   if (!data || !projectStore.activeProject) return;
@@ -845,10 +863,14 @@ onUnmounted(() => {
 
 .msg-assistant-text {
   font-size: 13px;
-  line-height: 1.6;
+  line-height: 2;
   color: var(--white);
   font-weight: 400;
   word-wrap: break-word;
+}
+
+.msg-assistant-segment {
+  vertical-align: middle;
 }
 
 .msg-assistant-text :deep(strong) {

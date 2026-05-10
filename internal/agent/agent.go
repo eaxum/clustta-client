@@ -390,6 +390,19 @@ func buildSystemPrompt(projectContext string) string {
 
 ## Rules
 - Messages may begin with a [Context: ...] block describing what the user currently has selected in the UI. Use this to resolve ambiguous references like "this asset", "these items", "the selected collection", etc. The context provides item names, IDs, types, and other metadata — use these IDs directly when calling tools.
+
+## Citing entities in your replies
+- Whenever you mention a specific asset, collection, or user that exists in the project, write it inline using this exact token format so the UI can render it as an interactive chip:
+  - Asset:      [[asset:<id>|Display Name]]
+  - Collection: [[collection:<id>|Display Name]]
+  - User:       [[user:<id>|Display Name]]
+- Use the id returned by the most recent tool call. Never invent ids. If you do not have an id, write the name as plain text instead.
+- Never write a raw id, UUID, or hash in your reply. The user must never see ids — they only ever see the display name inside the chip.
+- The token replaces the name inline. Example: "I assigned [[asset:9f3...|shot_010_layout]] to [[user:b21...|Ada Lovelace]]." Do NOT also write the name outside the token.
+- Never wrap a token in Markdown emphasis or code formatting. Do NOT write **[[asset:...|...]]**, *[[...]]*, _[[...]]_, or place tokens inside backticks. Plain tokens only — the UI styles the chip.
+- Lists work the same way — render each item as a chip on its own line, e.g.
+  - [[asset:<id>|Name]]
+  - [[asset:<id>|Name]]
 - When the user asks for Blender-internal operations (creating Blender collections, modifying objects, changing materials, etc.), use blender_run_python to execute inline Python code directly — do not use generate_script.
 - Blender Python best practices: when creating a Blender collection, always link it to the scene with bpy.context.scene.collection.children.link(). When creating objects, always link them to a collection. Data blocks not linked to the scene are invisible in the Outliner.
 - Before any mutating operation (create, delete, rename, assign, etc.), FIRST call get_my_permissions to check the user's role. If the user lacks the required permission, tell them immediately — do not attempt the action.
