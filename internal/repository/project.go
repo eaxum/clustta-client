@@ -1178,6 +1178,24 @@ func UserInProject(projectPath string, userId string) (bool, error) {
 	return true, nil
 }
 
+// resolveLocalProjectPath returns the local .clst path for the given project,
+// routing personal projects to the user's personal projects directory and
+// studio projects to the shared studio directory.
+func resolveLocalProjectPath(studioName, projectName string) (string, error) {
+	if studioName == "Personal" {
+		dir, err := settings.GetProjectDirectory()
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(dir, projectName+".clst"), nil
+	}
+	sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(sharedProjectsDir, studioName, projectName+".clst"), nil
+}
+
 func RenameProject(projectUri, studioName, newName string, user auth_service.User) error {
 	if utils.IsValidURL(projectUri) {
 		data := []byte(fmt.Sprintf(`{"name": "%s"}`, newName))
@@ -1212,17 +1230,16 @@ func RenameProject(projectUri, studioName, newName string, user auth_service.Use
 			return errors.New(string(body))
 		}
 
-		sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+		paths := strings.Split(projectUri, "/")
+		oldProjectName := paths[len(paths)-1]
+		oldProjectPath, err := resolveLocalProjectPath(studioName, oldProjectName)
 		if err != nil {
 			return err
 		}
-		studioProjectsDir := filepath.Join(sharedProjectsDir, studioName)
-
-		paths := strings.Split(projectUri, "/")
-
-		oldProjectName := paths[len(paths)-1]
-		oldProjectPath := filepath.Join(studioProjectsDir, oldProjectName+".clst")
-		newProjectPath := filepath.Join(studioProjectsDir, newName+".clst")
+		newProjectPath, err := resolveLocalProjectPath(studioName, newName)
+		if err != nil {
+			return err
+		}
 		err = os.Rename(oldProjectPath, newProjectPath)
 		if err != nil {
 			return err
@@ -1313,16 +1330,12 @@ func SetIcon(projectUri, studioName, icon string, user auth_service.User) error 
 			return errors.New(string(body))
 		}
 
-		sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+		paths := strings.Split(projectUri, "/")
+		projectName := paths[len(paths)-1]
+		projectPath, err := resolveLocalProjectPath(studioName, projectName)
 		if err != nil {
 			return err
 		}
-		studioProjectsDir := filepath.Join(sharedProjectsDir, studioName)
-
-		paths := strings.Split(projectUri, "/")
-
-		projectName := paths[len(paths)-1]
-		projectPath := filepath.Join(studioProjectsDir, projectName+".clst")
 
 		dbConn, err := utils.OpenDb(projectPath)
 		if err != nil {
@@ -1402,15 +1415,12 @@ func ToggleCloseProject(projectUri, studioName string, user auth_service.User) e
 			return errors.New(string(body))
 		}
 
-		sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+		paths := strings.Split(projectUri, "/")
+		projectName := paths[len(paths)-1]
+		projectPath, err := resolveLocalProjectPath(studioName, projectName)
 		if err != nil {
 			return err
 		}
-		studioProjectsDir := filepath.Join(sharedProjectsDir, studioName)
-
-		paths := strings.Split(projectUri, "/")
-		projectName := paths[len(paths)-1]
-		projectPath := filepath.Join(studioProjectsDir, projectName+".clst")
 
 		if utils.FileExists(projectPath) {
 			dbConn, err := utils.OpenDb(projectPath)
@@ -1576,14 +1586,13 @@ func UpdateProjectWorkingDirectory(projectUri, studioName, newWorkingDir string,
 
 	var projectPath string
 	if utils.IsValidURL(projectUri) {
-		sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+		paths := strings.Split(projectUri, "/")
+		projectName := paths[len(paths)-1]
+		localPath, err := resolveLocalProjectPath(studioName, projectName)
 		if err != nil {
 			return err
 		}
-		studioProjectsDir := filepath.Join(sharedProjectsDir, studioName)
-		paths := strings.Split(projectUri, "/")
-		projectName := paths[len(paths)-1]
-		projectPath = filepath.Join(studioProjectsDir, projectName+".clst")
+		projectPath = localPath
 
 		if !utils.FileExists(projectPath) {
 			return fmt.Errorf("local project file not found: %s", projectPath)
@@ -1686,16 +1695,12 @@ func SetIgnoreList(projectUri, studioName string, ignoreList []string, user auth
 			return errors.New(string(body))
 		}
 
-		sharedProjectsDir, err := settings.GetSharedProjectDirectory()
+		paths := strings.Split(projectUri, "/")
+		projectName := paths[len(paths)-1]
+		projectPath, err := resolveLocalProjectPath(studioName, projectName)
 		if err != nil {
 			return err
 		}
-		studioProjectsDir := filepath.Join(sharedProjectsDir, studioName)
-
-		paths := strings.Split(projectUri, "/")
-
-		projectName := paths[len(paths)-1]
-		projectPath := filepath.Join(studioProjectsDir, projectName+".clst")
 
 		dbConn, err := utils.OpenDb(projectPath)
 		if err != nil {

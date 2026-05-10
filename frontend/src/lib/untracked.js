@@ -27,7 +27,7 @@ export async function addIgnoredItem(item) {
         );
         projectStore.projects[projectIndex].ignore_list = ignoreList;
         projectStore.activeProject.ignore_list = ignoreList;
-        // notificationStore.addNotification('Ignore list updated', 'success');
+        notificationStore.addNotification('Ignore list updated', '', 'success');
         await projectStore.refreshUntrackedItems();
         })
         .catch((error) => {

@@ -361,6 +361,7 @@ const copyProjectPath = async () => {
   projectDir = projectDir.replace(/\\/g, '/');
   FSService.MakeDirs(projectDir);
   await Clipboard.SetText(projectDir);
+  notificationStore.addNotification(t('notifications.pathCopied'), '', 'success');
   menu.hideContextMenu();
 };
 
