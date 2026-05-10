@@ -164,6 +164,8 @@
     "errorOccurred": "An error occurred",
     "errorUpdatingIcon": "Error Updating Icon",
     "errorUpdatingImage": "Error Updating Image",
+    "imageTooLarge": "Image exceeds the {limit} size limit",
+    "iconTooLarge": "Icon exceeds the {limit} size limit",
     "failedToUpdate": "Failed to update default view",
     "failedToUpdateIgnoreList": "Failed to update ignore list",
     "failedToAddTag": "Failed to add tag",

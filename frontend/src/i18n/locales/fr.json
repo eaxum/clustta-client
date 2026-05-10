@@ -162,6 +162,8 @@
     "errorOccurred": "Une erreur s'est produite",
     "errorUpdatingIcon": "Erreur lors de la mise à jour de l'icône",
     "errorUpdatingImage": "Erreur lors de la mise à jour de l'image",
+    "imageTooLarge": "L'image dépasse la limite de {limit}",
+    "iconTooLarge": "L'icône dépasse la limite de {limit}",
     "failedToUpdate": "Échec de la mise à jour de la vue par défaut",
     "failedToUpdateIgnoreList": "Échec de la mise à jour de la liste d'exclusion",
     "failedToAddTag": "Échec de l'ajout du tag",

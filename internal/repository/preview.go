@@ -18,10 +18,12 @@ import (
 	"os"
 	"path/filepath"
 
-	kzstd "github.com/klauspost/compress/zstd"
 	"github.com/jmoiron/sqlx"
+	kzstd "github.com/klauspost/compress/zstd"
 	"google.golang.org/protobuf/proto"
 )
+
+const MaxProjectPreviewBytes = 2 << 20 // 2 MiB
 
 func CreatePreview(tx *sqlx.Tx, previewPath string) (models.Preview, error) {
 	previewFileExtension := ""
@@ -30,10 +32,15 @@ func CreatePreview(tx *sqlx.Tx, previewPath string) (models.Preview, error) {
 	if previewPath == "" {
 		return preview, errors.New("preview file does not exist")
 	}
-	if previewPath != "" {
-		if _, err := os.Stat(previewPath); os.IsNotExist(err) {
+	stat, err := os.Stat(previewPath)
+	if err != nil {
+		if os.IsNotExist(err) {
 			return preview, errors.New("preview file does not exist")
 		}
+		return preview, err
+	}
+	if stat.Size() > MaxProjectPreviewBytes {
+		return preview, fmt.Errorf("preview exceeds %d MB limit", MaxProjectPreviewBytes>>20)
 	}
 
 	hash, err := utils.GenerateXXHashChecksum(previewPath)

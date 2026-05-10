@@ -162,6 +162,8 @@
     "errorOccurred": "エラーが発生しました",
     "errorUpdatingIcon": "アイコンの更新エラー",
     "errorUpdatingImage": "画像の更新エラー",
+    "imageTooLarge": "画像が{limit}の制限を超えています",
+    "iconTooLarge": "アイコンが{limit}の制限を超えています",
     "failedToUpdate": "デフォルトビューの更新に失敗しました",
     "failedToUpdateIgnoreList": "無視リストの更新に失敗しました",
     "failedToAddTag": "タグの追加に失敗しました",

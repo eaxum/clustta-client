@@ -162,6 +162,8 @@
     "errorOccurred": "Si è verificato un errore",
     "errorUpdatingIcon": "Errore nell'aggiornamento dell'icona",
     "errorUpdatingImage": "Errore nell'aggiornamento dell'immagine",
+    "imageTooLarge": "L'immagine supera il limite di {limit}",
+    "iconTooLarge": "L'icona supera il limite di {limit}",
     "failedToUpdate": "Aggiornamento vista predefinita fallito",
     "failedToUpdateIgnoreList": "Aggiornamento lista ignorati fallito",
     "failedToAddTag": "Aggiunta tag fallita",

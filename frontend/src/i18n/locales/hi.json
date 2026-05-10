@@ -162,6 +162,8 @@
     "errorOccurred": "एक त्रुटि हुई",
     "errorUpdatingIcon": "आइकन अपडेट करने में त्रुटि",
     "errorUpdatingImage": "छवि अपडेट करने में त्रुटि",
+    "imageTooLarge": "छवि {limit} की सीमा से अधिक है",
+    "iconTooLarge": "आइकन {limit} की सीमा से अधिक है",
     "failedToUpdate": "डिफ़ॉल्ट दृश्य अपडेट करने में विफल",
     "failedToUpdateIgnoreList": "नज़रअंदाज़ सूची अपडेट करने में विफल",
     "failedToAddTag": "टैग जोड़ने में विफल",

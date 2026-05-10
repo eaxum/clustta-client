@@ -1,8 +1,10 @@
 package services
 
 import (
+	"clustta/internal/repository"
 	"clustta/internal/utils"
 	"encoding/base64"
+	"fmt"
 	"os"
 	"runtime"
 
@@ -28,6 +30,17 @@ func (f *DialogService) SelectIconDialog() (string, error) {
 	path, err := dialog.PromptForSingleSelection()
 	if err != nil {
 		return "", err
+	}
+	if path == "" {
+		return "", nil
+	}
+
+	stat, err := os.Stat(path)
+	if err != nil {
+		return "", err
+	}
+	if stat.Size() > repository.MaxProjectIconBytes {
+		return "", fmt.Errorf("icon exceeds %d KB limit", repository.MaxProjectIconBytes>>10)
 	}
 
 	data, err := os.ReadFile(path)

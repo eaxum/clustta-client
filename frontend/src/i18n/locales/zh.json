@@ -162,6 +162,8 @@
     "errorOccurred": "发生错误",
     "errorUpdatingIcon": "更新图标时出错",
     "errorUpdatingImage": "更新图片时出错",
+    "imageTooLarge": "图片超过 {limit} 大小限制",
+    "iconTooLarge": "图标超过 {limit} 大小限制",
     "failedToUpdate": "更新默认视图失败",
     "failedToUpdateIgnoreList": "更新忽略列表失败",
     "failedToAddTag": "添加标签失败",

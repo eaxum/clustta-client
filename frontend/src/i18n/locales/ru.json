@@ -162,6 +162,8 @@
     "errorOccurred": "Произошла ошибка",
     "errorUpdatingIcon": "Ошибка обновления иконки",
     "errorUpdatingImage": "Ошибка обновления изображения",
+    "imageTooLarge": "Изображение превышает лимит {limit}",
+    "iconTooLarge": "Значок превышает лимит {limit}",
     "failedToUpdate": "Не удалось обновить вид по умолчанию",
     "failedToUpdateIgnoreList": "Не удалось обновить список игнорирования",
     "failedToAddTag": "Не удалось добавить тег",

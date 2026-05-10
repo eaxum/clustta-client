@@ -78,7 +78,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
-import { DialogService, ProjectService } from '@/services';
+import { DialogService, FSService, ProjectService } from '@/services';
 
 // stores
 import { useAccountStore } from '@/stores/accounts';
@@ -117,6 +117,7 @@ const projectsDirectory = ref('');
 const selectedEmoji = ref('');
 
 // constants
+const MAX_PREVIEW_BYTES = 2 * 1024 * 1024;
 const title = t('modals.projectDetails');
 
 // computed
@@ -173,7 +174,11 @@ const addCoverImage = async () => {
   const result = await DialogService.SelectFileDialog(t('modals.selectImageFile'), '*.png;*.jpg;*.jpeg;*.gif;*.bmp;*.webp');
   if (result) {
     const filePath = result.replace(/\\/g, '/');
-    const fileName = filePath.split('/').pop();
+    const stat = await FSService.FileStat(filePath);
+    if (stat.size > MAX_PREVIEW_BYTES) {
+      notificationStore.errorNotification(t('notifications.imageTooLarge', { limit: '2 MB' }), '');
+      return;
+    }
     projectPreview.value = await utils.base64FromFile(filePath);
     coverImagePath.value = filePath;
     fileIsSelected.value = true;
@@ -221,10 +226,13 @@ const revertCoverImage = () => {
 
 // Opens a dialog to select a custom icon.
 const selectIcon = async () => {
-  const result = await DialogService.SelectIconDialog();
-  if (result) {
-    const image = 'data:image/png;base64,' + result;
-    projectIcon.value = image;
+  try {
+    const result = await DialogService.SelectIconDialog();
+    if (result) {
+      projectIcon.value = 'data:image/png;base64,' + result;
+    }
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.iconTooLarge', { limit: '512 KB' }), '');
   }
 };
 

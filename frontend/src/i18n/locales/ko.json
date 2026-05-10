@@ -163,6 +163,8 @@
     "errorOccurred": "오류가 발생했습니다",
     "errorUpdatingIcon": "아이콘 업데이트 오류",
     "errorUpdatingImage": "이미지 업데이트 오류",
+    "imageTooLarge": "이미지가 {limit} 제한을 초과합니다",
+    "iconTooLarge": "아이콘이 {limit} 제한을 초과합니다",
     "failedToUpdate": "기본 보기 업데이트 실패",
     "failedToUpdateIgnoreList": "무시 목록 업데이트 실패",
     "failedToAddTag": "태그 추가 실패",

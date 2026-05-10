@@ -162,6 +162,8 @@
     "errorOccurred": "Ein Fehler ist aufgetreten",
     "errorUpdatingIcon": "Fehler beim Aktualisieren des Symbols",
     "errorUpdatingImage": "Fehler beim Aktualisieren des Bildes",
+    "imageTooLarge": "Bild überschreitet das Limit von {limit}",
+    "iconTooLarge": "Symbol überschreitet das Limit von {limit}",
     "failedToUpdate": "Aktualisierung der Standardansicht fehlgeschlagen",
     "failedToUpdateIgnoreList": "Aktualisierung der Ignorieren-Liste fehlgeschlagen",
     "failedToAddTag": "Tag konnte nicht hinzugefügt werden",

@@ -5,6 +5,7 @@ import (
 	"context"
 	"database/sql"
 	"embed"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -1255,7 +1256,30 @@ func RenameProject(projectUri, studioName, newName string, user auth_service.Use
 
 }
 
+const MaxProjectIconBytes = 512 << 10 // 512 KiB
+
+// validateIconSize rejects custom (data-URI) icons whose decoded payload
+// exceeds MaxProjectIconBytes. Emoji refs and short strings pass through.
+func validateIconSize(icon string) error {
+	if !strings.HasPrefix(icon, "data:") {
+		return nil
+	}
+	comma := strings.IndexByte(icon, ',')
+	if comma == -1 {
+		return nil
+	}
+	payload := icon[comma+1:]
+	decodedLen := base64.StdEncoding.DecodedLen(len(payload))
+	if decodedLen > MaxProjectIconBytes {
+		return fmt.Errorf("icon exceeds %d KB limit", MaxProjectIconBytes>>10)
+	}
+	return nil
+}
+
 func SetIcon(projectUri, studioName, icon string, user auth_service.User) error {
+	if err := validateIconSize(icon); err != nil {
+		return err
+	}
 	if utils.IsValidURL(projectUri) {
 		data := []byte(fmt.Sprintf(`{"icon": "%s"}`, icon))
 		url := projectUri + "/icon"
