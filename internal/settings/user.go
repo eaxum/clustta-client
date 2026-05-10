@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/zalando/go-keyring"
 )
 
@@ -170,7 +171,38 @@ func loadUserSettings() (Settings, error) {
 	if err != nil {
 		return settings, err
 	}
+
+	if migrateLocationIDsToUUID(&settings) {
+		if saveErr := saveSettings(settings); saveErr != nil {
+			log.Printf("Failed to persist project location ID migration: %v", saveErr)
+		}
+	}
+
 	return settings, nil
+}
+
+// migrateLocationIDsToUUID rewrites any legacy non-UUID project location IDs
+// to UUIDs and updates DefaultLocationID to match. Returns true if any change
+// was made.
+func migrateLocationIDsToUUID(settings *Settings) bool {
+	changed := false
+	idRemap := make(map[string]string)
+	for i := range settings.ProjectLocations {
+		loc := &settings.ProjectLocations[i]
+		if _, err := uuid.Parse(loc.ID); err == nil {
+			continue
+		}
+		oldID := loc.ID
+		newID := uuid.NewString()
+		loc.ID = newID
+		idRemap[oldID] = newID
+		changed = true
+	}
+	if newDefault, ok := idRemap[settings.DefaultLocationID]; ok {
+		settings.DefaultLocationID = newDefault
+		changed = true
+	}
+	return changed
 }
 
 func saveSettings(settings Settings) error {
@@ -1500,7 +1532,7 @@ func AddProjectLocation(name, path string) (ProjectLocation, error) {
 
 	// Create new location
 	newLocation := ProjectLocation{
-		ID:         fmt.Sprintf("%d", len(settings.ProjectLocations)+1), // Simple incremental ID
+		ID:         uuid.NewString(),
 		Name:       name,
 		Path:       path,
 		IsDefault:  len(settings.ProjectLocations) == 0, // First location is default

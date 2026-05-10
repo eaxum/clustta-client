@@ -125,9 +125,9 @@
               
               <!-- Location Actions -->
               <div class="location-actions">
-                <!-- Star button - always visible for default location -->
+                <!-- Star button - always visible for default location (hidden while editing) -->
                 <ActionButton 
-                  v-if="location.is_default"
+                  v-if="location.is_default && editingLocationId !== location.id"
                   :icon="getAppIcon('star')" 
                   :buttonFunction="() => setDefaultLocation(location.id)"
                   :disabled="true"
