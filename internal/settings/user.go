@@ -13,6 +13,8 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/zalando/go-keyring"
 )
 
 var (
@@ -125,6 +127,10 @@ type Settings struct {
 	SyncAfterCheckpoint bool  `json:"sync_after_checkpoint"`
 	BridgeEnabled       bool  `json:"bridge_enabled"`
 	MinimizeOnClose     *bool `json:"minimize_on_close,omitempty"`
+
+	AgentAutoApproveDestructive bool `json:"agent_auto_approve_destructive"`
+
+	AgentProviderModels map[string]string `json:"agent_provider_models,omitempty"`
 
 	PinnedProjects    map[string][]string              `json:"pinned_projects"`
 	RecentProjects    map[string][]string              `json:"recent_projects"`
@@ -458,6 +464,60 @@ func SetBridgeEnabled(enabled bool) error {
 		return err
 	}
 	settings.BridgeEnabled = enabled
+	return saveSettings(settings)
+}
+
+// GetAgentAutoApproveDestructive returns whether the agent should skip approval
+// prompts for destructive tool calls. Defaults to false.
+func GetAgentAutoApproveDestructive() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	return settings.AgentAutoApproveDestructive, nil
+}
+
+// SetAgentAutoApproveDestructive sets the auto-approve preference for the agent.
+func SetAgentAutoApproveDestructive(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.AgentAutoApproveDestructive = enabled
+	return saveSettings(settings)
+}
+
+// GetAgentModel returns the user-selected model for the given provider.
+// Returns empty string if no override is set (caller should fall back to provider default).
+func GetAgentModel(provider string) (string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return "", err
+	}
+	if settings.AgentProviderModels == nil {
+		return "", nil
+	}
+	return settings.AgentProviderModels[provider], nil
+}
+
+// SetAgentModel persists the selected model for the given provider.
+// Pass an empty model string to clear the override.
+func SetAgentModel(provider, model string) error {
+	if provider == "" {
+		return fmt.Errorf("provider cannot be empty")
+	}
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	if settings.AgentProviderModels == nil {
+		settings.AgentProviderModels = map[string]string{}
+	}
+	if model == "" {
+		delete(settings.AgentProviderModels, provider)
+	} else {
+		settings.AgentProviderModels[provider] = model
+	}
 	return saveSettings(settings)
 }
 
@@ -1078,52 +1138,124 @@ func UpdateProjectWorkspace(projectId string, workspaceName string, workspaceDat
 
 // ========== Integration Credentials Management ==========
 
+// integrationKeyringService is the OS-keyring service name under which
+// integration access/refresh tokens are stored. Storing them in the keyring
+// (Windows Credential Manager / macOS Keychain / libsecret) keeps API keys
+// off disk in plaintext.
+const integrationKeyringService = "clustta-integration"
+
+type integrationKeyringPayload struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
+// loadIntegrationSecrets reads access/refresh tokens for an integration from
+// the OS keyring. Returns empty values (no error) if nothing is stored.
+func loadIntegrationSecrets(integrationId string) (string, string, error) {
+	raw, err := keyring.Get(integrationKeyringService, integrationId)
+	if err != nil {
+		// keyring.ErrNotFound is the typical case for "never stored".
+		return "", "", nil
+	}
+	var payload integrationKeyringPayload
+	if jsonErr := json.Unmarshal([]byte(raw), &payload); jsonErr != nil {
+		return "", "", jsonErr
+	}
+	return payload.AccessToken, payload.RefreshToken, nil
+}
+
+// storeIntegrationSecrets writes access/refresh tokens to the OS keyring.
+// If both are empty, the entry is removed.
+func storeIntegrationSecrets(integrationId, accessToken, refreshToken string) error {
+	if accessToken == "" && refreshToken == "" {
+		_ = keyring.Delete(integrationKeyringService, integrationId)
+		return nil
+	}
+	payload, err := json.Marshal(integrationKeyringPayload{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	})
+	if err != nil {
+		return err
+	}
+	return keyring.Set(integrationKeyringService, integrationId, string(payload))
+}
+
 // GetIntegrationCredential retrieves integration credentials for an integration.
 // Credentials are stored per user per integration (not per project).
+// Secrets (access/refresh tokens) live in the OS keyring; the rest of the
+// metadata lives in settings.json. This function rejoins the two halves.
 func GetIntegrationCredential(integrationId string) (IntegrationCredential, error) {
 	settings, err := loadUserSettings()
 	if err != nil {
 		return IntegrationCredential{}, err
 	}
 
-	if settings.IntegrationCreds == nil {
-		return IntegrationCredential{}, fmt.Errorf("no credentials found")
+	cred, exists := IntegrationCredential{}, false
+	if settings.IntegrationCreds != nil {
+		cred, exists = settings.IntegrationCreds[integrationId]
+	}
+	if !exists {
+		// Some integrations (e.g. agent ollama provider) only store the provider
+		// name in ApiUrl with no token. Surface "not found" only if we genuinely
+		// have nothing in either location.
+		access, refresh, _ := loadIntegrationSecrets(integrationId)
+		if access == "" && refresh == "" {
+			return IntegrationCredential{}, fmt.Errorf("no credentials found for %s", integrationId)
+		}
+		cred.IntegrationId = integrationId
+		cred.AccessToken = access
+		cred.RefreshToken = refresh
+		return cred, nil
 	}
 
-	cred, exists := settings.IntegrationCreds[integrationId]
-	if !exists {
-		return IntegrationCredential{}, fmt.Errorf("no credentials found for %s", integrationId)
+	// Hydrate secrets from keyring. Fall back to whatever is in settings (legacy
+	// installs may still have the token stored in JSON until next SaveIntegrationCredential).
+	access, refresh, _ := loadIntegrationSecrets(integrationId)
+	if access != "" {
+		cred.AccessToken = access
+	}
+	if refresh != "" {
+		cred.RefreshToken = refresh
 	}
 	return cred, nil
 }
 
 // SaveIntegrationCredential saves or updates integration credentials.
-// Credentials are stored per user per integration (not per project).
+// Secrets go to the OS keyring; the rest of the metadata is persisted in
+// settings.json with the secret fields blanked out.
 func SaveIntegrationCredential(cred IntegrationCredential) error {
+	if err := storeIntegrationSecrets(cred.IntegrationId, cred.AccessToken, cred.RefreshToken); err != nil {
+		return fmt.Errorf("failed to store integration secrets in keyring: %w", err)
+	}
+
 	settings, err := loadUserSettings()
 	if err != nil {
 		return err
 	}
-
 	if settings.IntegrationCreds == nil {
 		settings.IntegrationCreds = make(map[string]IntegrationCredential)
 	}
 
-	settings.IntegrationCreds[cred.IntegrationId] = cred
+	stored := cred
+	stored.AccessToken = ""
+	stored.RefreshToken = ""
+	settings.IntegrationCreds[cred.IntegrationId] = stored
 	return saveSettings(settings)
 }
 
 // DeleteIntegrationCredential deletes integration credentials for an integration.
+// Removes both the keyring entry and the settings.json metadata.
 func DeleteIntegrationCredential(integrationId string) error {
+	_ = keyring.Delete(integrationKeyringService, integrationId)
+
 	settings, err := loadUserSettings()
 	if err != nil {
 		return err
 	}
-
 	if settings.IntegrationCreds == nil {
 		return nil
 	}
-
 	delete(settings.IntegrationCreds, integrationId)
 	return saveSettings(settings)
 }

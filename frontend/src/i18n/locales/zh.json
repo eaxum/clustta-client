@@ -72,7 +72,9 @@
     "link": "链接",
     "manage": "管理",
     "finish": "完成",
-    "copyId": "Copy ID"
+    "copyId": "Copy ID",
+    "approve": "批准",
+    "deny": "拒绝"
   },
   "placeholders": {
     "addItem": "添加项目",
@@ -776,7 +778,15 @@
     "projectsImportedCount": "{count} project(s) imported",
     "selectImageFile": "Select Image File",
     "enableRemote": "Enable Remote",
-    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
+    "agentApproval": {
+      "title": "确认：{tool}",
+      "destructiveBanner": "此操作将修改或删除项目数据，可能难以撤销。",
+      "affectedItems": "受影响的项 ({count})",
+      "viewArguments": "查看原始参数",
+      "queueHint": "此操作之后还有 {remaining} 个操作在等待。",
+      "alwaysAllow": "始终允许破坏性操作而不询问"
+    }
   },
   "menus": {
     "addAccount": "添加账户",
@@ -965,7 +975,10 @@
     "editProjectTooltip": "编辑项目设置",
     "projectSettings": "项目设置",
     "projectSettingsTooltip": "打开项目设置",
-    "addTag": "添加标签"
+    "addTag": "添加标签",
+    "stopAgent": "停止",
+    "projectUpdatedByAgent": "项目已由智能体更新",
+    "agentModel": "智能体模型"
   },
   "blocks": {
     "loadingState": "正在加载状态",

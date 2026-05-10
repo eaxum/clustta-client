@@ -72,7 +72,9 @@
     "link": "リンク",
     "manage": "管理",
     "finish": "完了",
-    "copyId": "Copy ID"
+    "copyId": "Copy ID",
+    "approve": "承認",
+    "deny": "拒否"
   },
   "placeholders": {
     "addItem": "アイテムを追加",
@@ -777,7 +779,15 @@
     "studioUrlLabel": "Studio URL",
     "alternateUrlLabel": "Alternate URL",
     "enableRemote": "Enable Remote",
-    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
+    "agentApproval": {
+      "title": "確認: {tool}",
+      "destructiveBanner": "この操作はプロジェクトデータを変更または削除し、元に戻すのが難しい場合があります。",
+      "affectedItems": "影響を受ける項目 ({count})",
+      "viewArguments": "生の引数を表示",
+      "queueHint": "この後に {remaining} 件のアクションが待機しています。",
+      "alwaysAllow": "破壊的な操作を常に確認なしで許可する"
+    }
   },
   "menus": {
     "addAccount": "アカウントを追加",
@@ -966,7 +976,10 @@
     "editProjectTooltip": "プロジェクト設定を編集",
     "projectSettings": "プロジェクト設定",
     "projectSettingsTooltip": "プロジェクト設定を開く",
-    "addTag": "タグを追加"
+    "addTag": "タグを追加",
+    "stopAgent": "停止",
+    "projectUpdatedByAgent": "エージェントによってプロジェクトが更新されました",
+    "agentModel": "エージェントモデル"
   },
   "blocks": {
     "loadingState": "読み込み状態",

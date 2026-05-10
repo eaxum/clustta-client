@@ -16,6 +16,28 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as $models from "./models.js";
 
 /**
+ * ApproveToolCall responds to an agent-tool-approval-request from the frontend.
+ * Pass approved=true to allow the tool to run, false to deny it.
+ * Safe to call with an unknown ID (returns nil).
+ * @param {string} toolCallID
+ * @param {boolean} approved
+ * @returns {$CancellablePromise<void>}
+ */
+export function ApproveToolCall(toolCallID, approved) {
+    return $Call.ByID(3865245129, toolCallID, approved);
+}
+
+/**
+ * CancelRun cancels an in-flight agent run for the given project.
+ * Safe to call when no run is active (returns nil).
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function CancelRun(projectPath) {
+    return $Call.ByID(259069029, projectPath);
+}
+
+/**
  * ClearChatSession clears the conversation history for a project.
  * @param {string} projectPath
  * @returns {$CancellablePromise<void>}
@@ -35,6 +57,27 @@ export function GetAPIKeyStatus() {
 }
 
 /**
+ * GetAutoApproveDestructive reports whether destructive tool calls auto-execute
+ * without prompting the user.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetAutoApproveDestructive() {
+    return $Call.ByID(1080847226);
+}
+
+/**
+ * GetAvailableModels returns the list of selectable models for the given provider.
+ * The first entry is the provider's default. Empty slice for unknown providers.
+ * @param {string} provider
+ * @returns {$CancellablePromise<string[]>}
+ */
+export function GetAvailableModels(provider) {
+    return $Call.ByID(3320819787, provider).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * GetChatHistory returns the persisted conversation history mapped to UI message types.
  * Tool-calling assistant messages are grouped by tool name.
  * @param {string} projectPath
@@ -42,8 +85,18 @@ export function GetAPIKeyStatus() {
  */
 export function GetChatHistory(projectPath) {
     return $Call.ByID(4191745416, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
+}
+
+/**
+ * GetSelectedModel returns the user-selected model for the provider, or the
+ * provider default if no override has been set.
+ * @param {string} provider
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetSelectedModel(provider) {
+    return $Call.ByID(3586811348, provider);
 }
 
 /**
@@ -77,7 +130,28 @@ export function SetAPIKey(provider, apiKey) {
     return $Call.ByID(3427571309, provider, apiKey);
 }
 
+/**
+ * SetAutoApproveDestructive persists the auto-approve preference.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetAutoApproveDestructive(enabled) {
+    return $Call.ByID(3546589254, enabled);
+}
+
+/**
+ * SetSelectedModel persists the chosen model for the given provider.
+ * Passing an empty model clears the override and reverts to the provider default.
+ * @param {string} provider
+ * @param {string} model
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetSelectedModel(provider, model) {
+    return $Call.ByID(557898616, provider, model);
+}
+
 // Private type creation functions
 const $$createType0 = $models.AgentKeyStatus.createFrom;
-const $$createType1 = $models.ChatUIMessage.createFrom;
-const $$createType2 = $Create.Array($$createType1);
+const $$createType1 = $Create.Array($Create.Any);
+const $$createType2 = $models.ChatUIMessage.createFrom;
+const $$createType3 = $Create.Array($$createType2);

@@ -723,6 +723,10 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 // --- Shared helpers ---
 
 // resolveAssetFilePaths looks up asset IDs and returns their absolute file paths.
+// All resolved paths are validated to live inside the project directory so that
+// a maliciously crafted asset.GetFilePath() (e.g. "../../etc/passwd" or an
+// absolute path to a system file) cannot trick DCC tools into opening files
+// outside the project root.
 func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -735,7 +739,6 @@ func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, err
 	}
 	defer tx.Rollback()
 
-	projectDir := filepath.Dir(projectPath)
 	paths := make([]string, 0, len(assetIDs))
 	for _, id := range assetIDs {
 		asset, err := repository.GetAsset(tx, id)
@@ -748,14 +751,39 @@ func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, err
 			return nil, fmt.Errorf("asset %s (%s) has no file path", asset.Name, id)
 		}
 
-		if !filepath.IsAbs(fp) {
-			fp = filepath.Join(projectDir, fp)
+		safePath, err := validateAssetPath(projectPath, fp)
+		if err != nil {
+			return nil, fmt.Errorf("asset %s (%s): %w", asset.Name, id, err)
 		}
 
-		paths = append(paths, fp)
+		paths = append(paths, safePath)
 	}
 
 	return paths, nil
+}
+
+// validateAssetPath resolves fp relative to the project directory and rejects
+// paths that escape the project root. Returns the cleaned absolute path.
+func validateAssetPath(projectPath, fp string) (string, error) {
+	projectDir, err := filepath.Abs(filepath.Dir(projectPath))
+	if err != nil {
+		return "", fmt.Errorf("invalid project path: %w", err)
+	}
+
+	if !filepath.IsAbs(fp) {
+		fp = filepath.Join(projectDir, fp)
+	}
+	abs, err := filepath.Abs(filepath.Clean(fp))
+	if err != nil {
+		return "", fmt.Errorf("invalid file path: %w", err)
+	}
+
+	// Compare with a trailing separator so "/projectAbc" doesn't match "/project".
+	rootWithSep := projectDir + string(filepath.Separator)
+	if !strings.EqualFold(abs, projectDir) && !strings.HasPrefix(strings.ToLower(abs)+string(filepath.Separator), strings.ToLower(rootWithSep)) {
+		return "", fmt.Errorf("path %s is outside the project directory", abs)
+	}
+	return abs, nil
 }
 
 // detectDCCFromExtension returns the DCC app name for a file extension.

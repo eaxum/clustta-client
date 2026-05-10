@@ -72,7 +72,9 @@
     "link": "Link",
     "manage": "Verwalten",
     "finish": "Fertigstellen",
-    "copyId": "Copy ID"
+    "copyId": "Copy ID",
+    "approve": "Genehmigen",
+    "deny": "Ablehnen"
   },
   "placeholders": {
     "addItem": "Element hinzufügen",
@@ -777,7 +779,15 @@
     "projectsImportedCount": "{count} project(s) imported",
     "selectImageFile": "Select Image File",
     "enableRemote": "Enable Remote",
-    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
+    "agentApproval": {
+      "title": "Bestätigen: {tool}",
+      "destructiveBanner": "Diese Aktion ändert oder löscht Projektdaten und ist möglicherweise schwer rückgängig zu machen.",
+      "affectedItems": "Betroffene Elemente ({count})",
+      "viewArguments": "Rohargumente anzeigen",
+      "queueHint": "Nach dieser warten noch {remaining} weitere Aktion(en).",
+      "alwaysAllow": "Destruktive Aktionen immer ohne Nachfrage zulassen"
+    }
   },
   "menus": {
     "addAccount": "Konto hinzufügen",
@@ -966,7 +976,10 @@
     "editProjectTooltip": "Projekteinstellungen bearbeiten",
     "projectSettings": "Projekteinstellungen",
     "projectSettingsTooltip": "Projekteinstellungen öffnen",
-    "addTag": "Tag hinzufügen"
+    "addTag": "Tag hinzufügen",
+    "stopAgent": "Stopp",
+    "projectUpdatedByAgent": "Projekt vom Agenten aktualisiert",
+    "agentModel": "Agenten-Modell"
   },
   "blocks": {
     "loadingState": "Status wird geladen",

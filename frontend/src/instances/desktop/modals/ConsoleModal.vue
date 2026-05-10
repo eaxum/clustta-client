@@ -9,7 +9,7 @@
     </div>
 
     <div class="console-modal-body">
-      <Console :isModal="true" />
+      <Console class="console-component" :isModal="true" />
     </div>
   </div>
 </template>
@@ -45,11 +45,14 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 @import "@/assets/desktop.css";
 
 .console-modal-container {
-  width: 80vw;
+  /* width: 80vw;
+  height: 80vh;
+  min-width: 480px;
+  min-height: 480px;
   max-width: 800px;
   max-height: 80vh;
   display: flex;
-  flex-direction: column;
+  flex-direction: column; */
   padding: 0 .5rem;
 }
 
@@ -59,7 +62,6 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   justify-content: space-between;
   width: 100%;
   padding: 0.5rem;
-  background-color: blue;
   border-radius: var(--small-radius);
   background-color: var(--midnight-steel);
   outline: var(--transparent-line);
@@ -81,9 +83,21 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 .console-modal-body {
   flex: 1;
+  width: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.console-component{
+  height: 100%;
+  display: flex;
+  width: 80vw;
+  height: 80vh;
+  min-width: 480px;
+  min-height: 480px;
+  max-width: 800px;
+  max-height: 80vh;
 }
 </style>

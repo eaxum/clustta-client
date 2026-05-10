@@ -10,6 +10,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useNotificationStore } from './stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useSyncConflictStore } from '@/stores/syncConflict';
+import { useAgentApprovalStore } from '@/stores/agentApproval';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { refreshEntitlements } from '@/lib/sync';
@@ -37,6 +38,7 @@ const assetStore = useAssetStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const syncConflictStore = useSyncConflictStore();
+const agentApprovalStore = useAgentApprovalStore();
 const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const stageStore = useStageStore();
@@ -78,6 +80,17 @@ const handleSyncConflict = (conflictData) => {
         conflictData.conflicts
     );
     modals.setModalVisibility('syncConflictModal', true);
+};
+
+const handleAgentApprovalRequest = (payload) => {
+    if (!payload || !payload.id) return;
+    agentApprovalStore.enqueueRequest(payload);
+    modals.setModalVisibility('agentApprovalModal', true);
+};
+
+const handleAgentTerminated = () => {
+    agentApprovalStore.clear();
+    modals.setModalVisibility('agentApprovalModal', false);
 };
 
 const handleopenClusttaFile = async (filePath) => {
@@ -150,6 +163,16 @@ if (platformStore.isWeb) {
         const rawUrl = message.data;
         console.log('Deep link received:', rawUrl);
         handleDeepLink(rawUrl);
+    });
+    Events.On('agent-tool-approval-request', async (message) => {
+        handleAgentApprovalRequest(message.data);
+    });
+    Events.On('agent-cancelled', async () => {
+        handleAgentTerminated();
+    });
+    Events.On('agent-done', async () => {
+        // Drain any stale approval requests when the run finishes.
+        if (agentApprovalStore.pendingCount > 0) handleAgentTerminated();
     });
     emitter.on('handle-deep-link', handleDeepLink);
 }

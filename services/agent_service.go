@@ -3,22 +3,57 @@ package services
 import (
 	"clustta/internal/agent"
 	"clustta/internal/settings"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-const agentIntegrationID = "clustta_agent_llm"
+const agentIntegrationID = "clustta-agent-llm"
+
+// legacyAgentIntegrationID is the pre-kebab-case identifier used in earlier
+// builds. Existing installs may still have credentials stored under this key
+// in the OS keyring and settings.json; migrateLegacyAgentIntegrationID copies
+// them to agentIntegrationID once, then removes the legacy entries.
+const legacyAgentIntegrationID = "clustta_agent_llm"
+
+var migrateLegacyAgentIDOnce sync.Once
+
+// migrateLegacyAgentIntegrationID moves any credential stored under the old
+// underscore identifier to the new dashed one. Idempotent and safe to call
+// repeatedly; the actual work runs at most once per process.
+func migrateLegacyAgentIntegrationID() {
+	migrateLegacyAgentIDOnce.Do(func() {
+		legacy, err := settings.GetIntegrationCredential(legacyAgentIntegrationID)
+		if err != nil {
+			return
+		}
+		// Don't clobber an existing new-style entry.
+		if _, err := settings.GetIntegrationCredential(agentIntegrationID); err == nil {
+			_ = settings.DeleteIntegrationCredential(legacyAgentIntegrationID)
+			return
+		}
+		legacy.IntegrationId = agentIntegrationID
+		if err := settings.SaveIntegrationCredential(legacy); err != nil {
+			return
+		}
+		_ = settings.DeleteIntegrationCredential(legacyAgentIntegrationID)
+	})
+}
 
 // AgentService exposes the AI agent to the frontend via Wails bindings.
 type AgentService struct {
-	mu      sync.Mutex
-	history map[string][]agent.Message // keyed by projectPath
+	mu        sync.Mutex
+	history   map[string][]agent.Message    // keyed by projectPath
+	cancels   map[string]context.CancelFunc // active runs keyed by projectPath
+	approvals map[string]chan bool          // pending approval channels keyed by tool call ID
 }
 
 // AgentKeyStatus reports whether an API key is configured and which provider is selected.
@@ -92,6 +127,35 @@ func saveChatSessions(sessions map[string][]agent.Message) error {
 	return os.WriteFile(path, data, 0644)
 }
 
+// maxHistoryMessages caps the per-project chat history that is kept in memory
+// and persisted to disk. Beyond this, the oldest non-system messages are
+// dropped. Without this cap the file grows without bound and eventually blows
+// the LLM's context window on every send.
+const maxHistoryMessages = 200
+
+// trimHistory drops the oldest messages so the history stays under the cap.
+// We keep the *last* maxHistoryMessages entries because the most recent turns
+// matter most for the LLM's understanding.
+//
+// Tool-result messages must stay paired with their preceding assistant
+// tool-call message; if we trim mid-pair the LLM rejects the request. We
+// shift the start forward until it lands on a "user" or "system" boundary.
+func trimHistory(history []agent.Message) []agent.Message {
+	if len(history) <= maxHistoryMessages {
+		return history
+	}
+	start := len(history) - maxHistoryMessages
+	for start < len(history) && history[start].Role == "tool" {
+		start++
+	}
+	if start >= len(history) {
+		return history[len(history)-1:]
+	}
+	trimmed := make([]agent.Message, len(history)-start)
+	copy(trimmed, history[start:])
+	return trimmed
+}
+
 // getHistory returns the conversation history for a project, loading from disk if needed.
 func (a *AgentService) getHistory(projectPath string) []agent.Message {
 	if a.history == nil {
@@ -108,6 +172,8 @@ func (a *AgentService) getHistory(projectPath string) []agent.Message {
 func (a *AgentService) SendMessage(projectPath, message, attachmentPath string) error {
 	app := application.Get()
 
+	migrateLegacyAgentIntegrationID()
+
 	// Load API key
 	cred, err := settings.GetIntegrationCredential(agentIntegrationID)
 	if err != nil || (cred.AccessToken == "" && cred.ApiUrl != "ollama") {
@@ -120,6 +186,22 @@ func (a *AgentService) SendMessage(projectPath, message, attachmentPath string) 
 		provider = "openai"
 	}
 
+	// Look up user-selected model for this provider; empty string means use provider default.
+	model, _ := settings.GetAgentModel(provider)
+
+	// For Ollama, verify reachability and that the model is pulled before
+	// kicking off the run; surfaces a clear error instead of a generic 404.
+	// Also reminds the user that prompts/data are sent to the local Ollama process.
+	if provider == "ollama" {
+		ollamaCtx, cancelVerify := context.WithTimeout(context.Background(), 5*time.Second)
+		verifyErr := agent.VerifyOllamaModel(ollamaCtx, model)
+		cancelVerify()
+		if verifyErr != nil {
+			app.Event.Emit("agent-error", verifyErr.Error())
+			return verifyErr
+		}
+	}
+
 	// Read attachment if provided
 	attachmentContent, err := agent.ReadAttachment(attachmentPath)
 	if err != nil {
@@ -130,6 +212,15 @@ func (a *AgentService) SendMessage(projectPath, message, attachmentPath string) 
 	// Get existing conversation history
 	a.mu.Lock()
 	history := a.getHistory(projectPath)
+	// If a previous run for this project is still in flight, cancel it before starting a new one.
+	if a.cancels == nil {
+		a.cancels = map[string]context.CancelFunc{}
+	}
+	if prev, ok := a.cancels[projectPath]; ok {
+		prev()
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	a.cancels[projectPath] = cancel
 	a.mu.Unlock()
 
 	// Run agent in a goroutine so we don't block the UI
@@ -138,26 +229,155 @@ func (a *AgentService) SendMessage(projectPath, message, attachmentPath string) 
 			app.Event.Emit(eventName, data)
 		}
 
-		updatedHistory, err := agent.RunAgent(projectPath, history, message, attachmentContent, cred.AccessToken, provider, emit)
-		if err != nil {
+		updatedHistory, mutated, err := agent.RunAgent(ctx, projectPath, history, message, attachmentContent, cred.AccessToken, provider, model, emit, a.requestApproval)
+		if err != nil && !errors.Is(err, agent.ErrCancelled) {
 			app.Event.Emit("agent-error", err.Error())
 		}
 
-		// Persist updated history
+		// Persist updated history (capped to keep the file and the LLM context window bounded)
 		a.mu.Lock()
-		a.history[projectPath] = updatedHistory
+		a.history[projectPath] = trimHistory(updatedHistory)
 		_ = saveChatSessions(a.history)
+		if a.cancels != nil {
+			delete(a.cancels, projectPath)
+		}
 		a.mu.Unlock()
 
-		app.Event.Emit("agent-done", nil)
+		payload := map[string]interface{}{"mutated": mutated}
+		if errors.Is(err, agent.ErrCancelled) {
+			app.Event.Emit("agent-cancelled", payload)
+		}
+		app.Event.Emit("agent-done", payload)
 	}()
 
 	return nil
 }
 
+// CancelRun cancels an in-flight agent run for the given project.
+// Safe to call when no run is active (returns nil).
+func (a *AgentService) CancelRun(projectPath string) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.cancels == nil {
+		return nil
+	}
+	if cancel, ok := a.cancels[projectPath]; ok {
+		cancel()
+		delete(a.cancels, projectPath)
+	}
+	// Also unblock any pending approval prompts so the goroutine exits cleanly.
+	for id, ch := range a.approvals {
+		select {
+		case ch <- false:
+		default:
+		}
+		delete(a.approvals, id)
+	}
+	return nil
+}
+
+// requestApproval is the agent.ApprovalRequester implementation. It emits an
+// agent-tool-approval-request event with full context and blocks until either
+// ApproveToolCall is called for this tool call ID or the context is cancelled.
+// Returns true to allow execution, false to deny.
+func (a *AgentService) requestApproval(ctx context.Context, toolCallID, toolName, riskLevel string, args map[string]interface{}, preview interface{}) bool {
+	// Honor the auto-approve setting.
+	if auto, _ := settings.GetAgentAutoApproveDestructive(); auto {
+		return true
+	}
+
+	a.mu.Lock()
+	if a.approvals == nil {
+		a.approvals = map[string]chan bool{}
+	}
+	ch := make(chan bool, 1)
+	a.approvals[toolCallID] = ch
+	a.mu.Unlock()
+
+	application.Get().Event.Emit("agent-tool-approval-request", map[string]interface{}{
+		"id":      toolCallID,
+		"tool":    toolName,
+		"risk":    riskLevel,
+		"args":    args,
+		"preview": preview,
+	})
+
+	select {
+	case approved := <-ch:
+		a.mu.Lock()
+		delete(a.approvals, toolCallID)
+		a.mu.Unlock()
+		return approved
+	case <-ctx.Done():
+		a.mu.Lock()
+		delete(a.approvals, toolCallID)
+		a.mu.Unlock()
+		return false
+	}
+}
+
+// ApproveToolCall responds to an agent-tool-approval-request from the frontend.
+// Pass approved=true to allow the tool to run, false to deny it.
+// Safe to call with an unknown ID (returns nil).
+func (a *AgentService) ApproveToolCall(toolCallID string, approved bool) error {
+	a.mu.Lock()
+	ch, ok := a.approvals[toolCallID]
+	if ok {
+		delete(a.approvals, toolCallID)
+	}
+	a.mu.Unlock()
+	if !ok {
+		return nil
+	}
+	select {
+	case ch <- approved:
+	default:
+	}
+	return nil
+}
+
+// GetAutoApproveDestructive reports whether destructive tool calls auto-execute
+// without prompting the user.
+func (a *AgentService) GetAutoApproveDestructive() bool {
+	v, _ := settings.GetAgentAutoApproveDestructive()
+	return v
+}
+
+// SetAutoApproveDestructive persists the auto-approve preference.
+func (a *AgentService) SetAutoApproveDestructive(enabled bool) error {
+	return settings.SetAgentAutoApproveDestructive(enabled)
+}
+
+// GetAvailableModels returns the list of selectable models for the given provider.
+// The first entry is the provider's default. Empty slice for unknown providers.
+func (a *AgentService) GetAvailableModels(provider string) []string {
+	models := agent.GetProviderModels(provider)
+	if models == nil {
+		return []string{}
+	}
+	return models
+}
+
+// GetSelectedModel returns the user-selected model for the provider, or the
+// provider default if no override has been set.
+func (a *AgentService) GetSelectedModel(provider string) string {
+	chosen, _ := settings.GetAgentModel(provider)
+	if chosen != "" {
+		return chosen
+	}
+	return agent.GetDefaultModel(provider)
+}
+
+// SetSelectedModel persists the chosen model for the given provider.
+// Passing an empty model clears the override and reverts to the provider default.
+func (a *AgentService) SetSelectedModel(provider, model string) error {
+	return settings.SetAgentModel(provider, model)
+}
+
 // SetAPIKey stores the user's LLM API key in settings.
 // Provider should be "openai", "anthropic", "gemini", "groq", or "ollama".
 func (a *AgentService) SetAPIKey(provider, apiKey string) error {
+	migrateLegacyAgentIntegrationID()
 	validProviders := map[string]bool{
 		"openai": true, "anthropic": true, "gemini": true, "groq": true, "ollama": true,
 	}
@@ -178,6 +398,7 @@ func (a *AgentService) SetAPIKey(provider, apiKey string) error {
 
 // GetAPIKeyStatus checks if an API key is configured. Never returns the key itself.
 func (a *AgentService) GetAPIKeyStatus() AgentKeyStatus {
+	migrateLegacyAgentIntegrationID()
 	cred, err := settings.GetIntegrationCredential(agentIntegrationID)
 	if err != nil {
 		return AgentKeyStatus{Configured: false, Provider: ""}
@@ -195,6 +416,7 @@ func (a *AgentService) GetAPIKeyStatus() AgentKeyStatus {
 
 // RemoveAPIKey deletes the stored API key.
 func (a *AgentService) RemoveAPIKey() error {
+	migrateLegacyAgentIntegrationID()
 	return settings.DeleteIntegrationCredential(agentIntegrationID)
 }
 

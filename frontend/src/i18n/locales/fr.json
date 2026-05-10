@@ -72,7 +72,9 @@
     "link": "Lien",
     "manage": "Gérer",
     "finish": "Terminer",
-    "copyId": "Copy ID"
+    "copyId": "Copy ID",
+    "approve": "Approuver",
+    "deny": "Refuser"
   },
   "placeholders": {
     "addItem": "Ajouter un élément",
@@ -777,7 +779,15 @@
     "alternateUrlLabel": "Alternate URL",
     "enableRemote": "Enable Remote",
     "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
-    "copyLink": "Copy link"
+    "copyLink": "Copy link",
+    "agentApproval": {
+      "title": "Confirmer : {tool}",
+      "destructiveBanner": "Cette action modifiera ou supprimera des données du projet et peut être difficile à annuler.",
+      "affectedItems": "Éléments concernés ({count})",
+      "viewArguments": "Voir les arguments bruts",
+      "queueHint": "{remaining} action(s) supplémentaire(s) en attente après celle-ci.",
+      "alwaysAllow": "Toujours autoriser les actions destructives sans demander"
+    }
   },
   "menus": {
     "addAccount": "Ajouter un compte",
@@ -966,7 +976,10 @@
     "editProjectTooltip": "Modifier les paramètres du projet",
     "projectSettings": "Paramètres du projet",
     "projectSettingsTooltip": "Ouvrir les paramètres du projet",
-    "addTag": "Ajouter un tag"
+    "addTag": "Ajouter un tag",
+    "stopAgent": "Arrêter",
+    "projectUpdatedByAgent": "Projet mis à jour par l'agent",
+    "agentModel": "Modèle de l'agent"
   },
   "blocks": {
     "loadingState": "État de chargement",

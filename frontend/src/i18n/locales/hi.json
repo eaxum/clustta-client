@@ -72,7 +72,9 @@
     "link": "लिंक",
     "manage": "प्रबंधित करें",
     "finish": "समाप्त",
-    "copyId": "Copy ID"
+    "copyId": "Copy ID",
+    "approve": "स्वीकृत करें",
+    "deny": "अस्वीकार करें"
   },
   "placeholders": {
     "addItem": "आइटम जोड़ें",
@@ -776,7 +778,15 @@
     "projectsImportedCount": "{count} project(s) imported",
     "selectImageFile": "Select Image File",
     "enableRemote": "Enable Remote",
-    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
+    "agentApproval": {
+      "title": "पुष्टि करें: {tool}",
+      "destructiveBanner": "यह क्रिया प्रोजेक्ट डेटा को बदलेगी या हटाएगी और इसे पूर्ववत करना कठिन हो सकता है।",
+      "affectedItems": "प्रभावित आइटम ({count})",
+      "viewArguments": "कच्चे तर्क देखें",
+      "queueHint": "इसके बाद {remaining} और क्रिया(एं) प्रतीक्षारत हैं।",
+      "alwaysAllow": "विनाशकारी क्रियाओं को बिना पूछे हमेशा अनुमति दें"
+    }
   },
   "menus": {
     "addAccount": "खाता जोड़ें",
@@ -965,7 +975,10 @@
     "editProjectTooltip": "प्रोजेक्ट सेटिंग्स संपादित करें",
     "projectSettings": "प्रोजेक्ट सेटिंग्स",
     "projectSettingsTooltip": "प्रोजेक्ट सेटिंग्स खोलें",
-    "addTag": "टैग जोड़ें"
+    "addTag": "टैग जोड़ें",
+    "stopAgent": "रोकें",
+    "projectUpdatedByAgent": "एजेंट द्वारा प्रोजेक्ट अपडेट किया गया",
+    "agentModel": "एजेंट मॉडल"
   },
   "blocks": {
     "loadingState": "स्थिति लोड हो रही है",

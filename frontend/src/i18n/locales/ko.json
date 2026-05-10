@@ -73,7 +73,9 @@
     "link": "링크",
     "manage": "관리",
     "finish": "완료",
-    "copyId": "Copy ID"
+    "copyId": "Copy ID",
+    "approve": "승인",
+    "deny": "거부"
   },
   "placeholders": {
     "addItem": "항목 추가",
@@ -797,7 +799,15 @@
     "projectsImportedCount": "{count} project(s) imported",
     "selectImageFile": "Select Image File",
     "enableRemote": "Enable Remote",
-    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
+    "agentApproval": {
+      "title": "확인: {tool}",
+      "destructiveBanner": "이 작업은 프로젝트 데이터를 수정하거나 삭제하며 되돌리기 어려울 수 있습니다.",
+      "affectedItems": "영향을 받는 항목 ({count})",
+      "viewArguments": "원시 인수 보기",
+      "queueHint": "이 작업 이후 {remaining}개의 작업이 대기 중입니다.",
+      "alwaysAllow": "파괴적인 작업을 항상 묻지 않고 허용"
+    }
   },
   "menus": {
     "addAccount": "계정 추가",
@@ -994,7 +1004,10 @@
     "collaboratorsTab": "협업자",
     "projectDetails": "프로젝트 상세",
     "projectDetailsTooltip": "프로젝트 상세 및 통계 보기",
-    "editProjectTooltip": "프로젝트 설정 편집"
+    "editProjectTooltip": "프로젝트 설정 편집",
+    "stopAgent": "중지",
+    "projectUpdatedByAgent": "에이전트가 프로젝트를 업데이트했습니다",
+    "agentModel": "에이전트 모델"
   },
   "blocks": {
     "loadingState": "상태 로딩 중",

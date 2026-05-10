@@ -58,18 +58,24 @@
             <div class="console-toolbar-left">
               <ActionButton :icon="getAppIcon('paper-clip')" :showLabel="false" v-tooltip="$t('panes.attachFile')" :buttonFunction="selectAttachment" />
 
-              <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedConsoleTab"
-                :dataTypes="consoleTabs" @filter="handleConsoleTabClick" />
+              <div v-if="isApiKeyConfigured && availableModels.length" class="console-model-select"
+                v-tooltip="$t('panes.agentModel')">
+                <DropDownBox :items="availableModels" :selectedItem="selectedModel" :onSelect="selectModel"
+                  :fullWidth="true" :useFilter="false" :placeHolder="$t('panes.agentModel')" />
+              </div>
             </div>
 
             <div class="console-toolbar-right">
-              <ActionButton v-if="!isModal && selectedConsoleTab === 'Agent'" :icon="getAppIcon('arrows-expand')" :showLabel="false"
+              <ActionButton v-if="!isModal" :icon="getAppIcon('arrows-expand')" :showLabel="false"
                 v-tooltip="$t('panes.expandConsole')" :buttonFunction="openConsoleModal" />
 
               <ActionButton :icon="getAppIcon('broom')" :showLabel="false" :isDisabled="!messages.length || isProcessing"
                 v-tooltip="$t('panes.clearChat')" :buttonFunction="clearChat" />
 
-              <ActionButton :icon="getAppIcon('send')" :showLabel="false" :isDisabled="!currentMessage.trim() || isProcessing"
+              <ActionButton v-if="isProcessing" :icon="getAppIcon('close-circle')" :showLabel="false"
+                v-tooltip="$t('panes.stopAgent')" :buttonFunction="stopAgent" />
+
+              <ActionButton v-else :icon="getAppIcon('send')" :showLabel="false" :isDisabled="!currentMessage.trim()"
                 v-tooltip="$t('panes.sendMessage')" :buttonFunction="sendMessage" />
             </div>
           </div>
@@ -89,24 +95,28 @@ import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import Chip from '@/instances/common/components/Chip.vue';
-import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
+import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 
 // services
-import { AgentService, DialogService } from '@/services';
+import { AgentService, CollectionService, DialogService } from '@/services';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
+import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const settings = useSettingsStore();
 const stage = useStageStore();
@@ -120,16 +130,14 @@ const { t } = useI18n();
 
 // refs
 const attachmentPath = ref('');
-const consoleTabs = ref([
-  { name: "Agent", nameKey: "panes.agent", icon: "brain" },
-  { name: "Bash", nameKey: "panes.bash", icon: "console" }
-]);
+const availableModels = ref([]);
 const currentMessage = ref('');
+const currentProvider = ref('');
 const isApiKeyConfigured = ref(false);
 const isProcessing = ref(false);
 const messages = ref([]);
 const messagesContainer = ref(null);
-const selectedConsoleTab = ref('Agent');
+const selectedModel = ref('');
 const textareaRef = ref(null);
 
 // computed properties
@@ -138,15 +146,9 @@ const attachmentName = computed(() => {
   return attachmentPath.value.split(/[/\\]/).pop();
 });
 
-const emptyStateSubtext = computed(() => {
-  if (selectedConsoleTab.value === 'Bash') return t('panes.executeTerminalCommands', { itemType: itemType.value });
-  return t('panes.performOperation', { itemType: itemType.value });
-});
+const emptyStateSubtext = computed(() => t('panes.performOperation', { itemType: itemType.value }));
 
-const emptyStateTitle = computed(() => {
-  if (selectedConsoleTab.value === 'Bash') return t('panes.terminalReady');
-  return t('panes.startConversation');
-});
+const emptyStateTitle = computed(() => t('panes.startConversation'));
 
 const inputPlaceholder = computed(() => {
   if (isProcessing.value) return t('panes.agentWorking');
@@ -224,6 +226,21 @@ const toolIconMap = {
   setup_project_types: 'brush',
   unassign_all_assets: 'person-minus',
   unassign_asset: 'person-minus',
+  // Phase 1a additions
+  apply_workflow: 'flow-chart',
+  batch_update_asset_types: 'brush',
+  batch_update_collection_types: 'brush',
+  bulk_change_asset_type: 'brush',
+  change_asset_type: 'brush',
+  change_collaborator_role: 'scale',
+  list_roles: 'scale',
+  list_workflows: 'flow-chart',
+  reveal_asset_on_disk: 'folder-arrow-up-right',
+  reveal_in_browser: 'file-search',
+  search_project_text: 'file-search',
+  update_asset_type: 'brush',
+  update_collection_type: 'brush',
+  update_role: 'scale',
 };
 
 // methods
@@ -233,8 +250,44 @@ const checkApiKeyStatus = async () => {
   try {
     const status = await AgentService.GetAPIKeyStatus();
     isApiKeyConfigured.value = status.configured;
+    currentProvider.value = status.provider || '';
+    if (isApiKeyConfigured.value && currentProvider.value) {
+      await loadModelOptions();
+    } else {
+      availableModels.value = [];
+      selectedModel.value = '';
+    }
   } catch {
     isApiKeyConfigured.value = false;
+    currentProvider.value = '';
+    availableModels.value = [];
+    selectedModel.value = '';
+  }
+};
+
+// Loads available models for the current provider and the user's selection.
+const loadModelOptions = async () => {
+  try {
+    const [models, chosen] = await Promise.all([
+      AgentService.GetAvailableModels(currentProvider.value),
+      AgentService.GetSelectedModel(currentProvider.value),
+    ]);
+    availableModels.value = Array.isArray(models) ? models : [];
+    selectedModel.value = chosen || '';
+  } catch {
+    availableModels.value = [];
+    selectedModel.value = '';
+  }
+};
+
+// Persists the user's model choice for the active provider.
+const selectModel = async (newModel) => {
+  selectedModel.value = newModel || '';
+  if (!currentProvider.value) return;
+  try {
+    await AgentService.SetSelectedModel(currentProvider.value, selectedModel.value);
+  } catch (error) {
+    console.error('AgentService.SetSelectedModel failed:', error);
   }
 };
 
@@ -313,11 +366,6 @@ const openAdvancedSettings = () => {
 
 // Returns the icon name for a given tool function name.
 const getToolIcon = (toolName) => toolIconMap[toolName] || 'cog';
-
-// Switches the active console tab mode.
-const handleConsoleTabClick = (tabName) => {
-  selectedConsoleTab.value = tabName;
-};
 
 // Auto-resizes the textarea based on content.
 const handleInput = () => {
@@ -470,18 +518,79 @@ const onAgentError = (event) => {
 };
 
 // Handles agent completion signal.
-const onAgentDone = () => {
+const onAgentDone = (event) => {
   if (messages.value.length && messages.value[messages.value.length - 1].type === 'status') {
     messages.value.pop();
   }
   isProcessing.value = false;
-  emitter.emit('refresh-browser');
+  if (event?.data?.mutated) {
+    emitter.emit('refresh-browser');
+    notificationStore.addNotification(t('panes.projectUpdatedByAgent'), '', 'success');
+  }
+};
+
+// Handles user-initiated cancellation acknowledged by the backend.
+const onAgentCancelled = (event) => {
+  if (messages.value.length && messages.value[messages.value.length - 1].type === 'status') {
+    messages.value.pop();
+  }
+  isProcessing.value = false;
+  if (event?.data?.mutated) {
+    emitter.emit('refresh-browser');
+  }
+};
+
+// Requests the backend to cancel the in-flight agent run.
+const stopAgent = async () => {
+  if (!projectStore.activeProject) return;
+  try {
+    await AgentService.CancelRun(projectStore.activeProject.uri);
+  } catch (error) {
+    console.error('AgentService.CancelRun failed:', error);
+  }
 };
 
 // Syncs the ignore list from the agent's DB update to the in-memory project store.
 const onIgnoreListUpdated = (event) => {
   if (projectStore.activeProject && event.data) {
     projectStore.activeProject.ignore_list = event.data;
+  }
+};
+
+// Navigates the in-app browser to focus the asset or collection requested by the agent.
+const onAgentRevealInBrowser = async (event) => {
+  const data = event.data;
+  if (!data || !projectStore.activeProject) return;
+  try {
+    commonStore.activeWorkspace = 'Default';
+    commonStore.viewSearchQuery = '';
+    commonStore.resetFilters();
+    commonStore.navigatorMode = true;
+
+    const projectUri = projectStore.activeProject.uri;
+    if (data.kind === 'asset') {
+      if (data.collection_id) {
+        const parent = await CollectionService.GetCollectionByID(projectUri, data.collection_id);
+        if (parent) {
+          collectionStore.navigatedCollection = parent;
+          collectionStore.selectedCollection = parent;
+        }
+      } else {
+        collectionStore.navigatedCollection = null;
+        collectionStore.selectedCollection = null;
+      }
+      assetStore.selectedAsset = { id: data.asset_id, name: data.name, collection_id: data.collection_id || '' };
+      emitter.emit('refresh-browser');
+    } else if (data.kind === 'collection') {
+      const collection = await CollectionService.GetCollectionByID(projectUri, data.collection_id);
+      if (collection) {
+        collectionStore.navigatedCollection = collection;
+        collectionStore.selectedCollection = collection;
+        emitter.emit('refresh-browser');
+      }
+    }
+  } catch (error) {
+    console.error('agent-reveal-in-browser failed:', error);
   }
 };
 
@@ -507,7 +616,9 @@ onMounted(async () => {
   Events.On('agent-response', onAgentResponse);
   Events.On('agent-error', onAgentError);
   Events.On('agent-done', onAgentDone);
+  Events.On('agent-cancelled', onAgentCancelled);
   Events.On('ignore-list-updated', onIgnoreListUpdated);
+  Events.On('agent-reveal-in-browser', onAgentRevealInBrowser);
 });
 
 onUnmounted(() => {
@@ -517,7 +628,9 @@ onUnmounted(() => {
   Events.Off('agent-response');
   Events.Off('agent-error');
   Events.Off('agent-done');
+  Events.Off('agent-cancelled');
   Events.Off('ignore-list-updated');
+  Events.Off('agent-reveal-in-browser');
 });
 </script>
 
@@ -568,7 +681,7 @@ onUnmounted(() => {
   font-size: 13px;
   box-sizing: border-box;
   width: 100%;
-  min-height: 36px;
+  min-height: 50px;
   height: auto;
   max-height: 30vh;
   border-width: 0px;
@@ -619,6 +732,20 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.125rem;
   overflow: hidden;
+}
+
+.console-model-select {
+  margin-left: 0.25rem;
+  width: 200px;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+.console-model-select :deep(.list-box-parent-text) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
 .console-toolbar-right {

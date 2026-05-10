@@ -72,7 +72,9 @@
     "link": "Ссылка",
     "manage": "Управлять",
     "finish": "Завершить",
-    "copyId": "Copy ID"
+    "copyId": "Copy ID",
+    "approve": "Подтвердить",
+    "deny": "Отклонить"
   },
   "placeholders": {
     "addItem": "Добавить элемент",
@@ -776,7 +778,15 @@
     "projectsImportedCount": "{count} project(s) imported",
     "selectImageFile": "Select Image File",
     "enableRemote": "Enable Remote",
-    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine."
+    "remoteDisableWarning": "Disabling remote means you will not be able to add collaborators or access this project from another machine.",
+    "agentApproval": {
+      "title": "Подтвердите: {tool}",
+      "destructiveBanner": "Это действие изменит или удалит данные проекта и его может быть трудно отменить.",
+      "affectedItems": "Затронутые элементы ({count})",
+      "viewArguments": "Показать исходные аргументы",
+      "queueHint": "После этого ещё {remaining} действие(й) в очереди.",
+      "alwaysAllow": "Всегда разрешать деструктивные действия без подтверждения"
+    }
   },
   "menus": {
     "addAccount": "Добавить аккаунт",
@@ -965,7 +975,10 @@
     "editProjectTooltip": "Редактировать настройки проекта",
     "projectSettings": "Настройки проекта",
     "projectSettingsTooltip": "Открыть настройки проекта",
-    "addTag": "Добавить тег"
+    "addTag": "Добавить тег",
+    "stopAgent": "Остановить",
+    "projectUpdatedByAgent": "Проект обновлён агентом",
+    "agentModel": "Модель агента"
   },
   "blocks": {
     "loadingState": "Загрузка состояния",

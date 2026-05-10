@@ -950,6 +950,368 @@ func GetToolDefinitions() []ToolDefinition {
 	// Append DCC tool definitions
 	tools = append(tools, GetDCCToolDefinitions()...)
 
+	// Phase 1a additions: type maintenance, reveal, workflows, roles, project text search.
+	iconEnum := []string{"bezier", "bone", "book", "boxes", "bulb", "camera-flash", "camera", "clapboard", "compass", "cube", "drum", "film-reel", "film-strip", "fire", "flow-chart", "four-squares", "home", "image", "lamp", "link", "man-running", "masks", "music", "mystery-ball", "open-book", "package", "palette", "scissors", "shapes", "stall", "texture", "tree", "video-camera", "website"}
+
+	tools = append(tools, []ToolDefinition{
+		// --- Type maintenance ---
+		{
+			Name:        "change_asset_type",
+			Description: "Change the asset type (task type) of a single asset. Use list_task_types to find available type IDs.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"asset_id":     map[string]interface{}{"type": "string", "description": "ID of the asset."},
+					"task_type_id": map[string]interface{}{"type": "string", "description": "ID of the new asset type."},
+				},
+				"required": []string{"asset_id", "task_type_id"},
+			},
+		},
+		{
+			Name:        "bulk_change_asset_type",
+			Description: "Change the asset type for multiple assets in one transaction.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"asset_ids":    map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Asset IDs to update."},
+					"task_type_id": map[string]interface{}{"type": "string", "description": "ID of the new asset type."},
+				},
+				"required": []string{"asset_ids", "task_type_id"},
+			},
+		},
+		{
+			Name:        "change_collection_type",
+			Description: "Change the type of a single existing collection. Use list_collection_types to find available type IDs.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"collection_id":      map[string]interface{}{"type": "string", "description": "ID of the collection."},
+					"collection_type_id": map[string]interface{}{"type": "string", "description": "ID of the new collection type."},
+				},
+				"required": []string{"collection_id", "collection_type_id"},
+			},
+		},
+		{
+			Name:        "bulk_change_collection_type",
+			Description: "Change the type of multiple collections in one transaction.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"collection_ids":     map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Collection IDs to update."},
+					"collection_type_id": map[string]interface{}{"type": "string", "description": "ID of the new collection type."},
+				},
+				"required": []string{"collection_ids", "collection_type_id"},
+			},
+		},
+		{
+			Name:        "batch_create_asset_types",
+			Description: "Create multiple asset types in a single transaction. Each entry must include name and icon. Use this when the user asks to set up several types at once.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"items": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"name": map[string]interface{}{"type": "string"},
+								"icon": map[string]interface{}{"type": "string", "enum": iconEnum},
+							},
+							"required": []string{"name", "icon"},
+						},
+					},
+				},
+				"required": []string{"items"},
+			},
+		},
+		{
+			Name:        "batch_create_collection_types",
+			Description: "Create multiple collection types in a single transaction. Each entry must include name and icon.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"items": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"name": map[string]interface{}{"type": "string"},
+								"icon": map[string]interface{}{"type": "string", "enum": iconEnum},
+							},
+							"required": []string{"name", "icon"},
+						},
+					},
+				},
+				"required": []string{"items"},
+			},
+		},
+		{
+			Name:        "update_asset_type",
+			Description: "Update an existing asset type's name and/or icon. Pass empty string for fields you don't want to change (both required by the underlying API; pass current value to keep).",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"id":   map[string]interface{}{"type": "string", "description": "ID of the asset type."},
+					"name": map[string]interface{}{"type": "string", "description": "New name."},
+					"icon": map[string]interface{}{"type": "string", "description": "New icon name.", "enum": iconEnum},
+				},
+				"required": []string{"id", "name", "icon"},
+			},
+		},
+		{
+			Name:        "update_collection_type",
+			Description: "Update an existing collection type's name and icon.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"id":   map[string]interface{}{"type": "string", "description": "ID of the collection type."},
+					"name": map[string]interface{}{"type": "string", "description": "New name."},
+					"icon": map[string]interface{}{"type": "string", "description": "New icon name.", "enum": iconEnum},
+				},
+				"required": []string{"id", "name", "icon"},
+			},
+		},
+		{
+			Name:        "batch_update_asset_types",
+			Description: "Update multiple asset types' names and icons in a single transaction. Each entry must include id, name and icon.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"items": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"id":   map[string]interface{}{"type": "string"},
+								"name": map[string]interface{}{"type": "string"},
+								"icon": map[string]interface{}{"type": "string", "enum": iconEnum},
+							},
+							"required": []string{"id", "name", "icon"},
+						},
+					},
+				},
+				"required": []string{"items"},
+			},
+		},
+		{
+			Name:        "batch_update_collection_types",
+			Description: "Update multiple collection types' names and icons in a single transaction.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"items": map[string]interface{}{
+						"type": "array",
+						"items": map[string]interface{}{
+							"type": "object",
+							"properties": map[string]interface{}{
+								"id":   map[string]interface{}{"type": "string"},
+								"name": map[string]interface{}{"type": "string"},
+								"icon": map[string]interface{}{"type": "string", "enum": iconEnum},
+							},
+							"required": []string{"id", "name", "icon"},
+						},
+					},
+				},
+				"required": []string{"items"},
+			},
+		},
+
+		// --- Reveal ---
+		{
+			Name:        "reveal_asset_on_disk",
+			Description: "Open the OS file explorer at the asset's location on disk. Use when the user wants to see the file in their system file manager.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"asset_id": map[string]interface{}{"type": "string", "description": "ID of the asset to reveal."},
+				},
+				"required": []string{"asset_id"},
+			},
+		},
+		{
+			Name:        "reveal_in_browser",
+			Description: "Navigate the in-app browser to focus the given asset or collection. Use when the user wants to be taken to the item inside Clustta. Provide either asset_id or collection_id (not both).",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"asset_id":      map[string]interface{}{"type": "string", "description": "ID of the asset to navigate to."},
+					"collection_id": map[string]interface{}{"type": "string", "description": "ID of the collection to navigate to."},
+				},
+				"required": []string{},
+			},
+		},
+
+		// --- Workflows ---
+		{
+			Name:        "list_workflows",
+			Description: "List all workflows defined in the project. A workflow is a reusable template that creates a tree of collections and assets when applied.",
+			Parameters: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+				"required":   []string{},
+			},
+		},
+		{
+			Name:        "apply_workflow",
+			Description: "Apply (instantiate) a workflow into the project. This creates a new root collection (using collection_type_id) under parent_id and populates it with all entities and assets defined by the workflow. Use list_workflows to find workflow_id and list_collection_types for collection_type_id.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"workflow_id":        map[string]interface{}{"type": "string", "description": "ID of the workflow to apply."},
+					"name":               map[string]interface{}{"type": "string", "description": "Name for the root collection that will hold the workflow's contents."},
+					"collection_type_id": map[string]interface{}{"type": "string", "description": "Collection type ID to use for the root collection."},
+					"parent_id":          map[string]interface{}{"type": "string", "description": "Optional parent collection ID. Empty string for project root."},
+				},
+				"required": []string{"workflow_id", "name", "collection_type_id"},
+			},
+		},
+
+		// --- Roles ---
+		{
+			Name:        "list_roles",
+			Description: "List all roles defined in the project, with their permissions. Use to find role names and IDs before changing a user's role.",
+			Parameters: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+				"required":   []string{},
+			},
+		},
+		{
+			Name:        "change_collaborator_role",
+			Description: "Change a project user's role by role name. Use list_users to find user_id and list_roles to find role names.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"user_id":   map[string]interface{}{"type": "string", "description": "ID of the user whose role to change."},
+					"role_name": map[string]interface{}{"type": "string", "description": "Name of the new role."},
+				},
+				"required": []string{"user_id", "role_name"},
+			},
+		},
+		{
+			Name:        "update_role",
+			Description: "Update a role's name and permission attributes. Provide a full set of permission booleans — fields not provided default to false. Use list_roles first to read the current values, then resubmit with the desired changes.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"id":         map[string]interface{}{"type": "string", "description": "ID of the role to update."},
+					"name":       map[string]interface{}{"type": "string", "description": "New role name."},
+					"attributes": map[string]interface{}{"type": "object", "description": "Permission attributes object. Keys: view_collection, create_collection, update_collection, delete_collection, view_asset, create_asset, update_asset, delete_asset, view_template, create_template, update_template, delete_template, view_checkpoint, create_checkpoint, delete_checkpoint, pull_chunk, assign_asset, unassign_asset, add_user, remove_user, change_role, change_status, set_done_asset, set_retake_asset, view_done_asset, manage_dependencies, manage_share_links. Each is a boolean."},
+				},
+				"required": []string{"id", "name", "attributes"},
+			},
+		},
+
+		// --- Knowledge ---
+		{
+			Name:        "search_project_text",
+			Description: "Search project content (asset names/descriptions, collection names/descriptions, checkpoint comments, tag names, role names) for the given query. Use this when the user asks about specific notes, comments, descriptions, or named items in their actual project (as opposed to general Clustta concepts — for those use search_knowledge).",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"query": map[string]interface{}{"type": "string", "description": "Substring to look for (case-insensitive)."},
+					"limit": map[string]interface{}{"type": "integer", "description": "Max matches per category. Defaults to 25."},
+				},
+				"required": []string{"query"},
+			},
+		},
+
+		// --- Phase 1a-ii: Project collaborators (server-side membership) ---
+		{
+			Name:        "list_project_collaborators",
+			Description: "List all users who have been invited to the active project's remote (server-side membership). Different from list_users, which lists users known to the local project DB. Requires the project to be synced to a remote.",
+			Parameters: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+				"required":   []string{},
+			},
+		},
+		{
+			Name:        "add_project_collaborator",
+			Description: "Invite a user to the active project's remote by email or user_id. If email is given, the user is looked up via the global Clustta server. Optionally specify a role (server-side default applies if omitted).",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"email":   map[string]interface{}{"type": "string", "description": "Email address of an existing Clustta user. Required if user_id is not provided."},
+					"user_id": map[string]interface{}{"type": "string", "description": "Clustta user ID. Required if email is not provided."},
+					"role":    map[string]interface{}{"type": "string", "description": "Optional role name to assign (e.g. 'collaborator')."},
+				},
+				"required": []string{},
+			},
+		},
+		{
+			Name:        "remove_project_collaborator",
+			Description: "Remove a user from the active project's remote (revokes server-side access).",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"user_id": map[string]interface{}{"type": "string", "description": "Clustta user ID of the collaborator to remove."},
+				},
+				"required": []string{"user_id"},
+			},
+		},
+
+		// --- Phase 1a-ii: Studio collaborators (separate studio server) ---
+		{
+			Name:        "list_studios",
+			Description: "List the studios configured locally with their IDs, names, URLs and hosting modes. Use this to discover the studio_id required by the studio_* tools.",
+			Parameters: map[string]interface{}{
+				"type":       "object",
+				"properties": map[string]interface{}{},
+				"required":   []string{},
+			},
+		},
+		{
+			Name:        "list_studio_users",
+			Description: "List members of the given studio (studio-level membership, not project membership). Use list_studios to find studio_id values.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"studio_id": map[string]interface{}{"type": "string", "description": "ID of the studio."},
+				},
+				"required": []string{"studio_id"},
+			},
+		},
+		{
+			Name:        "add_studio_collaborator",
+			Description: "Invite a user (by email) to a studio with the given role. The studio server applies authorization — the caller must have permission to add studio members.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"email":     map[string]interface{}{"type": "string", "description": "Email of an existing Clustta user."},
+					"studio_id": map[string]interface{}{"type": "string", "description": "ID of the studio."},
+					"role_name": map[string]interface{}{"type": "string", "description": "Role to assign (e.g. 'admin', 'manager', 'artist')."},
+				},
+				"required": []string{"email", "studio_id", "role_name"},
+			},
+		},
+		{
+			Name:        "change_studio_collaborator_role",
+			Description: "Change an existing studio member's role.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"user_id":   map[string]interface{}{"type": "string", "description": "ID of the user whose studio role to change."},
+					"studio_id": map[string]interface{}{"type": "string", "description": "ID of the studio."},
+					"role_name": map[string]interface{}{"type": "string", "description": "New role name."},
+				},
+				"required": []string{"user_id", "studio_id", "role_name"},
+			},
+		},
+		{
+			Name:        "remove_studio_collaborator",
+			Description: "Remove a user from the studio (revokes studio-level access). This does not affect project-level membership directly.",
+			Parameters: map[string]interface{}{
+				"type": "object",
+				"properties": map[string]interface{}{
+					"user_id":   map[string]interface{}{"type": "string", "description": "ID of the user to remove."},
+					"studio_id": map[string]interface{}{"type": "string", "description": "ID of the studio."},
+				},
+				"required": []string{"user_id", "studio_id"},
+			},
+		},
+	}...)
+
 	return tools
 }
 
@@ -1000,7 +1362,28 @@ var toolPermissions = map[string]toolPermission{
 	"remove_dependency": {func(r models.Role) bool { return r.ManageDependencies }, "Manage Dependencies"},
 
 	// User management
-	"remove_user": {func(r models.Role) bool { return r.RemoveUser }, "Remove User"},
+	"remove_user":              {func(r models.Role) bool { return r.RemoveUser }, "Remove User"},
+	"change_collaborator_role": {func(r models.Role) bool { return r.ChangeRole }, "Change Role"},
+	"update_role":              {func(r models.Role) bool { return r.ChangeRole }, "Change Role"},
+
+	// Project collaborator HTTP tools (server-side membership)
+	"add_project_collaborator":    {func(r models.Role) bool { return r.AddUser }, "Add User"},
+	"remove_project_collaborator": {func(r models.Role) bool { return r.RemoveUser }, "Remove User"},
+
+	// Type maintenance
+	"change_asset_type":             {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"bulk_change_asset_type":        {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"change_collection_type":        {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"bulk_change_collection_type":   {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"update_asset_type":             {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"update_collection_type":        {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"batch_create_asset_types":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"batch_create_collection_types": {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"batch_update_asset_types":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"batch_update_collection_types": {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+
+	// Workflows
+	"apply_workflow": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
 
 	// Project setup
 	"setup_project_types":   {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
@@ -1185,6 +1568,62 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 		return execBlenderLink(projectPath, args)
 	case "run_terminal_command":
 		return execRunTerminalCommand(projectPath, args)
+
+	// Phase 1a additions
+	case "change_asset_type":
+		return execChangeAssetType(projectPath, args)
+	case "bulk_change_asset_type":
+		return execBulkChangeAssetType(projectPath, args)
+	case "change_collection_type":
+		return execChangeCollectionType(projectPath, args)
+	case "bulk_change_collection_type":
+		return execBulkChangeCollectionType(projectPath, args)
+	case "batch_create_asset_types":
+		return execBatchCreateAssetTypes(projectPath, args)
+	case "batch_create_collection_types":
+		return execBatchCreateCollectionTypes(projectPath, args)
+	case "update_asset_type":
+		return execUpdateAssetType(projectPath, args)
+	case "update_collection_type":
+		return execUpdateCollectionType(projectPath, args)
+	case "batch_update_asset_types":
+		return execBatchUpdateAssetTypes(projectPath, args)
+	case "batch_update_collection_types":
+		return execBatchUpdateCollectionTypes(projectPath, args)
+	case "reveal_asset_on_disk":
+		return execRevealAssetOnDisk(projectPath, args)
+	case "reveal_in_browser":
+		return execRevealInBrowser(projectPath, args)
+	case "list_workflows":
+		return execListWorkflows(projectPath)
+	case "apply_workflow":
+		return execApplyWorkflow(projectPath, args)
+	case "list_roles":
+		return execListRoles(projectPath)
+	case "change_collaborator_role":
+		return execChangeCollaboratorRole(projectPath, args)
+	case "update_role":
+		return execUpdateRole(projectPath, args)
+	case "search_project_text":
+		return execSearchProjectText(projectPath, args)
+
+	// Phase 1a-ii: collaborator HTTP tools
+	case "list_project_collaborators":
+		return execListProjectCollaborators(projectPath)
+	case "add_project_collaborator":
+		return execAddProjectCollaborator(projectPath, args)
+	case "remove_project_collaborator":
+		return execRemoveProjectCollaborator(projectPath, args)
+	case "list_studios":
+		return execListStudios()
+	case "list_studio_users":
+		return execListStudioUsers(args)
+	case "add_studio_collaborator":
+		return execAddStudioCollaborator(args)
+	case "change_studio_collaborator_role":
+		return execChangeStudioCollaboratorRole(args)
+	case "remove_studio_collaborator":
+		return execRemoveStudioCollaborator(args)
 
 	default:
 		return ToolResult{Success: false, Error: fmt.Sprintf("unknown tool: %s", toolName)}
