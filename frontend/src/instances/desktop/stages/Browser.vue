@@ -989,6 +989,11 @@ Events.On('duplicate-asset', async () => {
 	await duplicateAsset();
 });
 
+Events.On('toggle-agent-console', async () => {
+	const isOpen = !!modals.modalStates?.consoleModal;
+	modals.setModalVisibility('consoleModal', !isOpen);
+});
+
 // watchers
 
 watch(() => assetStore.assetsLoaded, async () => {

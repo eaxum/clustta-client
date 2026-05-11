@@ -97,6 +97,7 @@ import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } f
 import { useI18n } from 'vue-i18n';
 import { Events } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
+import { expandShortcut } from '@/lib/agentShortcuts';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -534,9 +535,27 @@ const sendMessage = async () => {
     return;
   }
 
-  addMessage('user', currentMessage.value.trim());
+  const rawInput = currentMessage.value.trim();
+  const shortcut = expandShortcut(rawInput);
+  if (shortcut?.error) {
+    addMessage('user', rawInput);
+    addMessage('error', shortcut.error);
+    currentMessage.value = '';
+    if (textareaRef.value) textareaRef.value.style.height = 'auto';
+    return;
+  }
+  if (shortcut?.localReply) {
+    addMessage('user', rawInput);
+    addMessage('assistant', shortcut.localReply);
+    currentMessage.value = '';
+    if (textareaRef.value) textareaRef.value.style.height = 'auto';
+    return;
+  }
+  const expanded = shortcut?.prompt ?? rawInput;
+
+  addMessage('user', rawInput);
   const context = buildSelectionContext();
-  const messageContent = context + currentMessage.value.trim();
+  const messageContent = context + expanded;
   currentMessage.value = '';
   if (textareaRef.value) textareaRef.value.style.height = 'auto';
   isProcessing.value = true;

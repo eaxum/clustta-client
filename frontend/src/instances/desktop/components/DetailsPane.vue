@@ -847,7 +847,17 @@ const viewCheckpoints = () => filterList('Checkpoints');
 const viewChanges = () => filterList('Changes');
 
 // watchers
-watch(() => settingsItems.value, () => { activeTabIndex.value = 0; });
+watch(() => settingsItems.value, (newItems, oldItems) => {
+  const previousTabName = oldItems?.[activeTabIndex.value]?.tab_name;
+  if (previousTabName) {
+    const matchIndex = newItems.findIndex((item) => item.tab_name === previousTabName);
+    if (matchIndex !== -1) {
+      activeTabIndex.value = matchIndex;
+      return;
+    }
+  }
+  activeTabIndex.value = 0;
+});
 
 watchEffect(() => { if (detailsPaneRoot.value) menu.clickOutsideMask = detailsPaneRoot.value; });
 

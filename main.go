@@ -343,6 +343,9 @@ func main() {
 	keyBindings[modifier+"+d"] = func(window application.Window) {
 		app.Event.Emit("duplicate-asset")
 	}
+	keyBindings[modifier+"+i"] = func(window application.Window) {
+		app.Event.Emit("toggle-agent-console")
+	}
 
 	window := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:             "main",
