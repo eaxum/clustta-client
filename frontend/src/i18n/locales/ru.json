@@ -158,6 +158,10 @@
     "dependencyPresetDeleted": "Пресет зависимостей удалён",
     "errorSavingDependencyPreset": "Ошибка сохранения пресета зависимостей",
     "errorDeletingDependencyPreset": "Ошибка удаления пресета зависимостей",
+    "ignorePresetSaved": "Пресет списка игнорирования сохранён",
+    "errorSavingIgnorePreset": "Ошибка сохранения пресета списка игнорирования",
+    "ignorePresetDeleted": "Пресет списка игнорирования удалён",
+    "errorDeletingIgnorePreset": "Ошибка удаления пресета списка игнорирования",
     "errorUpdatingPreset": "Ошибка обновления пресета",
     "errorOccurred": "Произошла ошибка",
     "errorUpdatingIcon": "Ошибка обновления иконки",
@@ -627,6 +631,7 @@
     "selectLocationFolder": "Выбрать папку расположения",
     "saveWorkspace": "Сохранить рабочее пространство",
     "saveDependencyPreset": "Сохранить пресет зависимостей",
+    "saveIgnoreListPreset": "Сохранить пресет списка игнорирования",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Выбрать каталог Clustta",
     "versionLabel": "Версия",
@@ -1911,6 +1916,7 @@
     "connectionReset": "Соединение сброшено"
   },
   "info": {
-    "presetWillOverwrite": "Пресет с таким именем уже существует и будет перезаписан"
+    "presetWillOverwrite": "Пресет с таким именем уже существует и будет перезаписан",
+    "ignorePresetBuiltInCollision": "Это имя зарезервировано для встроенного шаблона. Выберите другое имя."
   }
 }

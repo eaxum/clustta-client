@@ -12,9 +12,17 @@
         </p>
 
         <div class="template-actions">
-          <DropDownBox :items="templateNames" :selectedItem="selectedTemplate" :onSelect="applyTemplate" :placeHolder="$t('settings.selectTemplate')" :fixedWidth="true" />
+          <DropDownBox :items="templateNames" :selectedItem="selectedTemplate" :onSelect="applyTemplate" :placeHolder="$t('settings.selectTemplate')" :fixedWidth="true">
+            <template #itemAction="{ value, close }">
+              <img v-if="isUserPreset(value)" :src="getAppIcon('trash')" class="preset-delete-icon" v-tooltip="$t('settings.deleteIgnorePresetTooltip')" @click="confirmDeletePreset(value, close)" />
+            </template>
+          </DropDownBox>
 
-          <ActionButton :icon="getAppIcon('trash')" :label="$t('settings.clearAll')" @click="prepClearAll" v-tooltip="$t('settings.clearAll')" />
+          <div class="template-actions-right">
+            <ActionButton :icon="getAppIcon('floppy-disk')" :label="$t('settings.saveAsPreset')" @click="openSavePresetModal" v-tooltip="$t('settings.saveAsPreset')" :isDisabled="!ignoreList.length" />
+
+            <ActionButton :icon="getAppIcon('broom')" :label="$t('settings.clearAll')" @click="prepClearAll" v-tooltip="$t('settings.clearAll')" />
+          </div>
         </div>
       </div>
 
@@ -27,9 +35,10 @@
 
 <script setup>
 // imports
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { ProjectService } from '@/services';
+import emitter from '@/lib/mitt';
+import { ProjectService, SettingsService } from '@/services';
 import { ignoreTemplates, ignoreTemplateNames } from '@/lib/ignoreTemplates';
 
 // components
@@ -56,7 +65,14 @@ import { useTrayStates } from '@/stores/TrayStates';
 // refs
 const ignoreList = ref([]);
 const selectedTemplate = ref('');
-const templateNames = ignoreTemplateNames;
+const userPresets = ref({});
+
+// computed
+// Combined list of built-in template names followed by user-saved preset names.
+const templateNames = computed(() => {
+  const userNames = Object.keys(userPresets.value);
+  return [...ignoreTemplateNames, ...userNames];
+});
 
 // methods
 const addIgnoredItem = (item) => {
@@ -69,7 +85,7 @@ const addIgnoredItem = (item) => {
 // Prompts the user to confirm applying a preset template to the ignore list.
 const applyTemplate = (templateName) => {
   selectedTemplate.value = '';
-  const entries = ignoreTemplates[templateName];
+  const entries = ignoreTemplates[templateName] ?? userPresets.value[templateName];
   if (!entries) return;
   trayStates.popUpModalTitle = t('settings.applyIgnoreTemplateTitle', { name: templateName });
   trayStates.popUpModalMessage = t('settings.applyIgnoreTemplateMessage');
@@ -101,6 +117,49 @@ const mergeTemplateEntries = (entries) => {
   ignoreList.value.push(...newItems);
   saveIgnoreList();
   modals.disableAllModals();
+};
+
+// Confirms and deletes a user-saved ignore list preset by name.
+const confirmDeletePreset = (name, closeDropdown) => {
+  if (!isUserPreset(name)) return;
+  if (typeof closeDropdown === 'function') closeDropdown();
+  trayStates.popUpModalTitle = t('settings.deleteIgnorePresetTitle', { name });
+  trayStates.popUpModalMessage = t('settings.deleteIgnorePresetMessage');
+  trayStates.popUpModalIcon = 'trash';
+  trayStates.popUpModalFunction = async () => {
+    try {
+      await SettingsService.RemoveIgnoreListPreset(name);
+      delete userPresets.value[name];
+      userPresets.value = { ...userPresets.value };
+      notificationStore.addNotification(t('notifications.ignorePresetDeleted'), '', 'success');
+    } catch (error) {
+      notificationStore.errorNotification(t('notifications.errorDeletingIgnorePreset'), error);
+    } finally {
+      modals.disableAllModals();
+    }
+  };
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Returns true if the given preset name belongs to the user's saved presets.
+const isUserPreset = (name) => {
+  return Object.prototype.hasOwnProperty.call(userPresets.value, name);
+};
+
+// Loads the user's saved ignore list presets from settings.
+const loadUserPresets = async () => {
+  try {
+    const presets = await SettingsService.GetIgnoreListPresets();
+    userPresets.value = presets || {};
+  } catch (error) {
+    userPresets.value = {};
+  }
+};
+
+// Opens the modal to save the current ignore list as a named preset.
+const openSavePresetModal = () => {
+  if (!ignoreList.value.length) return;
+  modals.setModalVisibility('saveIgnorePresetModal', true);
 };
 
 // Clears all items from the ignore list after confirmation.
@@ -141,6 +200,12 @@ const saveIgnoreList = () => {
 // lifecycle hooks
 onMounted(async () => {
   ignoreList.value = projectStore.activeProject.ignore_list;
+  await loadUserPresets();
+  emitter.on('ignore-preset-added', loadUserPresets);
+});
+
+onUnmounted(() => {
+  emitter.off('ignore-preset-added', loadUserPresets);
 });
 </script>
 
@@ -167,6 +232,24 @@ onMounted(async () => {
   gap: .5rem;
   width: 100%;
   justify-content: space-between;
+}
+
+.template-actions-right {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.preset-delete-icon {
+  width: 18px;
+  height: 18px;
+  opacity: .6;
+  cursor: pointer;
+  transition: opacity .15s ease;
+}
+
+.preset-delete-icon:hover {
+  opacity: 1;
 }
 
 .settings-component-root {

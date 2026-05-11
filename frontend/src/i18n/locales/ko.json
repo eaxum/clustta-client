@@ -159,6 +159,10 @@
     "dependencyPresetDeleted": "의존성 프리셋 삭제됨",
     "errorSavingDependencyPreset": "의존성 프리셋 저장 오류",
     "errorDeletingDependencyPreset": "의존성 프리셋 삭제 오류",
+    "ignorePresetSaved": "무시 목록 프리셋이 저장되었습니다",
+    "errorSavingIgnorePreset": "무시 목록 프리셋 저장 오류",
+    "ignorePresetDeleted": "무시 목록 프리셋이 삭제되었습니다",
+    "errorDeletingIgnorePreset": "무시 목록 프리셋 삭제 오류",
     "errorUpdatingPreset": "프리셋 업데이트 오류",
     "errorOccurred": "오류가 발생했습니다",
     "errorUpdatingIcon": "아이콘 업데이트 오류",
@@ -597,6 +601,10 @@
     "selectTemplate": "프리셋 선택",
     "applyIgnoreTemplateTitle": "\"{name}\" 템플릿을 적용하시겠습니까?",
     "applyIgnoreTemplateMessage": "템플릿의 무시 패턴이 현재 목록에 병합됩니다. 중복 항목은 건너뜁니다.",
+    "saveAsPreset": "프리셋으로 저장",
+    "deleteIgnorePresetTooltip": "프리셋 삭제",
+    "deleteIgnorePresetTitle": "\"{name}\"을(를) 삭제하시겠습니까?",
+    "deleteIgnorePresetMessage": "저장된 이 무시 목록 프리셋이 영구적으로 제거됩니다.",
     "externalIntegrations": "외부 연동",
     "linkIntegration": "외부 프로젝트 연결",
     "linkIntegrationDescription": "이 프로젝트를 Kitsu, ClickUp 또는 기타 외부 프로젝트 관리 도구에 연결합니다.",
@@ -642,6 +650,7 @@
     "selectLocationFolder": "위치 폴더 선택",
     "saveWorkspace": "워크스페이스 저장",
     "saveDependencyPreset": "의존성 프리셋 저장",
+    "saveIgnoreListPreset": "무시 목록 프리셋 저장",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Clustta 디렉터리 선택",
     "versionLabel": "버전",
@@ -1940,6 +1949,7 @@
     "connectionReset": "연결 재설정"
   },
   "info": {
-    "presetWillOverwrite": "이 이름의 프리셋이 이미 존재하여 덮어씁니다"
+    "presetWillOverwrite": "이 이름의 프리셋이 이미 존재하여 덮어씁니다",
+    "ignorePresetBuiltInCollision": "이 이름은 기본 템플릿용으로 예약되어 있습니다. 다른 이름을 선택하세요."
   }
 }

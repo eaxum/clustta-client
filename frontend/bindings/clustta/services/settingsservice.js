@@ -21,6 +21,17 @@ export function AddDependencyPreset(projectId, presetData) {
 }
 
 /**
+ * AddIgnoreListPreset stores an ignore list preset under the given name.
+ * If a preset with the same name already exists, it is overwritten.
+ * @param {string} name
+ * @param {string[]} entries
+ * @returns {$CancellablePromise<void>}
+ */
+export function AddIgnoreListPreset(name, entries) {
+    return $Call.ByID(78780740, name, entries);
+}
+
+/**
  * AddProjectLocation adds a new project location with name and path.
  * @param {string} name
  * @param {string} path
@@ -174,6 +185,16 @@ export function GetIconScheme() {
 }
 
 /**
+ * GetIgnoreListPresets retrieves all user-defined ignore list presets.
+ * @returns {$CancellablePromise<{ [_: string]: string[] }>}
+ */
+export function GetIgnoreListPresets() {
+    return $Call.ByID(4182633768).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * GetIntegrationCredential retrieves integration credentials for an integration.
  * Credentials are stored per user per integration (not per project).
  * @param {string} integrationId
@@ -181,7 +202,7 @@ export function GetIconScheme() {
  */
 export function GetIntegrationCredential(integrationId) {
     return $Call.ByID(3906565165, integrationId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -255,7 +276,7 @@ export function GetPinnedProjects(studioName) {
  */
 export function GetProjectDependencyPresets(projectId) {
     return $Call.ByID(3058392474, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -283,7 +304,7 @@ export function GetProjectLocation(projectID) {
  */
 export function GetProjectWorkspaces(projectId) {
     return $Call.ByID(2164081225, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -321,7 +342,7 @@ export function GetShowTypeIcons() {
  */
 export function GetStudios(path) {
     return $Call.ByID(2852753313, path).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType8($result);
+        return $$createType9($result);
     }));
 }
 
@@ -409,6 +430,15 @@ export function PinProject(studioName, projectId) {
  */
 export function RemoveDependencyPreset(projectId, presetName) {
     return $Call.ByID(1574357336, projectId, presetName);
+}
+
+/**
+ * RemoveIgnoreListPreset deletes a user-defined ignore list preset by name.
+ * @param {string} name
+ * @returns {$CancellablePromise<void>}
+ */
+export function RemoveIgnoreListPreset(name) {
+    return $Call.ByID(771750043, name);
 }
 
 /**
@@ -652,7 +682,8 @@ const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = settings$0.LocationHealth.createFrom;
 const $$createType3 = $Create.Array($$createType2);
 const $$createType4 = $Create.Array($$createType0);
-const $$createType5 = settings$0.IntegrationCredential.createFrom;
-const $$createType6 = $Create.Array($Create.Any);
-const $$createType7 = settings$0.Studio.createFrom;
-const $$createType8 = $Create.Array($$createType7);
+const $$createType5 = $Create.Map($Create.Any, $$createType1);
+const $$createType6 = settings$0.IntegrationCredential.createFrom;
+const $$createType7 = $Create.Array($Create.Any);
+const $$createType8 = settings$0.Studio.createFrom;
+const $$createType9 = $Create.Array($$createType8);

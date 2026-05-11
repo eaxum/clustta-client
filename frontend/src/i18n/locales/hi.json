@@ -158,6 +158,10 @@
     "dependencyPresetDeleted": "डिपेंडेंसी प्रीसेट हटाया गया",
     "errorSavingDependencyPreset": "डिपेंडेंसी प्रीसेट सहेजने में त्रुटि",
     "errorDeletingDependencyPreset": "डिपेंडेंसी प्रीसेट हटाने में त्रुटि",
+    "ignorePresetSaved": "अनदेखा सूची प्रीसेट सहेजा गया",
+    "errorSavingIgnorePreset": "अनदेखा सूची प्रीसेट सहेजने में त्रुटि",
+    "ignorePresetDeleted": "अनदेखा सूची प्रीसेट हटाया गया",
+    "errorDeletingIgnorePreset": "अनदेखा सूची प्रीसेट हटाने में त्रुटि",
     "errorUpdatingPreset": "प्रीसेट अपडेट करने में त्रुटि",
     "errorOccurred": "एक त्रुटि हुई",
     "errorUpdatingIcon": "आइकन अपडेट करने में त्रुटि",
@@ -627,6 +631,7 @@
     "selectLocationFolder": "स्थान फ़ोल्डर चुनें",
     "saveWorkspace": "वर्कस्पेस सहेजें",
     "saveDependencyPreset": "डिपेंडेंसी प्रीसेट सहेजें",
+    "saveIgnoreListPreset": "अनदेखा सूची प्रीसेट सहेजें",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Clustta डायरेक्टरी चुनें",
     "versionLabel": "संस्करण",
@@ -1911,6 +1916,7 @@
     "connectionReset": "कनेक्शन रीसेट"
   },
   "info": {
-    "presetWillOverwrite": "इस नाम का एक प्रीसेट पहले से मौजूद है और इसे अधिलेखित किया जाएगा"
+    "presetWillOverwrite": "इस नाम का एक प्रीसेट पहले से मौजूद है और इसे अधिलेखित किया जाएगा",
+    "ignorePresetBuiltInCollision": "यह नाम एक अंतर्निहित टेम्पलेट के लिए आरक्षित है। एक अलग नाम चुनें।"
   }
 }

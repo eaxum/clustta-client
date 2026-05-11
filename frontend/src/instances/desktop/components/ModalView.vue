@@ -42,6 +42,7 @@ import IgnoreConfigModal from '@/instances/desktop/modals/IgnoreConfigModal.vue'
 import ImportProjectModal from '@/instances/desktop/modals/ImportProjectModal.vue';
 import LoginModal from '@/instances/desktop/modals/LoginModal.vue';
 import PopUpModal from '@/instances/desktop/modals/PopUpModal.vue';
+import SaveIgnorePresetModal from '@/instances/desktop/modals/SaveIgnorePresetModal.vue';
 
 // components - settings (project)
 import AddAssetTypeModal from '@/instances/desktop/settings/modals/AddAssetTypeModal.vue';
@@ -143,6 +144,7 @@ const modalComponents = {
   importProjectModal: ImportProjectModal,
   loginModal: LoginModal,
   popUpModal: PopUpModal,
+  saveIgnorePresetModal: SaveIgnorePresetModal,
 
   // settings (project)
   addAssetTypeModal: AddAssetTypeModal,

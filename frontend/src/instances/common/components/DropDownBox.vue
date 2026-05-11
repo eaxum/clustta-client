@@ -26,6 +26,9 @@
                 {{ utils.capitalizeStr(getItemValue(item)) }}
               </div>
             </div>
+            <div v-if="$slots.itemAction" class="listbox-item-action" @click.stop>
+              <slot name="itemAction" :item="item" :value="getItemValue(item)" :close="closeList" />
+            </div>
           </div>
         </div>
       </div>
@@ -199,6 +202,10 @@ const toggleList = () => {
 const selectItem = (item, items) => {
   const itemValue = getItemValue(item);
   props.onSelect(itemValue, props.extraData);
+  isExpanded.value = false;
+};
+
+const closeList = () => {
   isExpanded.value = false;
 };
 
@@ -411,10 +418,19 @@ onUnmounted(() => {
   width: 100%;
   /* height: 50px; */
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   /* background-color: red; */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.listbox-item-action {
+  display: flex;
+  align-items: center;
+  padding: 0 .25rem;
+  flex-shrink: 0;
 }
 
 .listbox-item:hover {

@@ -158,6 +158,10 @@
     "dependencyPresetDeleted": "依存関係プリセットを削除しました",
     "errorSavingDependencyPreset": "依存関係プリセットの保存エラー",
     "errorDeletingDependencyPreset": "依存関係プリセットの削除エラー",
+    "ignorePresetSaved": "無視リストプリセットを保存しました",
+    "errorSavingIgnorePreset": "無視リストプリセットの保存エラー",
+    "ignorePresetDeleted": "無視リストプリセットを削除しました",
+    "errorDeletingIgnorePreset": "無視リストプリセットの削除エラー",
     "errorUpdatingPreset": "プリセットの更新エラー",
     "errorOccurred": "エラーが発生しました",
     "errorUpdatingIcon": "アイコンの更新エラー",
@@ -628,6 +632,7 @@
     "selectLocationFolder": "場所フォルダーを選択",
     "saveWorkspace": "ワークスペースを保存",
     "saveDependencyPreset": "依存関係プリセットを保存",
+    "saveIgnoreListPreset": "無視リストプリセットを保存",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Clusttaディレクトリを選択",
     "versionLabel": "バージョン",
@@ -1912,6 +1917,7 @@
     "connectionReset": "接続がリセットされました"
   },
   "info": {
-    "presetWillOverwrite": "この名前のプリセットは既に存在し、上書きされます"
+    "presetWillOverwrite": "この名前のプリセットは既に存在し、上書きされます",
+    "ignorePresetBuiltInCollision": "この名前は組み込みテンプレート用に予約されています。別の名前を選択してください。"
   }
 }

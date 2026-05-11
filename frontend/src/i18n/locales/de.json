@@ -158,6 +158,10 @@
     "dependencyPresetDeleted": "Abhängigkeits-Preset gelöscht",
     "errorSavingDependencyPreset": "Fehler beim Speichern des Abhängigkeits-Presets",
     "errorDeletingDependencyPreset": "Fehler beim Löschen des Abhängigkeits-Presets",
+    "ignorePresetSaved": "Ignorierliste-Preset gespeichert",
+    "errorSavingIgnorePreset": "Fehler beim Speichern des Ignorierliste-Presets",
+    "ignorePresetDeleted": "Ignorierliste-Preset gelöscht",
+    "errorDeletingIgnorePreset": "Fehler beim Löschen des Ignorierliste-Presets",
     "errorUpdatingPreset": "Fehler beim Aktualisieren des Presets",
     "errorOccurred": "Ein Fehler ist aufgetreten",
     "errorUpdatingIcon": "Fehler beim Aktualisieren des Symbols",
@@ -627,6 +631,7 @@
     "selectLocationFolder": "Speicherort-Ordner auswählen",
     "saveWorkspace": "Workspace speichern",
     "saveDependencyPreset": "Abhängigkeits-Preset speichern",
+    "saveIgnoreListPreset": "Ignorierliste-Preset speichern",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Clustta-Verzeichnis auswählen",
     "versionLabel": "Version",
@@ -1912,6 +1917,7 @@
     "connectionReset": "Verbindung zurückgesetzt"
   },
   "info": {
-    "presetWillOverwrite": "Eine Voreinstellung mit diesem Namen existiert und wird überschrieben"
+    "presetWillOverwrite": "Eine Voreinstellung mit diesem Namen existiert und wird überschrieben",
+    "ignorePresetBuiltInCollision": "Dieser Name ist für eine integrierte Vorlage reserviert. Wählen Sie einen anderen Namen."
   }
 }

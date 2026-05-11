@@ -158,6 +158,10 @@
     "dependencyPresetDeleted": "依赖项预设已删除",
     "errorSavingDependencyPreset": "保存依赖项预设时出错",
     "errorDeletingDependencyPreset": "删除依赖项预设时出错",
+    "ignorePresetSaved": "忽略列表预设已保存",
+    "errorSavingIgnorePreset": "保存忽略列表预设时出错",
+    "ignorePresetDeleted": "忽略列表预设已删除",
+    "errorDeletingIgnorePreset": "删除忽略列表预设时出错",
     "errorUpdatingPreset": "更新预设时出错",
     "errorOccurred": "发生错误",
     "errorUpdatingIcon": "更新图标时出错",
@@ -627,6 +631,7 @@
     "selectLocationFolder": "选择位置文件夹",
     "saveWorkspace": "保存工作区",
     "saveDependencyPreset": "保存依赖项预设",
+    "saveIgnoreListPreset": "保存忽略列表预设",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "选择 Clustta 目录",
     "versionLabel": "版本",
@@ -1911,6 +1916,7 @@
     "connectionReset": "连接重置"
   },
   "info": {
-    "presetWillOverwrite": "具有此名称的预设已存在，将被覆盖"
+    "presetWillOverwrite": "具有此名称的预设已存在，将被覆盖",
+    "ignorePresetBuiltInCollision": "此名称为内置模板保留，请选择其他名称。"
   }
 }

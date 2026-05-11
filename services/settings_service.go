@@ -188,6 +188,26 @@ func (s *SettingsService) GetProjectDependencyPresets(projectId string) ([]inter
 	return presets, nil
 }
 
+// GetIgnoreListPresets retrieves all user-defined ignore list presets.
+func (s *SettingsService) GetIgnoreListPresets() (map[string][]string, error) {
+	presets, err := settings.GetIgnoreListPresets()
+	if err != nil {
+		return presets, err
+	}
+	return presets, nil
+}
+
+// AddIgnoreListPreset stores an ignore list preset under the given name.
+// If a preset with the same name already exists, it is overwritten.
+func (s *SettingsService) AddIgnoreListPreset(name string, entries []string) error {
+	return settings.AddIgnoreListPreset(name, entries)
+}
+
+// RemoveIgnoreListPreset deletes a user-defined ignore list preset by name.
+func (s *SettingsService) RemoveIgnoreListPreset(name string) error {
+	return settings.RemoveIgnoreListPreset(name)
+}
+
 // GetEulaAccepted retrieves whether the user has accepted the EULA.
 func (s *SettingsService) GetEulaAccepted() (bool, error) {
 	eulaAccepted, err := settings.GetEulaAccepted()

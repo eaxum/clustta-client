@@ -138,6 +138,7 @@ type Settings struct {
 	Studios           []Studio                         `json:"studios"`
 	WorkSpaces        map[string][]interface{}         `json:"workspaces"`
 	DependencyPresets map[string][]interface{}         `json:"dependency_presets"`
+	IgnoreListPresets map[string][]string              `json:"ignore_list_presets"`
 	IntegrationCreds  map[string]IntegrationCredential `json:"integration_credentials"`
 	LastStudio        string                           `json:"last_studio"`
 	CurrentVersion    string                           `json:"current_version"`
@@ -1371,6 +1372,55 @@ func UpdateDependencyPreset(projectId string, presetName string, updatedPreset i
 		}
 	}
 	settings.DependencyPresets[projectId] = projectPresets
+	return saveSettings(settings)
+}
+
+// ========== Ignore List Preset Management ==========
+
+// GetIgnoreListPresets retrieves all user-defined ignore list presets.
+// Returns a map of preset name to its list of ignore patterns.
+func GetIgnoreListPresets() (map[string][]string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return map[string][]string{}, err
+	}
+	if settings.IgnoreListPresets == nil {
+		return map[string][]string{}, nil
+	}
+	return settings.IgnoreListPresets, nil
+}
+
+// AddIgnoreListPreset stores an ignore list preset under the given name.
+// If a preset with the same name already exists, it is overwritten.
+func AddIgnoreListPreset(name string, entries []string) error {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return fmt.Errorf("preset name cannot be empty")
+	}
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	if settings.IgnoreListPresets == nil {
+		settings.IgnoreListPresets = make(map[string][]string)
+	}
+	if entries == nil {
+		entries = []string{}
+	}
+	settings.IgnoreListPresets[name] = entries
+	return saveSettings(settings)
+}
+
+// RemoveIgnoreListPreset deletes an ignore list preset by name.
+func RemoveIgnoreListPreset(name string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	if settings.IgnoreListPresets == nil {
+		return nil
+	}
+	delete(settings.IgnoreListPresets, name)
 	return saveSettings(settings)
 }
 

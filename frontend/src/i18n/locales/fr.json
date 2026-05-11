@@ -158,6 +158,10 @@
     "dependencyPresetDeleted": "Préréglage de dépendance supprimé",
     "errorSavingDependencyPreset": "Erreur lors de l'enregistrement du préréglage de dépendance",
     "errorDeletingDependencyPreset": "Erreur lors de la suppression du préréglage de dépendance",
+    "ignorePresetSaved": "Préréglage de liste d'ignorés enregistré",
+    "errorSavingIgnorePreset": "Erreur lors de l'enregistrement du préréglage de liste d'ignorés",
+    "ignorePresetDeleted": "Préréglage de liste d'ignorés supprimé",
+    "errorDeletingIgnorePreset": "Erreur lors de la suppression du préréglage de liste d'ignorés",
     "errorUpdatingPreset": "Erreur lors de la mise à jour du préréglage",
     "errorOccurred": "Une erreur s'est produite",
     "errorUpdatingIcon": "Erreur lors de la mise à jour de l'icône",
@@ -628,6 +632,7 @@
     "selectLocationFolder": "Sélectionner le dossier d'emplacement",
     "saveWorkspace": "Enregistrer l'espace de travail",
     "saveDependencyPreset": "Enregistrer le préréglage de dépendance",
+    "saveIgnoreListPreset": "Enregistrer le préréglage de liste d'ignorés",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Sélectionner le répertoire Clustta",
     "versionLabel": "Version",
@@ -1912,6 +1917,7 @@
     "connectionReset": "Connexion réinitialisée"
   },
   "info": {
-    "presetWillOverwrite": "Un préréglage avec ce nom existe et sera écrasé"
+    "presetWillOverwrite": "Un préréglage avec ce nom existe et sera écrasé",
+    "ignorePresetBuiltInCollision": "Ce nom est réservé à un modèle intégré. Choisissez un nom différent."
   }
 }

@@ -160,6 +160,10 @@
     "dependencyPresetDeleted": "Dependency preset deleted",
     "errorSavingDependencyPreset": "Error saving dependency preset",
     "errorDeletingDependencyPreset": "Error deleting dependency preset",
+    "ignorePresetSaved": "Ignore list preset saved",
+    "errorSavingIgnorePreset": "Error saving ignore list preset",
+    "ignorePresetDeleted": "Ignore list preset deleted",
+    "errorDeletingIgnorePreset": "Error deleting ignore list preset",
     "errorUpdatingPreset": "Error updating preset",
     "errorOccurred": "An error occurred",
     "errorUpdatingIcon": "Error Updating Icon",
@@ -606,7 +610,11 @@
     "applyTemplate": "Apply Template",
     "selectTemplate": "Select a preset",
     "applyIgnoreTemplateTitle": "Apply \"{name}\" template?",
-    "applyIgnoreTemplateMessage": "This will merge the template's ignore patterns into your current list. Duplicate entries will be skipped."
+    "applyIgnoreTemplateMessage": "This will merge the template's ignore patterns into your current list. Duplicate entries will be skipped.",
+    "saveAsPreset": "Save as preset",
+    "deleteIgnorePresetTooltip": "Delete preset",
+    "deleteIgnorePresetTitle": "Delete \"{name}\"?",
+    "deleteIgnorePresetMessage": "This will permanently remove this saved ignore list preset."
   },
   "modals": {
     "addAssetType": "Add Asset type",
@@ -653,6 +661,7 @@
     "selectLocationFolder": "Select Location Folder",
     "saveWorkspace": "Save Workspace",
     "saveDependencyPreset": "Save Dependency Preset",
+    "saveIgnoreListPreset": "Save Ignore List Preset",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Select Clustta Directory",
     "versionLabel": "Version",
@@ -1945,6 +1954,7 @@
     "connectionReset": "Connection reset"
   },
   "info": {
-    "presetWillOverwrite": "A preset with this name exists and will be overwritten"
+    "presetWillOverwrite": "A preset with this name exists and will be overwritten",
+    "ignorePresetBuiltInCollision": "This name is reserved for a built-in template. Choose a different name."
   }
 }

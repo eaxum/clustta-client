@@ -158,6 +158,10 @@
     "dependencyPresetDeleted": "Preset de dependencia eliminado",
     "errorSavingDependencyPreset": "Error al guardar el preset de dependencia",
     "errorDeletingDependencyPreset": "Error al eliminar el preset de dependencia",
+    "ignorePresetSaved": "Preset de lista de ignorados guardado",
+    "errorSavingIgnorePreset": "Error al guardar el preset de lista de ignorados",
+    "ignorePresetDeleted": "Preset de lista de ignorados eliminado",
+    "errorDeletingIgnorePreset": "Error al eliminar el preset de lista de ignorados",
     "errorUpdatingPreset": "Error al actualizar el preset",
     "errorOccurred": "Ocurrió un error",
     "errorUpdatingIcon": "Error al actualizar el icono",
@@ -628,6 +632,7 @@
     "selectLocationFolder": "Seleccionar carpeta de ubicación",
     "saveWorkspace": "Guardar espacio de trabajo",
     "saveDependencyPreset": "Guardar Preset de Dependencia",
+    "saveIgnoreListPreset": "Guardar Preset de Lista de Ignorados",
     "clusttaApp": "Clustta",
     "clusttaDirectory": "Seleccionar directorio de Clustta",
     "versionLabel": "Versión",
@@ -1912,6 +1917,7 @@
     "connectionReset": "Conexión restablecida"
   },
   "info": {
-    "presetWillOverwrite": "Ya existe un preset con este nombre y será sobrescrito"
+    "presetWillOverwrite": "Ya existe un preset con este nombre y será sobrescrito",
+    "ignorePresetBuiltInCollision": "Este nombre está reservado para una plantilla integrada. Elige un nombre diferente."
   }
 }
