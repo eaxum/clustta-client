@@ -23,7 +23,8 @@
                 <img class="small-icons no-cursor" :src="getAppIcon('trash')">
               </span>
             </div>
-            <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace" class="dirty-indicator" />
+            <ActionButton v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace" class="dirty-indicator"
+              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" />
           </div>
 
         </div>
@@ -635,15 +636,6 @@ const getTabStyle = (index) => {
 
 .tab-list-move {
   transition: transform 0.2s ease;
-}
-
-.dirty-indicator {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--attention);
-  flex-shrink: 0;
-  margin-left: 4px;
 }
 
 .tab:hover .dirty-indicator {
