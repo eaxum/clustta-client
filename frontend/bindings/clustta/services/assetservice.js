@@ -28,7 +28,6 @@ export function AddAssetDependency(projectPath, assetId, dependencyId, dependenc
 }
 
 /**
- * dependencies
  * @param {string} projectPath
  * @param {string} assetId
  * @param {string} dependencyId
@@ -389,6 +388,21 @@ export function RemoveCollectionDependency(projectPath, assetId, dependencyId) {
  */
 export function RenameAsset(projectPath, assetId, name) {
     return $Call.ByID(2068335707, projectPath, assetId, name);
+}
+
+/**
+ * ResolveBuildDependencies returns the asset and every asset transitively
+ * reachable through its asset and collection dependencies. Used by the
+ * "Build with dependencies" action to expand the full revert set on the
+ * backend instead of relying on the partial frontend store.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<string[]>}
+ */
+export function ResolveBuildDependencies(projectPath, assetId) {
+    return $Call.ByID(1805101810, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType7($result);
+    }));
 }
 
 /**

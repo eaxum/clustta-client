@@ -1232,6 +1232,25 @@ func (t *AssetService) RevealAsset(projectPath, assetId string) error {
 }
 
 // dependencies
+
+// ResolveBuildDependencies returns the asset and every asset transitively
+// reachable through its asset and collection dependencies. Used by the
+// "Build with dependencies" action to expand the full revert set on the
+// backend instead of relying on the partial frontend store.
+func (t *AssetService) ResolveBuildDependencies(projectPath, assetId string) ([]string, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	return repository.ResolveBuildDependencies(tx, assetId)
+}
+
 func (t *AssetService) AddCollectionDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependency, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

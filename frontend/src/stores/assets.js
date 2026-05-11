@@ -18,7 +18,6 @@ export const useAssetStore = defineStore("asset", {
     assets: [],
     assetTypes: [],
     assets_index: {},
-    collection_assets_index: {},
     isAssetAssetStatus: false,
     selectedAsset: null,
     selectedAssetType: null,
@@ -567,18 +566,6 @@ export const useAssetStore = defineStore("asset", {
       return this.assets[assetIndex];
     },
 
-    getCollectionAssets(collectionId, recursive = false, collectionMap = {}) {
-      let collectionAssetIds = this.collection_assets_index[collectionId] || [];
-      let assets = collectionAssetIds.map((assetId) => this.findAsset(assetId));
-
-      if (recursive && collectionMap[collectionId]) {
-        for (let childId of collectionMap[collectionId]) {
-          assets = assets.concat(this.getCollectionAssets(childId, true, collectionMap));
-        }
-      }
-
-      return assets;
-    },
     selectAsset(asset) {
       this.selectedAsset = asset;
     },

@@ -189,26 +189,25 @@ const emitAssetUpdates = (assetId, updates) => {
   emitter.emit('update-children', updateData);
 };
 
-// Builds the asset with all its dependencies.
+// Builds the asset with all its transitive dependencies (assets and collections),
+// resolved on the backend so the full graph is expanded and de-duplicated.
 const buildWithDependencies = async () => {
   menu.hideContextMenu();
-  let assetIds = [asset.value.id, ...asset.value.dependencies];
-  for (let collectionId of asset.value.collection_dependencies) {
-    let collectionAssets = assetStore.getCollectionAssets(collectionId, true);
-    for (let collectionAsset of collectionAssets) {
-      if (!assetIds.includes(collectionAsset.id)) {
-        assetIds.push(collectionAsset.id);
-      }
-    }
+  try {
+    const assetIds = await AssetService.ResolveBuildDependencies(
+      projectStore.activeProject.uri,
+      asset.value.id,
+    );
+    await CheckpointService.Revert(
+      projectStore.activeProject.uri,
+      projectStore.getActiveProjectUrl,
+      assetIds,
+    );
+    emitter.emit('refresh-browser');
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorRevertingAssets'), error);
+    console.error(error);
   }
-  await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, assetIds)
-    .then(() => {
-      emitter.emit('refresh-browser');
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('notifications.errorRevertingAssets'), error);
-      console.error(error);
-    });
 };
 
 // Copies the asset path to clipboard.

@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -631,12 +632,20 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 	}:
 	}
 
-	quotedAssetIds := make([]string, len(assetIds))
-	for i, id := range assetIds {
-		quotedAssetIds[i] = fmt.Sprintf("\"%s\"", id)
+	if len(assetIds) == 0 {
+		return nil
 	}
+
+	checkpointQuery, checkpointArgs, err := sqlx.In(
+		"SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (?) ORDER BY created_at DESC",
+		assetIds,
+	)
+	if err != nil {
+		return err
+	}
+	checkpointQuery = tx.Rebind(checkpointQuery)
 	checkpoints := []models.Checkpoint{}
-	err = tx.Select(&checkpoints, fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (%s) ORDER BY created_at DESC", strings.Join(quotedAssetIds, ",")))
+	err = tx.Select(&checkpoints, checkpointQuery, checkpointArgs...)
 	if err != nil {
 		return err
 	}
@@ -645,9 +654,16 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		assetCheckpoints[assetCheckpoint.AssetId] = append(assetCheckpoints[assetCheckpoint.AssetId], assetCheckpoint)
 	}
 
+	revertableAssetIds := make([]string, 0, len(assetIds))
 	checkpointIdsToDownload := []string{}
 	for _, assetId := range assetIds {
-		latestCheckpoint := assetCheckpoints[assetId][0]
+		assetCheckpointList, ok := assetCheckpoints[assetId]
+		if !ok || len(assetCheckpointList) == 0 {
+			// Skip assets with no checkpoints (e.g. brand-new placeholder dependencies).
+			continue
+		}
+		revertableAssetIds = append(revertableAssetIds, assetId)
+		latestCheckpoint := assetCheckpointList[0]
 		isMisssingChunks, err := latestCheckpoint.HasMissingChunks(tx)
 		if err != nil {
 			return err
@@ -707,8 +723,8 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		return ctx.Err()
 	}
 
-	totalAssets := len(assetIds)
-	for i, assetId := range assetIds {
+	totalAssets := len(revertableAssetIds)
+	for i, assetId := range revertableAssetIds {
 		tx, err := dbConn.Beginx()
 		if err != nil {
 			return err
