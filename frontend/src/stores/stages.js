@@ -15,7 +15,6 @@ export const useStageStore = defineStore("stages", {
     stages: {
       projects: false,
       browser: false,
-      dependencies: false,
       trash: false,
       settings: false,
       projectSettings: false,
@@ -43,7 +42,7 @@ export const useStageStore = defineStore("stages", {
 
     sidePaneActive: false,
 
-    navigationBreadCrumbs: ["browser", "dependencies"],
+    navigationBreadCrumbs: ["browser"],
     allAssets: [],
     expandedAsset: null,
     expandedAssets: [],

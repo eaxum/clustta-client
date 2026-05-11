@@ -101,6 +101,9 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       consoleModal: false,
       agentApprovalModal: false,
 
+      // dependency
+      dependencyGraphModal: false,
+
       // diagnostics
       submitDiagnosticsModal: false,
     },

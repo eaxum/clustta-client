@@ -353,9 +353,9 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Navigates to the dependency graph view.
+// Opens the dependency graph modal.
 const goToDependencyGraph = () => {
-  stage.setStageVisibility('dependencies', true);
+  modals.setModalVisibility('dependencyGraphModal', true);
   menu.hideContextMenu();
 };
 

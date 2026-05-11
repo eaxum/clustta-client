@@ -19,6 +19,7 @@ import ConfigAgentModal from '@/instances/desktop/modals/ConfigAgentModal.vue';
 import AgentApprovalModal from '@/instances/desktop/modals/AgentApprovalModal.vue';
 import ConsoleModal from '@/instances/desktop/modals/ConsoleModal.vue';
 import CreateAssetModal from '@/instances/desktop/modals/CreateAssetModal.vue';
+import DependencyGraphModal from '@/instances/desktop/modals/DependencyGraphModal.vue';
 import CreateCheckpointModal from '@/instances/desktop/modals/CreateCheckpointModal.vue';
 import CreateCollectionModal from '@/instances/desktop/modals/CreateCollectionModal.vue';
 import CreateMultipleCheckpointsModal from '@/instances/desktop/modals/CreateMultipleCheckpointsModal.vue';
@@ -121,6 +122,7 @@ const modalComponents = {
   agentApprovalModal: AgentApprovalModal,
   consoleModal: ConsoleModal,
   createAssetModal: CreateAssetModal,
+  dependencyGraphModal: DependencyGraphModal,
   createCheckpointModal: CreateCheckpointModal,
   createCollectionModal: CreateCollectionModal,
   createMultipleCheckpointsModal: CreateMultipleCheckpointsModal,

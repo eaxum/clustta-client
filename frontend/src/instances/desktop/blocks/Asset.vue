@@ -757,11 +757,11 @@ const getFileTypeIcon = (asset) => {
   }
 };
 
-// Navigates to the asset dependencies view.
+// Opens the dependency graph modal for the asset.
 const goToDependencies = (index, asset, event) => {
   handleClick(index, asset, event);
   assetStore.selectAsset(asset);
-  stage.setStageVisibility('dependencies', true);
+  modals.setModalVisibility('dependencyGraphModal', true);
 };
 
 // Handles asset click event and closes status menu.

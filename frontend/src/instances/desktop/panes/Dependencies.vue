@@ -181,7 +181,7 @@ const getAppIcon = (iconName) => {
 };
 
 const goToDependencyGraph = () => {
-  stage.setStageVisibility('dependencies', true);
+  modals.setModalVisibility('dependencyGraphModal', true);
 };
 
 const fetchDependencyPresets = async () => {

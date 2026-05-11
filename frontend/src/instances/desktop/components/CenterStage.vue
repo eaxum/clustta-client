@@ -21,7 +21,6 @@ const platformStore = usePlatformStore();
 const stageContainer = ref(null);
 
 // components
-import Dependencies from '@/instances/desktop/stages/Dependencies.vue'
 import Browser from '@/instances/desktop/stages/Browser.vue'
 import Projects from '@/instances/desktop/stages/Projects.vue'
 import Dashboard from '@/instances/desktop/stages/Dashboard.vue'
@@ -35,7 +34,6 @@ import ContextMenu from '@/instances/desktop/menus/ContextMenu.vue'
 
 const pageComponents = {
 	projects: Projects,
-	dependencies: Dependencies,
 	dashboard: Dashboard,
 	browser: Browser,
 	trash: TrashList,

@@ -1,5 +1,5 @@
 <template>
-  <div class="page-list-root absolute-pane">
+  <div class="page-list-root">
     <div class="page-list-container">
       <div class="dependency-graph-header">
         <div class="dependency-count"> {{ message }}</div>
@@ -709,18 +709,14 @@ onUnmounted(() => {
 .page-list-root {
   box-sizing: border-box;
   display: flex;
-  /* flex-direction: column; */
   align-items: center;
   justify-content: center;
-  /* background-color: darkcyan; */
   color: var(--white);
   padding: 0px;
-  /* padding: 1rem; */
   justify-content: flex-start;
-}
-
-.absolute-pane {
   padding: 0px;
+  position: relative;
+  width: 100%;
 }
 
 .page-list-container {
