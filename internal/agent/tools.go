@@ -948,6 +948,8 @@ func GetToolDefinitions() []ToolDefinition {
 			},
 		},
 
+		animationSetupToolDef(),
+
 		{
 			Name:        "generate_script",
 			Description: "Generate a shell or Python script for file system operations on project assets. The script is displayed to the user for review - it is never auto-executed. Use this for batch operations like rendering, file conversion, exports, etc.",
@@ -1442,6 +1444,7 @@ var toolPermissions = map[string]toolPermission{
 	"apply_workflow": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
 
 	"setup_project_types":   {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"setup_animation_production": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
 	"add_ignore_pattern":    {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"remove_ignore_pattern": {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 
@@ -1595,6 +1598,8 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 		return execRemoveIgnorePattern(projectPath, args)
 	case "setup_project_types":
 		return execSetupProjectTypes(projectPath, args)
+	case "setup_animation_production":
+		return execSetupAnimationProduction(projectPath, args)
 	case "batch_create_collections":
 		return execBatchCreateCollections(projectPath, args)
 	case "batch_create_assets":

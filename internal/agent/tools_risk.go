@@ -18,6 +18,7 @@ var destructiveTools = map[string]bool{
 	"delete_collection_type":       true,
 	"apply_workflow":               true,
 	"setup_project_types":          true,
+	"setup_animation_production":   true,
 	"batch_update_asset_types":     true,
 	"batch_update_collection_types": true,
 
