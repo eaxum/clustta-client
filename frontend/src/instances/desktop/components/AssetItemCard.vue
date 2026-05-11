@@ -3,7 +3,7 @@
     <!-- thumbnail -->
     <div v-if="commonStore.showThumbs" class="collection-item-preview-container">
       <div class="collection-item-preview-image">
-        <img v-if="asset.preview" class="screenshot-thumb" :src="asset.preview">
+        <img v-if="displayThumbnail" class="screenshot-thumb" :class="{ 'fallback-icon': isFallbackIcon }" :src="displayThumbnail">
       </div>
     </div>
     <!-- name and app icon -->
@@ -43,9 +43,12 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted } from 'vue';;
+import { computed } from 'vue';
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
+
+// composables
+import { useAssetThumbnail } from '@/composables/useAssetThumbnail';
 
 // states/store imports
 import { useTrayStates } from '@/stores/TrayStates';
@@ -83,7 +86,11 @@ const props = defineProps({
   index: Number,
 });
 
-// refs
+// thumbnail
+const { displayThumbnail, isFallbackIcon } = useAssetThumbnail(
+  () => props.asset,
+  { enabled: () => commonStore.showThumbs },
+);
 
 const userFullName = computed(() => {
   let user = userStore.getUserData(props.asset.assignee_id);
@@ -103,8 +110,6 @@ const profileColor = (uuid) => {
   const parts = uuid.split('-');
   return '#' + parts[0];
 };
-
-
 
 </script>
 
@@ -218,6 +223,15 @@ const profileColor = (uuid) => {
   background-color: var(--black-steel);
   border-radius: 5px;
   pointer-events: none;
+}
+
+.collection-item-preview-image .screenshot-thumb.fallback-icon {
+  width: 40%;
+  height: 40%;
+  max-width: 32px;
+  max-height: 32px;
+  object-fit: contain;
+  opacity: 0.6;
 }
 
 .collection-item-type-container {

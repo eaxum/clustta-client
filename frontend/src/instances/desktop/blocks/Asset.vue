@@ -353,6 +353,9 @@ import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 // services
 import { AssetService, CheckpointService, FSService, SyncService } from "@/services";
 
+// composables
+import { useAssetThumbnail, getFileTypeIcon } from '@/composables/useAssetThumbnail';
+
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
@@ -408,13 +411,14 @@ const isAwaitingResponse = ref(false);
 const isDownloading = ref(false);
 const isEditing = ref(false);
 const isExpanded = ref(false);
-const osThumbnail = ref('');
 const statusMenuDisplayed = ref(false);
 const assetItem = ref(null);
-const thumbnailLoading = ref(false);
 
-// thumbnail cache
-const thumbnailCache = new Map();
+// thumbnail
+const { displayThumbnail, osThumbnail } = useAssetThumbnail(
+  () => props.asset,
+  { enabled: () => commonStore.useGrid, includeAssetIcon: true },
+);
 
 // computed
 // Returns the capitalized asset type name.
@@ -441,23 +445,6 @@ const canModify = computed(() => {
   } else {
     return false;
   }
-});
-
-// Determines the thumbnail to display with priority order.
-const displayThumbnail = computed(() => {
-  if (props.asset.preview) {
-    return props.asset.preview;
-  }
-  
-  if (osThumbnail.value) {
-    return `data:image/png;base64,${osThumbnail.value}`;
-  }
-  
-  if (props.asset.icon) {
-    return props.asset.icon;
-  }
-  
-  return getAppIcon(getFileTypeIcon(props.asset));
 });
 
 // Returns the grid styles for the asset item.
@@ -718,45 +705,6 @@ const getAppIcon = (iconName) => {
   return icon;
 };
 
-// Returns the appropriate icon based on file type.
-const getFileTypeIcon = (asset) => {
-  const extension = asset.extension?.toLowerCase() || '';
-
-  const imageFormats = ['.png', '.exr', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff', '.webp', '.svg'];
-  const videoFormats = ['.mp4', '.mkv', '.avi', '.mov', '.wmv', '.flv', '.webm'];
-  const audioFormats = ['.mp3', '.wav', '.flac', '.aac', '.ogg'];
-  const archiveFormats = ['.zip', '.rar', '.7z', '.tar', '.gz', '.bz2'];
-  const textFormats = ['.txt', '.md', '.rtf'];
-  const codeFormats = ['.js', '.ts', '.css', '.html', '.vue', '.py', '.java', '.cpp', '.c', '.go', '.rs'];
-  const spreadsheetFormats = ['.xls', '.xlsx', '.csv'];
-  const presentationFormats = ['.ppt', '.pptx'];
-  const wordFormats = ['.doc', '.docx'];
-
-  if (imageFormats.includes(extension)) {
-    return 'image';
-  } else if (videoFormats.includes(extension)) {
-    return 'video-camera';
-  } else if (audioFormats.includes(extension)) {
-    return 'music';
-  } else if (extension === '.pdf') {
-    return 'file-pdf';
-  } else if (archiveFormats.includes(extension)) {
-    return 'file-zip';
-  } else if (textFormats.includes(extension)) {
-    return 'file-text';
-  } else if (codeFormats.includes(extension)) {
-    return 'file-code';
-  } else if (spreadsheetFormats.includes(extension)) {
-    return 'file-excel';
-  } else if (presentationFormats.includes(extension)) {
-    return 'file-powerpoint';
-  } else if (wordFormats.includes(extension)) {
-    return 'file-word';
-  } else {
-    return 'file';
-  }
-};
-
 // Opens the dependency graph modal for the asset.
 const goToDependencies = (index, asset, event) => {
   handleClick(index, asset, event);
@@ -832,56 +780,6 @@ const launchAssetCommand = async () => {
           console.log(error);
           notificationStore.errorNotification(t('notifications.errorRebuildingAsset'), error);
         });
-    }
-  }
-};
-
-// Loads OS-generated thumbnail for the file.
-const loadOSThumbnail = async () => {
-  const filePath = props.asset.file_path;
-
-  const fileExists = await FSService.Exists(filePath);
-  if (!commonStore.useGrid || props.asset.preview || !props.asset.file_path || !fileExists || thumbnailLoading.value || props.asset.is_link) {
-    return;
-  }
-
-  const cacheKey = filePath;
-  
-  if (thumbnailCache.has(cacheKey)) {
-    osThumbnail.value = thumbnailCache.get(cacheKey);
-    return;
-  }
-  
-  thumbnailLoading.value = true;
-  
-  try {
-    const size = 512;
-    
-    let thumbnail = await FSService.GetCachedOSThumbnail(filePath, size);
-    
-    if (thumbnail && thumbnail.length > 0) {
-      osThumbnail.value = thumbnail;
-      thumbnailCache.set(cacheKey, thumbnail);
-    } else {
-      setTimeout(async () => {
-        try {
-          thumbnail = await FSService.GetOSThumbnail(filePath, size);
-          if (thumbnail && thumbnail.length > 0) {
-            osThumbnail.value = thumbnail;
-            thumbnailCache.set(cacheKey, thumbnail);
-          }
-        } catch (error) {
-          console.debug('Thumbnail generation failed:', error);
-        } finally {
-          thumbnailLoading.value = false;
-        }
-      }, 0);
-    }
-  } catch (error) {
-    console.debug('Thumbnail loading failed:', error);
-  } finally {
-    if (!osThumbnail.value) {
-      thumbnailLoading.value = false;
     }
   }
 };
@@ -1084,19 +982,10 @@ watch(() => isAssetInFocus.value, (newItems, oldItems) => {
   }
 }, { deep: true });
 
-watch(() => props.asset.file_path, async (newPath, oldPath) => {
-  if (newPath && newPath !== oldPath) {
-    osThumbnail.value = '';
-    await loadOSThumbnail();
-  }
-});
-
 // lifecycle hooks
 onMounted(async () => {
   emitter.on('renameAsset', menuRename);
   document.addEventListener('click', handleClickOutside);
-  
-  await loadOSThumbnail();
 });
 
 onBeforeUnmount(() => {
