@@ -101,6 +101,11 @@ export const useProjectStore = defineStore("projects", {
       if (state.selectedStudio?.hosting_mode === 'cloud') return true;
       return false;
     },
+    isPersonalRemote: (state) => {
+      return state.selectedStudio?.name === 'Personal'
+        && !!state.activeProject?.has_remote
+        && !!state.activeProject?.remote;
+    },
     supportsIntegrations: (state) => {
       return state.selectedStudio?.name !== 'Personal';
     },

@@ -108,7 +108,7 @@ const canRemoveUser = computed(() => { return projectStore.isCloudHosted || user
 const canChangeRole = computed(() => { return projectStore.isCloudHosted || userStore.canDo('change_role') });
 
 const availableRoles = computed(() => {
-  if (projectStore.isCloudHosted) return ['admin', 'artist'];
+  if (projectStore.isPersonalRemote) return ['admin', 'artist'];
   return userStore.getRolesNames;
 });
 
