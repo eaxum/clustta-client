@@ -490,6 +490,7 @@
     "grid": "Grid",
     "compact": "Compact",
     "list": "List",
+    "kanban": "Kanban",
     "directories": "Directories",
     "templates": "Templates",
     "collaborators": "Collaborators",
@@ -1695,7 +1696,9 @@
       "showInExplorer": "Show in Explorer",
       "pathCopiedToClipboard": "Path copied to clipboard",
       "navigationFailed": "Navigation failed",
-      "couldNotFindSelectedPath": "Could not find the selected path"
+      "couldNotFindSelectedPath": "Could not find the selected path",
+      "exitKanban": "Exit Kanban view",
+      "filterResults": "Filter results"
     },
     "footerArea": {
       "logout": "Logout",

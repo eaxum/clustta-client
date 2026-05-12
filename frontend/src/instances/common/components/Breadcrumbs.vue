@@ -1,35 +1,53 @@
 <template>
 	<div ref="breadcrumbRoot" class="breadcrumb-root">
-		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
-		<ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.breadcrumbs.refresh')" :buttonFunction="refresh" />
+		<template v-if="commonStore.viewMode === 'kanban'">
+			<div class="kanban-indicator">
+				<ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('arrow-left')" v-tooltip="$t('components.breadcrumbs.exitKanban')" :buttonFunction="exitKanbanView" />
+				<ActionButton v-else :icon="getAppIcon('kanban')" :allowDeactivate="true" />
+				<span class="kanban-indicator-label">{{ $t('settings.kanban') }}</span>
+			</div>
+			<div class="kanban-path-separator"></div>
+		</template>
 
-		<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
-			:allowDeactivate="true" v-tooltip="$t('components.breadcrumbs.upALevel')" :buttonFunction="goUpALevel" />
+		<template v-else>
+			<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
+			<ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.breadcrumbs.refresh')" :buttonFunction="refresh" />
 
-		<ActionButton v-if="!commonStore.navigatorMode" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''" 
-			:label="projectStore.activeProject?.name" :buttonFunction="goHome" />
+			<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
+				:allowDeactivate="true" v-tooltip="$t('components.breadcrumbs.upALevel')" :buttonFunction="goUpALevel" />
+
+			<ActionButton v-if="showProjectChip" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''"
+				:label="projectStore.activeProject?.name" :buttonFunction="goHome" />
+
+			<div v-if="showRootFilteredSeparator" class="kanban-path-separator"></div>
+		</template>
 
 		<div ref="breadcrumbWrapper" class="breadcrumb-wrapper">
 			<div ref="breadcrumbContainer" class="breadcrumb-container">
-				<nav v-if="path" ref="breadcrumbContent" class="nav">
+				<span v-if="showFilteredLabel" class="kanban-filter-text">
+					{{ $t('components.breadcrumbs.filterResults') }}
+				</span>
+				<nav v-else-if="path" ref="breadcrumbContent" class="nav">
 					<ActionButton v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="true" @click="toggleOverflowList" />
 					<div v-for="(segment, index) in visibleSegments" :key="`${segment}-${index}`" class="breadcrumb-segment">
-						<ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="true" 
+						<ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="true"
 							:label="segment.split('/').pop()" @click="goToCollection(segment)" />
 					</div>
 				</nav>
 			</div>
 		</div>
 
-		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" 
-			v-tooltip="$t('components.breadcrumbs.copyPath')" @click="copyDirectoryPath" />
+		<template v-if="commonStore.viewMode !== 'kanban'">
+			<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false"
+				v-tooltip="$t('components.breadcrumbs.copyPath')" @click="copyDirectoryPath" />
 
-		<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false" 
-			v-tooltip="$t('components.breadcrumbs.showInExplorer')" @click="revealInExplorer" />
+			<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false"
+				v-tooltip="$t('components.breadcrumbs.showInExplorer')" @click="revealInExplorer" />
+		</template>
 	</div>
 
 	<Teleport to="#app">
-		<div v-if="displayOverflowItems" :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px' }" class="breadcrumb-list-container">
+		<div v-if="displayOverflowItems && commonStore.viewMode !== 'kanban'" :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px' }" class="breadcrumb-list-container">
 			<div class="breadcrumb-instance-container">
 				<div v-for="(overflowPath, index) in overflowPaths" :key="index" class="breadcrumb-instance" @click="goToCollection(overflowPath)">
 					<div class="breadcrumb-instance-meta">
@@ -96,6 +114,47 @@ const listItemsLeft = computed(() => breadcrumbContent.value?.getBoundingClientR
 
 const navigatedCollection = computed(() => collectionStore.navigatedCollection);
 
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+
+// True when any filter, search or visibility toggle is active (ignores view-mode changes).
+const hasActiveFilters = computed(() => {
+	return !!(
+		commonStore.viewSearchQuery
+		|| commonStore.assetFilters.length
+		|| commonStore.collectionFilters.length
+		|| commonStore.resourceFilters.length
+		|| commonStore.hasAssignees
+		|| commonStore.noAssignees
+		|| !commonStore.showCollections
+		|| !commonStore.showAssets
+		|| commonStore.onlyAssets
+		|| !commonStore.showResources
+		|| !commonStore.showChildCollections
+		|| !commonStore.showChildAssets
+		|| !commonStore.showChildResources
+		|| !commonStore.showDependencies
+		|| commonStore.useDeep
+	);
+});
+
+// Show the project-name chip only on Default workspace at the root with no active filters/search.
+const showProjectChip = computed(() => {
+	return !commonStore.navigatorMode
+		&& commonStore.viewMode !== 'kanban'
+		&& isDefaultWorkspace.value
+		&& !hasActiveFilters.value;
+});
+
+const showFilteredLabel = computed(() => {
+	if (commonStore.navigatorMode) return false;
+	if (commonStore.viewMode === 'kanban') return true;
+	return !showProjectChip.value;
+});
+
+const showRootFilteredSeparator = computed(() => {
+	return commonStore.viewMode !== 'kanban' && showFilteredLabel.value;
+});
+
 const path = computed(() => {
 	if (commonStore.navigatorMode) {
 		return navigatedCollection.value?.type === 'collection'
@@ -120,6 +179,7 @@ const checkOverflow = async () => {
 
 	const nav = breadcrumbContainer.value.querySelector('.nav');
 	const container = breadcrumbContainer.value;
+	if (!nav) return;
 
 	const testFit = async (numSegments) => {
 		const testSegments = segments.value.slice(-numSegments);
@@ -262,6 +322,12 @@ const goHome = () => {
 	clearAllSelections();
 };
 
+// Exits kanban view and restores the previously active view mode.
+const exitKanbanView = () => {
+	commonStore.restorePreviousView();
+	emitter.emit('refresh-browser');
+};
+
 // Navigates up one level in the breadcrumb hierarchy.
 const goUpALevel = async () => {
 	const collection = collectionStore.navigatedCollection;
@@ -373,6 +439,57 @@ onBeforeUnmount(() => {
 	padding: .2rem;
 	width: 100%;
 	box-sizing: border-box;
+}
+
+.kanban-indicator {
+	display: flex;
+	align-items: center;
+	gap: .5rem;
+	flex-shrink: 0;
+}
+
+.kanban-indicator-label {
+	color: var(--white);
+	font-size: 0.85rem;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.kanban-path-separator {
+	width: 1.5px;
+	height: 18px;
+	background-color: var(--light-steel);
+	margin: 0 1rem;
+	flex-shrink: 0;
+}
+
+.kanban-static-icon {
+	width: 18px;
+	height: 18px;
+	object-fit: contain;
+	opacity: 0.8;
+}
+
+.kanban-filter-text {
+	color: var(--white);
+	opacity: 0.5;
+	font-size: 0.875rem;
+	font-weight: 300;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.kanban-path-text {
+	color: var(--white);
+	opacity: 0.5;
+	font-size: 0.875rem;
+	font-weight: 300;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	flex: 1;
+	min-width: 0;
 }
 
 .breadcrumb-root::-webkit-scrollbar {

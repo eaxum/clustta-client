@@ -489,6 +489,7 @@
     "grid": "그리드",
     "compact": "컴팩트",
     "list": "목록",
+    "kanban": "칸반",
     "directories": "디렉터리",
     "templates": "템플릿",
     "collaborators": "협업자",
@@ -1696,7 +1697,9 @@
       "showInExplorer": "탐색기에서 보기",
       "pathCopiedToClipboard": "경로가 클립보드에 복사됨",
       "navigationFailed": "탐색 실패",
-      "couldNotFindSelectedPath": "선택한 경로를 찾을 수 없습니다"
+      "couldNotFindSelectedPath": "선택한 경로를 찾을 수 없습니다",
+      "exitKanban": "칸반 보기 종료",
+      "filterResults": "필터 결과"
     },
     "footerArea": {
       "logout": "로그아웃",

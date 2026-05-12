@@ -1,5 +1,4 @@
 <template>
-
   <div class="kanban-root" @mousemove="onDrag" 
   @mouseup="onDragStop(draggedItemRefs[dndStore.draggedItemId])"
   @mouseleave="stopScrolling" ref="scrollContainerRef">
@@ -10,7 +9,7 @@
       class="column" :class="{ 'column-minimized' : minimizedColumns.includes(column.id)}" >
 
       <div  class="column-header" :style="{ outline :  '2px solid' + column.color }" @dblclick="minimizeColumn(column.id)" 
-      :class="{ 'column-header-minimized' : minimizedColumns.includes(column.id)}" @click="loadAssetAssets">
+      :class="{ 'column-header-minimized' : minimizedColumns.includes(column.id)}" @click="loadAssets">
 
         <div class="column-header-icon" >
             <img class="small-icons no-filter" :src="getStatusIcon(column.short_name)">
@@ -63,7 +62,7 @@
 
 <script setup>
 // imports
-import { ProjectService, CollectionService, AssetService, CheckpointService, TrashService } from "@/services";
+import { ProjectService, AssetService, CheckpointService, TrashService } from "@/services";
 
 import { reactive, computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import utils from '@/services/utils';
@@ -77,6 +76,7 @@ import { useIconStore } from '@/stores/icons';
 
 import { useStatusStore } from '@/stores/status';
 import { useDndStore } from '@/stores/dnd';
+import { useMenu } from '@/stores/menu';
 import { useProjectStore } from '@/stores/projects';
 
 // components
@@ -84,6 +84,7 @@ import AssetItemCard from '@/instances/desktop/components/AssetItemCard.vue'
 
 // stores/state 
 const dndStore = useDndStore();
+const menu = useMenu();
 const assetStore = useAssetStore();
 const statusStore = useStatusStore();
 const commonStore = useCommonStore();
@@ -124,29 +125,17 @@ const hoveredCardIndex = ref(-1);
 const hoveredColumnId = ref(null);
 
 // Fetch asset assets from the backend
-const loadAssetAssets = async () => {
+const loadAssets = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath) {
       let assets;
-      
-      // If navigator mode is active and we have a navigated collection, filter assets by collection_id
+
+      // If navigator mode is active and we have a navigated collection,
+      // recursively fetch every asset in the collection's subtree.
       if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
         const navigatedCollectionId = collectionStore.navigatedCollection.id;
-        const collection_file_path = collectionStore.navigatedCollection.file_path;
-        const project = projectStore.activeProject;
-        
-        // Get children of the navigated collection (similar to Browser.vue)
-        const children = await CollectionService.GetCollectionChildren(
-          project.uri,
-          navigatedCollectionId,
-          project.working_directory,
-          collection_file_path,
-          project.ignore_list,
-          false
-        );
-        
-        assets = children.assets.filter((item) => !item.is_resource) || [];
+        assets = await AssetService.GetCollectionDescendantAssets(projectPath, navigatedCollectionId);
       } else {
         // Get all assets if not in navigator mode
         assets = await AssetService.GetAssetAssets(projectPath);
@@ -188,6 +177,10 @@ const statuses = computed(() => {
 });
 
 const statusColumns = reactive(statuses.value);
+
+watch(statuses, (next) => {
+  statusColumns.splice(0, statusColumns.length, ...next);
+}, { immediate: true });
 
 
 const filledColumns = computed(() => {
@@ -338,6 +331,13 @@ const onDragStart = (e, id, isMinimized) => {
   if(isMinimized){
     return
   }
+  if (e.target.closest('.single-action-button, .action-button')) {
+    return;
+  }
+  if (menu.activeMenu) {
+    menu.disableAllMenus();
+    return;
+  }
   let selectedCard = draggedItemRefs.value[id];
   let cardRect = selectedCard.getBoundingClientRect();
   
@@ -439,7 +439,7 @@ const setStatus = async () => {
     console.error('Error changing asset status:', error);
     
     // On error, reload the assets to ensure consistency
-    await loadAssetAssets();
+    await loadAssets();
   }
 };
 
@@ -539,7 +539,10 @@ const findGlobalInsertIndexForEmptyColumn = (targetColumnId) => {
 
 onMounted(async () => {
   // emitter.emit('refresh-browser')
-  await loadAssetAssets();
+  if (statusStore.statuses.length === 0) {
+    await statusStore.reloadStatuses();
+  }
+  await loadAssets();
   // Ensure filtered cards are initialized even if no filters are active
   if (filteredCards.value.length === 0 && cards.value.length > 0) {
     await updateFilteredCards();
@@ -567,18 +570,28 @@ watch(() => commonStore.hasAssignees, async () => {
   await updateFilteredCards();
 });
 
+watch(() => projectStore.activeProject?.uri, async (uri) => {
+  if (!uri) return;
+  await statusStore.reloadStatuses();
+  await loadAssets();
+});
+
+watch(() => collectionStore.navigatedCollection?.id, async () => {
+  await loadAssets();
+});
+
 watch(() => commonStore.noAssignees, async () => {
   await updateFilteredCards();
 });
 
 // Watch for navigator mode changes to reload assets
 watch(() => commonStore.navigatorMode, async () => {
-  await loadAssetAssets();
+  await loadAssets();
 });
 
 // Watch for navigated collection changes to reload assets
 watch(() => collectionStore.navigatedCollection, async () => {
-  await loadAssetAssets();
+  await loadAssets();
 });
 
 onUnmounted(() => {
@@ -599,16 +612,15 @@ onUnmounted(() => {
   display: flex;
   justify-content: flex-start;
   /* background-color: rebeccapurple; */
-  padding: 0.5rem 0;
+  border-radius: var(--large-radius);
+  padding: 0;
   box-sizing: border-box;
   gap: .8rem;
   margin-bottom: .2rem;
-  /* position: relative; */
 }
 
 .kanban-root::-webkit-scrollbar {
   height: 4px;
-  /* margin-left: 1rem; */
 }
 
 .kanban-root::-webkit-scrollbar-thumb {
@@ -619,6 +631,7 @@ onUnmounted(() => {
 .kanban-root::-webkit-scrollbar-track {
   border-radius: 10px;
   background-color: rgba(0, 0, 0, 0);
+  margin: 1rem;
 }
 
 .kanban-container {
@@ -629,7 +642,6 @@ onUnmounted(() => {
   display: flex;
   justify-content: flex-start;
   align-items: flex-start;
-  padding: 0rem .5rem;
   box-sizing: border-box;
   gap: .8rem;
   /* background-color: chocolate; */
@@ -652,7 +664,7 @@ onUnmounted(() => {
   outline: var(--transparent-line);
   outline-offset: -1.5px;
   transition: all .3s ease-out;
-  border-radius: var(--large-radius);
+  border-radius: var(--very-large-radius);
 }
 
 .column-minimized{
@@ -673,7 +685,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   justify-content: flex-start;
-  border-radius: var(--normal-radius);
+  border-radius: 9999px;
   outline-offset: -1px;
   gap: .5rem;
 }
@@ -745,7 +757,7 @@ onUnmounted(() => {
 
 .column-cards-container::-webkit-scrollbar-track {
   border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0);
+  margin-bottom: 1rem;
 }
 
 .column-card {

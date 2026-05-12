@@ -4,18 +4,18 @@
 			<Breadcrumbs />
 			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search')" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
-			<ActionButton :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
+			<ActionButton v-if="!kanbanView" :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
 		</div>
 
 		<div class="dash-board-header">
-			<FilterBar v-if="showFilters" :kanbanView="kanbanView" />
-			<CreateMenu v-else :kanbanView="kanbanView" :importItems="importItems" :disabled="!canCreateInWorkspace" />
+			<FilterBar v-if="showFilters || kanbanView" :kanbanView="kanbanView" />
+			<CreateMenu v-else-if="!kanbanView" :kanbanView="kanbanView" :importItems="importItems" :disabled="!canCreateInWorkspace" />
 			<StateBar v-if="!showFilters && !kanbanView" :hasData="!!rootData.length" />
-			<div v-if="rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked"
+			<div v-if="(rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked)"
 				class="view-options">
 				<ViewOptions />
 				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
-				<ActionButton :icon="getAppIcon('eye-cog')" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
+				<ActionButton v-if="!kanbanView" :icon="getAppIcon('eye-cog')" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
 				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
 					v-tooltip="panes.showDetailsPane ? $t('stages.closePane') : $t('stages.openPane')" :buttonFunction="toggleDetailsPane" />
 			</div>
@@ -85,6 +85,7 @@ import { useStudioStore } from '@/stores/studio';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 import { useWorkflowStore } from '@/stores/workflow';
+import { useStatusStore } from '@/stores/status';
 
 // stores
 const assetStore = useAssetStore();
@@ -105,6 +106,7 @@ const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const workflowStore = useWorkflowStore();
+const statusStore = useStatusStore();
 const { t } = useI18n();
 
 // refs
@@ -730,7 +732,10 @@ const sortItems = (collections, assets, untrackedCollections, untrackedAssets) =
 
 // Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags.
 const refresh = async () => {
-	if (kanbanView.value) return;
+	if (kanbanView.value){
+		await trayStates.refreshData();
+		return;
+	} 
 	assetStore.assetsLoaded = false;
 	await projectStore.refreshActiveProject();
 	await trayStates.refreshData();
@@ -1104,13 +1109,13 @@ onBeforeUnmount(() => {
 }
 
 .kanban-container {
-	z-index: 5;
+	z-index: 1;
 	position: relative;
 	flex-direction: column;
 	padding: .5rem;
 	overflow: hidden;
 	height: 100%;
-	border-radius: var(--large-radius);
+	border-radius: var(--very-large-radius);
 	background-color: var(--black-steel);
 	width: 100%;
 	box-sizing: border-box;
@@ -1159,6 +1164,7 @@ onBeforeUnmount(() => {
 	justify-content: space-between;
 	box-sizing: border-box;
 	min-width: max-content;
+	min-height: 30px;
 }
 
 .view-options {

@@ -36,6 +36,7 @@ export const useCommonStore = defineStore("common", {
     navigatorMode: false,
     useGrid: defaultViewMode === 'grid',
     viewMode: defaultViewMode,
+    previousViewMode: null,
     sortBy: 'name',
     sortOrder: 'asc',
     gridSize: 200,
@@ -111,6 +112,7 @@ export const useCommonStore = defineStore("common", {
         state.hasAssignees !== snap.hasAssignees ||
         state.noAssignees !== snap.noAssignees ||
         state.viewSearchQuery !== snap.workspaceSearchQuery ||
+        state.viewMode !== snap.viewMode ||
         currentPath !== snap.collectionPath
       );
     },
@@ -137,7 +139,19 @@ export const useCommonStore = defineStore("common", {
 
       this.workspaceSearchQuery = workspace.workspaceSearchQuery;
       this.viewSearchQuery = workspace.workspaceSearchQuery || '';
+      this.applyViewMode(workspace.viewMode || defaultViewMode);
       this.snapshotWorkspace();
+    },
+    applyViewMode(mode) {
+      this.viewMode = mode;
+      this.useGrid = mode === 'grid';
+      if (mode === 'dense') {
+        this.listItemGap = 2;
+        this.listItemHeight = 42;
+      } else if (mode === 'compact' || mode === 'list') {
+        this.listItemGap = 4;
+        this.listItemHeight = 60;
+      }
     },
     snapshotWorkspace() {
       const collectionStore = useCollectionStore();
@@ -157,6 +171,7 @@ export const useCommonStore = defineStore("common", {
         hasAssignees: this.hasAssignees,
         noAssignees: this.noAssignees,
         workspaceSearchQuery: this.viewSearchQuery,
+        viewMode: this.viewMode,
         collectionPath: collectionStore.navigatedCollection?.collection_path
           || collectionStore.navigatedCollection?.item_path
           || null,
@@ -197,29 +212,50 @@ export const useCommonStore = defineStore("common", {
       this.resourceFilters = [];
       this.workspaceSearchQuery = "";
       this.viewSearchQuery = "";
+      this.applyViewMode(defaultViewMode);
     },
     setCompactView() {
       this.viewMode = 'compact';
       this.useGrid = false;
       this.listItemGap = 4;
       this.listItemHeight = 60;
+      defaultViewMode = 'compact';
       SettingsService.SetDefaultViewMode('compact');
     },
     setGridView() {
       this.viewMode = 'grid';
       this.useGrid = true;
+      defaultViewMode = 'grid';
       SettingsService.SetDefaultViewMode('grid');
     },
     setKanbanView() {
+      if (this.viewMode !== 'kanban') {
+        this.previousViewMode = this.viewMode;
+      }
       this.viewMode = 'kanban';
       this.useGrid = false;
+      defaultViewMode = 'kanban';
       SettingsService.SetDefaultViewMode('kanban');
+    },
+    restorePreviousView() {
+      const target = this.previousViewMode && this.previousViewMode !== 'kanban'
+        ? this.previousViewMode
+        : 'dense';
+      this.previousViewMode = null;
+      switch (target) {
+        case 'grid': this.setGridView(); break;
+        case 'compact': this.setCompactView(); break;
+        case 'list': this.setListView(); break;
+        case 'dense':
+        default: this.setDenseView(); break;
+      }
     },
     setDenseView() {
       this.viewMode = 'dense';
       this.useGrid = false;
       this.listItemGap = 2;
       this.listItemHeight = 42;
+      defaultViewMode = 'dense';
       SettingsService.SetDefaultViewMode('dense');
     },
     setListView() {
@@ -227,6 +263,7 @@ export const useCommonStore = defineStore("common", {
       this.useGrid = false;
       this.listItemGap = 4;
       this.listItemHeight = 60;
+      defaultViewMode = 'compact';
       SettingsService.SetDefaultViewMode('compact');
     },
   },

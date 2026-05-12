@@ -487,6 +487,7 @@
     "aboutClustta": "关于 Clustta",
     "grid": "网格",
     "list": "列表",
+    "kanban": "看板",
     "directories": "目录",
     "templates": "模板",
     "collaborators": "协作者",
@@ -1663,7 +1664,9 @@
       "showInExplorer": "在资源管理器中显示",
       "pathCopiedToClipboard": "路径已复制到剪贴板",
       "navigationFailed": "导航失败",
-      "couldNotFindSelectedPath": "未找到选中的路径"
+      "couldNotFindSelectedPath": "未找到选中的路径",
+      "exitKanban": "退出看板视图",
+      "filterResults": "筛选结果"
     },
     "footerArea": {
       "logout": "退出登录",

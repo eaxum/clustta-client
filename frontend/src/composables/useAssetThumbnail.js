@@ -59,7 +59,6 @@ export function useAssetThumbnail(assetSource, options = {}) {
     const asset = resolve(assetSource);
     if (!asset) return true;
     if (asset.preview || osThumbnail.value) return false;
-    if (includeAssetIcon && asset.icon) return false;
     return true;
   });
 

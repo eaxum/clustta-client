@@ -9,7 +9,7 @@
 
     <div class="assignee-scroll-container">
       <!-- Current Assignee -->
-      <div v-if="assignee && !multipleAssets" class="current-assignee-section">
+      <div v-if="assignee && !multipleAssets" class="current-assignee-section" :class="{ 'has-others': collaboratorsList.length > 0 }">
         <div class="section-label">{{ $t('menus.assigned') }}</div>
         <div class="assignee-list-container current-assignee">
           <AssigneeItem 
@@ -126,10 +126,7 @@ const assignee = computed(() => {
 // Returns formatted list of project collaborators, excluding current assignee.
 const collaboratorsList = computed(() => {
   const allCollaborators = projectCollaborators.value;
-  if (multipleAssets.value) {
-    const availableCollaborators = allCollaborators.filter((item) => item.username.toLowerCase().includes(searchUserTerm.value));
-    return utils.sortAlphabetically(formatCollaborators(availableCollaborators));
-  } else if (!asset.value.assignee_id) {
+  if (multipleAssets.value || !asset.value || !asset.value.assignee_id) {
     const availableCollaborators = allCollaborators.filter((item) => item.username.toLowerCase().includes(searchUserTerm.value));
     return utils.sortAlphabetically(formatCollaborators(availableCollaborators));
   }
@@ -337,6 +334,7 @@ onMounted(() => {
   searchUserInput.value.focus();
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
+  console.log(collaboratorsList.value)
 });
 
 onBeforeUnmount(() => {
@@ -400,6 +398,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .3rem;
+}
+
+.current-assignee-section.has-others {
   padding-bottom: .4rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: .2rem;

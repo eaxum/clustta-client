@@ -16,7 +16,7 @@
               </span>
               <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace"
                 v-tooltip="$t('components.workspaceTabs.resetWorkspace')" @click.stop="resetWorkspace" class="workspace-tab-button workspace-hover-button">
-                <img class="small-icons no-cursor" :src="getAppIcon('revert')">
+                <img class="small-icons no-cursor" :src="getAppIcon('undo')">
               </span>
               <span v-tooltip="$t('components.workspaceTabs.deleteWorkspace')"
                 @click.stop="deleteWorkspace(workspace.name)" class="workspace-tab-button workspace-hover-button">
@@ -83,20 +83,8 @@ const addWorkspaceVisible = computed(() => {
   const defaultWorkspace = commonStore.activeWorkspace === 'Default';
   if (!defaultWorkspace) return false;
 
-  // Show if in collection view
-  const inCollectionView = collectionStore.navigatedCollection !== null;
-  if (inCollectionView) return true;
-
-  // Otherwise, show only with filters
-  const assetFilters = commonStore.assetFilters.length;
-  const collectionFilters = commonStore.collectionFilters.length;
-  const resourceFilters = commonStore.resourceFilters.length;
-  const isActive = commonStore.showCollections && commonStore.showAssets
-    && commonStore.showResources && commonStore.showChildCollections
-    && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
-
-  const showButton = assetFilters || collectionFilters || resourceFilters || !isActive || commonStore.viewSearchQuery;
-  return showButton;
+  // Show whenever Default has any unsaved change (filters, search, navigation, view mode).
+  return commonStore.isWorkspaceDirty;
 });
 
 // Whether the active workspace can be saved over (only custom workspaces, index > 1).

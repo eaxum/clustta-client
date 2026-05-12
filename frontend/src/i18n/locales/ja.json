@@ -488,6 +488,7 @@
     "grid": "グリッド",
     "compact": "コンパクト",
     "list": "リスト",
+    "kanban": "カンバン",
     "directories": "ディレクトリ",
     "templates": "テンプレート",
     "collaborators": "コラボレーター",
@@ -1664,7 +1665,9 @@
       "showInExplorer": "エクスプローラーで表示",
       "pathCopiedToClipboard": "パスがクリップボードにコピーされました",
       "navigationFailed": "ナビゲーション失敗",
-      "couldNotFindSelectedPath": "選択されたパスが見つかりませんでした"
+      "couldNotFindSelectedPath": "選択されたパスが見つかりませんでした",
+      "exitKanban": "カンバンビューを終了",
+      "filterResults": "フィルター結果"
     },
     "footerArea": {
       "logout": "ログアウト",

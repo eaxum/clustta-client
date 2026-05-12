@@ -1,12 +1,12 @@
 <template>
   <div class="view-options-root" @mouseenter="expanded = true" @mouseleave="expanded = false">
-    <ActionButton v-if="!expanded" :icon="getAppIcon(activeIcon)" v-tooltip="activeTooltip" />
+    <ActionButton v-if="!isExpanded" :icon="getAppIcon(activeIcon)" v-tooltip="activeTooltip" />
 
     <template v-else>
       <ActionButton :icon="getAppIcon('list')" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
       <ActionButton :icon="getAppIcon('list-compact')" v-tooltip="$t('menus.compactView')" :buttonFunction="setDenseView" />
       <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
-      <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
+      <ActionButton :icon="getAppIcon('kanban')" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
     </template>
   </div>
 </template>
@@ -32,6 +32,7 @@ const expanded = ref(false);
 // computed properties
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
 const isDenseActive = computed(() => commonStore.viewMode === 'dense');
+const isExpanded = computed(() => expanded.value || commonStore.viewMode === 'kanban');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
 const isListActive = computed(() => commonStore.viewMode === 'compact');

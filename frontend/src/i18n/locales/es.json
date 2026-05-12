@@ -488,6 +488,7 @@
     "grid": "Cuadrícula",
     "compact": "Compacta",
     "list": "Lista",
+    "kanban": "Kanban",
     "directories": "Directorios",
     "templates": "Plantillas",
     "collaborators": "Colaboradores",
@@ -1664,7 +1665,9 @@
       "showInExplorer": "Mostrar en explorador",
       "pathCopiedToClipboard": "Ruta copiada al portapapeles",
       "navigationFailed": "Navegación fallida",
-      "couldNotFindSelectedPath": "No se pudo encontrar la ruta seleccionada"
+      "couldNotFindSelectedPath": "No se pudo encontrar la ruta seleccionada",
+      "exitKanban": "Salir de la vista Kanban",
+      "filterResults": "Resultados del filtro"
     },
     "footerArea": {
       "logout": "Cerrar sesión",

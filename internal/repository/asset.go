@@ -2091,3 +2091,35 @@ func GetAssetAssets(tx *sqlx.Tx) ([]models.Asset, error) {
 	}
 	return assets, nil
 }
+
+// GetCollectionDescendantAssets returns assets located anywhere
+// under the given collection's subtree, with the same minimal fields as GetAssetAssets.
+func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string) ([]models.Asset, error) {
+	assets := []models.Asset{}
+
+	var collectionPath string
+	err := tx.Get(&collectionPath, "SELECT collection_path FROM collection_hierarchy WHERE id = ?", collectionId)
+	if err != nil {
+		return assets, err
+	}
+
+	query := `
+		SELECT
+			id,
+			name,
+			asset_type_icon,
+			assignee_id,
+			preview,
+			status_id,
+			asset_type_id,
+			extension
+		FROM full_asset
+		WHERE is_resource = 0 AND trashed = 0 AND collection_path LIKE ?
+		ORDER BY name`
+
+	err = tx.Select(&assets, query, collectionPath+"%")
+	if err != nil {
+		return assets, err
+	}
+	return assets, nil
+}

@@ -488,6 +488,7 @@
     "grid": "Grade",
     "compact": "Compacto",
     "list": "Lista",
+    "kanban": "Kanban",
     "directories": "Diretórios",
     "templates": "Modelos",
     "collaborators": "Colaboradores",
@@ -1663,7 +1664,9 @@
       "showInExplorer": "Mostrar no Explorador",
       "pathCopiedToClipboard": "Caminho copiado para a área de transferência",
       "navigationFailed": "Falha na navegação",
-      "couldNotFindSelectedPath": "Não foi possível encontrar o caminho selecionado"
+      "couldNotFindSelectedPath": "Não foi possível encontrar o caminho selecionado",
+      "exitKanban": "Sair da visualização Kanban",
+      "filterResults": "Resultados do filtro"
     },
     "footerArea": {
       "logout": "Sair",

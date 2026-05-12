@@ -488,6 +488,7 @@
     "grid": "Griglia",
     "compact": "Compatta",
     "list": "Lista",
+    "kanban": "Kanban",
     "directories": "Directory",
     "templates": "Modelli",
     "collaborators": "Collaboratori",
@@ -1663,7 +1664,9 @@
       "showInExplorer": "Mostra in Esplora risorse",
       "pathCopiedToClipboard": "Percorso copiato negli appunti",
       "navigationFailed": "Navigazione fallita",
-      "couldNotFindSelectedPath": "Impossibile trovare il percorso selezionato"
+      "couldNotFindSelectedPath": "Impossibile trovare il percorso selezionato",
+      "exitKanban": "Esci dalla vista Kanban",
+      "filterResults": "Risultati del filtro"
     },
     "footerArea": {
       "logout": "Disconnetti",

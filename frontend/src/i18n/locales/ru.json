@@ -488,6 +488,7 @@
     "grid": "Сетка",
     "compact": "Компактный",
     "list": "Список",
+    "kanban": "Канбан",
     "directories": "Каталоги",
     "templates": "Шаблоны",
     "collaborators": "Сотрудники",
@@ -1663,7 +1664,9 @@
       "showInExplorer": "Показать в проводнике",
       "pathCopiedToClipboard": "Путь скопирован в буфер обмена",
       "navigationFailed": "Ошибка навигации",
-      "couldNotFindSelectedPath": "Не удалось найти выбранный путь"
+      "couldNotFindSelectedPath": "Не удалось найти выбранный путь",
+      "exitKanban": "Выйти из вида Канбан",
+      "filterResults": "Результаты фильтра"
     },
     "footerArea": {
       "logout": "Выйти",

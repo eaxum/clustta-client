@@ -3,39 +3,32 @@
     <!-- thumbnail -->
     <div v-if="commonStore.showThumbs" class="collection-item-preview-container">
       <div class="collection-item-preview-image">
-        <img v-if="displayThumbnail" class="screenshot-thumb" :class="{ 'fallback-icon': isFallbackIcon }" :src="displayThumbnail">
+        <img v-if="displayThumbnail" class="screenshot-thumb" :class="{ 'fallback-icon': isFallbackIcon, 'no-filter': isFallbackIcon }" :src="displayThumbnail">
       </div>
     </div>
     <!-- name and app icon -->
     <div class="collection-item-data">
       <div class="collection-item-content">
-        <div v-if="asset.asset_type_icon && !commonStore.showThumbs" class="collection-item-type-container">
-          <img  class="large-icons" :src="getAppIcon(asset.asset_type_icon)">
-        </div>
         <div class="collection-item-info">
           <div class="collection-item-text">
             {{ utils.capitalizeStr(asset.name) }}
           </div>
         </div>
-        <div class="collection-item-icon-container">
-          <img v-if="asset.icon" class="large-icons no-filter" :src="asset.icon">
+        <div v-if="asset.asset_type_icon" class="collection-item-icon-container">
+          <img class="small-icons" :src="getAppIcon(asset.asset_type_icon)">
         </div>
       </div>
       <!-- assignee -->
-      <div v-if="asset.assignee_id" class="collection-item-assignee">
-        <div class="single-action-button" v-tooltip="userFullName">
+      <div v-if="asset.assignee_id" class="collection-item-assignee" v-stop-propagation>
+        <div class="single-action-button" v-tooltip="userFullName" @click="prepAssignAsset($event)">
           <div class="profile-picture" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
               <img v-if="userPhoto" class="profile-img" :src="userPhoto">
               <img v-else class="profile-img" :src="generateAvatar(asset.assignee_id)">
           </div>
         </div>
       </div>
-      <div v-else class="collection-item-assignee">
-        <div class="single-action-button">
-          <div class="collection-item-unassigned">
-            <!-- Not Assigned -->
-          </div>
-        </div>
+      <div v-else-if="userStore.canDo('assign_asset')" class="collection-item-assignee collection-item-assignee-button" v-stop-propagation >
+        <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset($event)" />
       </div>
     </div>
   </div>
@@ -89,7 +82,7 @@ const props = defineProps({
 // thumbnail
 const { displayThumbnail, isFallbackIcon } = useAssetThumbnail(
   () => props.asset,
-  { enabled: () => commonStore.showThumbs },
+  { enabled: () => commonStore.showThumbs, includeAssetIcon: true },
 );
 
 const userFullName = computed(() => {
@@ -109,6 +102,15 @@ const userPhoto = computed(() => {
 const profileColor = (uuid) => {
   const parts = uuid.split('-');
   return '#' + parts[0];
+};
+
+// Opens the assign menu anchored at the click event for this asset.
+const prepAssignAsset = (event) => {
+  if (!userStore.canDo('assign_asset')) return;
+  const asset = props.asset;
+  assetStore.selectAsset(asset);
+  stage.markedAssets = [asset.id];
+  menu.showContextMenu(event, 'assignMenu', true);
 };
 
 </script>
@@ -131,12 +133,17 @@ const profileColor = (uuid) => {
   /* background-color: darkorange; */
   padding: .2rem;
   border-radius: var(--large-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  transition: all .2s ease-out;
 }
 
 
 .collection-item-wrapper:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1.5px;
+  background-color: var(--steel);
+  border-radius: var(--small-radius);
+  outline: 1px solid var(--light-steel);
+  outline-offset: -1px;
 }
 
 .collection-item-root {
@@ -208,6 +215,11 @@ const profileColor = (uuid) => {
   height: 100%;
   aspect-ratio: 4 / 3;
   border-radius: var(--large-radius);
+  transition: border-radius .2s ease-out;
+}
+
+.collection-item-wrapper:hover .collection-item-preview-container {
+  border-radius: var(--tiny-radius);
 }
 
 .collection-item-preview-image {
@@ -231,7 +243,7 @@ const profileColor = (uuid) => {
   max-width: 32px;
   max-height: 32px;
   object-fit: contain;
-  opacity: 0.6;
+  /* opacity: 0.6; */
 }
 
 .collection-item-type-container {
@@ -262,13 +274,13 @@ const profileColor = (uuid) => {
   display: flex;
   box-sizing: border-box;
   align-items: center;
-  height: 100%;
   /* background-color: goldenrod; */
   justify-content: space-between;
   width: 100%;
   gap: .3rem;
   padding: 0px .3rem;
   overflow: hidden;
+  flex-shrink: 0;
 }
 
 .collection-item-data {
@@ -363,6 +375,14 @@ const profileColor = (uuid) => {
 
 .collection-item-assignee-name {
   font-size: 14px;
+}
+
+.collection-item-assignee-button {
+  display: none;
+}
+
+.collection-item-wrapper:hover .collection-item-assignee-button {
+  display: flex;
 }
 
 .collection-item-unassigned {

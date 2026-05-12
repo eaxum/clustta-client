@@ -488,6 +488,7 @@
     "grid": "Raster",
     "compact": "Kompakt",
     "list": "Liste",
+    "kanban": "Kanban",
     "directories": "Verzeichnisse",
     "templates": "Vorlagen",
     "collaborators": "Mitarbeiter",
@@ -1664,7 +1665,9 @@
       "showInExplorer": "Im Explorer anzeigen",
       "pathCopiedToClipboard": "Pfad in die Zwischenablage kopiert",
       "navigationFailed": "Navigation fehlgeschlagen",
-      "couldNotFindSelectedPath": "Ausgewählter Pfad konnte nicht gefunden werden"
+      "couldNotFindSelectedPath": "Ausgewählter Pfad konnte nicht gefunden werden",
+      "exitKanban": "Kanban-Ansicht verlassen",
+      "filterResults": "Filterergebnisse"
     },
     "footerArea": {
       "logout": "Abmelden",
