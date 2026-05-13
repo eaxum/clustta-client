@@ -16,7 +16,7 @@
       <div class="input-section drop-down-box-section">
         <DropDownBox :items="projectWorkflowNames" :selectedItem="selectedWorkflowName"
           :onSelect="changeSelectedWorkflow" />
-        <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="selectCollectionType" />
+        <DropDownBox :items="collectionTypeOptions" :selectedItem="collectionType" :onSelect="selectCollectionType" />
       </div>
 
       
@@ -94,6 +94,14 @@ const collectionId = computed(() => {
     return collectionStore.navigatedCollection.id;
   }
   return '';
+});
+
+const collectionTypeOptions = computed(() => {
+  return collectionStore.getCollectionTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
 });
 
 const headerIcon = computed(() => {

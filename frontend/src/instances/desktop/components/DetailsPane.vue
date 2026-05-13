@@ -35,7 +35,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('components.detailsPane.assetType')" />
-            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetType" :onSelect="changeAssetType"
+            <DropDownBox :items="assetTypeOptions" :selectedItem="assetType" :onSelect="changeAssetType"
               :fixedWidth="true" />
           </div>
 
@@ -66,7 +66,7 @@
         <div v-else-if="onlyCollections" class="action-bar">
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('components.detailsPane.collectionType')" />
-            <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType"
+            <DropDownBox :items="collectionTypeOptions" :selectedItem="collectionType"
               :onSelect="changeCollectionType" :fixedWidth="true" />
           </div>
 
@@ -246,6 +246,22 @@ const collectionType = ref(collectionStore.getCollectionTypesNames[0]);
 const assetType = ref(assetStore.getAssetTypesNames[0]);
 
 // computed properties
+const assetTypeOptions = computed(() => {
+  return assetStore.getAssetTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
+});
+
+const collectionTypeOptions = computed(() => {
+  return collectionStore.getCollectionTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
+});
+
 const activeIsCollection = computed(() => {
   const activeCollection = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
   return activeCollection?.type === 'collection';

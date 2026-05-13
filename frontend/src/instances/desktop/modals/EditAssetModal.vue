@@ -23,7 +23,7 @@
         <div v-if="!asset.is_link" class="input-section drop-down-box-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" />
+              <DropDownBox :items="assetTypeOptions" :selectedItem="assetType" :onSelect="selectAssetType" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewAssetType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -131,6 +131,15 @@ const asset = computed(() => {
 // Returns the list of asset type names.
 const assetTypeNames = computed(() => {
   return assetStore.getAssetTypesNames;
+});
+
+// Returns the list of asset type options with icons for the dropdown.
+const assetTypeOptions = computed(() => {
+  return assetStore.getAssetTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
 });
 
 // Returns the modal title based on asset type or type creator.

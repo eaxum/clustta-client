@@ -18,7 +18,7 @@
         <div class="input-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="selectCollectionType" :useFilter="false" :placeHolder="$t('placeholders.collectionType')" />
+              <DropDownBox :items="collectionTypeOptions" :selectedItem="collectionType" :onSelect="selectCollectionType" :useFilter="false" :placeHolder="$t('placeholders.collectionType')" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addCollectionTypeTitle')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -112,6 +112,15 @@ const showAssetOptions = ref(true);
 const typeFormRef = ref(null);
 
 // computed
+// Returns the list of collection type options with icons for the dropdown.
+const collectionTypeOptions = computed(() => {
+  return collectionStore.getCollectionTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
+});
+
 // Returns the header icon based on selected collection type or new type icon.
 const headerIcon = computed(() => {
   if (displayTypeCreator.value) {

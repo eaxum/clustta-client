@@ -11,13 +11,13 @@
             </div>
             <div class="input-section drop-down-box-section">
                 <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
-                <DropDownBox v-if="itemType === 'Asset'" :items="assetTypeNames" :selectedItem="assetType"
+                <DropDownBox v-if="itemType === 'Asset'" :items="assetTypeOptions" :selectedItem="assetType"
                     :onSelect="selectAssetType" />
-                <DropDownBox v-else-if="itemType === 'Collection'" :items="collectionTypeNames" :selectedItem="collectionType"
+                <DropDownBox v-else-if="itemType === 'Collection'" :items="collectionTypeOptions" :selectedItem="collectionType"
                     :onSelect="selectCollectionType" />
                 <DropDownBox v-else-if="itemType === 'Workflow'" :items="projectWorkflowNames"
                     :selectedItem="selectedWorkflowName" :onSelect="selectWorkflow" />
-                <DropDownBox v-if="itemType === 'Workflow'" :items="collectionTypeNames" :selectedItem="collectionType"
+                <DropDownBox v-if="itemType === 'Workflow'" :items="collectionTypeOptions" :selectedItem="collectionType"
                     :onSelect="selectCollectionType" />
             </div>
             <div v-if="itemType === 'Asset'" class="asset-options-container">
@@ -127,12 +127,28 @@ const assetTypeNames = computed(() => {
     return assetStore.getAssetTypesNames;
 });
 
+const assetTypeOptions = computed(() => {
+    return assetStore.getAssetTypes.map((type) => ({
+        id: type.id,
+        name: type.name,
+        icon: type.icon ? getAppIcon(type.icon) : null,
+    }));
+});
+
 const assetTemplates = computed(() => {
     return templateStore.getTemplates;
 });
 
 const collectionTypeNames = computed(() => {
     return collectionStore.getCollectionTypesNames;
+});
+
+const collectionTypeOptions = computed(() => {
+    return collectionStore.getCollectionTypes.map((type) => ({
+        id: type.id,
+        name: type.name,
+        icon: type.icon ? getAppIcon(type.icon) : null,
+    }));
 });
 
 const itemTypes = computed(() => {

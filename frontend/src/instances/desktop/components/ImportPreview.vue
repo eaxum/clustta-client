@@ -17,14 +17,14 @@
 
     <div class="hierarchy-item-config">
 
-      <DropDownBox v-if="collectionsSelected" :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType"
+      <DropDownBox v-if="collectionsSelected" :items="collectionTypeOptions" :selectedItem="collectionType"
         :onSelect="selectCollectionType" :fullWidth="false" />
 
       <DropDownBox v-if="assetsSelected" :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType"
         :fullWidth="false" />
 
       <div v-if="assetsSelected" class="hierarchy-item-type-options">
-        <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetType" :onSelect="selectAssetType"
+        <DropDownBox :items="assetTypeOptions" :selectedItem="assetType" :onSelect="selectAssetType"
           :fullWidth="false" />
       </div>
 
@@ -92,6 +92,22 @@ const assetType = ref('');
 const itemType = ref(itemTypes.value[0]);
 
 // computed
+const assetTypeOptions = computed(() => {
+  return assetStore.getAssetTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
+});
+
+const collectionTypeOptions = computed(() => {
+  return collectionStore.getCollectionTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
+});
+
 const itemsSelected = computed(() => {
   return allSelectedItems.value?.length;
 });

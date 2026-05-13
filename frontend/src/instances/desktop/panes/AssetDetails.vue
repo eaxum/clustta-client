@@ -15,7 +15,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('panes.type')" />
-            <DropDownBox :items="assetStore.getAssetTypesNames" :selectedItem="assetStore.selectedAsset?.asset_type_name"
+            <DropDownBox :items="assetTypeOptions" :selectedItem="assetStore.selectedAsset?.asset_type_name"
               :onSelect="changeAssetType" :fixedWidth="true" />
           </div>
 
@@ -205,6 +205,14 @@ const tagInputValue = ref('');
 const tagInput = ref(null);
 
 // computed properties
+const assetTypeOptions = computed(() => {
+  return assetStore.getAssetTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
+});
+
 const projectStatuses = computed(() => {
   const allStatuses = statusStore.statuses;
   if (!userStore.canDo('set_done_asset')) {

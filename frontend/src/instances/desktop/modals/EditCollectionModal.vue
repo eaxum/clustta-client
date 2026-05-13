@@ -19,7 +19,7 @@
         <div class="input-section">
           <div class="horizontal-flex">
             <div class="dropdown-wrapper">
-              <DropDownBox :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType" :onSelect="changeCollectionType" />
+              <DropDownBox :items="collectionTypeOptions" :selectedItem="collectionType" :onSelect="changeCollectionType" />
             </div>
             <span @click="toggleTypeCreator" class="single-action-button" v-tooltip="$t('modals.addNewCollectionType')">
               <img class="small-icons" :src="getAppIcon('plus-circle')">
@@ -113,6 +113,15 @@ const title = computed(() => {
 // Returns the currently selected collection.
 const collection = computed(() => {
   return collectionStore.selectedCollection;
+});
+
+// Returns the list of collection type options with icons for the dropdown.
+const collectionTypeOptions = computed(() => {
+  return collectionStore.getCollectionTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
 });
 
 // Returns whether the shared flag has changed.

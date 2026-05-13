@@ -35,13 +35,13 @@
 
       <div v-if="!isHierarchyRoot && !item.is_tracked_parent" class="hierarchy-item-config">
 
-        <DropDownBox v-if="item.collection_type_id" :items="collectionStore.getCollectionTypesNames" :selectedItem="collectionType"
+        <DropDownBox v-if="item.collection_type_id" :items="collectionTypeOptions" :selectedItem="collectionType"
           :onSelect="selectCollectionType" :fullWidth="false" />
 
         <DropDownBox v-else :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" :fullWidth="false" />
 
         <div v-if="!item.collection_type_id" class="hierarchy-item-type-options">
-          <DropDownBox :items="assetTypeNames" :selectedItem="assetType" :onSelect="selectAssetType" :fullWidth="false" />
+          <DropDownBox :items="assetTypeOptions" :selectedItem="assetType" :onSelect="selectAssetType" :fullWidth="false" />
         </div>
 
         <ActionButton :icon="getAppIcon('trash')" v-tooltip="$t('components.hierarchyItem.remove')" @click="removeItem(item)" />
@@ -132,6 +132,24 @@ const resourceType = computed(() => {
 
 const assetTypeNames = computed(() => {
   return assetStore.getAssetTypesNames.filter((item) => item !== assetType.value);
+});
+
+const assetTypeOptions = computed(() => {
+  return assetStore.getAssetTypes
+    .filter((type) => type.name !== assetType.value)
+    .map((type) => ({
+      id: type.id,
+      name: type.name,
+      icon: type.icon ? getAppIcon(type.icon) : null,
+    }));
+});
+
+const collectionTypeOptions = computed(() => {
+  return collectionStore.getCollectionTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
 });
 
 const itemTypes = computed(() => {

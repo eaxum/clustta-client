@@ -16,7 +16,7 @@
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('panes.collectionType')" />
-            <DropDownBox :items="collectionStore.getCollectionTypesNames"
+            <DropDownBox :items="collectionTypeOptions"
               :selectedItem="collectionStore.selectedCollection.collection_type_name" :onSelect="changeCollectionType"
               :fixedWidth="true" />
           </div>
@@ -177,6 +177,14 @@ const projectUsers = computed(() => {
     }))
     .filter((user) => !collectionStore.selectedCollection.assignee_ids?.includes(user.id));
   return availableUsers;
+});
+
+const collectionTypeOptions = computed(() => {
+  return collectionStore.getCollectionTypes.map((type) => ({
+    id: type.id,
+    name: type.name,
+    icon: type.icon ? getAppIcon(type.icon) : null,
+  }));
 });
 
 // Helper function to emit collection data updates
