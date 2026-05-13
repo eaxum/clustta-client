@@ -2082,12 +2082,26 @@ func GetAssetAssets(tx *sqlx.Tx) ([]models.Asset, error) {
 			preview,
 			status_id,
 			asset_type_id,
-			extension
+			extension,
+			tags
 		FROM full_asset %s ORDER BY name`, queryWhereClause)
 
 	err := tx.Select(&assets, query)
 	if err != nil {
 		return assets, err
+	}
+	for i := range assets {
+		if assets[i].TagsRaw != "" && assets[i].TagsRaw != "[]" {
+			assetTags := []AssetTags{}
+			if err := json.Unmarshal([]byte(assets[i].TagsRaw), &assetTags); err != nil {
+				return assets, err
+			}
+			for _, t := range assetTags {
+				assets[i].Tags = append(assets[i].Tags, t.Name)
+			}
+		} else {
+			assets[i].Tags = []string{}
+		}
 	}
 	return assets, nil
 }
@@ -2112,7 +2126,8 @@ func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string) ([]models.A
 			preview,
 			status_id,
 			asset_type_id,
-			extension
+			extension,
+			tags
 		FROM full_asset
 		WHERE is_resource = 0 AND trashed = 0 AND collection_path LIKE ?
 		ORDER BY name`
@@ -2120,6 +2135,19 @@ func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string) ([]models.A
 	err = tx.Select(&assets, query, collectionPath+"%")
 	if err != nil {
 		return assets, err
+	}
+	for i := range assets {
+		if assets[i].TagsRaw != "" && assets[i].TagsRaw != "[]" {
+			assetTags := []AssetTags{}
+			if err := json.Unmarshal([]byte(assets[i].TagsRaw), &assetTags); err != nil {
+				return assets, err
+			}
+			for _, t := range assetTags {
+				assets[i].Tags = append(assets[i].Tags, t.Name)
+			}
+		} else {
+			assets[i].Tags = []string{}
+		}
 	}
 	return assets, nil
 }

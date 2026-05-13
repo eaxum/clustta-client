@@ -1,34 +1,45 @@
 <template>
   <div class="collection-item-wrapper" @click="console.log(asset)">
-    <!-- thumbnail -->
-    <div v-if="commonStore.showThumbs" class="collection-item-preview-container">
-      <div class="collection-item-preview-image">
-        <img v-if="displayThumbnail" class="screenshot-thumb" :class="{ 'fallback-icon': isFallbackIcon, 'no-filter': isFallbackIcon }" :src="displayThumbnail">
+    <div class="collection-item-main">
+      <!-- thumbnail -->
+      <div v-if="commonStore.showThumbs" class="collection-item-preview-container">
+        <div class="collection-item-preview-image">
+          <img v-if="displayThumbnail" class="screenshot-thumb" :class="{ 'fallback-icon': isFallbackIcon, 'no-filter': isFallbackIcon }" :src="displayThumbnail">
+        </div>
+      </div>
+      <!-- name and app icon -->
+      <div class="collection-item-data">
+        <div class="collection-item-content">
+          <div class="collection-item-info">
+            <div class="collection-item-text">
+              {{ utils.capitalizeStr(asset.name) }}
+            </div>
+          </div>
+          <div v-if="asset.asset_type_icon" class="collection-item-icon-container">
+            <img class="small-icons" :src="getAppIcon(asset.asset_type_icon)">
+          </div>
+        </div>
+        <!-- assignee -->
+        <div v-if="asset.assignee_id" class="collection-item-assignee" v-stop-propagation>
+          <div class="single-action-button" v-tooltip="userFullName" @click="prepAssignAsset($event)">
+            <div class="profile-picture" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
+                <img v-if="userPhoto" class="profile-img" :src="userPhoto">
+                <img v-else class="profile-img" :src="generateAvatar(asset.assignee_id)">
+            </div>
+          </div>
+        </div>
+        <div v-else-if="userStore.canDo('assign_asset')" class="collection-item-assignee collection-item-assignee-button" v-stop-propagation >
+          <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset($event)" />
+        </div>
       </div>
     </div>
-    <!-- name and app icon -->
-    <div class="collection-item-data">
-      <div class="collection-item-content">
-        <div class="collection-item-info">
-          <div class="collection-item-text">
-            {{ utils.capitalizeStr(asset.name) }}
-          </div>
-        </div>
-        <div v-if="asset.asset_type_icon" class="collection-item-icon-container">
-          <img class="small-icons" :src="getAppIcon(asset.asset_type_icon)">
-        </div>
+    <!-- tags -->
+    <div v-if="visibleTags.length" class="collection-item-tags" v-stop-propagation>
+      <div v-for="tag in visibleTags" :key="tag" class="collection-item-tag-chip" :class="{ 'is-active': isTagFilterActive(tag) }" v-tooltip="tag" @click="toggleTagFilter(tag)">
+        {{ tag }}
       </div>
-      <!-- assignee -->
-      <div v-if="asset.assignee_id" class="collection-item-assignee" v-stop-propagation>
-        <div class="single-action-button" v-tooltip="userFullName" @click="prepAssignAsset($event)">
-          <div class="profile-picture" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
-              <img v-if="userPhoto" class="profile-img" :src="userPhoto">
-              <img v-else class="profile-img" :src="generateAvatar(asset.assignee_id)">
-          </div>
-        </div>
-      </div>
-      <div v-else-if="userStore.canDo('assign_asset')" class="collection-item-assignee collection-item-assignee-button" v-stop-propagation >
-        <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset($event)" />
+      <div v-if="overflowTags.length" class="collection-item-tag-chip overflow" v-tooltip="overflowTags.join(', ')">
+        +{{ overflowTags.length }}
       </div>
     </div>
   </div>
@@ -39,6 +50,7 @@
 import { computed } from 'vue';
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
+import emitter from '@/lib/mitt';
 
 // composables
 import { useAssetThumbnail } from '@/composables/useAssetThumbnail';
@@ -99,6 +111,31 @@ const userPhoto = computed(() => {
   return userPhoto
 });
 
+const MAX_VISIBLE_TAGS = 3;
+
+const assetTags = computed(() => Array.isArray(props.asset.tags) ? props.asset.tags : []);
+
+const visibleTags = computed(() => assetTags.value.slice(0, MAX_VISIBLE_TAGS));
+
+const overflowTags = computed(() => assetTags.value.slice(MAX_VISIBLE_TAGS));
+
+// Toggles the tag in the global asset filter when its chip is clicked.
+const toggleTagFilter = (tag) => {
+  const filters = commonStore.assetFilters;
+  const idx = filters.findIndex((f) => f.type === 'tags' && f.name === tag);
+  if (idx >= 0) {
+    filters.splice(idx, 1);
+  } else {
+    filters.push({ type: 'tags', name: tag });
+  }
+  emitter.emit('refresh-browser');
+};
+
+// Returns true when the tag is currently active in the asset filters.
+const isTagFilterActive = (tag) => {
+  return commonStore.assetFilters.some((f) => f.type === 'tags' && f.name === tag);
+};
+
 const profileColor = (uuid) => {
   const parts = uuid.split('-');
   return '#' + parts[0];
@@ -120,11 +157,11 @@ const prepAssignAsset = (event) => {
 
 .collection-item-wrapper {
   display: flex;
+  flex-direction: column;
   gap: .2rem;
   color: var(--white);
-  align-items: center;
   box-sizing: border-box;
-  height: 80px;
+  min-height: 80px;
   width: 100%;
   width: 250px;
   overflow: hidden;
@@ -136,6 +173,15 @@ const prepAssignAsset = (event) => {
   outline: var(--transparent-line);
   outline-offset: -1px;
   transition: all .2s ease-out;
+}
+
+.collection-item-main {
+  display: flex;
+  gap: .2rem;
+  align-items: center;
+  width: 100%;
+  height: 76px;
+  overflow: hidden;
 }
 
 
@@ -355,6 +401,49 @@ const prepAssignAsset = (event) => {
   font-size: 12px;
   background-color: black;
   border-radius: 20px;
+}
+
+.collection-item-tags {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: .2rem;
+  width: 100%;
+  padding: 0 .3rem;
+  overflow: hidden;
+}
+
+.collection-item-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 108px;
+  padding: 2px 7px;
+  font-size: 12px;
+  line-height: 1.4;
+  border-radius: 12px;
+  border: 1px solid var(--steel);
+  background-color: var(--black-steel);
+  color: var(--white);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: filter .15s ease-out, transform .15s ease-out;
+}
+
+.collection-item-tag-chip:hover {
+  filter: brightness(1.25);
+}
+
+.collection-item-tag-chip.is-active {
+  outline: 1px solid var(--white);
+  outline-offset: -1px;
+}
+
+.collection-item-tag-chip.overflow {
+  background-color: var(--black-steel);
+  color: var(--light-steel);
+  border-color: var(--steel);
 }
 
 

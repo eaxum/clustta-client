@@ -331,7 +331,7 @@ const onDragStart = (e, id, isMinimized) => {
   if(isMinimized){
     return
   }
-  if (e.target.closest('.single-action-button, .action-button')) {
+  if (e.target.closest('.single-action-button, .action-button, .collection-item-tag-chip')) {
     return;
   }
   if (menu.activeMenu) {
