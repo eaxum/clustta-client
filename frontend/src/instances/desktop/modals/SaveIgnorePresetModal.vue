@@ -7,7 +7,7 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.close')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
         <GeneralButton :label="$t('common.save')" :fullWidth="true" @click="savePreset" :isActive="isValidName" :loading="isAwaitingResponse" />
       </div>
     </div>

@@ -31,7 +31,7 @@
       </div>
 
       <div v-if="!isCloning" class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :isActive="!isAwaitingResponse" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.close')" :isActive="!isAwaitingResponse" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
         <GeneralButton :label="$t('common.download')" :fullWidth="true" @click="cloneProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>

@@ -20,7 +20,7 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="cancel" :colored="false" />
+        <GeneralButton :label="$t('common.close')" :fullWidth="true" :buttonFunction="cancel" :isActive="!isAwaitingResponse" :colored="false" />
         <GeneralButton :label="createButtonLabel" :fullWidth="true" :buttonFunction="createStudioAndCheckout" :isActive="canProceed" :loading="isAwaitingResponse" />
       </div>
     </div>

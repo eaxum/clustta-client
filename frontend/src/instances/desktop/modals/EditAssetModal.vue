@@ -32,7 +32,7 @@
         </div>
 
         <div class="pop-up-actions">
-          <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
+          <GeneralButton :label="$t('common.close')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
           <GeneralButton :label="$t('common.confirm')" :fullWidth="true" @click="updateAsset()" :isActive="isValueChanged" :loading="isAwaitingResponse" />
         </div>
       </template>

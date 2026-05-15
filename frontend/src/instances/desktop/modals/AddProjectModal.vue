@@ -51,7 +51,7 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse"  :colored="false" />
+        <GeneralButton :label="$t('common.close')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createProject" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>

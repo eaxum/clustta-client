@@ -15,7 +15,7 @@
       </div>
 
       <div class="pop-up-actions" ref="popUpActions">
-        <GeneralButton :label="$t('common.cancel')" :fullWidth="false" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.close')" :fullWidth="false" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
         <GeneralButton :label="$t('common.confirm')" :fullWidth="false" @click="importItems()" :isActive="storeHasData"
           :loading="isAwaitingResponse" />
       </div>

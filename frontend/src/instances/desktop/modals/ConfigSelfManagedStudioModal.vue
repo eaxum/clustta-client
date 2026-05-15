@@ -9,7 +9,7 @@
       <FormInput v-model="studioName" :placeholder="$t('placeholders.studioName')" />
       <FormInput v-model="studioUrl" :placeholder="$t('placeholders.studioUrl')" />
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.back')" :fullWidth="true" :buttonFunction="goBack" :colored="false" />
+        <GeneralButton :label="$t('common.back')" :fullWidth="true" :buttonFunction="goBack" :isActive="!isAwaitingResponse" :colored="false" />
         <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createStudio" :isActive="isValueChanged"
           :loading="isAwaitingResponse" />
       </div>

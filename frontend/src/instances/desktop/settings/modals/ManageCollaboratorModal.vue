@@ -45,7 +45,7 @@
       </div>
 
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :buttonFunction="closeModal" :colored="false" />
+        <GeneralButton :label="$t('common.close')" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
         <GeneralButton :label="$t('common.add')" :buttonFunction="addCollaborators" :isActive="!!selectedUsers.length"
           :loading="isAwaitingResponse" />
       </div>
