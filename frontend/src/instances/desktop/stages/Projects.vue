@@ -1,7 +1,16 @@
 <template>
 	<div ref="projectListRoot" class="project-stage-root absolute-pane">
 		<div class="asset-header">
-			<div class="create-menu" >
+			<div v-if="hasMultiSelection" class="create-menu bulk-action-menu">
+				<ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.cancel')" :buttonFunction="clearProjectSelection" />
+				<div class="bulk-selection-count">{{ projectStore.markedProjectIds.length }}</div>
+				<ActionButton v-if="canBulkPin" :isDisabled="operationsActive" :icon="getAppIcon('pin')" v-tooltip="$t('menus.pinProject')" :buttonFunction="bulkPin" />
+				<ActionButton v-if="canBulkUnpin" :isDisabled="operationsActive" :icon="getAppIcon('unpin')" v-tooltip="$t('menus.unpinProject')" :buttonFunction="bulkUnpin" />
+				<ActionButton v-if="canBulkArchive" :isDisabled="operationsActive" :icon="getAppIcon('archive')" v-tooltip="$t('menus.archiveProject')" :buttonFunction="bulkArchive" />
+				<ActionButton v-if="canBulkUnarchive" :isDisabled="operationsActive" :icon="getAppIcon('unarchive')" v-tooltip="$t('menus.unarchiveProject')" :buttonFunction="bulkUnarchive" />
+				<ActionButton v-if="canBulkRemove" :isDisabled="operationsActive" :icon="getAppIcon('minus-circle')" v-tooltip="$t('menus.removeProject')" :buttonFunction="bulkRemove" />
+			</div>
+			<div v-else class="create-menu" >
 				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive" :icon="getAppIcon('briefcase-plus')" 
 					@click="createProject" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('stages.newProject')" :buttonFunction="doNothing" />
 				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('data-download')" 
@@ -30,13 +39,13 @@
 			<div v-else-if="(openProjects.length || closedProjects.length) || (projectStore.showUntrackedProjects && untrackedProjects.length)" class="project-list-container" ref="openProjectsContainer" @scroll="disableAllMenus">
 				<div v-if="openProjects.length" class="project-list" :class="{ 'project-list-cards': cardView }">
 					<ProjectItem class="project-item" v-for="(project, index) in pinnedProjects" :key="project.id"
-						:project="project" :index="index" :cardView="cardView"
+						:project="project" :index="index" :cardView="cardView" :allTrackedProjects="allTrackedProjects"
 						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
 					<ProjectItem class="project-item" v-for="(project, index) in unpinnedProjects" :key="project.id"
-						:project="project" :index="index" :cardView="cardView"
+						:project="project" :index="index" :cardView="cardView" :allTrackedProjects="allTrackedProjects"
 						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
 					<ProjectItem class="project-item" v-for="(project, index) in undownloadedProjects" :key="project.id"
-						:project="project" :index="index" :cardView="cardView"
+						:project="project" :index="index" :cardView="cardView" :allTrackedProjects="allTrackedProjects"
 						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
 				</div>
 
@@ -51,7 +60,7 @@
 				<div v-if="closedProjects.length && closedProjectsVisible" class="project-list"
 					:class="{ 'project-list-cards': cardView }">
 					<ProjectItem class="project-item" v-for="(project, index) in closedProjects" :key="project.id"
-						:project="project" :index="index" :cardView="cardView"
+						:project="project" :index="index" :cardView="cardView" :allTrackedProjects="allTrackedProjects"
 						:style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
 				</div>
 
@@ -84,7 +93,7 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { computed, ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // stores/state imports
@@ -98,6 +107,7 @@ import { useIconStore } from '@/stores/icons';
 import { useDndStore } from '@/stores/dnd';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useStudioStore } from '@/stores/studio';
+import { useTrayStates } from '@/stores/TrayStates';
 
 
 import ProjectItem from '@/instances/desktop/blocks/ProjectItem.vue'
@@ -120,6 +130,7 @@ const iconStore = useIconStore();
 const dndStore = useDndStore();
 const entitlementStore = useEntitlementStore();
 const studioStore = useStudioStore();
+const trayStates = useTrayStates();
 const { t } = useI18n();
 
 const projectListContainer = ref(null);
@@ -255,7 +266,110 @@ const closedProjects = computed(() => {
 	return trackedProjects.value.filter((project) => project.is_closed);
 });
 
+// Ordered, flat list of selectable projects (tracked + downloaded only) for shift-range selection.
+const allTrackedProjects = computed(() => [
+	...pinnedProjects.value,
+	...unpinnedProjects.value,
+	...(closedProjectsVisible.value ? closedProjects.value : []),
+]);
+
+const hasMultiSelection = computed(() => projectStore.markedProjectIds.length > 1);
+
+const canBulkPin = computed(() =>
+	projectStore.selectedProjects.some((p) => p.is_downloaded && !projectStore.pinnedProjects.includes(p.id))
+);
+
+const canBulkUnpin = computed(() =>
+	projectStore.selectedProjects.some((p) => projectStore.pinnedProjects.includes(p.id))
+);
+
+const canBulkArchive = computed(() =>
+	studioStore.canManageProject && projectStore.selectedProjects.some((p) => !p.is_closed)
+);
+
+const canBulkUnarchive = computed(() =>
+	studioStore.canManageProject && projectStore.selectedProjects.some((p) => p.is_closed)
+);
+
+const canBulkRemove = computed(() =>
+	projectStore.selectedProjects.length > 0 &&
+	projectStore.selectedProjects.every((p) => p.has_remote && p.is_downloaded)
+);
+
 // methods
+const clearProjectSelection = () => {
+	projectStore.clearProjectSelection();
+};
+
+const bulkPin = async () => {
+	stage.operationActive = true;
+	try {
+		await projectStore.bulkPinProjects();
+	} finally {
+		stage.operationActive = false;
+	}
+};
+
+const bulkUnpin = async () => {
+	stage.operationActive = true;
+	try {
+		await projectStore.bulkUnpinProjects();
+	} finally {
+		stage.operationActive = false;
+	}
+};
+
+const bulkArchive = () => {
+	const count = projectStore.selectedProjects.filter((p) => !p.is_closed).length;
+	trayStates.popUpModalTitle = t('menus.archiveProject') + ` (${count})`;
+	trayStates.popUpModalMessage = t('confirmations.archiveProject');
+	trayStates.popUpModalIcon = 'archive';
+	trayStates.popUpModalFunction = async () => {
+		stage.operationActive = true;
+		try {
+			await projectStore.bulkToggleClosedProjects(true);
+			projectStore.clearProjectSelection();
+		} finally {
+			stage.operationActive = false;
+			modals.setModalVisibility('popUpModal', false);
+		}
+	};
+	modals.setModalVisibility('popUpModal', true);
+};
+
+const bulkUnarchive = async () => {
+	stage.operationActive = true;
+	try {
+		await projectStore.bulkToggleClosedProjects(false);
+		projectStore.clearProjectSelection();
+	} finally {
+		stage.operationActive = false;
+	}
+};
+
+const bulkRemove = () => {
+	const count = projectStore.selectedProjects.length;
+	trayStates.dangerousActionTitle = t('menus.removeProject') + ` (${count})`;
+	trayStates.dangerousActionMessage = t('confirmations.deleteProjectLocal') + ' ' + t('confirmations.deleteProjectTeamSuffix');
+	trayStates.dangerousActionIcon = 'minus-circle';
+	trayStates.dangerousActionConfirmText = '';
+	trayStates.dangerousActionShowInput = false;
+	trayStates.dangerousActionShowToggle = true;
+	trayStates.dangerousActionToggleLabel = t('modals.confirmDangerousAction.deleteWorkingFiles');
+	trayStates.dangerousActionToggleOffHint = t('modals.confirmDangerousAction.deleteWorkingFilesOff');
+	trayStates.dangerousActionToggleOnHint = t('modals.confirmDangerousAction.deleteWorkingFilesOn');
+	trayStates.dangerousActionFunction = async ({ deleteWorkingFiles } = {}) => {
+		stage.operationActive = true;
+		try {
+			await projectStore.bulkRemoveProjects({ deleteWorkingFiles });
+			projectStore.clearProjectSelection();
+		} finally {
+			stage.operationActive = false;
+		}
+	};
+	modals.setModalVisibility('confirmDangerousActionModal', true);
+};
+
 const toggleExpandClosedProjects = () => {
 	const element = closedProjectsVisible.value ? openProjectsContainer.value : projectListDivider.value;
 	console.log(element)
@@ -406,10 +520,24 @@ const toggleShowUntrackedProjects = () => {
 
 // Handle escape key globally
 const handleEscapeKey = (event) => {
-	if (event.key === 'Escape' && projectStore.projectSearchQuery) {
-		resetAll();
+	if (event.key === 'Escape') {
+		if (projectStore.markedProjectIds.length > 0) {
+			projectStore.clearProjectSelection();
+			return;
+		}
+		if (projectStore.projectSearchQuery) {
+			resetAll();
+		}
 	}
 };
+
+watch(() => projectStore.selectedStudio?.name, () => {
+	projectStore.clearProjectSelection();
+});
+
+watch(() => projectStore.projectSearchQuery, () => {
+	projectStore.clearProjectSelection();
+});
 
 onMounted(() => {
 	projectStore.projectSearchQuery = ''
@@ -423,6 +551,7 @@ onUnmounted(() => {
 	projectStore.projectSearchQuery = ''
 	stage.markedProjects = [];
 	stage.selectdProject = '';
+	projectStore.clearProjectSelection();
 
 	// Remove event listener when component is unmounted
 	document.removeEventListener('keydown', handleEscapeKey);
@@ -606,6 +735,19 @@ onUnmounted(() => {
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
+}
+
+.bulk-action-menu {
+	gap: .2rem;
+}
+
+.bulk-selection-count {
+	color: var(--white);
+	font-size: .8rem;
+	padding: 0 .4rem;
+	min-width: 1rem;
+	text-align: center;
+	opacity: .8;
 }
 
 .action-bar {

@@ -1,6 +1,6 @@
 <template>
   <div class="project-item-root" v-right-click="openMenu" v-stop-propagation
-    :class="{ 'project-item-container-selected': projectStore.activeProject?.id === project.id, 'project-item-root-cards': cardView }"
+    :class="{ 'project-item-container-selected': projectStore.activeProject?.id === project.id, 'project-item-root-cards': cardView, 'project-item-marked': isMarked }"
     @click="selectProject(project, $event)" @dblclick="launchProject(project)">
 
     <TabbedFolder v-if="cardView && !project.is_tracked">
@@ -125,7 +125,8 @@ const { t } = useI18n();
 const props = defineProps({
   project: Object,
   index: Number,
-  cardView: { type: Boolean, default: true }
+  cardView: { type: Boolean, default: true },
+  allTrackedProjects: { type: Array, default: () => [] }
 });
 
 // refs
@@ -135,6 +136,8 @@ const isEditing = ref(false);
 
 // computed properties
 const isProjectInFocus = computed(() => projectStore.activeProject?.id === props.project.id);
+
+const isMarked = computed(() => projectStore.markedProjectIds?.includes(props.project.id));
 
 const isProjectPinned = computed(() => {
   if (platformStore.isWeb) return false;
@@ -234,6 +237,10 @@ const openMenu = (event) => {
     modals.setModalVisibility('popUpModal', true);
     return;
   }
+  // If right-clicking outside the current marked set, replace selection with this project.
+  if (projectStore.markedProjectIds.length > 1 && !projectStore.markedProjectIds.includes(props.project.id)) {
+    projectStore.clearProjectSelection();
+  }
   projectStore.setActiveProject(props.project);
   menu.showContextMenu(event, 'projectItemMenu', true);
 };
@@ -250,7 +257,11 @@ const revealInExplorer = async () => {
 const selectProject = (project, event) => {
   handleClickOutside();
   menu.disableAllMenus();
-  projectStore.setActiveProject(project);
+  if (event && (event.shiftKey || event.ctrlKey || event.metaKey) && projectStore.isProjectSelectable(project)) {
+    projectStore.handleProjectClick(event, project, props.allTrackedProjects);
+    return;
+  }
+  projectStore.handleProjectClick(event || {}, project, props.allTrackedProjects);
   stage.selectdProject = project.id;
 };
 
@@ -494,6 +505,23 @@ onBeforeUnmount(() => {
 .project-item-container-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
+  background-color: var(--project-item-selected);
+}
+
+.project-item-marked {
+  outline: 1px solid var(--blue-steel);
+  outline-offset: -1px;
+  background-color: var(--blue-steel);
+}
+
+.project-item-marked:hover {
+  outline: 1px solid var(--blue-steel);
+  outline-offset: -1px;
+  background-color: var(--blue-steel);
+}
+
+.project-item-marked.project-item-container-selected,
+.project-item-marked.project-item-container-selected:hover {
   background-color: var(--project-item-selected);
 }
 

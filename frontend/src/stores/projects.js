@@ -58,6 +58,10 @@ export const useProjectStore = defineStore("projects", {
     untrackedFoldersIndex: {},
     newUsers: {}, // Map of projectUri -> array of new user emails
     isProjectStatsExpanded: false,
+    markedProjectIds: [],
+    selectedProjects: [],
+    firstSelectedProjectId: "",
+    lastSelectedProjectId: "",
   }),
   getters: {
     getActiveProjectName: (state) => {
@@ -120,6 +124,153 @@ export const useProjectStore = defineStore("projects", {
         project.id
       );
     },
+    // Selectable means a tracked, downloaded project (untracked and undownloaded
+    // projects are excluded from multi-select operations).
+    isProjectSelectable(project) {
+      return !!(project && project.is_tracked !== false && project.is_downloaded);
+    },
+    // Resets all multi-select state for projects.
+    clearProjectSelection() {
+      this.markedProjectIds = [];
+      this.selectedProjects = [];
+      this.firstSelectedProjectId = "";
+      this.lastSelectedProjectId = "";
+    },
+    // Handles a click on a project row, applying ctrl/cmd toggle, shift range,
+    // or single-select semantics. `allTrackedProjects` is the ordered, flat list
+    // of currently-selectable projects used to compute shift-ranges.
+    handleProjectClick(event, project, allTrackedProjects) {
+      const stage = useStageStore();
+
+      // Untracked or undownloaded projects bypass multi-select entirely.
+      if (!this.isProjectSelectable(project)) {
+        this.clearProjectSelection();
+        this.setActiveProject(project);
+        return;
+      }
+
+      const id = project.id;
+      const isCmdOrCtrl = stage.cmdOrCtrlKey ? stage.cmdOrCtrlKey(event) : (event.ctrlKey || event.metaKey);
+
+      if (isCmdOrCtrl) {
+        if (!this.markedProjectIds.includes(id)) {
+          this.markedProjectIds.push(id);
+          this.selectedProjects.push(project);
+          this.lastSelectedProjectId = id;
+          if (!this.firstSelectedProjectId) this.firstSelectedProjectId = id;
+          this.setActiveProject(project);
+        } else {
+          this.markedProjectIds = this.markedProjectIds.filter((i) => i !== id);
+          this.selectedProjects = this.selectedProjects.filter((p) => p.id !== id);
+          if (this.firstSelectedProjectId === id) {
+            this.firstSelectedProjectId = this.markedProjectIds[0] || "";
+          }
+          if (this.lastSelectedProjectId === id) {
+            this.lastSelectedProjectId = this.markedProjectIds[this.markedProjectIds.length - 1] || "";
+          }
+          if (this.activeProject?.id === id) {
+            const fallback = this.selectedProjects[this.selectedProjects.length - 1];
+            if (fallback) this.setActiveProject(fallback);
+          }
+        }
+      } else if (event.shiftKey && this.firstSelectedProjectId) {
+        const firstIndex = allTrackedProjects.findIndex((p) => p.id === this.firstSelectedProjectId);
+        const lastIndex = allTrackedProjects.findIndex((p) => p.id === id);
+
+        if (firstIndex === -1 || lastIndex === -1) {
+          this.firstSelectedProjectId = id;
+          this.lastSelectedProjectId = "";
+          this.markedProjectIds = [id];
+          this.selectedProjects = [project];
+          this.setActiveProject(project);
+          return;
+        }
+
+        const start = Math.min(firstIndex, lastIndex);
+        const end = Math.max(firstIndex, lastIndex);
+        const range = allTrackedProjects.slice(start, end + 1);
+
+        this.markedProjectIds = range.map((p) => p.id);
+        this.selectedProjects = [...range];
+        this.lastSelectedProjectId = id;
+        this.setActiveProject(project);
+      } else {
+        this.firstSelectedProjectId = id;
+        this.lastSelectedProjectId = "";
+        this.markedProjectIds = [id];
+        this.selectedProjects = [project];
+        this.setActiveProject(project);
+      }
+    },
+    // Pins all selected projects that are not already pinned.
+    async bulkPinProjects() {
+      const studioName = this.getSelectedStudioName;
+      const targets = this.selectedProjects.filter(
+        (p) => p.is_downloaded && !this.pinnedProjects.includes(p.id)
+      );
+      for (const project of targets) {
+        try {
+          await SettingsService.PinProject(studioName, project.id);
+          if (!this.pinnedProjects.includes(project.id)) {
+            this.pinnedProjects.push(project.id);
+          }
+        } catch (error) {
+          console.error("Error pinning project:", project.id, error);
+        }
+      }
+    },
+    // Unpins all selected projects that are currently pinned.
+    async bulkUnpinProjects() {
+      const studioName = this.getSelectedStudioName;
+      const targets = this.selectedProjects.filter((p) => this.pinnedProjects.includes(p.id));
+      for (const project of targets) {
+        try {
+          await SettingsService.UnpinProject(studioName, project.id);
+          this.pinnedProjects = this.pinnedProjects.filter((id) => id !== project.id);
+        } catch (error) {
+          console.error("Error unpinning project:", project.id, error);
+        }
+      }
+    },
+    // Toggles the closed/archived state of all selected projects matching the
+    // requested target state. `targetClosed=true` archives, `false` unarchives.
+    async bulkToggleClosedProjects(targetClosed) {
+      const notificationStore = useNotificationStore();
+      const studioName = this.selectedStudio?.name || "";
+      const targets = this.selectedProjects.filter((p) => !!p.is_closed !== !!targetClosed);
+      for (const project of targets) {
+        const uri = project.has_remote && project.remote ? project.remote : project.uri;
+        try {
+          await ProjectService.ToggleCloseProject(uri, studioName);
+          const idx = this.projects.findIndex((p) => p.id === project.id);
+          if (idx !== -1) this.projects[idx].is_closed = targetClosed;
+          if (this.activeProject?.id === project.id) {
+            this.activeProject.is_closed = targetClosed;
+          }
+        } catch (error) {
+          console.error("Error toggling project closed state:", project.id, error);
+          notificationStore.errorNotification("Error updating project", error);
+        }
+      }
+    },
+    // Removes the local .clst file for each selected project (server copy stays).
+    // Only acts on projects that are downloaded and have a remote.
+    async bulkRemoveProjects({ deleteWorkingFiles } = {}) {
+      const targets = this.selectedProjects.filter(
+        (p) => p.has_remote && p.is_downloaded
+      );
+      for (const project of targets) {
+        try {
+          await FSService.DeleteFile(project.uri);
+          if (deleteWorkingFiles && project.working_directory) {
+            await FSService.DeleteFolder(project.working_directory);
+          }
+          this.removeProjectFromList(project.uri);
+        } catch (error) {
+          console.error("Error removing project:", project.id, error);
+        }
+      }
+    },
     async gotoProject(project) {
       const commonStore = useCommonStore();
       const collectionStore = useCollectionStore();
@@ -168,11 +319,18 @@ export const useProjectStore = defineStore("projects", {
     },
     removeProjectFromList(uri) {
       if (!uri) return;
+      const removed = this.projects.find((p) => p.uri === uri);
       this.projects = this.projects.filter((p) => p.uri !== uri);
       this.pinnedProjects = this.pinnedProjects.filter((p) => p.uri !== uri);
       this.recentProjects = this.recentProjects.filter((p) => p.uri !== uri);
       if (this.activeProject?.uri === uri) {
         this.activeProject = null;
+      }
+      if (removed) {
+        this.markedProjectIds = this.markedProjectIds.filter((id) => id !== removed.id);
+        this.selectedProjects = this.selectedProjects.filter((p) => p.id !== removed.id);
+        if (this.firstSelectedProjectId === removed.id) this.firstSelectedProjectId = this.markedProjectIds[0] || "";
+        if (this.lastSelectedProjectId === removed.id) this.lastSelectedProjectId = "";
       }
     },
     async loadProjects() {
@@ -341,6 +499,7 @@ export const useProjectStore = defineStore("projects", {
       this.activeProject = null;
       this.projects = [];
       this.selectedStudio = studio;
+      this.clearProjectSelection();
       commonStore.resetFilters();
       commonStore.snapshotWorkspace();
       await this.loadProjects();
