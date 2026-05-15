@@ -876,7 +876,13 @@
     "removeAccount": "Remove Account",
     "leaveProject": "Leave Project",
     "leaveProjectTitle": "Leave \"{name}\"",
-    "switchAccount": "Switch Account"
+    "switchAccount": "Switch Account",
+    "manageTags": {
+      "empty": "No tags in this project",
+      "error": "Error updating tags",
+      "searchPlaceholder": "Search or add a tag",
+      "addTag": "Add tag \"{name}\""
+    }
   },
   "panes": {
     "type": "Tipo",
@@ -1596,7 +1602,9 @@
       "errorRevertingAssets": "Erro ao Reverter Tarefas",
       "errorRemovingUser": "Erro ao remover usuário",
       "squashAssets": "Unificar ativos",
-      "squashAssetsTooltip": "Combinar arquivos selecionados em um único ativo com checkpoints sequenciais"
+      "squashAssetsTooltip": "Combinar arquivos selecionados em um único ativo com checkpoints sequenciais",
+      "manageTags": "Manage tags",
+      "manageTagsTooltip": "Add or remove tags from selected assets"
     },
     "squashModal": {
       "title": "Unificar ativos",

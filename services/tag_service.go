@@ -109,3 +109,63 @@ func (t *TagService) RemoveTagFromAsset(projectPath string, assetId string, tagI
 	}
 	return tags, nil
 }
+
+// Adds a tag (by name) to multiple assets in a single transaction.
+// Skips assets that already have the tag. Creates the tag if it doesn't exist.
+func (t *TagService) AddTagToAssets(projectPath string, assetIds []string, tagName string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, assetId := range assetIds {
+		existing, err := repository.GetAssetTags(tx, assetId)
+		if err != nil {
+			return err
+		}
+		alreadyTagged := false
+		for _, tag := range existing {
+			if tag.Name == tagName {
+				alreadyTagged = true
+				break
+			}
+		}
+		if alreadyTagged {
+			continue
+		}
+		if err := repository.AddTagToAsset(tx, assetId, tagName); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+// Removes a tag (by tag ID) from multiple assets in a single transaction.
+// Skips assets that don't have the tag.
+func (t *TagService) RemoveTagFromAssets(projectPath string, assetIds []string, tagId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	for _, assetId := range assetIds {
+		if err := repository.RemoveTagFromAsset(tx, assetId, tagId); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}

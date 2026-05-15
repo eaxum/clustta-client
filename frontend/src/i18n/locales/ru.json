@@ -876,7 +876,13 @@
     "removeAccount": "Remove Account",
     "leaveProject": "Leave Project",
     "leaveProjectTitle": "Leave \"{name}\"",
-    "switchAccount": "Switch Account"
+    "switchAccount": "Switch Account",
+    "manageTags": {
+      "empty": "No tags in this project",
+      "error": "Error updating tags",
+      "searchPlaceholder": "Search or add a tag",
+      "addTag": "Add tag \"{name}\""
+    }
   },
   "panes": {
     "type": "Тип",
@@ -1596,7 +1602,9 @@
       "errorRevertingAssets": "Ошибка отката задач",
       "errorRemovingUser": "Ошибка удаления пользователя",
       "squashAssets": "Объединить ресурсы",
-      "squashAssetsTooltip": "Объединить выбранные файлы в один ресурс с последовательными контрольными точками"
+      "squashAssetsTooltip": "Объединить выбранные файлы в один ресурс с последовательными контрольными точками",
+      "manageTags": "Manage tags",
+      "manageTagsTooltip": "Add or remove tags from selected assets"
     },
     "squashModal": {
       "title": "Объединить ресурсы",

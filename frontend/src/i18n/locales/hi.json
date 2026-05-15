@@ -876,7 +876,13 @@
     "removeAccount": "Remove Account",
     "leaveProject": "Leave Project",
     "leaveProjectTitle": "Leave \"{name}\"",
-    "switchAccount": "Switch Account"
+    "switchAccount": "Switch Account",
+    "manageTags": {
+      "empty": "No tags in this project",
+      "error": "Error updating tags",
+      "searchPlaceholder": "Search or add a tag",
+      "addTag": "Add tag \"{name}\""
+    }
   },
   "panes": {
     "type": "प्रकार",
@@ -1596,7 +1602,9 @@
       "errorRevertingAssets": "टास्क पूर्ववत करने में त्रुटि",
       "errorRemovingUser": "उपयोगकर्ता हटाने में त्रुटि",
       "squashAssets": "एसेट्स स्क्वॉश करें",
-      "squashAssetsTooltip": "चयनित फ़ाइलों को क्रमिक चेकपॉइंट्स के साथ एक एसेट में संयोजित करें"
+      "squashAssetsTooltip": "चयनित फ़ाइलों को क्रमिक चेकपॉइंट्स के साथ एक एसेट में संयोजित करें",
+      "manageTags": "Manage tags",
+      "manageTagsTooltip": "Add or remove tags from selected assets"
     },
     "squashModal": {
       "title": "एसेट्स स्क्वॉश करें",

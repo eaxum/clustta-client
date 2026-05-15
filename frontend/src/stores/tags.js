@@ -38,5 +38,20 @@ export const useTagStore = defineStore("tags", {
       const tags = await TagService.RemoveTagFromAsset(projectStore.activeProject.uri, assetId, tagId);
       return tags.map((tag) => tag.name);
     },
+
+    // Adds a tag (by name) to multiple assets in a single transaction.
+    async addTagToMultipleAssets(assetIds, tagName) {
+      const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri || !assetIds.length) return;
+      await TagService.AddTagToAssets(projectStore.activeProject.uri, assetIds, tagName);
+      await this.reloadTags();
+    },
+
+    // Removes a tag (by id) from multiple assets in a single transaction.
+    async removeTagFromMultipleAssets(assetIds, tagId) {
+      const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri || !assetIds.length) return;
+      await TagService.RemoveTagFromAssets(projectStore.activeProject.uri, assetIds, tagId);
+    },
   },
 });

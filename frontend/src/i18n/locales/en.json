@@ -903,7 +903,13 @@
     "unpinProject": "Unpin Project",
     "updateContents": "Update Contents",
     "uploadItems": "Upload Items",
-    "useExclusive": "Use Exclusive"
+    "useExclusive": "Use Exclusive",
+    "manageTags": {
+      "empty": "No tags in this project",
+      "error": "Error updating tags",
+      "searchPlaceholder": "Search or add a tag",
+      "addTag": "Add tag \"{name}\""
+    }
   },
   "panes": {
     "type": "Type",
@@ -1628,7 +1634,9 @@
       "errorRevertingAssets": "Error Reverting Assets",
       "errorRemovingUser": "Error removing user",
       "squashAssets": "Squash Assets",
-      "squashAssetsTooltip": "Combine selected files into a single asset with sequential checkpoints"
+      "squashAssetsTooltip": "Combine selected files into a single asset with sequential checkpoints",
+      "manageTags": "Manage tags",
+      "manageTagsTooltip": "Add or remove tags from selected assets"
     },
     "squashModal": {
       "title": "Squash Assets",

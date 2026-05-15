@@ -25,6 +25,18 @@ export function AddTagToAsset(projectPath, assetId, tagName) {
 }
 
 /**
+ * Adds a tag (by name) to multiple assets in a single transaction.
+ * Skips assets that already have the tag. Creates the tag if it doesn't exist.
+ * @param {string} projectPath
+ * @param {string[]} assetIds
+ * @param {string} tagName
+ * @returns {$CancellablePromise<void>}
+ */
+export function AddTagToAssets(projectPath, assetIds, tagName) {
+    return $Call.ByID(2500105206, projectPath, assetIds, tagName);
+}
+
+/**
  * Retrieves all tags associated with a specific asset.
  * @param {string} projectPath
  * @param {string} assetId
@@ -59,6 +71,18 @@ export function RemoveTagFromAsset(projectPath, assetId, tagId) {
     return $Call.ByID(4257314151, projectPath, assetId, tagId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
+}
+
+/**
+ * Removes a tag (by tag ID) from multiple assets in a single transaction.
+ * Skips assets that don't have the tag.
+ * @param {string} projectPath
+ * @param {string[]} assetIds
+ * @param {string} tagId
+ * @returns {$CancellablePromise<void>}
+ */
+export function RemoveTagFromAssets(projectPath, assetIds, tagId) {
+    return $Call.ByID(2341162620, projectPath, assetIds, tagId);
 }
 
 // Private type creation functions

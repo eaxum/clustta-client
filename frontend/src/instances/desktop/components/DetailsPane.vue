@@ -57,6 +57,8 @@
             @click="prepAssignAsset($event)" v-tooltip="$t('components.detailsPane.assignAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('person-minus')" :label="$t('components.detailsPane.unassignAssets')"
             :buttonFunction="unassignAssets" v-tooltip="$t('components.detailsPane.unassignAssetsTooltip')" />
+          <ActionButton :icon="getAppIcon('tag')" :label="$t('components.detailsPane.manageTags')"
+            @click="prepManageTags($event)" v-tooltip="$t('components.detailsPane.manageTagsTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
             :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceAssetTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteSelectedAssets')"
@@ -732,6 +734,9 @@ const prepSquashModal = () => {
 
 // Opens the assign menu.
 const prepAssignAsset = (event) => menu.showContextMenu(event, 'assignMenu', true);
+
+// Opens the manage tags menu for the currently selected assets.
+const prepManageTags = (event) => menu.showContextMenu(event, 'manageTagsMenu', true);
 
 // Shows the free up asset space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {

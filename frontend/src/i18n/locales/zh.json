@@ -876,7 +876,13 @@
     "removeAccount": "Remove Account",
     "leaveProject": "Leave Project",
     "leaveProjectTitle": "Leave \"{name}\"",
-    "switchAccount": "Switch Account"
+    "switchAccount": "Switch Account",
+    "manageTags": {
+      "empty": "No tags in this project",
+      "error": "Error updating tags",
+      "searchPlaceholder": "Search or add a tag",
+      "addTag": "Add tag \"{name}\""
+    }
   },
   "panes": {
     "type": "类型",
@@ -1596,7 +1602,9 @@
       "errorRevertingAssets": "还原任务时出错",
       "errorRemovingUser": "移除用户时出错",
       "squashAssets": "合并资产",
-      "squashAssetsTooltip": "将选定文件合并为一个包含连续检查点的资产"
+      "squashAssetsTooltip": "将选定文件合并为一个包含连续检查点的资产",
+      "manageTags": "Manage tags",
+      "manageTagsTooltip": "Add or remove tags from selected assets"
     },
     "squashModal": {
       "title": "合并资产",

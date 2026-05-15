@@ -901,7 +901,13 @@
     "removeAccount": "Remove Account",
     "leaveProject": "Leave Project",
     "leaveProjectTitle": "Leave \"{name}\"",
-    "switchAccount": "Switch Account"
+    "switchAccount": "Switch Account",
+    "manageTags": {
+      "empty": "No tags in this project",
+      "error": "Error updating tags",
+      "searchPlaceholder": "Search or add a tag",
+      "addTag": "Add tag \"{name}\""
+    }
   },
   "panes": {
     "type": "유형",
@@ -1629,7 +1635,9 @@
       "errorRevertingAssets": "작업 되돌리기 오류",
       "errorRemovingUser": "사용자 제거 오류",
       "squashAssets": "에셋 스쿼시",
-      "squashAssetsTooltip": "선택한 파일을 순차적 체크포인트가 있는 단일 에셋으로 결합"
+      "squashAssetsTooltip": "선택한 파일을 순차적 체크포인트가 있는 단일 에셋으로 결합",
+      "manageTags": "Manage tags",
+      "manageTagsTooltip": "Add or remove tags from selected assets"
     },
     "squashModal": {
       "title": "에셋 스쿼시",

@@ -22,6 +22,7 @@ export const useMenu = defineStore("useMenu", {
       assetMenu: false,
       resourceItemMenu: false,
       assignMenu: false,
+      manageTagsMenu: false,
       accountMenu: false,
       copyToProjectSubMenu: false,
       moveToCollectionSubMenu: false,
@@ -49,6 +50,7 @@ export const useMenu = defineStore("useMenu", {
       'untrackedItemMenu',
       'resourceItemMenu', 
       'assignMenu',
+      'manageTagsMenu',
       'accountMenu',
       'sortMenu',
       'viewMenu'
