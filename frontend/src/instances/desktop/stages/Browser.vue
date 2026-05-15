@@ -47,6 +47,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { useDebounce } from '@/lib/debounce';
+import { useFsWatch } from '@/composables/useFsWatch';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -455,6 +456,90 @@ const handleUpdateRootData = (eventData) => {
 	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
 };
+
+// Folder watched at the root level. Falls back to the project working dir.
+const rootWatchPath = computed(() =>
+	collectionStore.navigatedCollection?.file_path
+		?? projectStore.activeProject?.working_directory
+		?? null
+);
+
+let rootFsToken = 0;
+let rootFsState = null;
+
+// Refreshes the navigated collection in response to fs changes.
+// Tracked collections fetch state diffs; untracked rescan the folder.
+const handleRootFsChange = async () => {
+	if (!projectStore.activeProject) return;
+	const project = projectStore.activeProject;
+	const nav = collectionStore.navigatedCollection;
+
+	const myToken = ++rootFsToken;
+
+	if (nav?.type === 'untracked_collection') {
+		try {
+			const children = await CollectionService.GetCollectionChildren(
+				project.uri,
+				nav.id,
+				project.working_directory,
+				nav.file_path,
+				project.ignore_list,
+				true
+			);
+			if (myToken !== rootFsToken) return;
+
+			const untracked = [
+				...(children.untracked_collections || children.untracked_folders || []),
+				...(children.untracked_assets || children.untracked_files || [])
+			];
+			await assetStore.processUntrackedAssetsIcons(untracked);
+			emitter.emit('update-untracked-items', untracked);
+		} catch (err) {
+			console.error('handleRootFsChange (untracked) failed', err);
+		}
+		return;
+	}
+
+	try {
+		const state = await CollectionService.GetCollectionChildrenState(
+			project.uri,
+			nav?.id ?? '',
+			project.working_directory,
+			project.ignore_list
+		);
+		if (myToken !== rootFsToken) return;
+
+		const snapshot = {
+			modified: (state.modified_assets || []).map(a => a.id).sort(),
+			normal: (state.normal_assets || []).map(a => a.id).sort(),
+			outdated: (state.outdated_assets || []).map(a => a.id).sort(),
+			rebuildable: (state.rebuildable_assets || []).map(a => a.id).sort(),
+			untracked_files: (state.untracked_files || []).map(f => f.id).sort(),
+			untracked_folders: (state.untracked_folders || []).map(f => f.id).sort()
+		};
+		if (JSON.stringify(rootFsState) === JSON.stringify(snapshot)) return;
+		rootFsState = snapshot;
+
+		const statusUpdates = [
+			...(state.normal_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'normal' }] })),
+			...(state.modified_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'modified' }] })),
+			...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
+			...(state.rebuildable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
+		];
+		if (statusUpdates.length) emitter.emit('update-root-data', statusUpdates);
+
+		const untracked = [
+			...(state.untracked_folders || []),
+			...(state.untracked_files || [])
+		];
+		await assetStore.processUntrackedAssetsIcons(untracked);
+		emitter.emit('update-untracked-items', untracked);
+	} catch (err) {
+		console.error('handleRootFsChange failed', err);
+	}
+};
+
+useFsWatch(rootWatchPath, handleRootFsChange);
 
 // Replaces untracked items in root data with updated list from emitter events.
 const handleUpdateUntrackedItems = (untrackedItems) => {

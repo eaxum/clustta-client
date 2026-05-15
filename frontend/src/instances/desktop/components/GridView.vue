@@ -23,8 +23,7 @@
 
 <script setup>
 // imports
-import { computed, ref, nextTick, onUnmounted, watch } from 'vue';
-import { Events } from '@wailsio/runtime';
+import { computed, ref, nextTick } from 'vue';
 
 // components
 import GridItem from '@/instances/common/components/GridItem.vue';
@@ -33,21 +32,15 @@ import GridSkeleton from '@/instances/desktop/components/GridSkeleton.vue';
 // state imports
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
-import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useAssetStore } from '@/stores/assets';
-import { useProjectStore } from '@/stores/projects';
 import { useDndStore } from '@/stores/dnd';
-import { CollectionService, FSService } from '@/services';
-import emitter from '@/lib/mitt';
 
 // states/stores
 const menu = useMenu();
 const stage = useStageStore();
-const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const assetStore = useAssetStore();
-const projectStore = useProjectStore();
 const dndStore = useDndStore();
 
 // props
@@ -57,8 +50,6 @@ const props = defineProps({
 
 // refs
 const navigatorRoot = ref(null);
-const refreshDebounceTimer = ref(null);
-const currentWatchedPath = ref(null);
 const dragTimer = ref(null);
 
 // computed props
@@ -90,17 +81,6 @@ const containerHeight = computed(() => {
   return navigatorRoot.value?.getBoundingClientRect().height || 500;
 });
 
-// Get all untracked items from root items
-const previousUntracked = computed(() => {
-  const allUntracked = props.rootItems.filter((item) => item.type === 'untracked_asset' || item.type === 'untracked_collection');
-  return allUntracked;
-});
-
-// Get current file path location for watching
-const location = computed(() => {
-  return collectionStore.navigatedCollection ? collectionStore.navigatedCollection?.file_path : projectStore.activeProject?.working_directory;
-});
-
 // functions
 // Add or remove element reference to dnd store
 const handleRef = async (id, el) => {
@@ -122,88 +102,6 @@ const handleRef = async (id, el) => {
 // Disable all context menus
 const disableMenu = () => {
   menu.disableAllMenus();
-};
-
-// Handle file system change events by refreshing view
-const handleFSChange = (event) => {
-  debouncedRefreshView();
-};
-
-// Debounce refresh view to prevent rapid consecutive calls
-const debouncedRefreshView = () => {
-  if (refreshDebounceTimer.value) {
-    clearTimeout(refreshDebounceTimer.value);
-  }
-  refreshDebounceTimer.value = setTimeout(() => {
-    refreshView();
-  }, 200);
-};
-
-// Fetch and update collection children state from backend
-const refreshView = async () => {
-  const project = projectStore.activeProject;
-  const collectionId = collectionStore.navigatedCollection?.id;
-  
-  try {
-    const state = await CollectionService.GetCollectionChildrenState(
-      project.uri,
-      collectionId,
-      project.working_directory,
-      project.ignore_list
-    );
-    
-    if (state.normal_assets && state.normal_assets.length > 0) {
-      state.normal_assets.forEach(asset => {
-        emitItemUpdates(asset.id, [
-          { property: 'file_status', value: 'normal' }
-        ]);
-      });
-    }
-
-    if (state.modified_assets && state.modified_assets.length > 0) {
-      state.modified_assets.forEach(asset => {
-        emitItemUpdates(asset.id, [
-          { property: 'file_status', value: 'modified' }
-        ]);
-      });
-    }
-    
-    if (state.outdated_assets && state.outdated_assets.length > 0) {
-      state.outdated_assets.forEach(asset => {
-        emitItemUpdates(asset.id, [
-          { property: 'file_status', value: 'outdated' }
-        ]);
-      });
-    }
-    
-    if (state.rebuildable_assets && state.rebuildable_assets.length > 0) {
-      state.rebuildable_assets.forEach(asset => {
-        emitItemUpdates(asset.id, [
-          { property: 'file_status', value: 'rebuildable' }
-        ]);
-      });
-    }
-    
-    const currentUntrackedFolders = state.untracked_folders || [];
-    const currentUntrackedFiles = state.untracked_files || [];
-    const currentUntracked = [...currentUntrackedFolders, ...currentUntrackedFiles];
-    
-    if (currentUntracked !== previousUntracked.value) {
-      const allUntrackedItems = [...currentUntrackedFolders, ...currentUntrackedFiles];
-      await assetStore.processUntrackedAssetsIcons(allUntrackedItems);
-      emitter.emit('update-untracked-items', allUntrackedItems);
-    }
-    
-  } catch (error) {
-    console.error('Error getting collection children state:', error);
-  }
-};
-
-// Emit updates to item data across components
-const emitItemUpdates = (itemId, updates) => {
-  const updateData = { itemId, updates };
-  emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
 };
 
 // Handle mouse down event for item selection and drag initiation
@@ -279,42 +177,8 @@ const onMouseUp = (event, item) => {
 };
 
 // watchers
-// Watch location changes and update file system watcher
-watch(() => location.value, async (newPath, oldPath) => {
-  if (oldPath && currentWatchedPath.value) {
-    try {
-      const exists = await FSService.DirExists(oldPath);
-      if (exists) {
-        await FSService.RemoveWatcherFolder(oldPath);
-      }
-    } catch (error) {
-      console.error('Error removing watcher:', error);
-    }
-  }
-  
-  if (newPath) {
-    try {
-      const exists = await FSService.DirExists(newPath);
-      if (exists) {
-        await FSService.AddWatcherFolder(newPath);
-        currentWatchedPath.value = newPath;
-      }
-    } catch (error) {
-      console.error('Error adding watcher:', error);
-    }
-  }
-}, { immediate: true });
 
 // lifecycle hooks
-Events.On('fs-change', handleFSChange);
-
-onUnmounted(async () => {
-  Events.Off('fs-change', handleFSChange);
-  
-  if (refreshDebounceTimer.value) {
-    clearTimeout(refreshDebounceTimer.value);
-  }
-});
 </script>
 
 <style scoped>

@@ -1,5 +1,5 @@
 <template>
-  <div @mouseenter="refreshVirtuaItems" class="virtua-scroll-viewport" ref="scrollContainerRef" :style="{ height: `${totalHeight}px` }"
+  <div class="virtua-scroll-viewport" ref="scrollContainerRef" :style="{ height: `${totalHeight}px` }"
     :data-visibility="containerVisibility">
     <div class="virtua-scroll-conveyor" :style="{ transform: `translateY(${offsetY}px)` }">
       <VirtuaItem v-for="child in visibleChildren" @refreshData="emit('refreshData')" :child="items[child.index]" :key="child.index" :index="child.index"
@@ -14,18 +14,17 @@
 <script setup>
 // imports
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, watch, watchEffect } from 'vue';
-import { Events } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
+import { useFsWatch } from '@/composables/useFsWatch';
 
 // components
 import VirtuaItem from '@/instances/common/components/VirtuaItem.vue';
 
 // services
-import { CollectionService, FSService } from "@/services";
+import { CollectionService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
-import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useDndStore } from '@/stores/dnd';
 import { useMenu } from '@/stores/menu';
@@ -34,7 +33,6 @@ import { useScrollStore } from '@/stores/scroll';
 import { useStageStore } from '@/stores/stages';
 
 const assetStore = useAssetStore();
-const collectionStore = useCollectionStore();
 const dndStore = useDndStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -46,6 +44,7 @@ const stage = useStageStore();
 const props = defineProps({
   collectionType: { type: String, default: ''},
   collectionId: { type: String, default: '' },
+  collectionPath: { type: String, default: '' },
   containerHeight: { type: Number, required: true },
   depth: { type: Number, default: 0 },
   isRoot: { type: Boolean, default: false },
@@ -61,15 +60,15 @@ const emit = defineEmits(['shift-parents', 'refreshData', 'update-children', 'up
 // refs
 const childPositions = ref([0]);
 const currentState = ref(null);
-const currentWatchedPath = ref(null);
 const dragTimer = ref(null);
 const intersectionObserver = ref(null);
 const intersectionRatio = ref(0);
 const intersectionRect = ref(null);
 const isVisible = ref(false);
 const pixelsAboveRoot = ref(0);
-const refreshDebounceTimer = ref(null);
 const scrollContainerRef = ref(null);
+
+let refreshToken = 0;
 
 // injects
 const rootScrollContainer = inject('rootScrollContainer', null);
@@ -108,20 +107,9 @@ const lastVisibleNode = computed(() =>
   findEndNode(childPositions.value, firstVisibleNode.value, itemCount.value, props.containerHeight)
 );
 
-// Gets the current file path location for watching.
-const location = computed(() => {
-  return collectionStore.navigatedCollection ? collectionStore.navigatedCollection.file_path : projectStore.activeProject.working_directory;
-});
-
 // Calculates vertical offset for scroll positioning.
 const offsetY = computed(() => {
   return childPositions.value[startNode.value];
-});
-
-// Gets all untracked items from root items.
-const previousUntracked = computed(() => {
-  const allUntracked = props.items.filter((item) => item.type === 'untracked_asset' || item.type === 'untracked_collection');
-  return allUntracked;
 });
 
 // Calculates relative scroll position based on root or nested context.
@@ -141,9 +129,10 @@ const startNode = computed(() =>
 );
 
 // Calculates total height of all items.
-const totalHeight = computed(() =>
-  childPositions.value[itemCount.value - 1] + getChildHeight(itemCount.value - 1)
-);
+const totalHeight = computed(() => {
+  if (itemCount.value === 0) return 0;
+  return childPositions.value[itemCount.value - 1] + getChildHeight(itemCount.value - 1);
+});
 
 // Gets visible children based on scroll position.
 const visibleChildren = computed(() =>
@@ -176,16 +165,6 @@ const calculateChildPositions = () => {
     positions.push(positions[i - 1] + getChildHeight(i - 1));
   }
   childPositions.value = positions;
-};
-
-// Debounces refresh view to prevent rapid consecutive calls.
-const debouncedRefreshView = () => {
-  if (refreshDebounceTimer.value) {
-    clearTimeout(refreshDebounceTimer.value);
-  }
-  refreshDebounceTimer.value = setTimeout(() => {
-    refreshView(true);
-  }, 200);
 };
 
 // Starts drag timer for delayed drag operation.
@@ -261,11 +240,6 @@ const getItemPosition = (index) => {
   return childPositions.value[index] || 0;
 };
 
-// Handles file system change events by refreshing view.
-const handleFSChange = (event) => {
-  debouncedRefreshView();
-};
-
 // Handles keyboard navigation with arrow keys.
 const handleKeyDown = (event) => {
   if (modals.activeModal) {
@@ -315,11 +289,9 @@ const onDragStart = (e, id) => {
 
 // Handles height change of expanded items.
 const onHeightChange = (index, height) => {
-  if (height > props.itemHeight) {
-    const item = props.items[index];
-    if (item && item.id) {
-      stage.expandedCollections[item.id]["height"] = height;
-    }
+  const item = props.items[index];
+  if (item && item.id && item.id in stage.expandedCollections) {
+    stage.expandedCollections[item.id].height = Math.max(props.itemHeight, height || 0);
   }
   calculateChildPositions();
 };
@@ -395,67 +367,69 @@ const parseCollectionState = (state) => {
   };
 };
 
-// Fetches and updates collection children state from backend.
-const refreshView = async (isRoot = false) => {
+// Refreshes this collection in response to fs changes.
+// Tracked collections fetch state diffs; untracked rescan the folder.
+const refreshView = async () => {
+  if (!projectStore.activeProject) return;
+
   const project = projectStore.activeProject;
-  const collectionType = isRoot ? collectionStore.navigatedCollection?.type : props.collectionType;
-  const collectionId = isRoot ? collectionStore.navigatedCollection?.id : props.collectionId;
-  
-  // For untracked collections, emit refresh-browser to reload the view with new untracked items
-  if (collectionType === 'untracked_collection') {
-    if (isRoot) {
-      emitter.emit('refresh-browser');
+  const myToken = ++refreshToken;
+
+  if (props.collectionType === 'untracked_collection') {
+    try {
+      const children = await CollectionService.GetCollectionChildren(
+        project.uri,
+        props.collectionId,
+        project.working_directory,
+        props.collectionPath,
+        project.ignore_list,
+        true
+      );
+      if (myToken !== refreshToken) return;
+
+      const untracked = [
+        ...(children.untracked_collections || children.untracked_folders || []),
+        ...(children.untracked_assets || children.untracked_files || [])
+      ];
+      await assetStore.processUntrackedAssetsIcons(untracked);
+      emitUntrackedUpdates(untracked);
+    } catch (error) {
+      console.error('Error scanning untracked folder:', error);
     }
     return;
   }
-  
+
   try {
     const state = await CollectionService.GetCollectionChildrenState(
       project.uri,
-      collectionId,
+      props.collectionId,
       project.working_directory,
       project.ignore_list
     );
-    
+    if (myToken !== refreshToken) return;
+
     const parsedState = parseCollectionState(state);
-    const dataIsUnchanged = JSON.stringify(currentState.value) === JSON.stringify(parsedState); 
-    
+    const dataIsUnchanged = JSON.stringify(currentState.value) === JSON.stringify(parsedState);
     if (dataIsUnchanged) return;
     currentState.value = parsedState;
-    
-    // Batch all file status updates into a single array
-    const statusUpdates = [
-      ...(state.normal_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'normal' }] })),
-      ...(state.modified_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'modified' }] })),
-      ...(state.outdated_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
-      ...(state.rebuildable_assets || []).map(asset => ({ itemId: asset.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
-    ];
-    
-    // Emit all updates at once as a single array
-    if (statusUpdates.length > 0) {
-      emitItemUpdates(statusUpdates);
-    }
 
-    const currentUntrackedFolders = state.untracked_folders || [];
-    const currentUntrackedFiles = state.untracked_files || [];
-    const currentUntracked = [...currentUntrackedFolders, ...currentUntrackedFiles];
-    
-    if (currentUntracked !== previousUntracked.value) {
-      const allUntrackedItems = [...currentUntrackedFolders, ...currentUntrackedFiles];
-      await assetStore.processUntrackedAssetsIcons(allUntrackedItems);
-      emitUntrackedUpdates(allUntrackedItems);
-    }
-    
+    const statusUpdates = [
+      ...(state.normal_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'normal' }] })),
+      ...(state.modified_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'modified' }] })),
+      ...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
+      ...(state.rebuildable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
+    ];
+    if (statusUpdates.length) emitItemUpdates(statusUpdates);
+
+    const untracked = [
+      ...(state.untracked_folders || []),
+      ...(state.untracked_files || [])
+    ];
+    await assetStore.processUntrackedAssetsIcons(untracked);
+    emitUntrackedUpdates(untracked);
   } catch (error) {
     console.error('Error getting collection children state:', error);
   }
-};
-
-// Refreshes state of virtuaList on mouse enter.
-const refreshVirtuaItems = () => {
-  if (props.isRoot || props.collectionType == 'untracked_collection' ) return;
-  console.log(props.collectionType)
-  refreshView();
 };
 
 // Selects item by index and scrolls into view.
@@ -523,28 +497,12 @@ watch(() => props.items, (newItems, oldItems) => {
   calculateChildPositions();
 }, { deep: true });
 
-watch(() => location.value, async (newPath, oldPath) => {
-  const pathExists = await FSService.Exists(oldPath)
-  if (oldPath && currentWatchedPath.value && pathExists) {
-    try {
-      await FSService.RemoveWatcherFolder(oldPath);
-    } catch (error) {
-      console.error('Error removing watcher:', error);
-    }
-  }
-  
-  if (newPath) {
-    try {
-      const exists = await FSService.DirExists(newPath);
-      if (exists) {
-        await FSService.AddWatcherFolder(newPath);
-        currentWatchedPath.value = newPath;
-      }
-    } catch (error) {
-      console.error('Error adding watcher:', error);
-    }
-  }
-}, { immediate: true });
+// Subscribes nested lists to fs events for their own folder.
+// The root list is handled by Browser.vue.
+const nestedWatchPath = computed(() =>
+  props.isRoot ? null : (props.collectionPath || null)
+);
+useFsWatch(nestedWatchPath, refreshView);
 
 watchEffect(() => {
   calculateChildPositions();
@@ -567,8 +525,6 @@ onMounted(() => {
       window.addEventListener('keydown', handleKeyDown);
     }
   });
-  
-  Events.On('fs-change', handleFSChange);
 });
 
 onBeforeUnmount(async () => {
@@ -581,12 +537,6 @@ onBeforeUnmount(async () => {
   }
   if (props.isRoot) {
     window.removeEventListener('keydown', handleKeyDown);
-  }
-  
-  Events.Off('fs-change', handleFSChange);
-  
-  if (refreshDebounceTimer.value) {
-    clearTimeout(refreshDebounceTimer.value);
   }
 });
 </script>

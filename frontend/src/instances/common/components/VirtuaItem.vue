@@ -20,7 +20,7 @@
           :class="{ 'indent-guide-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === child.id }">
         </div>
         <VirtuaList @refreshData="loadCollectionChildren" @updateChildren="handleUpdateChildren" @updateChildrenUntrackedItems="handleUpdateUntrackedItems" 
-          :collectionId="child.id" :collectionType="child.type" @shiftParents="handleToggle" :items="collectionChildren"
+          :collectionId="child.id" :collectionType="child.type" :collectionPath="child.file_path" @shiftParents="handleToggle" :items="collectionChildren"
           :containerHeight="scrollStore.scrollRootHeight || 0" :depth="depth + 1" :parentOffset="totalOffset"
           :itemHeight="commonStore.listItemHeight" />
       </div>
@@ -261,13 +261,21 @@ const handleUpdateChildren = (eventData) => {
 // Handles updates to untracked items from events.
 const handleUpdateUntrackedItems = (untrackedItems) => {
   if (!untrackedItems) return;
-  
+
   collectionChildren.value = collectionChildren.value.filter(
     item => item.type !== 'untracked_collection' && item.type !== 'untracked_asset'
   );
-  
+
   collectionChildren.value.push(...untrackedItems);
-  
+  hasChildren.value = collectionChildren.value.length > 0;
+
+  if (!hasChildren.value && isExpanded.value) {
+    const isUntracked = props.child.type === 'untracked_collection';
+    stage.expandCollection(props.child, isUntracked);
+  } else {
+    updateItemHeight();
+  }
+
   emitter.emit('get-project-data');
   collectionStore.loadCollectionStateFlags();
 };
