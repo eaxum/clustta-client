@@ -79,7 +79,7 @@
                 <img v-else class="small-icons" :src="getAppIcon(asset.asset_type_icon)" v-tooltip="assetTypeName">
               </div>
               
-              <div class="main-asset-item-grid-meta">
+              <div class="main-asset-item-grid-meta" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
                 {{ assetName }}
               </div>
             </div>
@@ -213,7 +213,7 @@
         </div>
 
         <div class="asset-item-content selection-area">
-          <div v-if="!isEditing" class="asset-item-details">
+          <div v-if="!isEditing" class="asset-item-details" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
             {{ assetName }}
           </div>
 

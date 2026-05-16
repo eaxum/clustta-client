@@ -25,7 +25,7 @@
           <img class="small-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
         
-        <div v-if="!isEditing" class="main-collection-item-grid-meta">
+        <div v-if="!isEditing" class="main-collection-item-grid-meta" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
           {{collectionName}}
         </div>
 
@@ -112,7 +112,7 @@
         </div>
 
         <div class="collection-item-content selection-area">
-          <div v-if="!isEditing" class="collection-item-details">
+          <div v-if="!isEditing" class="collection-item-details" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
             {{ collectionName }}
           </div>
 
