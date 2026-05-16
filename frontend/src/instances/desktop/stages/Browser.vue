@@ -542,10 +542,16 @@ const handleRootFsChange = async () => {
 useFsWatch(rootWatchPath, handleRootFsChange);
 
 // Replaces untracked items in root data with updated list from emitter events.
+// Rebuilds rootData through sortItems so order matches the initial load and item
+// identities stay put — otherwise reordering would force VirtuaList to remount
+// rows and leave stale skeletons on expanded untracked collections.
 const handleUpdateUntrackedItems = (untrackedItems) => {
 	if (!untrackedItems) return;
-	rootData.value = rootData.value.filter(item => item.type !== 'untracked_collection' && item.type !== 'untracked_asset');
-	rootData.value.push(...untrackedItems);
+	const trackedCollections = rootData.value.filter(item => item.type === 'collection');
+	const trackedAssets = rootData.value.filter(item => item.type === 'asset');
+	const untrackedCollections = untrackedItems.filter(item => item.type === 'untracked_collection');
+	const untrackedAssets = untrackedItems.filter(item => item.type === 'untracked_asset');
+	rootData.value = sortItems(trackedCollections, trackedAssets, untrackedCollections, untrackedAssets);
 	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
 };

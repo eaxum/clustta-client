@@ -259,14 +259,18 @@ const handleUpdateChildren = (eventData) => {
 };
 
 // Handles updates to untracked items from events.
+// Rebuilds children in the original [tracked collections, untracked collections,
+// tracked assets, untracked assets] order so VirtuaList keeps each row's identity
+// stable across fs-driven refreshes.
 const handleUpdateUntrackedItems = (untrackedItems) => {
   if (!untrackedItems) return;
 
-  collectionChildren.value = collectionChildren.value.filter(
-    item => item.type !== 'untracked_collection' && item.type !== 'untracked_asset'
-  );
+  const trackedCollections = collectionChildren.value.filter(item => item.type === 'collection');
+  const trackedAssets = collectionChildren.value.filter(item => item.type === 'asset');
+  const untrackedCollections = untrackedItems.filter(item => item.type === 'untracked_collection');
+  const untrackedAssets = untrackedItems.filter(item => item.type === 'untracked_asset');
 
-  collectionChildren.value.push(...untrackedItems);
+  collectionChildren.value = [...trackedCollections, ...untrackedCollections, ...trackedAssets, ...untrackedAssets];
   hasChildren.value = collectionChildren.value.length > 0;
 
   if (!hasChildren.value && isExpanded.value) {

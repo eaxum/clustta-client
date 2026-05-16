@@ -2,7 +2,7 @@
   <div class="virtua-scroll-viewport" ref="scrollContainerRef" :style="{ height: `${totalHeight}px` }"
     :data-visibility="containerVisibility">
     <div class="virtua-scroll-conveyor" :style="{ transform: `translateY(${offsetY}px)` }">
-      <VirtuaItem v-for="child in visibleChildren" @refreshData="emit('refreshData')" :child="items[child.index]" :key="child.index" :index="child.index"
+      <VirtuaItem v-for="child in visibleChildren" @refreshData="emit('refreshData')" :child="items[child.index]" :key="child.id" :index="child.index"
         :itemHeight="itemHeight" :isExpanded="child.isExpanded" :onHeightChange="onHeightChange"
         :depth="depth" :getItemPosition="getItemPosition" :parentOffset="props.parentOffset" :offsetY="offsetY"
         :totalHeight="totalHeight" @mousedown="onMouseDown($event, child, index)"
