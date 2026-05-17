@@ -7,6 +7,7 @@ import { useThemeStore } from '@/stores/theme';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import emitter from '@/lib/mitt';
 
 const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
 
@@ -280,7 +281,6 @@ router.beforeEach(async (to, from, next) => {
         try {
           const pendingDeepLink = await AppService.GetPendingDeepLink();
           if (pendingDeepLink) {
-            const { default: emitter } = await import('@/lib/mitt');
             emitter.emit('handle-deep-link', pendingDeepLink);
           }
         } catch (error) {

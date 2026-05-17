@@ -1,8 +1,25 @@
-import { defineConfig } from "vite";
+import { createLogger, defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { join } from "path";
 import http from "http";
 import https from "https";
+
+// sql.js ships a bundle that contains a Node-only code path (`require('fs')`,
+// `require('path')`, `require('crypto')`) used when running under Node. In the
+// browser/Wails webview those modules are unreachable, but Vite still emits a
+// warning when it externalizes them. Silence only those specific warnings.
+const silencedLogger = createLogger();
+const originalWarn = silencedLogger.warn.bind(silencedLogger);
+silencedLogger.warn = (msg, options) => {
+  if (
+    typeof msg === "string" &&
+    msg.includes("has been externalized for browser compatibility") &&
+    msg.includes("sql.js/dist/sql-wasm.js")
+  ) {
+    return;
+  }
+  originalWarn(msg, options);
+};
 
 const host = process.env.TAURI_DEV_HOST;
 
@@ -53,6 +70,7 @@ export default defineConfig(async () => {
   aliases.push({ find: '@', replacement: join(PACKAGE_ROOT, "src") });
 
   return {
+    customLogger: silencedLogger,
     plugins: [webAdaptersStub(), vue()],
 
     // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
