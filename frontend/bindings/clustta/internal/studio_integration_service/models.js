@@ -79,6 +79,13 @@ export class Config {
              */
             this["configured"] = false;
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["warning"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }

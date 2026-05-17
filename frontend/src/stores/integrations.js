@@ -640,6 +640,9 @@ export const useIntegrationStore = defineStore('integrations', {
         const view = await StudioIntegrationService.SaveStudioIntegration(studioId, integrationId, payload);
         this.studioConfig = { ...this.studioConfig, [integrationId]: view };
         notificationStore.addNotification('Integration saved', '', 'success');
+        if (view?.warning) {
+          notificationStore.addNotification('Integration warning', view.warning, 'warning');
+        }
         return view;
       } catch (error) {
         notificationStore.addNotification('Failed to save integration', error.message || String(error), 'error');
@@ -654,8 +657,11 @@ export const useIntegrationStore = defineStore('integrations', {
       const notificationStore = useNotificationStore();
       this.isTestingStudioConfig = true;
       try {
-        await StudioIntegrationService.TestStudioIntegration(studioId, integrationId, payload || {});
+        const warning = await StudioIntegrationService.TestStudioIntegration(studioId, integrationId, payload || {});
         notificationStore.addNotification('Connection successful', '', 'success');
+        if (warning) {
+          notificationStore.addNotification('Integration warning', warning, 'warning');
+        }
         return true;
       } catch (error) {
         notificationStore.addNotification('Connection failed', error.message || String(error), 'error');

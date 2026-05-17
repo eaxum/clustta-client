@@ -26,6 +26,7 @@ type Config struct {
 	LastError       string `json:"last_error"`
 	Status          string `json:"status"`
 	Configured      bool   `json:"configured"`
+	Warning         string `json:"warning,omitempty"`
 }
 
 // CredentialsPayload is the shape accepted by save/test endpoints.
@@ -81,10 +82,19 @@ func DeleteConfig(studioId, integrationId string) error {
 
 // TestConfig runs a live credential check without persisting changes.
 // An empty payload falls back to the stored credentials on the server.
-func TestConfig(studioId, integrationId string, payload CredentialsPayload) error {
+// Returns a non-fatal warning message from the server (e.g. insecure HTTP URL)
+// when present; the connection itself still succeeded.
+func TestConfig(studioId, integrationId string, payload CredentialsPayload) (string, error) {
 	url := fmt.Sprintf("%s/studio-integration/%s/%s/test", constants.HOST, studioId, integrationId)
-	_, err := doRequest(http.MethodPost, url, payload)
-	return err
+	body, err := doRequest(http.MethodPost, url, payload)
+	if err != nil {
+		return "", err
+	}
+	var envelope struct {
+		Warning string `json:"warning"`
+	}
+	_ = json.Unmarshal(body, &envelope)
+	return envelope.Warning, nil
 }
 
 // SetEnabled toggles the enabled flag on an already-configured integration

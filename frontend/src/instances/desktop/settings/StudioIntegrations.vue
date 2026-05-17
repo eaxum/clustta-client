@@ -16,6 +16,7 @@
               <div class="settings-content">
                 <div class="settings-header">{{ integration.name }}</div>
                 <div class="settings-body">{{ rowBody(integration) }}</div>
+                <div v-if="viewFor(integration.id)?.warning" class="integration-warning">{{ viewFor(integration.id).warning }}</div>
               </div>
 
               <div class="settings-action">
@@ -301,6 +302,16 @@ onMounted(async () => {
 .status-running { background-color: rgba(36, 129, 30, .25); color: #6ee07a; }
 .status-stopped { background-color: rgba(255, 255, 255, .08); color: var(--white-half); }
 .status-error { background-color: rgba(255, 80, 80, .15); color: #ff6b6b; }
+
+.integration-warning {
+  margin-top: .25rem;
+  padding: .25rem .5rem;
+  border-radius: var(--small-radius);
+  background-color: rgba(255, 176, 32, .12);
+  color: #ffb020;
+  font-size: 11px;
+  line-height: 1.3;
+}
 
 .empty-state {
   padding: 1rem;

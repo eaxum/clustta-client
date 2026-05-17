@@ -27,7 +27,9 @@ func (s *StudioIntegrationService) DeleteStudioIntegration(studioId, integration
 
 // TestStudioIntegration runs a live credential check without persisting.
 // Empty payload falls back to stored credentials on the server.
-func (s *StudioIntegrationService) TestStudioIntegration(studioId, integrationId string, payload studio_integration_service.CredentialsPayload) error {
+// Returns a non-fatal warning (e.g. insecure HTTP URL) when the connection
+// succeeded but the server flagged something the user should know about.
+func (s *StudioIntegrationService) TestStudioIntegration(studioId, integrationId string, payload studio_integration_service.CredentialsPayload) (string, error) {
 	return studio_integration_service.TestConfig(studioId, integrationId, payload)
 }
 

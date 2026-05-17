@@ -71,10 +71,12 @@ export function SetStudioIntegrationEnabled(studioId, integrationId, enabled) {
 /**
  * TestStudioIntegration runs a live credential check without persisting.
  * Empty payload falls back to stored credentials on the server.
+ * Returns a non-fatal warning (e.g. insecure HTTP URL) when the connection
+ * succeeded but the server flagged something the user should know about.
  * @param {string} studioId
  * @param {string} integrationId
  * @param {studio_integration_service$0.CredentialsPayload} payload
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<string>}
  */
 export function TestStudioIntegration(studioId, integrationId, payload) {
     return $Call.ByID(1075821153, studioId, integrationId, payload);
