@@ -87,6 +87,22 @@ func TestConfig(studioId, integrationId string, payload CredentialsPayload) erro
 	return err
 }
 
+// SetEnabled toggles the enabled flag on an already-configured integration
+// without re-supplying credentials. The server starts or stops the listener
+// accordingly and returns the refreshed view.
+func SetEnabled(studioId, integrationId string, enabled bool) (Config, error) {
+	var cfg Config
+	url := fmt.Sprintf("%s/studio-integration/%s/%s/enabled", constants.HOST, studioId, integrationId)
+	body, err := doRequest(http.MethodPatch, url, map[string]bool{"enabled": enabled})
+	if err != nil {
+		return cfg, err
+	}
+	if err := json.Unmarshal(body, &cfg); err != nil {
+		return cfg, fmt.Errorf("failed to decode response: %w", err)
+	}
+	return cfg, nil
+}
+
 // doRequest performs an authenticated HTTP call to the central server and
 // surfaces the server's error envelope for non-2xx responses.
 func doRequest(method, url string, payload interface{}) ([]byte, error) {

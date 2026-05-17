@@ -54,6 +54,21 @@ export function SaveStudioIntegration(studioId, integrationId, payload) {
 }
 
 /**
+ * SetStudioIntegrationEnabled toggles the enabled flag on an already-configured
+ * studio integration without requiring credentials. The server starts or stops
+ * the listener accordingly and returns the refreshed config view.
+ * @param {string} studioId
+ * @param {string} integrationId
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<studio_integration_service$0.Config>}
+ */
+export function SetStudioIntegrationEnabled(studioId, integrationId, enabled) {
+    return $Call.ByID(1378419904, studioId, integrationId, enabled).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * TestStudioIntegration runs a live credential check without persisting.
  * Empty payload falls back to stored credentials on the server.
  * @param {string} studioId

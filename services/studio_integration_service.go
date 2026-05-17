@@ -30,3 +30,10 @@ func (s *StudioIntegrationService) DeleteStudioIntegration(studioId, integration
 func (s *StudioIntegrationService) TestStudioIntegration(studioId, integrationId string, payload studio_integration_service.CredentialsPayload) error {
 	return studio_integration_service.TestConfig(studioId, integrationId, payload)
 }
+
+// SetStudioIntegrationEnabled toggles the enabled flag on an already-configured
+// studio integration without requiring credentials. The server starts or stops
+// the listener accordingly and returns the refreshed config view.
+func (s *StudioIntegrationService) SetStudioIntegrationEnabled(studioId, integrationId string, enabled bool) (studio_integration_service.Config, error) {
+	return studio_integration_service.SetEnabled(studioId, integrationId, enabled)
+}

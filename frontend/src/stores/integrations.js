@@ -28,6 +28,7 @@ export const useIntegrationStore = defineStore('integrations', {
     studioConfig: {},              // { kitsu: { ...view } }
     isSavingStudioConfig: false,
     isTestingStudioConfig: false,
+    activeStudioIntegrationId: null, // Integration currently being edited in the studio config modal
   }),
 
   getters: {
@@ -612,6 +613,11 @@ export const useIntegrationStore = defineStore('integrations', {
       this.localStatuses = [];
     },
 
+    // Track which integration the studio config modal is editing.
+    setActiveStudioIntegration(integrationId) {
+      this.activeStudioIntegrationId = integrationId;
+    },
+
     // Load the studio-scoped configuration for an integration (e.g. Kitsu service account).
     async loadStudioIntegrationConfig(studioId, integrationId) {
       const notificationStore = useNotificationStore();
@@ -672,6 +678,27 @@ export const useIntegrationStore = defineStore('integrations', {
       } catch (error) {
         notificationStore.addNotification('Failed to remove integration', error.message || String(error), 'error');
         return false;
+      }
+    },
+
+    // Toggle the enabled flag of an already-configured studio integration.
+    // Calls a dedicated server endpoint that doesn't require re-supplying credentials.
+    async setStudioIntegrationEnabled(studioId, integrationId, enabled) {
+      const notificationStore = useNotificationStore();
+      const previous = this.studioConfig[integrationId];
+      if (previous) {
+        this.studioConfig = { ...this.studioConfig, [integrationId]: { ...previous, enabled } };
+      }
+      try {
+        const view = await StudioIntegrationService.SetStudioIntegrationEnabled(studioId, integrationId, enabled);
+        this.studioConfig = { ...this.studioConfig, [integrationId]: view };
+        return view;
+      } catch (error) {
+        if (previous) {
+          this.studioConfig = { ...this.studioConfig, [integrationId]: previous };
+        }
+        notificationStore.addNotification('Failed to update integration', error.message || String(error), 'error');
+        return null;
       }
     },
   },

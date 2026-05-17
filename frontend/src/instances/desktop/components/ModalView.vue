@@ -83,6 +83,7 @@ import DirectoryMappingModal from '@/instances/desktop/modals/DirectoryMappingMo
 import IntegrationAuthModal from '@/instances/desktop/modals/IntegrationAuthModal.vue';
 import IntegrationLinkModal from '@/instances/desktop/modals/IntegrationLinkModal.vue';
 import IntegrationSyncModal from '@/instances/desktop/modals/IntegrationSyncModal.vue';
+import StudioIntegrationConfigModal from '@/instances/desktop/modals/StudioIntegrationConfigModal.vue';
 import SquashModal from '@/instances/desktop/modals/SquashModal.vue';
 import AssetTypeMappingModal from '@/instances/desktop/modals/AssetTypeMappingModal.vue';
 import StatusMappingModal from '@/instances/desktop/modals/StatusMappingModal.vue';
@@ -186,6 +187,7 @@ const modalComponents = {
   integrationAuthModal: IntegrationAuthModal,
   integrationLinkModal: IntegrationLinkModal,
   integrationSyncModal: IntegrationSyncModal,
+  studioIntegrationConfigModal: StudioIntegrationConfigModal,
   squashModal: SquashModal,
   assetTypeMappingModal: AssetTypeMappingModal,
   statusMappingModal: StatusMappingModal,

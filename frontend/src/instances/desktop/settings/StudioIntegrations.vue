@@ -1,225 +1,152 @@
 <template>
   <div class="settings-component-root">
-
     <div class="settings-component-scroll">
-
       <div class="settings-component-container">
 
-        <ProfileCard :title="$t('settings.kitsuIntegration')" :showEditButton="!!view?.configured && !isEditing" :isEditing="isEditing" @toggleEdit="toggleEdit">
-          <div class="card-section">
-
-            <div class="card-header-row">
-              <p class="card-help">{{ $t('settings.kitsuIntegrationHelp') }}</p>
-
-              <div v-if="view?.configured" class="status-badge" :class="statusClass">{{ statusLabel }}</div>
-            </div>
-
-            <div v-if="view?.last_error" class="error-banner">{{ view.last_error }}</div>
-
-            <div v-if="!isEditing && view?.configured" class="display-fields">
-              <div class="display-field">
-                <span class="display-label">{{ $t('settings.kitsuApiUrl') }}</span>
-                <span class="display-value">{{ view.api_url }}</span>
-              </div>
-
-              <div class="display-field">
-                <span class="display-label">{{ $t('settings.serviceAccountEmail') }}</span>
-                <span class="display-value">{{ view.email }}</span>
-              </div>
-
-              <div v-if="view.last_validated_at" class="display-field">
-                <span class="display-label">{{ $t('settings.lastValidatedAt') }}</span>
-                <span class="display-value">{{ lastValidatedFormatted }}</span>
-              </div>
-            </div>
-
-            <div v-else class="edit-fields">
-              <FormInput v-model="form.api_url" @input="validateApiUrl" :label="$t('settings.kitsuApiUrl')" :placeholder="'https://your-studio.cg-wire.com/api'" :error="errors.api_url" :needsValidation="true" :showValidation="!!form.api_url" :valid="!errors.api_url && !!form.api_url" :labelTop="true" />
-
-              <FormInput v-model="form.email" @input="validateEmail" :label="$t('settings.serviceAccountEmail')" :placeholder="'bots@studio.com'" type="email" :error="errors.email" :needsValidation="true" :showValidation="!!form.email" :valid="!errors.email && !!form.email" :labelTop="true" />
-
-              <FormInput v-model="form.password" :label="$t('settings.serviceAccountPassword')" :placeholder="passwordPlaceholder" :isSecret="true" :labelTop="true" />
-
-              <div class="enabled-row">
-                <label class="form-label">{{ $t('settings.enabled') }}</label>
-                <ToggleSwitch :switchValueProp="form.enabled" @click="form.enabled = !form.enabled" />
-              </div>
-
-              <div class="actions-row">
-                <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.test')" :showLabel="true" :isDisabled="isBusy || !canTest" :buttonFunction="onTest" :useOutline="true" :isLoading="integrationStore.isTestingStudioConfig" />
-
-                <ActionButton :icon="getAppIcon('save')" :label="$t('common.save')" :showLabel="true" :isDisabled="isBusy || !canSubmit" :buttonFunction="onSave" :useBackground="true" :isLoading="integrationStore.isSavingStudioConfig" />
-
-                <ActionButton v-if="view?.configured" :icon="getAppIcon('close')" :label="$t('common.cancel')" :showLabel="true" :isDisabled="isBusy" :buttonFunction="cancelEdit" />
-
-                <ActionButton v-if="view?.configured" :icon="getAppIcon('trash')" :label="$t('common.delete')" :showLabel="true" :isDisabled="isBusy" :buttonFunction="onDelete" useAlert />
-              </div>
-            </div>
+        <div class="settings-section-card">
+          <div class="settings-section-card-header">
+            <h2 class="settings-section-card-title">{{ $t('settings.studioIntegrations') }}</h2>
           </div>
-        </ProfileCard>
+
+          <div class="settings-section-card-content">
+
+            <div v-for="integration in studioIntegrations" :key="integration.id" class="settings-item" @click="openIntegration(integration.id)" v-stop-propagation>
+              <div class="settings-icon"><img class="small-icons" :src="getAppIcon(integration.icon)"></div>
+
+              <div class="settings-content">
+                <div class="settings-header">{{ integration.name }}</div>
+                <div class="settings-body">{{ rowBody(integration) }}</div>
+              </div>
+
+              <div class="settings-action">
+                <ActionButton v-if="viewFor(integration.id)?.configured" class="row-delete" :icon="getAppIcon('trash')" :label="$t('common.delete')" :showLabel="true" :buttonFunction="() => onDelete(integration.id)" useDanger useOutline v-stop-propagation />
+
+                <div v-stop-propagation>
+                  <ToggleSwitch v-if="viewFor(integration.id)?.configured" :switchValueProp="viewFor(integration.id)?.enabled" @click="toggleEnabled(integration.id)" />
+                </div>
+
+                <img class="small-icons chevron" :src="getAppIcon('chevron-right')">
+              </div>
+            </div>
+
+            <div v-if="studioIntegrations.length === 0" class="empty-state">{{ $t('common.loading') }}...</div>
+
+          </div>
+        </div>
 
       </div>
-
     </div>
-
   </div>
 </template>
 
 <script setup>
 // imports
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import FormInput from '@/instances/desktop/components/FormInput.vue';
-import ProfileCard from '@/instances/desktop/components/ProfileCard.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores
+import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
 
+const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const projectStore = useProjectStore();
-
+const trayStates = useTrayStates();
 const { t } = useI18n();
 
 // refs
-const integrationId = 'kitsu';
-const form = reactive({ api_url: '', email: '', password: '', enabled: true });
-const errors = reactive({ api_url: '', email: '' });
-const isEditing = ref(false);
+const SUPPORTED_STUDIO_INTEGRATIONS = ['kitsu'];
 
-// computed properties
+// computed
 const studioId = computed(() => projectStore.selectedStudio?.id || '');
 
-const view = computed(() => integrationStore.studioConfig[integrationId] || null);
-
-const isBusy = computed(() => integrationStore.isSavingStudioConfig || integrationStore.isTestingStudioConfig);
-
-const hasNoErrors = computed(() => !errors.api_url && !errors.email);
-
-const canTest = computed(() => form.api_url && form.email && form.password && hasNoErrors.value);
-
-const canSubmit = computed(() => form.api_url && form.email && (form.password || view.value?.configured) && hasNoErrors.value);
-
-const passwordPlaceholder = computed(() => view.value?.configured ? t('settings.serviceAccountPasswordUnchanged') : t('settings.serviceAccountPasswordPlaceholder'));
-
-const statusClass = computed(() => {
-  if (!view.value?.configured) return 'status-stopped';
-  if (view.value.last_error) return 'status-error';
-  if (view.value.status === 'running') return 'status-running';
-  return 'status-stopped';
-});
-
-const statusLabel = computed(() => {
-  if (!view.value?.configured) return t('settings.statusNotConfigured');
-  if (view.value.last_error) return t('settings.statusError');
-  return view.value.status === 'running' ? t('settings.statusRunning') : t('settings.statusStopped');
-});
-
-const lastValidatedFormatted = computed(() => {
-  if (!view.value?.last_validated_at) return '';
-  return new Date(view.value.last_validated_at * 1000).toLocaleString();
+const studioIntegrations = computed(() => {
+  return SUPPORTED_STUDIO_INTEGRATIONS
+    .map((id) => integrationStore.getIntegration(id))
+    .filter((i) => !!i);
 });
 
 // methods
+// Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
-// Validates api_url with a URL parser; sets errors.api_url.
-const validateApiUrl = () => {
-  if (!form.api_url) {
-    errors.api_url = '';
-    return;
-  }
-  try {
-    const u = new URL(form.api_url);
-    errors.api_url = (u.protocol === 'http:' || u.protocol === 'https:') ? '' : t('settings.errorInvalidApiUrl');
-  } catch {
-    errors.api_url = t('settings.errorInvalidApiUrl');
-  }
+// Returns the cached studio config view for the given integration id.
+const viewFor = (id) => integrationStore.studioConfig[id] || null;
+
+// Returns the badge class for a row based on its current status.
+const statusClass = (id) => {
+  const v = viewFor(id);
+  if (!v?.configured) return 'status-stopped';
+  if (v.last_error) return 'status-error';
+  if (v.status === 'running') return 'status-running';
+  return 'status-stopped';
 };
 
-// Validates email format; sets errors.email.
-const validateEmail = () => {
-  if (!form.email) {
-    errors.email = '';
-    return;
-  }
-  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  errors.email = emailRe.test(form.email) ? '' : t('settings.errorInvalidEmail');
+// Returns the badge label for a row based on its current status.
+const statusLabel = (id) => {
+  const v = viewFor(id);
+  if (!v?.configured) return t('settings.statusNotConfigured');
+  if (v.last_error) return t('settings.statusError');
+  return v.status === 'running' ? t('settings.statusRunning') : t('settings.statusStopped');
 };
 
-// Pulls the current configuration and seeds the form with existing values.
+// Returns the descriptive body line for an integration row.
+// Shows the live status when configured (Running/Stopped/Error), otherwise the integration description.
+const rowBody = (integration) => {
+  const v = viewFor(integration.id);
+  if (v?.configured) return statusLabel(integration.id);
+  return integration.description || '';
+};
+
+// Opens the studio integration config modal for the given integration id.
+const openIntegration = (id) => {
+  console.log('clicked')
+  integrationStore.setActiveStudioIntegration(id);
+  desktopModals.setModalVisibility('studioIntegrationConfigModal', true);
+};
+
+// Toggles the enabled flag of an already-configured integration.
+const toggleEnabled = async (id) => {
+  const v = viewFor(id);
+  if (!v?.configured || !studioId.value) return;
+  await integrationStore.setStudioIntegrationEnabled(studioId.value, id, !v.enabled);
+};
+
+// Opens the PopUpModal to confirm removal of an integration's stored credentials.
+const onDelete = (id) => {
+  if (!studioId.value) return;
+  const integration = integrationStore.getIntegration(id);
+  const name = integration?.name || id;
+  trayStates.popUpModalTitle = t('common.delete') + ` "${name}"?`;
+  trayStates.popUpModalMessage = t('settings.confirmDeleteIntegration');
+  trayStates.popUpModalIcon = 'trash';
+  trayStates.popUpModalFunction = async () => {
+    try {
+      await integrationStore.deleteStudioIntegrationConfig(studioId.value, id);
+    } finally {
+      desktopModals.setModalVisibility('popUpModal', false);
+    }
+  };
+  desktopModals.setModalVisibility('popUpModal', true);
+};
+
+// Refreshes the cached studio config for all supported integrations.
 const refresh = async () => {
   if (!studioId.value) return;
-  await integrationStore.loadStudioIntegrationConfig(studioId.value, integrationId);
-  if (view.value?.configured) {
-    form.api_url = view.value.api_url || '';
-    form.email = view.value.email || '';
-    form.enabled = view.value.enabled;
-    form.password = '';
-    isEditing.value = false;
-  } else {
-    isEditing.value = true;
-  }
-};
-
-// Switches to edit mode and re-seeds the form from the latest view.
-const toggleEdit = () => {
-  if (view.value?.configured) {
-    form.api_url = view.value.api_url || '';
-    form.email = view.value.email || '';
-    form.enabled = view.value.enabled;
-    form.password = '';
-  }
-  isEditing.value = true;
-};
-
-// Exits edit mode and resets transient errors and password buffer.
-const cancelEdit = () => {
-  isEditing.value = false;
-  form.password = '';
-  errors.api_url = '';
-  errors.email = '';
-};
-
-// Saves the form to the server and exits edit mode on success.
-const onSave = async () => {
-  if (!studioId.value || !canSubmit.value) return;
-  const payload = { api_url: form.api_url, email: form.email, password: form.password, enabled: form.enabled };
-  const result = await integrationStore.saveStudioIntegrationConfig(studioId.value, integrationId, payload);
-  if (result) {
-    form.password = '';
-    isEditing.value = false;
-  }
-};
-
-// Runs a live connection check using the supplied credentials.
-const onTest = async () => {
-  if (!studioId.value || !canTest.value) return;
-  const payload = { api_url: form.api_url, email: form.email, password: form.password, enabled: form.enabled };
-  await integrationStore.testStudioIntegrationConfig(studioId.value, integrationId, payload);
-};
-
-// Removes the integration after user confirmation.
-const onDelete = async () => {
-  if (!studioId.value) return;
-  const confirmed = window.confirm(t('settings.confirmDeleteIntegration'));
-  if (!confirmed) return;
-  const ok = await integrationStore.deleteStudioIntegrationConfig(studioId.value, integrationId);
-  if (ok) {
-    form.api_url = '';
-    form.email = '';
-    form.password = '';
-    form.enabled = true;
-    errors.api_url = '';
-    errors.email = '';
-    isEditing.value = true;
-  }
+  await integrationStore.loadAvailableIntegrations();
+  await Promise.all(
+    SUPPORTED_STUDIO_INTEGRATIONS.map((id) =>
+      integrationStore.loadStudioIntegrationConfig(studioId.value, id)
+    )
+  );
 };
 
 // watchers
@@ -247,16 +174,17 @@ onMounted(async () => {
 }
 
 .settings-component-root::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 .settings-component-root::-webkit-scrollbar-thumb {
-  border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--midnight-steel);
+  border-radius: 3px;
 }
 
 .settings-component-root::-webkit-scrollbar-track {
-  border-radius: var(--small-radius);
+  background-color: var(--light-steel);
+  border-radius: 3px;
 }
 
 .settings-component-scroll {
@@ -277,83 +205,88 @@ onMounted(async () => {
   border-radius: var(--large-radius);
 }
 
-.card-section {
+.settings-item {
+  color: var(--white);
+  box-sizing: border-box;
+  overflow: hidden;
+  min-height: 50px;
+  display: flex;
+  padding: .5rem 1rem;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: max-content;
+  background-color: var(--dark-steel);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-bottom: 1px solid var(--light-steel);
+}
+
+.settings-item:hover {
+  background-color: #ffffff15;
+}
+
+.settings-item:active {
+  background-color: #00000013;
+}
+
+.settings-icon {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  height: 100%;
+  padding: .3rem;
+  width: max-content;
+}
+
+.settings-content {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-}
-
-.card-header-row {
-  display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.card-help {
-  margin: 0;
-  font-size: .85rem;
-  line-height: 1.4;
-  color: var(--white-half);
+  justify-content: center;
+  overflow: hidden;
+  height: 100%;
+  padding: .4rem .2rem;
   flex: 1;
 }
 
-.error-banner {
-  background-color: rgba(255, 80, 80, 0.12);
-  color: #ff6b6b;
-  border-radius: var(--small-radius);
-  padding: .5rem .75rem;
-  font-size: .85rem;
+.settings-header {
+  padding: .1rem;
+  font-size: 14px;
+  font-weight: 400;
 }
 
-.display-fields {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
+.settings-body {
+  color: var(--silver);
+  padding: .1rem;
+  font-size: 12px;
+  opacity: .8;
 }
 
-.display-field {
-  display: flex;
-  flex-direction: column;
-  gap: .15rem;
-}
-
-.display-label {
-  font-size: .75rem;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  color: var(--white-half);
-}
-
-.display-value {
-  font-size: .9rem;
-  color: var(--white);
-  word-break: break-all;
-}
-
-.edit-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.enabled-row {
+.settings-action {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.form-label {
-  font-size: .85rem;
-  color: var(--white);
-}
-
-.actions-row {
-  display: flex;
+  justify-content: flex-end;
+  overflow: hidden;
+  height: 100%;
+  width: max-content;
   gap: .5rem;
-  flex-wrap: wrap;
-  margin-top: .5rem;
+}
+
+.row-delete {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.settings-item:hover .row-delete {
+  opacity: 1;
+}
+
+.chevron {
+  opacity: .6;
 }
 
 .status-badge {
@@ -363,10 +296,16 @@ onMounted(async () => {
   text-transform: uppercase;
   letter-spacing: .05em;
   white-space: nowrap;
-  align-self: flex-start;
 }
 
 .status-running { background-color: rgba(36, 129, 30, .25); color: #6ee07a; }
 .status-stopped { background-color: rgba(255, 255, 255, .08); color: var(--white-half); }
 .status-error { background-color: rgba(255, 80, 80, .15); color: #ff6b6b; }
+
+.empty-state {
+  padding: 1rem;
+  color: var(--white-half);
+  font-size: .85rem;
+  text-align: center;
+}
 </style>
