@@ -109,7 +109,8 @@ func (s *IntegrationService) LinkProject(projectPath, integrationId, externalPro
 }
 
 // UnlinkProject removes the integration link from a project.
-// Also deletes all collection and asset mappings.
+// Also deletes all collection and asset mappings, and removes the stored
+// integration credential for this user so the unlink fully revokes access.
 func (s *IntegrationService) UnlinkProject(projectPath string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -132,7 +133,16 @@ func (s *IntegrationService) UnlinkProject(projectPath string) error {
 		return err
 	}
 
-	return tx.Commit()
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Best-effort credential cleanup. Credentials are user-scoped and shared
+	// across any other project this user has linked to the same integration;
+	// the user accepted that trade-off in the unlink confirmation dialog.
+	_ = settings.DeleteIntegrationCredential(integration.IntegrationId)
+
+	return nil
 }
 
 // GetSyncPreview fetches external hierarchy and compares with local state.

@@ -919,3 +919,21 @@ WHEN OLD.mtime != NEW.mtime
 BEGIN
     UPDATE integration_asset_mapping SET synced = 0 WHERE id = NEW.id;
 END;
+
+CREATE TRIGGER IF NOT EXISTS integration_project_delete AFTER DELETE ON integration_project
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_project', 0);
+END;
+
+CREATE TRIGGER IF NOT EXISTS integration_collection_mapping_delete AFTER DELETE ON integration_collection_mapping
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_collection_mapping', 0);
+END;
+
+CREATE TRIGGER IF NOT EXISTS integration_asset_mapping_delete AFTER DELETE ON integration_asset_mapping
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_asset_mapping', 0);
+END;

@@ -227,7 +227,8 @@ export function SaveTypeMappings(projectPath, syncOptions) {
 
 /**
  * UnlinkProject removes the integration link from a project.
- * Also deletes all collection and asset mappings.
+ * Also deletes all collection and asset mappings, and removes the stored
+ * integration credential for this user so the unlink fully revokes access.
  * @param {string} projectPath
  * @returns {$CancellablePromise<void>}
  */
