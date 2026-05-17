@@ -207,6 +207,7 @@ func main() {
 			application.NewService(&services.ShareService{}),
 			application.NewService(&services.StatusService{}),
 			application.NewService(&services.StudioService{}),
+			application.NewService(&services.StudioIntegrationService{}),
 			application.NewService(&services.SyncService{}),
 			application.NewService(&services.TagService{}),
 			application.NewService(&services.TemplateService{}),

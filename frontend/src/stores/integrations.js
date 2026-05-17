@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
-import { IntegrationService, SettingsService, StatusService } from '@/services';
+import { IntegrationService, SettingsService, StatusService, StudioIntegrationService } from '@/services';
 
 export const useIntegrationStore = defineStore('integrations', {
   state: () => ({
@@ -23,6 +23,11 @@ export const useIntegrationStore = defineStore('integrations', {
     // Status mapping state
     externalStatuses: [],          // Task statuses from external system
     localStatuses: [],             // Clustta statuses
+
+    // Studio-scoped integration config (server-managed, e.g. Kitsu listener)
+    studioConfig: {},              // { kitsu: { ...view } }
+    isSavingStudioConfig: false,
+    isTestingStudioConfig: false,
   }),
 
   getters: {
@@ -605,6 +610,69 @@ export const useIntegrationStore = defineStore('integrations', {
       this.localAssetTypes = [];
       this.externalStatuses = [];
       this.localStatuses = [];
+    },
+
+    // Load the studio-scoped configuration for an integration (e.g. Kitsu service account).
+    async loadStudioIntegrationConfig(studioId, integrationId) {
+      const notificationStore = useNotificationStore();
+      try {
+        const view = await StudioIntegrationService.GetStudioIntegration(studioId, integrationId);
+        this.studioConfig = { ...this.studioConfig, [integrationId]: view };
+        return view;
+      } catch (error) {
+        notificationStore.addNotification('Failed to load integration config', error.message || String(error), 'error');
+        return null;
+      }
+    },
+
+    // Save (create or update) the studio-scoped integration config.
+    // Returns the refreshed view or null on failure.
+    async saveStudioIntegrationConfig(studioId, integrationId, payload) {
+      const notificationStore = useNotificationStore();
+      this.isSavingStudioConfig = true;
+      try {
+        const view = await StudioIntegrationService.SaveStudioIntegration(studioId, integrationId, payload);
+        this.studioConfig = { ...this.studioConfig, [integrationId]: view };
+        notificationStore.addNotification('Integration saved', '', 'success');
+        return view;
+      } catch (error) {
+        notificationStore.addNotification('Failed to save integration', error.message || String(error), 'error');
+        return null;
+      } finally {
+        this.isSavingStudioConfig = false;
+      }
+    },
+
+    // Run a live credential check without persisting.
+    async testStudioIntegrationConfig(studioId, integrationId, payload) {
+      const notificationStore = useNotificationStore();
+      this.isTestingStudioConfig = true;
+      try {
+        await StudioIntegrationService.TestStudioIntegration(studioId, integrationId, payload || {});
+        notificationStore.addNotification('Connection successful', '', 'success');
+        return true;
+      } catch (error) {
+        notificationStore.addNotification('Connection failed', error.message || String(error), 'error');
+        return false;
+      } finally {
+        this.isTestingStudioConfig = false;
+      }
+    },
+
+    // Delete the studio-scoped integration config and stop the listener.
+    async deleteStudioIntegrationConfig(studioId, integrationId) {
+      const notificationStore = useNotificationStore();
+      try {
+        await StudioIntegrationService.DeleteStudioIntegration(studioId, integrationId);
+        const next = { ...this.studioConfig };
+        delete next[integrationId];
+        this.studioConfig = next;
+        notificationStore.addNotification('Integration removed', '', 'success');
+        return true;
+      } catch (error) {
+        notificationStore.addNotification('Failed to remove integration', error.message || String(error), 'error');
+        return false;
+      }
     },
   },
 });

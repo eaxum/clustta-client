@@ -24,6 +24,7 @@ import * as ProjectService from "./projectservice.js";
 import * as SettingsService from "./settingsservice.js";
 import * as ShareService from "./shareservice.js";
 import * as StatusService from "./statusservice.js";
+import * as StudioIntegrationService from "./studiointegrationservice.js";
 import * as StudioService from "./studioservice.js";
 import * as SyncService from "./syncservice.js";
 import * as TagService from "./tagservice.js";
@@ -54,6 +55,7 @@ export {
     SettingsService,
     ShareService,
     StatusService,
+    StudioIntegrationService,
     StudioService,
     SyncService,
     TagService,

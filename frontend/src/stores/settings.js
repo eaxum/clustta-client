@@ -25,6 +25,7 @@ export const useSettingsStore = defineStore("settings", {
       
       studio: false,
       studiocollaborators: false,
+      studiointegrations: false,
     },
 
     activeModal: null,
@@ -61,6 +62,7 @@ export const useSettingsStore = defineStore("settings", {
 
       { id: "studio", nameKey: "settings.studio", name: "Studio", icon: "stall" },
       { id: "studiocollaborators", nameKey: "settings.studioCollaborators", name: "Studio Collaborators", icon: "person" },
+      { id: "studiointegrations", nameKey: "settings.studioIntegrations", name: "Integrations", icon: "plug" },
     ],
 
     templateContexts: [

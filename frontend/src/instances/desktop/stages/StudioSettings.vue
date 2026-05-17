@@ -35,6 +35,7 @@ const pageListRoot = ref(null);
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import Studio from '@/instances/desktop/settings/Studio.vue';
 import StudioCollaborators from '@/instances/desktop/settings/StudioCollaborators.vue';
+import StudioIntegrations from '@/instances/desktop/settings/StudioIntegrations.vue';
 import ProjectTemplates from '@/instances/desktop/settings/ProjectTemplates.vue';
 
 
@@ -42,12 +43,13 @@ import ProjectTemplates from '@/instances/desktop/settings/ProjectTemplates.vue'
 const settingsComponents = {
 	studio: Studio,
 	studiocollaborators: StudioCollaborators,
+	studiointegrations: StudioIntegrations,
 	projecttemplates: ProjectTemplates,
 };
 
 // computed props
 const settingsItems = computed(() => {
-	const studioSettingsIds = ['studio', 'studiocollaborators'];
+	const studioSettingsIds = ['studio', 'studiocollaborators', 'studiointegrations'];
 	const canCollaborate = entitlementStore.canCollaborate;
 
 	const studioSettings = settings.settingsItems.filter((item) =>
