@@ -13,13 +13,12 @@ import { useSyncConflictStore } from '@/stores/syncConflict';
 import { useAgentApprovalStore } from '@/stores/agentApproval';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
-import { refreshEntitlements } from '@/lib/sync';
+import { pullData, updateProject } from '@/lib/sync';
 
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from './stores/projects';
 import { useStudioStore } from './stores/studio';
-import { useUserStore } from './stores/users';
-import { SyncService, ProjectService } from "@/services";
+import { ProjectService, SettingsService } from "@/services";
 import { System } from "@wailsio/runtime";
 import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
@@ -43,7 +42,6 @@ const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const stageStore = useStageStore();
 const studioStore = useStudioStore();
-const userStore = useUserStore();
 const accountStore = useAccountStore();
 const entitlementStore = useEntitlementStore();
 
@@ -190,26 +188,6 @@ async function updateFileStates() {
         LogService.LogError("error procesing file status: " + err.message)
     }
 }
-async function pullData() {
-    let syncOptions = {
-        only_latest_checkpoints: false,
-        asset_dependencies: false,
-        assets: false,
-        templates: false,
-    };
-    await SyncService.PullData(
-        projectStore.activeProject.uri, projectStore.getActiveProjectUrl, false, syncOptions
-    )
-        .then(async () => {
-            await projectStore.reloadActiveProject()
-            await userStore.reloadUsers()
-            refreshEntitlements();
-            emitter.emit('refresh-browser');
-        }).catch((error) => {
-            console.log("Error Syncing Data", error)
-            notificationStore.errorNotification("Error Syncing Data", error)
-        })
-}
 
 const operationsActive = computed(() => {
     return stageStore.operationActive 
@@ -259,32 +237,34 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        if (projectStore.getActiveProject.is_unsynced) {
-            setTimeout(run, 1000);
-            return
-        }
         ProjectService.GetSyncToken(projectStore.getActiveProjectUrl)
             .then(async (token) => {
                 studioStore.appOnline = true;
-                if (token) {
-                    let syncToken = projectStore.activeProject.sync_token
-                    if (syncToken != token) {
-                        stageStore.operationActive = true;
-                        await projectStore.refreshActiveProject()
-                        if (!projectStore.getActiveProject.is_downloaded) {
-                            stageStore.operationActive = false;
-                            return
-                        }
-                        if (projectStore.getActiveProject.is_unsynced) {
-                            stageStore.operationActive = false;
-                            return
-                        }
+                if (!token) return
+                let syncToken = projectStore.activeProject.sync_token
+                if (syncToken == token) return
 
-                        await pullData().catch((error) => {
-                            console.log(error)
-                        })
-                        stageStore.operationActive = false;
+                await projectStore.refreshActiveProject()
+                if (!projectStore.getActiveProject.is_downloaded) return
+
+                let useUpdateSync = false;
+                try {
+                    useUpdateSync = await SettingsService.GetUseUpdateSync();
+                } catch (err) {
+                    console.log(err);
+                }
+
+                if (!useUpdateSync && projectStore.getActiveProject.is_unsynced) return
+
+                stageStore.operationActive = true;
+                try {
+                    if (useUpdateSync) {
+                        await updateProject()
+                    } else {
+                        await pullData()
                     }
+                } finally {
+                    stageStore.operationActive = false;
                 }
             }).catch((error) => {
                 if (projectStore.selectedStudio?.name !== 'Personal') {

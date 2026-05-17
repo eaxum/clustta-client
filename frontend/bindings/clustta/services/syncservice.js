@@ -148,5 +148,21 @@ export function SyncData(projectPath, remoteURL, pullChunk, syncOptions) {
     return $Call.ByID(1941684635, projectPath, remoteURL, pullChunk, syncOptions);
 }
 
+/**
+ * UpdateProject performs a non-destructive background merge of the remote
+ * project state into the local database. Unlike PullData it does not drop
+ * tables, does not pull chunks, does not emit progress events, and is safe
+ * to call while the project has unsynced local rows: mtime-gated upserts
+ * preserve any local row whose mtime is newer than the server's. Intended
+ * for polling on a token mismatch, behind the UseUpdateSync experimental
+ * flag.
+ * @param {string} projectPath
+ * @param {string} remoteURL
+ * @returns {$CancellablePromise<void>}
+ */
+export function UpdateProject(projectPath, remoteURL) {
+    return $Call.ByID(3251938578, projectPath, remoteURL);
+}
+
 // Private type creation functions
 const $$createType0 = sync_service$0.ChangeSummary.createFrom;

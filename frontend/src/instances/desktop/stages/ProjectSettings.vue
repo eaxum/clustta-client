@@ -66,7 +66,7 @@ const settingsItems = computed(() => {
 	const hasCustomRoles = entitlementStore.hasCustomRoles;
 	const hasIntegrations = entitlementStore.hasIntegrations;
 
-	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'studio', 'studiocollaborators'];
+	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'studio', 'studiocollaborators', 'studiointegrations'];
 	const remoteProjectIds = ['collaborators', 'roles', 'advanced'];
 
 	const projectSettings = settings.settingsItems.filter((item) => 

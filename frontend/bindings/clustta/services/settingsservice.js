@@ -371,6 +371,15 @@ export function GetUseGrid() {
 }
 
 /**
+ * GetUseUpdateSync returns whether the experimental non-destructive update
+ * sync is enabled for the polling loop.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetUseUpdateSync() {
+    return $Call.ByID(690501231);
+}
+
+/**
  * GetUserDirectory returns the current user's home directory path.
  * @returns {$CancellablePromise<string>}
  */
@@ -604,6 +613,16 @@ export function SetTheme(theme) {
  */
 export function SetUseGrid(useGrid) {
     return $Call.ByID(733610941, useGrid);
+}
+
+/**
+ * SetUseUpdateSync enables or disables the experimental non-destructive
+ * update sync used by the polling loop in place of the destructive pull.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetUseUpdateSync(enabled) {
+    return $Call.ByID(3778002811, enabled);
 }
 
 /**

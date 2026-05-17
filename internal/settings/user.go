@@ -126,6 +126,7 @@ type Settings struct {
 	DefaultLocationID string            `json:"default_location_id"`
 
 	SyncAfterCheckpoint bool  `json:"sync_after_checkpoint"`
+	UseUpdateSync       bool  `json:"use_update_sync"`
 	BridgeEnabled       bool  `json:"bridge_enabled"`
 	MinimizeOnClose     *bool `json:"minimize_on_close,omitempty"`
 
@@ -454,6 +455,27 @@ func SetSyncAfterCheckpoint(enabled bool) error {
 		return err
 	}
 	settings.SyncAfterCheckpoint = enabled
+	return saveSettings(settings)
+}
+
+// GetUseUpdateSync returns whether the experimental non-destructive update
+// sync is enabled. Defaults to false.
+func GetUseUpdateSync() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	return settings.UseUpdateSync, nil
+}
+
+// SetUseUpdateSync sets whether the experimental non-destructive update sync
+// is enabled in place of the destructive pull during polling.
+func SetUseUpdateSync(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.UseUpdateSync = enabled
 	return saveSettings(settings)
 }
 

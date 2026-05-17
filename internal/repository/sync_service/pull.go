@@ -1,4 +1,4 @@
-package sync_service
+﻿package sync_service
 
 import (
 	"clustta/internal/auth_service"

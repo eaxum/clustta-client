@@ -248,12 +248,13 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 				return err
 			}
 		} else {
-			if localUser.MTime < user.MTime {
-				if localUser.RoleId != user.RoleId {
-					err = repository.ChangeUserRole(tx, user.Id, user.RoleId)
-					if err != nil {
-						return err
-					}
+			// Role changes from the server always take precedence over local
+			// state, independent of mtime. This guarantees demotions/promotions
+			// land in real time even if the local user just edited their profile.
+			if localUser.RoleId != user.RoleId {
+				err = repository.ChangeUserRole(tx, user.Id, user.RoleId)
+				if err != nil {
+					return err
 				}
 			}
 		}
@@ -1200,6 +1201,8 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 
 				Tags:      repository.FromPbTags(userDataPb.Tags),
 				AssetTags: repository.FromPbAssetTags(userDataPb.AssetTags),
+
+				Tombs: repository.FromPbTombs(userDataPb.Tomb),
 
 				IntegrationProjects:           repository.FromPbIntegrationProjects(userDataPb.IntegrationProjects),
 				IntegrationCollectionMappings: repository.FromPbIntegrationCollectionMappings(userDataPb.IntegrationCollectionMappings),

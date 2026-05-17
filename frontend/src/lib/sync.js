@@ -4,6 +4,7 @@ import { useProjectStore } from "@/stores/projects";
 import { useTrayStates } from "@/stores/TrayStates";
 import { useAccountStore } from "@/stores/accounts";
 import { useEntitlementStore } from "@/stores/entitlements";
+import { useUserStore } from "@/stores/users";
 import emitter from '@/lib/mitt';
 
 // Refreshes entitlements based on the current studio context.
@@ -107,6 +108,30 @@ export async function pullData() {
     .catch((error) => {
       console.error(error);
       notificationStore.errorNotification("Error Syncing Data", error);
+    });
+}
+
+// Non-destructive background merge used by the polling loop when the
+// experimental UseUpdateSync flag is enabled. Safe to run while the
+// project has unsynced local edits.
+export async function updateProject() {
+  if (!checkRemoteAccess()) return;
+
+  const projectStore = useProjectStore();
+  const userStore = useUserStore();
+
+  await SyncService.UpdateProject(
+    projectStore.activeProject.uri,
+    projectStore.getActiveProjectUrl
+  )
+    .then(async () => {
+      await projectStore.reloadActiveProject();
+      await userStore.reloadUsers();
+      refreshEntitlements();
+      emitter.emit('refresh-browser');
+    })
+    .catch((error) => {
+      console.log(error);
     });
 }
 

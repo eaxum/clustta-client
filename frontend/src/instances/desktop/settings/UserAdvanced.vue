@@ -129,6 +129,17 @@
             </div>
           </div>
 
+          <div class="settings-item" @click="toggleUseUpdateSync">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('refresh')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.useUpdateSync') }}</div>
+              <div class="settings-body">{{ $t('settings.useUpdateSyncDescription') }}</div>
+            </div>
+            <div class="settings-action fixed-width">
+              <ToggleSwitch :switchValueProp="useUpdateSync" />
+            </div>
+          </div>
+
         </div>
       </div>
 
@@ -164,6 +175,7 @@ const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
 const settingsStore = useSettingsStore();
 const syncAfterCheckpoint = ref(false);
+const useUpdateSync = ref(false);
 const { t } = useI18n();
 
 // computed
@@ -236,12 +248,29 @@ const toggleSyncAfterCheckpoint = () => {
   });
 };
 
+// Toggles the experimental non-destructive update sync used by the polling loop.
+const toggleUseUpdateSync = () => {
+  const newValue = !useUpdateSync.value;
+  SettingsService.SetUseUpdateSync(newValue).then(() => {
+    useUpdateSync.value = newValue;
+    notificationStore.addNotification(
+      t('settings.useUpdateSync'),
+      t('notifications.useUpdateSyncToggled', { status: newValue ? 'enabled' : 'disabled' }),
+      "success"
+    );
+  }).catch((error) => {
+    console.log(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateUseUpdateSync'), "error");
+  });
+};
+
 // lifecycle hooks
 onMounted(async () => {
   try {
     await settingsStore.initializeBridge();
     await settingsStore.initializeMinimizeOnClose();
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
+    useUpdateSync.value = await SettingsService.GetUseUpdateSync();
     await integrationStore.initialize();
     const status = await AgentService.GetAPIKeyStatus();
     agentKeyConfigured.value = status.configured;

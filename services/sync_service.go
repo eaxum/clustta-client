@@ -4,9 +4,11 @@ import (
 	"clustta/internal/auth_service"
 	"clustta/internal/error_service"
 	"clustta/internal/repository/sync_service"
+	"clustta/internal/repository/sync_service/update"
 	"clustta/internal/settings"
 	"clustta/internal/utils"
 	"clustta/output"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -489,6 +491,29 @@ func (s *SyncService) PullLatestCheckpoints(projectPath, remoteURL string) error
 	}
 
 	close(progressChan)
+	return nil
+}
+
+// UpdateProject performs a non-destructive background merge of the remote
+// project state into the local database. Unlike PullData it does not drop
+// tables, does not pull chunks, does not emit progress events, and is safe
+// to call while the project has unsynced local rows: mtime-gated upserts
+// preserve any local row whose mtime is newer than the server's. Intended
+// for polling on a token mismatch, behind the UseUpdateSync experimental
+// flag.
+func (s *SyncService) UpdateProject(projectPath string, remoteURL string) error {
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	err = update.UpdateProject(context.Background(), projectPath, remoteURL, activeUser.Id)
+	if err != nil {
+		if errors.Is(err, syscall.ECONNREFUSED) {
+			return errors.New("syncing failed, connection refused")
+		}
+		return err
+	}
+	InvalidateRemoteCache(projectPath)
 	return nil
 }
 

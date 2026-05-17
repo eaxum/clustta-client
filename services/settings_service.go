@@ -497,6 +497,18 @@ func (s *SettingsService) SetSyncAfterCheckpoint(enabled bool) error {
 	return settings.SetSyncAfterCheckpoint(enabled)
 }
 
+// GetUseUpdateSync returns whether the experimental non-destructive update
+// sync is enabled for the polling loop.
+func (s *SettingsService) GetUseUpdateSync() (bool, error) {
+	return settings.GetUseUpdateSync()
+}
+
+// SetUseUpdateSync enables or disables the experimental non-destructive
+// update sync used by the polling loop in place of the destructive pull.
+func (s *SettingsService) SetUseUpdateSync(enabled bool) error {
+	return settings.SetUseUpdateSync(enabled)
+}
+
 // GetMinimizeOnClose returns whether the app minimizes to tray on close.
 func (s *SettingsService) GetMinimizeOnClose() (bool, error) {
 	return settings.GetMinimizeOnClose()
