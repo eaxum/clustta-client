@@ -105,6 +105,7 @@ type IntegrationCredential struct {
 type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
+	ThemeTint             string `json:"theme_tint"`
 	Language              string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
 	EulaAccepted          bool   `json:"eula_accepted"`
 	ProjectGridView       bool   `json:"project_grid_view"`
@@ -357,6 +358,28 @@ func SetTheme(theme string) error {
 		return err
 	}
 	settings.Theme = theme
+	return saveSettings(settings)
+}
+
+// GetThemeTint returns the current theme tint name, defaulting to "neutral".
+func GetThemeTint() (string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return "", err
+	}
+	if settings.ThemeTint == "" {
+		settings.ThemeTint = "neutral"
+	}
+	return settings.ThemeTint, nil
+}
+
+// SetThemeTint persists the chosen theme tint.
+func SetThemeTint(tint string) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.ThemeTint = tint
 	return saveSettings(settings)
 }
 

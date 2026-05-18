@@ -363,6 +363,14 @@ export function GetTheme() {
 }
 
 /**
+ * GetThemeTint retrieves the current theme tint name.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetThemeTint() {
+    return $Call.ByID(1647011910);
+}
+
+/**
  * GetUseGrid retrieves whether grid view is enabled.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -604,6 +612,15 @@ export function SetSyncAfterCheckpoint(enabled) {
  */
 export function SetTheme(theme) {
     return $Call.ByID(694474447, theme);
+}
+
+/**
+ * SetThemeTint sets the application theme tint.
+ * @param {string} tint
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetThemeTint(tint) {
+    return $Call.ByID(1514301730, tint);
 }
 
 /**

@@ -5,6 +5,12 @@ import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";
 import { AppService } from "@/services";
+import { applyTheme } from "@/theme/apply";
+
+// Apply a default palette immediately so the very first paint already uses
+// the design-token system. The real values (from user settings) are loaded
+// later by `useThemeStore.initialize()`.
+applyTheme({ mode: "system", tint: "neutral" });
 
 // Tag <html> with the host OS so CSS can target platform-specific quirks
 // (e.g. missing backdrop-filter rendering on WebKitGTK / Linux).

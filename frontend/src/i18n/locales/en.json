@@ -473,6 +473,8 @@
     "iconScheme": "Icon scheme",
     "iconSchemeDescription": "Toggle between different icon styles for the user interface.",
     "themeDescription": "Light or Dark mode.",
+    "accent": "Accent",
+    "accentDescription": "Choose a color tint for the interface.",
     "defaultViewDescription": "Choose between list, compact, or grid view as default.",
     "dataManagement": "Data Management",
     "clearRecents": "Clear recents",

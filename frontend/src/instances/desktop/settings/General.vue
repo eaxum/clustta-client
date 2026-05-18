@@ -23,14 +23,27 @@
           </div>
 
           <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="themeStore.isDarkMode ? getAppIcon('moon') : getAppIcon('sun')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="themeIcon"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.theme') }}</div>
               <div class="settings-body">{{ $t('settings.themeDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
-              <DropDownBox :items="themeStore.themes" :onSelect="selectTheme"
-                :selectedItem="themeStore.currentTheme" :placeHolder="'None'" :fixedWidth="true" />
+              <DropDownBox :items="themeStore.availableModes" :onSelect="selectTheme"
+                :selectedItem="themeStore.mode" :placeHolder="'None'" :fixedWidth="true" />
+            </div>
+          </div>
+
+          <div class="settings-item">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('palette')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.accent') }}</div>
+              <div class="settings-body">{{ $t('settings.accentDescription') }}</div>
+            </div>
+            <div class="settings-action tint-swatches">
+              <button v-for="tint in themeStore.availableTints" :key="tint"
+                class="tint-swatch" :class="{ 'tint-swatch-active': themeStore.tint === tint }"
+                :style="tintSwatchStyle(tint)" v-tooltip="utils.capitalizeStr(tint)" @click="selectTint(tint)"></button>
             </div>
           </div>
 
@@ -172,6 +185,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { Browser } from "@wailsio/runtime";
 import { useIconStore } from '@/stores/icons';
 import { useThemeStore } from '@/stores/theme';
+import { TINTS } from '@/theme/palette';
 import { useCommonStore } from '@/stores/common';
 
 // components
@@ -219,6 +233,12 @@ const defaultViewIcon = computed(() => {
   return 'list';
 });
 
+// Returns the icon for the current theme mode (sun/moon/system).
+const themeIcon = computed(() => {
+  if (themeStore.mode === 'system') return getAppIcon('palette');
+  return themeStore.resolvedMode === 'dark' ? getAppIcon('moon') : getAppIcon('sun');
+});
+
 // Returns the available view mode options for the dropdown.
 const viewModeOptions = computed(() => [
   t('settings.list'),
@@ -257,11 +277,20 @@ const selectLanguage = async (languageName) => {
 };
 
 const selectTheme = (theme) => {
-  SettingsService.SetTheme(theme).then(() => {
-    themeStore.selectedTheme = theme;
-    themeStore.isDarkMode = theme === 'dark'
-    themeStore.applyTheme();
-  })
+  themeStore.setMode(theme);
+};
+
+// Sets and persists the theme tint.
+const selectTint = (tint) => {
+  themeStore.setTint(tint);
+};
+
+// Returns inline-style preview for a tint swatch using the same palette function
+// the runtime uses, so what the user sees is exactly what they will get.
+const tintSwatchStyle = (tint) => {
+  const cfg = TINTS[tint];
+  if (!cfg) return {};
+  return { background: `oklch(${themeStore.resolvedMode === 'dark' ? 0.66 : 0.52} ${cfg.accentChroma} ${cfg.accentHue})` };
 };
 
 // Selects and applies the default view mode.
@@ -457,6 +486,35 @@ onMounted(async () => {
 
 .fixed-width {
   min-width: 200px;
+}
+
+.tint-swatches {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  width: min-content;
+  padding: .5rem;
+}
+
+.tint-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 40%;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease, outline-offset 0.1s ease;
+  outline: 0 solid var(--accent);
+  outline-offset: 0;
+}
+
+.tint-swatch:hover {
+  transform: scale(1.1);
+}
+
+.tint-swatch-active {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 </style>
 

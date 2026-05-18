@@ -318,6 +318,16 @@ func (s *SettingsService) SetTheme(theme string) error {
 	return nil
 }
 
+// GetThemeTint retrieves the current theme tint name.
+func (s *SettingsService) GetThemeTint() (string, error) {
+	return settings.GetThemeTint()
+}
+
+// SetThemeTint sets the application theme tint.
+func (s *SettingsService) SetThemeTint(tint string) error {
+	return settings.SetThemeTint(tint)
+}
+
 // GetLanguage retrieves the user's language preference.
 func (s *SettingsService) GetLanguage() (string, error) {
 	language, err := settings.GetLanguage()

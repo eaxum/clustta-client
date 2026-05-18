@@ -74,75 +74,98 @@
 
   --entity: hsla(0, 0%, 7%, 0.9);
   --entity-alt: hsla(0, 0%, 11%, 0.7);
-  /* colors */
-  
+
+  /* ------------------------------------------------------------------ */
+  /* Design tokens                                                       */
+  /*                                                                     */
+  /* The semantic tokens below (--bg, --surface-1..5, --text, --text-    */
+  /* muted, --border, --accent, --hover, --danger, --warning, ...) are   */
+  /* generated at runtime by `frontend/src/theme/palette.js` based on    */
+  /* the user's selected mode and tint, and written to <html> as inline  */
+  /* style properties. The values declared here are only fallbacks for   */
+  /* the brief moment before the palette engine runs.                    */
+  /*                                                                     */
+  /* The "legacy alias" block remaps the old token names                 */
+  /* (--white, --black, --steel, --black-steel, --midnight-steel, ...)   */
+  /* onto the new semantic tokens so existing components keep working    */
+  /* unchanged. New code should consume the semantic tokens directly.    */
+  /* ------------------------------------------------------------------ */
+
+  /* Semantic-token fallbacks (overridden at runtime) */
+  --bg:           oklch(0.985 0 264);
+  --surface-1:    oklch(0.97  0 264);
+  --surface-2:    oklch(0.94  0 264);
+  --surface-3:    oklch(0.90  0 264);
+  --surface-4:    oklch(0.85  0 264);
+  --surface-5:    oklch(0.78  0 264);
+  --text:         oklch(0.18  0 264);
+  --text-muted:   oklch(0.42  0 264);
+  --text-inverse: oklch(0.98  0 264);
+  --border:       oklch(0.86  0 264);
+  --border-strong:oklch(0.70  0 264);
+  --accent:       oklch(0.52 0.18 215);
+  --accent-hover: oklch(0.47 0.18 215);
+  --accent-fg:    oklch(0.98 0 0);
+  --hover:        oklch(0 0 0 / 0.06);
+  --icon-invert:  0;
+  --danger:       oklch(0.58 0.22 25);
+  --warning:      oklch(0.75 0.16 75);
+  --alert:        oklch(0.70 0.15 60);
+  --success:      oklch(0.62 0.16 145);
+  --online:       oklch(0.72 0.20 145);
+  --info:         oklch(0.65 0.15 235);
+
+  /* Legacy alias layer — maps old token names onto semantic tokens. */
+  --white:           var(--text);
+  --silver:          var(--text-muted);
+  --bright-steel:    var(--surface-5);
+  --light-steel:     var(--surface-4);
+  --shadow-steel:    var(--surface-3);
+  --steel:           var(--surface-3);
+  --dark-steel:      var(--surface-2);
+  --black-steel:     var(--surface-1);
+  --midnight-steel:  var(--bg);
+  --black:           var(--surface-1);
+
+  /* Brand / accent legacy aliases */
+  --solid-blue-steel:       var(--accent);
+  --asset-item-selected:    var(--accent);
+  --project-item-selected:  var(--accent);
+  --resource-item-selected: hsl(177, 81%, 29%);
+  --entity-item-selected:   hsl(251, 48%, 32%);
+
+  /* Untintable brand / status colors retained verbatim */
   --drop-hover: #1e7fee;
   --grape: #643193;
-  --bright-grape: #301663;  
+  --bright-grape: #301663;
   --glass: hsla(254, 0%, 45%, 0.2);
   --dark-glass: hsla(0, 0%, 20%, 0.2);
   --green-glass: hsla(136, 15%, 45%, 0.2);
   --purple-glass: hsla(254, 15%, 45%, 0.2);
 
-
-  /* --white: hsl(0, 0%, 0%);
-  --silver: hsl(0, 0%, 15%);
-  --bright-steel: hsl(0, 0%, 81%);
-  --steel: hsl(254, 0%, 85%);
-  --light-steel: hsl(0, 0%, 81%);
-  --dark-steel: hsl(0, 0%, 89%);
-  --black-steel: hsl(0, 0%, 93%);
-  --midnight-steel: hsl(0, 0%, 96%);
-  --black: hsl(0, 0%, 93%); */
-
-  --hover:  hsla(0, 0%, 0%, 0.15);
-
-  /* Light mode (default) */
---white: oklch(from var(--steel) 0.0 c h);           /* Pure black */
---silver: oklch(from var(--steel) 0.23 c h);         /* Dark gray */
---bright-steel: oklch(from var(--steel) 0.80 c h);    /* Slightly darker */
---light-steel: oklch(from var(--steel) 0.85 c h);    /* Slightly darker */
---shadow-steel: oklch(from var(--steel) .87 c h);                 /* A bit darker*/
---steel: oklch(0.89 0 264);                          /* Base color - unchanged */
---dark-steel: oklch(from var(--steel) 0.93 c h);     /* Lighter */
---black-steel: oklch(from var(--steel) 0.97 c h);    /* Even lighter */
---midnight-steel: oklch(from var(--steel) 0.98 c h); /* Lightest */
---black: oklch(from var(--steel) 0.93 c h);          /* Same as dark-steel */
-
-
-  /* others */
   --green-steel: hsl(136, 14%, 15%);
   --transparent-dark-steel: hsla(0, 0%, 11%, 0.1);
   --blue-steel: hsla(215, 81%, 29%, 0.5);
-  --solid-blue-steel: hsl(215, 67%, 52%);
-
-  --resource-item-selected: hsl(177, 81%, 29%);
-  --asset-item-selected: hsl(215, 74%, 49%);
-  --entity-item-selected: hsl(251, 48%, 32%);
-  --project-item-selected: hsl(215, 74%, 49%);
   --transparent-black: rgba(0, 0, 0, 0.4);
 
-  
   --collection-item-color: hsl(215, 87%, 59%);
   --asset-item-color: hsl(130, 57%, 42%);
   --resource-item-color: hsl(49, 93%, 63%);
-  
-  --online: #20d949;
-  
-  --attention: #EBBA16  ;
-  --alert: #d69c37  ;
-  --danger: crimson;
+
+  --attention: #EBBA16;
   --calm: blue;
 
   /* blur */
   --mild-blur: blur(20px);
 
-  /* radius */
+  /* lines */
   --faint-line: 1px solid var(--dark-steel);
   --transparent-line: 1px solid var(--light-steel);
   --medium-transparent-line: 1.5px solid var(--bright-steel);
   --thick-transparent-line: 2px solid rgba(255, 255, 255, 0.2);
   --solid-line: 1px solid var(--white);
+
+  /* radius */
   --tiny-radius: 4px;
   --small-radius: 8px;
   --normal-radius: 12px;
@@ -152,24 +175,6 @@
 
   /* width */
   --actions-width: 30px;
-}
-
-
-
-[data-theme="dark"] {
-  /* Dark mode */
-  --white: hsl(0, 0%, 100%);
-  --silver: hsl(0, 0%, 85%);
-  --light-steel: hsl(0, 0%, 19%);
-  --steel: hsl(0, 0%, 15%);
-  --shadow-steel: hsl(0, 0%, 13%);
-  --dark-steel: hsl(0, 0%, 11%);
-  --black-steel: hsl(0, 0%, 7%);
-  --midnight-steel: hsl(0, 0%, 4%);
-  --black: hsl(0, 0%, 7%);
-
-  --solid-blue-steel: hsl(215, 81%, 29%);
-  --hover:  hsla(0, 0%, 100%, 0.05);
 }
 
 .root {

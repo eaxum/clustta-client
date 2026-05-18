@@ -7,7 +7,7 @@
       <div class="list-box-parent-content" @mouseenter="utils.handleHover($event)"
         @mouseleave="utils.resetScroll($event)">
         <div class="list-box-parent-text" :class="{ 'placeholder-text': isPlaceholder }" style="overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5rem;">
-          <img v-if="selectedItemIcon" :src="selectedItemIcon" class="listbox-icon" />
+          <img v-if="selectedItemIcon" :src="selectedItemIcon" class="listbox-icon small-icons" />
           {{ selectedListItem }}
         </div>
       </div>
@@ -22,7 +22,7 @@
             <div class="listbox-item-text-mask" @mouseenter="startScrollText($event, index)"
               @mouseleave="stopScrollText($event)">
               <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }" style="display: flex; align-items: center; gap: 0.5rem;">
-                <img v-if="getItemIcon(item)" :src="getItemIcon(item)" class="listbox-icon" />
+                <img v-if="getItemIcon(item)" :src="getItemIcon(item)" class="listbox-icon  small-icons" />
                 {{ utils.capitalizeStr(getItemValue(item)) }}
               </div>
             </div>

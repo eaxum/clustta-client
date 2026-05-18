@@ -235,17 +235,10 @@ const toggleStudioList = () => {
 };
 
 const toggleTheme = () => {
-  themeStore.isDarkMode = !themeStore.isDarkMode
-  let theme;
-  if(themeStore.isDarkMode){
-    theme = 'dark'
-  } else {
-    theme = 'light'
-  }
-  SettingsService.SetTheme(theme).then(() => {
-    themeStore.selectedTheme = theme;
-    themeStore.applyTheme();
-  })
+  // Cycle: system -> light -> dark -> system
+  const order = ['system', 'light', 'dark'];
+  const next = order[(order.indexOf(themeStore.mode) + 1) % order.length];
+  themeStore.setMode(next);
 };
 
 const displayAppInfo = () => {
@@ -391,7 +384,7 @@ onBeforeUnmount(() => {
   right: 100%;
   bottom: 0;
   left: 0;
-  background: linear-gradient(to right, transparent, #643193, transparent);
+  background: linear-gradient(to right, transparent, var(--accent), transparent);
   width: 0;
   animation: borealisBar 1.2s linear infinite;
   z-index: 1;
