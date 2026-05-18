@@ -116,6 +116,9 @@ const handleDeepLink = (rawUrl) => {
         if (url.protocol !== 'clustta:') return;
 
         const action = url.hostname || url.pathname.replace(/^\/+/, '');
+        if (action === 'sso-complete') {
+            return;
+        }
         if (action === 'invite') {
             const studioName = url.searchParams.get('studio');
             if (studioName) {

@@ -64,5 +64,9 @@
   <div class="auth-header">Login<br>Successful!</div>
   <div class="auth-subheader">You can close this window and return to Clustta.</div>
 </div>
+<script>
+  // Refocus the desktop app via the registered clustta:// scheme
+  setTimeout(function () { window.location.href = 'clustta://sso-complete'; }, 150);
+</script>
 </body>
 </html>

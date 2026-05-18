@@ -37,6 +37,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
+import { useStudioStore } from '@/stores/studio';
 import { useUserStore } from '@/stores/users';
 
 const accountStore = useAccountStore();
@@ -44,6 +45,7 @@ const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
+const studioStore = useStudioStore();
 const userStore = useUserStore();
 
 // computed
@@ -64,10 +66,11 @@ const studioBundle = computed(() => {
 });
 
 // Returns whether the component should be visible.
+// Only studio admins should see plan/storage info for cloud studios.
 const visible = computed(() => {
   if (!userStore.isUserAuthenticated || accountStore.isOfflineMode) return false;
   if (isPersonal.value) return true;
-  return isCloudStudio.value;
+  return isCloudStudio.value && studioStore.isStudioAdmin;
 });
 
 // Returns whether the current context has a paid plan.
