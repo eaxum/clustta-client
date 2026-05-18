@@ -47,7 +47,7 @@ type errorEnvelope struct {
 // or server failures.
 func GetConfig(studioId, integrationId string) (Config, error) {
 	var cfg Config
-	url := fmt.Sprintf("%s/studio-integration/%s/%s", constants.HOST, studioId, integrationId)
+	url := fmt.Sprintf("%s/integrations/%s/%s", constants.HOST, studioId, integrationId)
 	body, err := doRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return cfg, err
@@ -62,7 +62,7 @@ func GetConfig(studioId, integrationId string) (Config, error) {
 // them against the remote service and (re)starts the listener.
 func SaveConfig(studioId, integrationId string, payload CredentialsPayload) (Config, error) {
 	var cfg Config
-	url := fmt.Sprintf("%s/studio-integration/%s/%s", constants.HOST, studioId, integrationId)
+	url := fmt.Sprintf("%s/integrations/%s/%s", constants.HOST, studioId, integrationId)
 	body, err := doRequest(http.MethodPut, url, payload)
 	if err != nil {
 		return cfg, err
@@ -75,7 +75,7 @@ func SaveConfig(studioId, integrationId string, payload CredentialsPayload) (Con
 
 // DeleteConfig stops the listener and removes stored credentials.
 func DeleteConfig(studioId, integrationId string) error {
-	url := fmt.Sprintf("%s/studio-integration/%s/%s", constants.HOST, studioId, integrationId)
+	url := fmt.Sprintf("%s/integrations/%s/%s", constants.HOST, studioId, integrationId)
 	_, err := doRequest(http.MethodDelete, url, nil)
 	return err
 }
@@ -85,7 +85,7 @@ func DeleteConfig(studioId, integrationId string) error {
 // Returns a non-fatal warning message from the server (e.g. insecure HTTP URL)
 // when present; the connection itself still succeeded.
 func TestConfig(studioId, integrationId string, payload CredentialsPayload) (string, error) {
-	url := fmt.Sprintf("%s/studio-integration/%s/%s/test", constants.HOST, studioId, integrationId)
+	url := fmt.Sprintf("%s/integrations/%s/%s/test", constants.HOST, studioId, integrationId)
 	body, err := doRequest(http.MethodPost, url, payload)
 	if err != nil {
 		return "", err
@@ -102,7 +102,7 @@ func TestConfig(studioId, integrationId string, payload CredentialsPayload) (str
 // accordingly and returns the refreshed view.
 func SetEnabled(studioId, integrationId string, enabled bool) (Config, error) {
 	var cfg Config
-	url := fmt.Sprintf("%s/studio-integration/%s/%s/enabled", constants.HOST, studioId, integrationId)
+	url := fmt.Sprintf("%s/integrations/%s/%s/enabled", constants.HOST, studioId, integrationId)
 	body, err := doRequest(http.MethodPatch, url, map[string]bool{"enabled": enabled})
 	if err != nil {
 		return cfg, err
