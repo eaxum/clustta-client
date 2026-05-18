@@ -35,7 +35,23 @@
   <screenshots>
     <screenshot type="default">
       <caption>Clustta desktop client showing asset browser with collections and thumbnails</caption>
-      <image>https://raw.githubusercontent.com/eaxum/clustta-client/main/frontend/public/assets/clustta-hero.png</image>
+      <image>https://clustta.com/media/clustta-hero-new-light.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Organize your creative work with project and task templates</caption>
+      <image>https://clustta.com/media/organize/clustta-templates.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Travel back in time with checkpoints and version history</caption>
+      <image>https://clustta.com/media/revision/clustta-checkpoints.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Browse the complete version history of your files</caption>
+      <image>https://clustta.com/media/revision/clustta-history.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Track work with Kanban boards</caption>
+      <image>https://clustta.com/media/organize/clustta-kanban.png</image>
     </screenshot>
   </screenshots>
 
@@ -45,8 +61,8 @@
   </provides>
 
   <branding>
-    <color type="primary" scheme_preference="light">#f0f0f0</color>
-    <color type="primary" scheme_preference="dark">#1a1a1a</color>
+    <color type="primary" scheme_preference="light">#fcc235</color>
+    <color type="primary" scheme_preference="dark">#1a1525</color>
   </branding>
 
   <keywords>
