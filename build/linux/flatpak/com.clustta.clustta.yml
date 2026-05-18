@@ -26,6 +26,9 @@ finish-args:
   # System tray icon
   - --talk-name=org.kde.StatusNotifierWatcher
   - --own-name=org.kde.*
+  # Workaround for blank screen on NVIDIA proprietary driver + Wayland
+  # (WebKitGTK's DMA-BUF renderer fails on nvidia's GBM implementation)
+  - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
 
 modules:
   - name: clustta
