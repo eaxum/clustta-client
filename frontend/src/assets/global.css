@@ -774,3 +774,19 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
   right: 0;
 }
 
+/* Fallback for engines without working backdrop-filter (WebKitGTK on Linux
+   parses the property but doesn't render it, so @supports can't be used). */
+[data-os="linux"] .context-menu-container,
+[data-os="linux"] .tray-overlay-mask,
+[data-os="linux"] .menu-container,
+[data-os="linux"] .pop-up-container,
+[data-os="linux"] .overflow-menu,
+[data-os="linux"] .desktop-overlay-mask,
+[data-os="linux"] .flash-area,
+[data-os="linux"] .modal-mask,
+[data-os="linux"] .grid-status-menu-overlay,
+[data-os="linux"] .floating-actions,
+[data-os="linux"] .studio-list-container {
+  background-color: var(--black);
+}
+

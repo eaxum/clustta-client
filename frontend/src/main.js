@@ -4,6 +4,13 @@ window.wails = WailsRuntime;
 import { createPinia } from "pinia";
 import { createApp } from "vue";
 import App from "./App.vue";
+import { AppService } from "@/services";
+
+// Tag <html> with the host OS so CSS can target platform-specific quirks
+// (e.g. missing backdrop-filter rendering on WebKitGTK / Linux).
+AppService.GetOS()
+  .then((os) => { document.documentElement.dataset.os = os; })
+  .catch(() => {});
 import router from "./router";
 import i18n from "./i18n";
 import { stopPropagation } from "./directives.js";
