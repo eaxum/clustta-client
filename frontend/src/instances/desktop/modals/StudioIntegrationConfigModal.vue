@@ -162,7 +162,7 @@ onMounted(async () => {
   margin: 0;
   font-size: .85rem;
   line-height: 1.4;
-  color: var(--white-half);
+  color: var(--white);
   padding-bottom: .5rem;
 }
 
