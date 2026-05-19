@@ -131,8 +131,8 @@
   --solid-blue-steel:       var(--accent);
   --asset-item-selected:    var(--accent);
   --project-item-selected:  var(--accent);
-  --resource-item-selected: hsl(177, 81%, 29%);
-  --entity-item-selected:   hsl(251, 48%, 32%);
+  --resource-item-selected: var(--accent);
+  --entity-item-selected:   var(--accent);
 
   /* Untintable brand / status colors retained verbatim */
   --drop-hover: #1e7fee;
@@ -145,7 +145,7 @@
 
   --green-steel: hsl(136, 14%, 15%);
   --transparent-dark-steel: hsla(0, 0%, 11%, 0.1);
-  --blue-steel: hsla(215, 81%, 29%, 0.5);
+  --blue-steel: color-mix(in oklch, var(--accent) 55%, transparent);
   --transparent-black: rgba(0, 0, 0, 0.4);
 
   --collection-item-color: hsl(215, 87%, 59%);

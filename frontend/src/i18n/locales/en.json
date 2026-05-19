@@ -475,6 +475,14 @@
     "themeDescription": "Light or Dark mode.",
     "accent": "Accent",
     "accentDescription": "Choose a color tint for the interface.",
+    "tints": {
+      "neutral": "Coconut",
+      "blue": "Blueberry",
+      "pink": "Watermelon",
+      "orange": "Mango",
+      "green": "Lime",
+      "purple": "Grape"
+    },
     "defaultViewDescription": "Choose between list, compact, or grid view as default.",
     "dataManagement": "Data Management",
     "clearRecents": "Clear recents",

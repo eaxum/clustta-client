@@ -43,7 +43,7 @@
             <div class="settings-action tint-swatches">
               <button v-for="tint in themeStore.availableTints" :key="tint"
                 class="tint-swatch" :class="{ 'tint-swatch-active': themeStore.tint === tint }"
-                :style="tintSwatchStyle(tint)" v-tooltip="utils.capitalizeStr(tint)" @click="selectTint(tint)"></button>
+                :style="tintSwatchStyle(tint)" v-tooltip="$t(`settings.tints.${tint}`)" @click="selectTint(tint)"></button>
             </div>
           </div>
 

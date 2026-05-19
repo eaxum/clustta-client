@@ -305,30 +305,25 @@ const handleScroll = () => {
 	padding: 3px 3px;
 	width: 100%;
 	color: #fff;
-	/* background-color: coral; */
 	overflow: hidden;
 	text-wrap: nowrap;
-	/* transition: all 0.3s ease; */
 	box-sizing: border-box;
 	height: 35px;
 	width: 35px;
 	aspect-ratio: 1;
 	position: relative;
 	justify-content: space-between;
-	/* background-color: crimson; */
-
+	transform-origin: center;
+	transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .project-avatar-item:hover {
-	background-color: rgb(121, 121, 121);
-	background-color: #ffffff15;
-	outline: var(--transparent-line);
-	outline-offset: -1px;
+	transform: scale(1.25);
 }
 
 .project-avatar-item:active {
-	background-color: rgb(70, 70, 70);
-	background-color: #00000013;
+	transform: scale(1.1);
+	transition: transform 0.08s ease-out;
 }
 
 .project-avatar-item-text {
@@ -375,10 +370,8 @@ const handleScroll = () => {
 }
 
 .project-avatar-item-active:hover {
-	/* background-color: white; */
 	color: var(--black-steel);
-	outline: var(--solid-line);
-	outline-offset: -1px;
+	transform: scale(1.25);
 }
 
 .project-list {
