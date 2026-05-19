@@ -358,7 +358,7 @@ onMounted(async () => {
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: 300;
-  color: var(--silver);
+  color: var(--text-muted);
   margin-top: 0.5rem;
   text-align: left;
   width: 100%;
@@ -379,17 +379,17 @@ onMounted(async () => {
   text-align: center;
   font-size: 1.5rem;
   font-weight: 600;
-  border: 2px solid var(--midnight-steel);
+  border: 2px solid var(--bg);
   border-radius: var(--normal-radius);
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
   outline: none;
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .token-digit-input:focus {
   border-color: var(--grape);
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
 }
 
 .token-digit-input:valid {
@@ -445,7 +445,7 @@ onMounted(async () => {
 .loading-status {
   text-align: center;
   font-size: 0.85rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
   margin-top: 0.5rem;
   animation: pulse 1.5s ease-in-out infinite;

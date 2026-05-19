@@ -95,7 +95,7 @@ const calculateDotPositions = () => {
 
         const segments = [];
         const danger = getComputedStyle(railRef.value).getPropertyValue('--danger').trim();
-        const steel = getComputedStyle(railRef.value).getPropertyValue('--light-steel').trim();
+        const steel = getComputedStyle(railRef.value).getPropertyValue('--surface-4').trim();
 
         // Returns the background value for a segment given the sync state at each end.
         const segmentBg = (startSynced, endSynced) => {
@@ -172,14 +172,14 @@ watch(() => [props.group.items, props.expandedId], () => {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--light-steel);
+    background-color: var(--surface-4);
     z-index: 1;
 }
 
 .timeline-dot-active {
     width: 10px;
     height: 10px;
-    background-color: var(--solid-blue-steel);
+    background-color: var(--selected);
     border-radius: 2px;
     transform: translate(-50%, -50%) rotate(45deg);
 }

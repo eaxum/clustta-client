@@ -86,7 +86,7 @@ onMounted(() => {
 	overflow: hidden;
 	min-width: 550px;
 	background-color: firebrick;
-	background-color: var(--shadow-steel);
+	background-color: var(--surface-3);
 	/* background-color: forestgreen; */
 }
 

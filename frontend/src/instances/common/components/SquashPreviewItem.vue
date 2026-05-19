@@ -40,7 +40,7 @@ const formattedSize = computed(() => {
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   opacity: 0;
   animation: fadeIn 0.3s ease-in-out forwards;
 }
@@ -51,7 +51,7 @@ const formattedSize = computed(() => {
 }
 
 .squash-preview-item:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .squash-preview-badge {
@@ -62,10 +62,10 @@ const formattedSize = computed(() => {
   align-items: center;
   justify-content: center;
   border-radius: var(--small-radius);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   font-size: 11px;
   font-weight: 600;
-  color: var(--silver);
+  color: var(--text-muted);
   flex-shrink: 0;
   padding: 0 8px;
   overflow: hidden;
@@ -74,8 +74,8 @@ const formattedSize = computed(() => {
 }
 
 .badge-first {
-  background-color: var(--solid-blue-steel);
-  color: var(--white);
+  background-color: var(--selected);
+  color: var(--text);
 }
 
 .squash-preview-content {
@@ -89,7 +89,7 @@ const formattedSize = computed(() => {
 .squash-preview-name {
   font-size: 13px;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -97,7 +97,7 @@ const formattedSize = computed(() => {
 
 .squash-preview-meta {
   font-size: 11px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.8;
 }
 

@@ -168,7 +168,7 @@ const handleWheel = (event) => {
 
 .filter-root::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .filter-root::-webkit-scrollbar-track {
@@ -235,7 +235,7 @@ const handleWheel = (event) => {
   box-sizing: border-box;
   width: 100%;
   width: min-content;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: var(--large-radius);
   /* overflow: hidden; */
   height: min-content;

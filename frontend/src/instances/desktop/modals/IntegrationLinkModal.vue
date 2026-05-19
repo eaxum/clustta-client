@@ -246,7 +246,7 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--dark-steel);
+  background: var(--surface-2);
   cursor: pointer;
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -256,7 +256,7 @@ onMounted(async () => {
 }
 
 .linked-info:hover {
-  background: var(--steel);
+  background: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
@@ -274,12 +274,12 @@ onMounted(async () => {
 
 .project-name {
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
 }
 
 .integration-name {
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
   font-weight: 400;
   text-transform: capitalize;
 }
@@ -293,7 +293,7 @@ onMounted(async () => {
 .section-label {
   font-size: 13px;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
   margin-bottom: 12px;
 }
 
@@ -314,7 +314,7 @@ onMounted(async () => {
 .integration-list::-webkit-scrollbar-thumb,
 .project-list::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .integration-item,
@@ -323,7 +323,7 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--dark-steel);
+  background: var(--surface-2);
   cursor: pointer;
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -333,7 +333,7 @@ onMounted(async () => {
 
 .integration-item:hover,
 .project-item:hover {
-  background: var(--steel);
+  background: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
@@ -344,13 +344,13 @@ onMounted(async () => {
 
 .project-item.selected {
   outline: var(--transparent-line);
-  background: var(--black-steel);
+  background: var(--surface-1);
   border-radius: var(--small-radius);
 }
 
 .project-desc {
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
 }
 
 .integration-icon {
@@ -381,7 +381,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 32px;
-  color: var(--white);
+  color: var(--text);
   text-align: center;
   gap: 12px;
 }

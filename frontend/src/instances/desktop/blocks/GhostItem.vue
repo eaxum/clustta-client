@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
 .ghost-item-backdrop{
   width: 300px;
   height: 60px;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: var(--large-radius);
 }
 
@@ -222,13 +222,13 @@ onBeforeUnmount(() => {
   width: 98%;
   height: 60px;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: var(--text);
 }
 
 .depth-1 {

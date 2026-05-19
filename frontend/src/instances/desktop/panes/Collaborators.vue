@@ -304,7 +304,7 @@ const updateSearch = () => {
 
 .collaborators-scroll-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .collaborators-scroll-container::-webkit-scrollbar-track {
@@ -332,13 +332,13 @@ const updateSearch = () => {
   content: '';
   flex: 1;
   height: 1px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   opacity: 0.3;
 }
 
 .divider-text {
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   white-space: nowrap;
 }

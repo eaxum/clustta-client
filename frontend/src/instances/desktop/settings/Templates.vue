@@ -166,7 +166,7 @@ onMounted(async () => {
   border-radius: var(--very-large-radius);
   padding: 1rem;
   background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
 }
 </style>
 

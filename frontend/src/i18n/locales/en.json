@@ -477,12 +477,8 @@
     "accentDescription": "Choose a color tint for the interface.",
     "tints": {
       "default": "Blackberry",
-      "neutral": "Coconut",
       "blue": "Blueberry",
-      "pink": "Watermelon",
-      "orange": "Mango",
-      "green": "Lime",
-      "purple": "Grape"
+      "pink": "Strawberry"
     },
     "defaultViewDescription": "Choose between list, compact, or grid view as default.",
     "dataManagement": "Data Management",

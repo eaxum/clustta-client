@@ -209,7 +209,7 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: flex-start;
   gap: 0.5rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .input-label-row {
@@ -220,7 +220,7 @@ onMounted(async () => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;

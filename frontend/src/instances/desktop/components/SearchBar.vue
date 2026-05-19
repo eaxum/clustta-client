@@ -65,7 +65,7 @@ defineExpose({ focus });
   padding-right: .2rem;
   box-sizing: border-box;
   outline: none;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--large-radius);
   height: 40px;
   min-height: 40px;
@@ -87,7 +87,7 @@ defineExpose({ focus });
   border: 0px;
   outline: none;
   background-color: transparent;
-  color: var(--white);
+  color: var(--text);
   border-radius: var(--large-radius);
   transition: width 0.2s ease-out;
 }

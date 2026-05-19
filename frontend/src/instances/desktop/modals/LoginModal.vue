@@ -401,7 +401,7 @@ const validateStudioUrl = () => {
 }
 
 .back-link {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -429,7 +429,7 @@ const validateStudioUrl = () => {
   padding: 0.6rem 1rem;
   margin-bottom: 0.5rem;
   border-radius: var(--large-radius);
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   outline: var(--transparent-line);
   outline-offset: -1px;
   gap: 1rem;
@@ -457,20 +457,20 @@ const validateStudioUrl = () => {
 .server-badge-name {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.9;
 }
 
 .server-badge-url {
   font-size: 0.7rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.4;
   font-weight: 300;
 }
 
 .server-change-link {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -490,7 +490,7 @@ const validateStudioUrl = () => {
 
 .studio-reveal-link {
   font-size: 0.8rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 0.2s;

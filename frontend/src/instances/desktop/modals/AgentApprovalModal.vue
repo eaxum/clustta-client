@@ -255,7 +255,7 @@ onMounted(async () => {
 .items-list {
   max-height: 180px;
   overflow-y: auto;
-  border: 1px solid var(--light-steel);
+  border: 1px solid var(--surface-4);
   border-radius: var(--small-radius);
   padding: 6px;
 }
@@ -266,7 +266,7 @@ onMounted(async () => {
 
 .items-list::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .items-list::-webkit-scrollbar-track {
@@ -319,7 +319,7 @@ onMounted(async () => {
 
 .args-json::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .args-json::-webkit-scrollbar-track {

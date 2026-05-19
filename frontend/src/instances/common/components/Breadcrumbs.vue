@@ -431,7 +431,7 @@ onBeforeUnmount(() => {
 	align-items: center;
 	font-size: 0.875rem;
 	font-weight: 500;
-	background-color: var(--black-steel);
+	background-color: var(--surface-1);
 	border-radius: var(--large-radius);
 	overflow: hidden;
 	max-width: 70%;
@@ -449,7 +449,7 @@ onBeforeUnmount(() => {
 }
 
 .kanban-indicator-label {
-	color: var(--white);
+	color: var(--text);
 	font-size: 0.85rem;
 	font-weight: 500;
 	white-space: nowrap;
@@ -458,7 +458,7 @@ onBeforeUnmount(() => {
 .kanban-path-separator {
 	width: 1.5px;
 	height: 18px;
-	background-color: var(--light-steel);
+	background-color: var(--surface-4);
 	margin: 0 1rem;
 	flex-shrink: 0;
 }
@@ -471,7 +471,7 @@ onBeforeUnmount(() => {
 }
 
 .kanban-filter-text {
-	color: var(--white);
+	color: var(--text);
 	opacity: 0.5;
 	font-size: 0.875rem;
 	font-weight: 300;
@@ -481,7 +481,7 @@ onBeforeUnmount(() => {
 }
 
 .kanban-path-text {
-	color: var(--white);
+	color: var(--text);
 	opacity: 0.5;
 	font-size: 0.875rem;
 	font-weight: 300;
@@ -537,8 +537,8 @@ onBeforeUnmount(() => {
 	justify-content: center;
 	gap: 1rem;
 	border-radius: var(--small-radius);
-	background-color: var(--black);
-	color: var(--white);
+	background-color: var(--surface-1);
+	color: var(--text);
 	outline: var(--transparent-line);
 	outline-offset: -1px;
 	overflow: hidden;
@@ -562,7 +562,7 @@ onBeforeUnmount(() => {
 	text-align: center;
 	font-size: 14px;
 	line-height: 14px;
-	color: var(--white);
+	color: var(--text);
 	position: relative;
 	border-radius: var(--small-radius);
 	box-sizing: border-box;

@@ -103,7 +103,7 @@ onUnmounted(() => {
 	align-items: center;
 	justify-content: center;
 	color: white;
-	background-color: var(--shadow-steel);
+	background-color: var(--surface-3);
 	/* background-color: crimson; */
 }
 
@@ -151,7 +151,7 @@ onUnmounted(() => {
 .settings-section-card {
 	display: flex;
 	flex-direction: column;
-	background-color: var(--black-steel);
+	background-color: var(--surface-1);
 	border-radius: var(--very-large-radius);
 	overflow: hidden;
 	box-sizing: border-box;
@@ -174,7 +174,7 @@ onUnmounted(() => {
 .settings-section-card-title {
   font-size: 1rem;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
   flex: 1;
 }
@@ -183,7 +183,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   /* gap: 0.5rem; */
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: var(--normal-radius);
   overflow: hidden;
   height: min-content;
@@ -192,7 +192,7 @@ onUnmounted(() => {
 /* Shared action divider */
 .actions-divider {
 	display: flex;
-	background-color: var(--light-steel);
+	background-color: var(--surface-4);
 	height: 16px;
 	width: 1.5px;
 }

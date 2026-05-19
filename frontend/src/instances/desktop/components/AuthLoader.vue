@@ -54,7 +54,7 @@ defineProps({
 
 .loader-status {
   font-size: 0.85rem;
-  color: var(--steel);
+  color: var(--surface-3);
   animation: pulse 1.5s ease-in-out infinite;
 }
 

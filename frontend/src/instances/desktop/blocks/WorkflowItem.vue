@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
 .collection-item-main {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -172,7 +172,7 @@ onBeforeUnmount(() => {
   height: min-content;
   justify-content: flex-end;
   align-items: flex-start;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: 10px;
   overflow: hidden;
   padding-right: 0px;
@@ -185,16 +185,16 @@ onBeforeUnmount(() => {
 }
 
 .collection-item-main:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  outline: 1px solid var(--surface-4);
 }
 
 .collection-item-main-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   background-color: var(--collection-item-selected);
 }
 
@@ -202,21 +202,21 @@ onBeforeUnmount(() => {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .collection-item-last-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-only-selected {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-main-selected:hover {
@@ -242,7 +242,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .3rem;
   box-sizing: border-box;
@@ -258,7 +258,7 @@ onBeforeUnmount(() => {
 .collection-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -273,7 +273,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -341,7 +341,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 5px;
 }
 

@@ -46,7 +46,7 @@ const handleChange = () => {
 <style scoped>
 .checkbox-container {
   --primaryDarkestColor: rgba(0, 0, 0, 0.384);
-  --checkedColor: var(--asset-item-selected);
+  --checkedColor: var(--selected);
   height: max-content;
   position: relative;
   cursor: pointer;

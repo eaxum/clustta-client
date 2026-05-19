@@ -442,12 +442,12 @@ onUnmounted(() => {
   width: min-content;
   height: min-content;
   padding: .2rem .2rem .2rem .4rem;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
 .user-item-suggestion {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -456,12 +456,12 @@ onUnmounted(() => {
   width: 100%;
   height: min-content;
   padding: .4rem .8rem .4rem .4rem;
-  /* background-color: var(--steel); */
+  /* background-color: var(--surface-3); */
   border-radius: var(--small-radius);
 }
 
 .user-item-suggestion:hover {
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   /* outline: var(--transparent-line);
   outline-offset: -1px; */
 }
@@ -532,7 +532,7 @@ onUnmounted(() => {
 
 .added-users::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.295);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: 6px;
 }
 
@@ -568,7 +568,7 @@ onUnmounted(() => {
   gap: .5rem;
   padding: .3rem;
   box-sizing: border-box;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: var(--small-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -593,7 +593,7 @@ onUnmounted(() => {
 .tag-item {
   width: 100%;
   padding: 10px;
-  color: var(--white);
+  color: var(--text);
   outline: solid 1px #2e2e2e;
   border-radius: var(--small-radius);
   box-sizing: border-box;
@@ -632,12 +632,12 @@ onUnmounted(() => {
   padding: .1rem;
   max-height: 50vh;
   border-radius: var(--large-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   overflow-y: auto;
 }
 
 [data-theme="dark"] .search-container{
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
 }
 
 .search-container:hover {
@@ -654,7 +654,7 @@ onUnmounted(() => {
   font-family: Inter, sans-serif;
   font-size: 14px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   background: transparent;
   border: 0;
   outline: none;

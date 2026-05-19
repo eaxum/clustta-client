@@ -625,7 +625,7 @@ onUnmounted(() => {
 
 .kanban-root::-webkit-scrollbar-thumb {
   border-radius: 10px;
-    background-color: var(--white);
+    background-color: var(--surface-inverse);
 }
 
 .kanban-root::-webkit-scrollbar-track {
@@ -658,7 +658,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   height: max-content;
   height: 100%;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   background-color: #0000002c;
   outline: var(--transparent-line);
@@ -697,7 +697,7 @@ onUnmounted(() => {
 .column-header-text{
   font-weight: 400;
   font-size: 14px;
-  color: var(--white);
+  color: var(--text);
 }
 
 .column-header-meta{
@@ -710,7 +710,7 @@ onUnmounted(() => {
 .column-header-count{
   font-weight: 400;
   font-size: 14px;
-  color: var(--white);
+  color: var(--text);
 }
 
 [data-theme="dark"] .column-header-text .column-header-count{
@@ -752,7 +752,7 @@ onUnmounted(() => {
 
 .column-cards-container::-webkit-scrollbar-thumb {
   border-radius: 10px;
-    background-color: var(--white);
+    background-color: var(--surface-inverse);
 }
 
 .column-cards-container::-webkit-scrollbar-track {
@@ -784,7 +784,7 @@ onUnmounted(() => {
 .card-insert-indicator {
   width: 100%;
   height: 3px;
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
   border-radius: 2px;
   margin: 2px 0;
   opacity: 0.8;

@@ -457,7 +457,7 @@ onBeforeMount(async () => {
 }
 
 .login-toggle {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -478,7 +478,7 @@ onBeforeMount(async () => {
   text-align: center;
   padding: 1rem 0.5rem;
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
   font-weight: 300;
   gap: 0.25rem;
 }
@@ -488,7 +488,7 @@ onBeforeMount(async () => {
 }
 
 .legal-link {
-  color: var(--white);
+  color: var(--text);
   cursor: pointer;
   display: inline-flex;
   align-items: center;

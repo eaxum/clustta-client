@@ -110,7 +110,7 @@ onMounted(async () => {
   padding: .5rem;
   box-sizing: border-box;
   border-radius: var(--large-radius);
-  /* background-color: var(--dark-steel); */
+  /* background-color: var(--surface-2); */
   outline: var(--transparent-line);
   outline-offset: -1.5px;
 }
@@ -131,7 +131,7 @@ onMounted(async () => {
 
 .grid-skeleton-main-icon {
   box-sizing: border-box;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   width: 50%;
   height: 50%;
   border-radius: 8px;
@@ -142,7 +142,7 @@ onMounted(async () => {
   top: 8px;
   right: 8px;
   box-sizing: border-box;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -159,7 +159,7 @@ onMounted(async () => {
 
 .grid-skeleton-type-icon {
   box-sizing: border-box;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -168,7 +168,7 @@ onMounted(async () => {
 
 .grid-skeleton-name {
   box-sizing: border-box;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   flex: 1;
   height: 20px;
   border-radius: 8px;
@@ -178,7 +178,7 @@ onMounted(async () => {
 
 .grid-skeleton-status {
   box-sizing: border-box;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   width: 20px;
   height: 20px;
   border-radius: 50%;

@@ -108,7 +108,7 @@ onMounted(async () => {
 .virtua-skeleton-item{
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -128,7 +128,7 @@ onMounted(async () => {
 
 .virtua-skeleton-item-launcher{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: var(--surface-3);
     width: 100%;
     height: 30px;
     height: 60%;
@@ -137,7 +137,7 @@ onMounted(async () => {
 
 .status-pill{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: var(--surface-3);
     width: 5rem;
     height: 30px;
     height: 60%;
@@ -146,7 +146,7 @@ onMounted(async () => {
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: var(--surface-3);
     height: 60%;
     aspect-ratio: 1/1;
     border-radius: 50%;

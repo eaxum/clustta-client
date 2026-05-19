@@ -1207,7 +1207,7 @@ onBeforeUnmount(() => {
 	overflow: hidden;
 	height: 100%;
 	border-radius: var(--very-large-radius);
-	background-color: var(--black-steel);
+	background-color: var(--surface-1);
 	width: 100%;
 	box-sizing: border-box;
 	display: flex;
@@ -1233,7 +1233,7 @@ onBeforeUnmount(() => {
 	overflow: hidden;
 	height: 100%;
 	border-radius: var(--very-large-radius);
-	background-color: var(--black-steel);
+	background-color: var(--surface-1);
 	width: 100%;
 	min-width: 550px;
 	box-sizing: border-box;

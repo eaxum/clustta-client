@@ -180,23 +180,23 @@ onMounted(() => {
 .conflict-item-main {
   display: flex;
   gap: 0.5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: 0.5rem;
   box-sizing: border-box;
   width: 100%;
   border-radius: var(--large-radius);
   overflow: hidden;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1px;
   transition: all 0.2s ease-out;
 }
 
 .conflict-item-main:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  outline: 1px solid var(--surface-4);
 }
 
 .conflict-item-resolved {
@@ -234,7 +234,7 @@ onMounted(() => {
 .conflict-item-name {
   font-size: 13px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

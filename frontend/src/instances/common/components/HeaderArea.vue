@@ -149,7 +149,7 @@ onMounted(() => {
   justify-content: space-between;
   /* background-color: crimson; */
   padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--small-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -163,7 +163,7 @@ onMounted(() => {
 
 .page-header-title {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: var(--text);
   font-size: 20px;
   white-space: nowrap;
   overflow: hidden;

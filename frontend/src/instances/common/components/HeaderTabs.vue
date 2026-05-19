@@ -260,7 +260,7 @@ onBeforeUnmount(() => {
   height: max-content;
   gap: .5rem;
   padding: .3rem .3rem;
-  color: var(--white);
+  color: var(--text);
   position: relative;
 }
 
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
 }
 
 .tab-button:hover {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   opacity: 1;
 }
 
@@ -317,12 +317,12 @@ onBeforeUnmount(() => {
 .tab-button-pressed {
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
+  outline: solid 1px var(--border-strong);
   outline-offset: -1px;
 }
 
 .selected-tab-button {
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   outline: var(--transparent-line);
   outline-offset: -1px;
   opacity: 1;
@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
 }
 
 .selected-tab-button:hover {
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
 }
 
 .tab-content {
@@ -375,7 +375,7 @@ onBeforeUnmount(() => {
   padding: .4rem;
   min-width: 160px;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1px;
   backdrop-filter: blur(55px);
@@ -403,15 +403,15 @@ onBeforeUnmount(() => {
   font-size: 14px;
   white-space: nowrap;
   transition: background-color .15s ease;
-  color: var(--white);
+  color: var(--text);
 }
 
 .overflow-menu-item:hover {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .overflow-menu-item-selected {
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
 }
 
 .overflow-alert-dot {
@@ -437,7 +437,7 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   padding: 3px;
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
 }
 
 .alert-items-with-text {

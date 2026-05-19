@@ -76,7 +76,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   padding: .2rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .general-container {

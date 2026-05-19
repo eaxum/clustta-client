@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 
 .conflict-message p {
   font-size: 13px;
-  color: var(--white);
+  color: var(--text);
   margin: 0.25rem 0;
 }
 
@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: flex-start;
   margin-bottom: 1rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--very-large-radius);
 }
 
@@ -354,7 +354,7 @@ onBeforeUnmount(() => {
 
 .conflict-list-container::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .conflict-list-container::-webkit-scrollbar-track {
@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
 .conflict-tabs {
   padding: 0.3rem 0.5rem;
   display: flex;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   width: 100%;
   max-width: 250px;
   border-radius: var(--very-large-radius);

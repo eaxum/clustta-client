@@ -44,7 +44,7 @@ defineProps({
   flex: 1;
   min-width: 0;
   padding: 1.2rem;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -65,20 +65,20 @@ defineProps({
 
 .metric-card-title {
   font-size: 0.8rem;
-  color: var(--silver);
+  color: var(--text-muted);
   font-weight: 400;
 }
 
 .metric-card-value {
   font-size: 1.6rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
   line-height: 1.2;
 }
 
 .metric-card-subtitle {
   font-size: 0.75rem;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.8;
 }
 
@@ -89,7 +89,7 @@ defineProps({
 .progress-bar-track {
   width: 100%;
   height: 4px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 2px;
   overflow: hidden;
 }

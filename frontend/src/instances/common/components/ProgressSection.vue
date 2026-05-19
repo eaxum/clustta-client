@@ -53,7 +53,7 @@ const displayTitle = computed(() => props.title || progress.value.title);
   flex-direction: column;
   gap: 0.75rem;
   padding: 1rem;
-  /* background-color: var(--steel); */
+  /* background-color: var(--surface-3); */
   /* border-radius: var(--normal-radius); */
   width: 100%;
   box-sizing: border-box;
@@ -63,7 +63,7 @@ const displayTitle = computed(() => props.title || progress.value.title);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--white);
+  color: var(--text);
 }
 
 .progress-title {
@@ -74,7 +74,7 @@ const displayTitle = computed(() => props.title || progress.value.title);
 .progress-percentage {
   font-size: 14px;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
 }
 
 .progress-percentage.success {
@@ -83,7 +83,7 @@ const displayTitle = computed(() => props.title || progress.value.title);
 
 .progress-message {
   font-size: 13px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.9;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -96,14 +96,14 @@ const displayTitle = computed(() => props.title || progress.value.title);
   height: 0.2rem;
   border-radius: 999px;
   overflow: hidden;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .progress-meta {
   display: flex;
   justify-content: flex-end;
   font-size: 12px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.8;
 }
 </style>

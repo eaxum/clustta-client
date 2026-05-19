@@ -92,7 +92,7 @@ onMounted(() => {
   height: 34px;
   gap: .2rem;
   padding: .3rem 0;
-  color: var(--white);
+  color: var(--text);
 }
 
 .fullwidth-header-tab-root {
@@ -114,7 +114,7 @@ onMounted(() => {
   justify-content: space-evenly;
   overflow: hidden;
   border-radius: 8px;
-  color: var(--white);
+  color: var(--text);
   padding: 1rem .3rem;
   gap: .5rem;
   overflow: hidden;
@@ -150,7 +150,7 @@ onMounted(() => {
 }
 
 .tab-button:hover {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   opacity: 1;
 }
 
@@ -162,14 +162,14 @@ onMounted(() => {
 .tab-button-pressed {
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
+  outline: solid 1px var(--border-strong);
   outline-offset: -1px;
 }
 
 .selected-tab-button {
   outline-offset: -1px;
   width: 100%;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   opacity: 1;
   transition: background-color 0.2s ease-out, opacity 0.2s ease-out;
   min-width: 0;
@@ -182,7 +182,7 @@ onMounted(() => {
 }
 
 .selected-tab-button:hover {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: var(--normal-radius);
 }
 
@@ -209,7 +209,7 @@ onMounted(() => {
   border-radius: 10px;
   padding: 3px;
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
   /* outline-offset: -1px; */
 }
 

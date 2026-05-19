@@ -241,7 +241,7 @@ onBeforeUnmount(() => {
 .pop-up-info{
   width: 100%;
   display: flex;
-  color: var(--white);
+  color: var(--text);
   /* background-color: #20A41C; */
   height: 100%;
   min-height: 100%;
@@ -340,13 +340,13 @@ onBeforeUnmount(() => {
   outline-offset: -1px;
   outline-offset: -1px;
   outline: var(--transparent-line);
-  background-color: var(--black);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
 
 }
 
 .progress-bar-meta {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -365,7 +365,7 @@ onBeforeUnmount(() => {
   justify-content: flex-start;
   flex: 1;
   text-overflow: ellipsis;
-  color: var(--white);
+  color: var(--text);
 }
 
 .progress-bar-total {
@@ -380,7 +380,7 @@ onBeforeUnmount(() => {
 }
 
 .progress-bar-header {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   font-size: 16px;
@@ -406,7 +406,7 @@ onBeforeUnmount(() => {
 
 .header-text {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: var(--text);
   font-size: 18px;
   white-space: nowrap;
   overflow: hidden;
@@ -470,7 +470,7 @@ onBeforeUnmount(() => {
   border-radius: 8px;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
   justify-content: space-between;
-  outline: solid 1px var(--white);
+  outline: solid 1px var(--border-strong);
   white-space: nowrap;
   overflow: hidden;
   display: flex;

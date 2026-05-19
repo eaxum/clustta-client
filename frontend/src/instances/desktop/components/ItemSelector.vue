@@ -286,7 +286,7 @@ onBeforeUnmount(() => {
   display: flex;
   padding: 0.3rem;
   border-radius: var(--large-radius);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   cursor: text;
 }
 
@@ -311,7 +311,7 @@ onBeforeUnmount(() => {
   font-family: Inter, sans-serif;
   font-size: 14px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   background: transparent;
   border: 0;
   outline: none;
@@ -323,7 +323,7 @@ onBeforeUnmount(() => {
 }
 
 .input-field::placeholder {
-  color: var(--white);
+  color: var(--text);
   font-style: italic;
 }
 
@@ -336,7 +336,7 @@ onBeforeUnmount(() => {
   gap: 0.3rem;
   padding: 0.5rem;
   box-sizing: border-box;
-  background-color: var(--black);
+  background-color: var(--surface-1);
   border-radius: var(--large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -350,17 +350,17 @@ onBeforeUnmount(() => {
 }
 
 .suggestions-parent::-webkit-scrollbar-thumb {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 3px;
 }
 
 .suggestions-parent::-webkit-scrollbar-track {
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: 3px;
 }
 
 .item-suggestion {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -375,7 +375,7 @@ onBeforeUnmount(() => {
 }
 
 .item-suggestion:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .item-meta {

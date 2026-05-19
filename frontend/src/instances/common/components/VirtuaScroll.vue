@@ -115,7 +115,7 @@ onUnmounted(() => {
 }
 
 .virtua-scroll-container::-webkit-scrollbar-thumb {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 10px;
 }
 

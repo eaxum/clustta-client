@@ -108,7 +108,7 @@ onMounted(async () => {
 
 .file-hierarchy::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .file-hierarchy::-webkit-scrollbar-track {

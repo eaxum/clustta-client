@@ -40,7 +40,7 @@ const props = defineProps({
   @import "@/assets/tray.css";
 
 .secondary-action-area{
-  color: var(--white);
+  color: var(--text);
   /* background-color: chocolate; */
 }
 .state-secondary-action{
@@ -84,7 +84,7 @@ const props = defineProps({
   width: 100%;
   height: max-content;
   flex-direction: column;
-  color: var(--white);
+  color: var(--text);
   overflow: hidden;
   /* max-height: 80%; */
   /* padding: .5rem 0; */

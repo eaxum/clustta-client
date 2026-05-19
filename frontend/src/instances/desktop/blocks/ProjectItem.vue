@@ -371,7 +371,7 @@ onBeforeUnmount(() => {
   height: 50px;
   padding: .4rem;
   box-sizing: border-box;
-  color: var(--white);
+  color: var(--text);
 }
 
 .project-item-container-cards {
@@ -445,7 +445,7 @@ onBeforeUnmount(() => {
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
 }
 
 .project-item-root {
@@ -459,8 +459,8 @@ onBeforeUnmount(() => {
   min-width: 500px;
   box-sizing: border-box;
   overflow: hidden;
-  color: var(--white);
-  background-color: var(--dark-steel);
+  color: var(--text);
+  background-color: var(--surface-2);
   border-radius: var(--large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -468,22 +468,22 @@ onBeforeUnmount(() => {
 }
 
 .project-item-root:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
 .project-item-root:hover :deep(.folder) {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 0px;
 }
 
 .project-item-root:hover :deep(.tab) {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 24px 16px 0 0;
 }
 
 .project-item-root:hover :deep(.tab::after) {
-  box-shadow: -25px 0 0 0 var(--light-steel);
+  box-shadow: -25px 0 0 0 var(--surface-4);
 }
 
 .project-item-root:hover .project-item-preview-container {
@@ -494,35 +494,35 @@ onBeforeUnmount(() => {
 .project-item-container-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--project-item-selected);
+  background-color: var(--selected);
 }
 
 .project-item-container-selected :deep(.folder),
 .project-item-container-selected:hover :deep(.folder) {
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .project-item-container-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--project-item-selected);
+  background-color: var(--selected);
 }
 
 .project-item-marked {
-  outline: 1px solid var(--blue-steel);
+  outline: 1px solid var(--selected-soft);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .project-item-marked:hover {
-  outline: 1px solid var(--blue-steel);
+  outline: 1px solid var(--selected-soft);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .project-item-marked.project-item-container-selected,
 .project-item-marked.project-item-container-selected:hover {
-  background-color: var(--project-item-selected);
+  background-color: var(--selected);
 }
 
 .project-item-root-cards {
@@ -562,7 +562,7 @@ onBeforeUnmount(() => {
 
 .project-item-path {
   font-size: 12px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.8;
   overflow: hidden;
   white-space: nowrap;

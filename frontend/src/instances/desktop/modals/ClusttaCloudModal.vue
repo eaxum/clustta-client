@@ -335,7 +335,7 @@ onMounted(async () => {
 
 .cloud-modal-tabs {
   display: flex;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--very-large-radius);
   padding: 0.3rem 0.5rem;
   width: 100%;
@@ -345,7 +345,7 @@ onMounted(async () => {
 .cloud-loading {
   text-align: center;
   padding: 2rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   font-size: 13px;
 }
@@ -363,7 +363,7 @@ onMounted(async () => {
   gap: 10px;
   padding: 1.2rem;
   border-radius: var(--very-large-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   transition: all 0.2s ease-out;
   min-width: 0;
   outline: var(--transparent-line);
@@ -373,7 +373,7 @@ onMounted(async () => {
 
 .plan-card:hover {
   border-radius: var(--small-radius);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .plan-card-current {
@@ -381,7 +381,7 @@ onMounted(async () => {
 }
 
 .plan-card-highlighted {
-  border-color: var(--light-steel);
+  border-color: var(--surface-4);
 }
 
 .plan-card-header {
@@ -393,7 +393,7 @@ onMounted(async () => {
 .plan-card-name {
   font-size: 16px;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
 }
 
 .plan-badge {
@@ -407,7 +407,7 @@ onMounted(async () => {
 
 .plan-card-tagline {
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   min-height: 32px;
 }
@@ -421,12 +421,12 @@ onMounted(async () => {
 .price-amount {
   font-size: 28px;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text);
 }
 
 .price-period {
   font-size: 13px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
 }
 
@@ -435,7 +435,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 10px;
   margin-top: 4px;
-  border-top: 1px solid var(--light-steel);
+  border-top: 1px solid var(--surface-4);
   padding-top: 10px;
   max-height: 280px;
   overflow-y: auto;
@@ -447,7 +447,7 @@ onMounted(async () => {
 
 .plan-card-features::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .plan-card-features::-webkit-scrollbar-track {
@@ -459,7 +459,7 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 6px;
   font-size: 13px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.75;
   cursor: help;
 }
@@ -488,7 +488,7 @@ onMounted(async () => {
 }
 
 .plan-card :deep(.general-button.item-inactive) {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   opacity: 0.5;
 }
 

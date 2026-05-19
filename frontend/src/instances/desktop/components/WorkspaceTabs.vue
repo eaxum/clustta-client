@@ -390,7 +390,7 @@ const getTabStyle = (index) => {
 }
 
 .tab {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   width: 200px;
@@ -407,7 +407,7 @@ const getTabStyle = (index) => {
 .right-tab-split::after {
   content: "";
   position: absolute;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   left: -4px;
   height: 16px;
   width: 1.5px;
@@ -436,7 +436,7 @@ const getTabStyle = (index) => {
 .left-tab-split::before {
   content: "";
   position: absolute;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   right: -4px;
   height: 16px;
   width: 1.5px;
@@ -463,8 +463,8 @@ const getTabStyle = (index) => {
 /* end */
 
 .tab:hover {
-  color: var(--white);
-  background: var(--blue-steel);
+  color: var(--text);
+  background: var(--selected-soft);
   border-radius: var(--normal-radius);
   border: 0px;
 }
@@ -486,12 +486,12 @@ const getTabStyle = (index) => {
 }
 
 .tab.active {
-  color: var(--white);
+  color: var(--text);
   border-bottom: none;
   border-radius: 16px 16px 0px 0px;
   height: 100%;
   position: relative;
-  background-color: var(--shadow-steel);
+  background-color: var(--surface-3);
 }
 
 .tab.active::before {
@@ -503,7 +503,7 @@ const getTabStyle = (index) => {
   height: 25px;
   width: 50px;
   border-bottom-right-radius: 16px;
-  box-shadow: 25px 0 0 0 var(--shadow-steel);
+  box-shadow: 25px 0 0 0 var(--surface-3);
 }
 
 .tab.active::after {
@@ -515,7 +515,7 @@ const getTabStyle = (index) => {
   height: 25px;
   width: 50px;
   border-bottom-left-radius: 16px;
-  box-shadow: -25px 0 0 0 var(--shadow-steel);
+  box-shadow: -25px 0 0 0 var(--surface-3);
 }
 
 .tab.dragging {
@@ -562,7 +562,7 @@ const getTabStyle = (index) => {
   justify-content: center;
   font-size: 18px;
   opacity: 0.3;
-  color: var(--white);
+  color: var(--text);
   color: black
 }
 
@@ -609,7 +609,7 @@ const getTabStyle = (index) => {
   justify-content: center;
   font-size: 20px;
   flex-shrink: 0;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
 }
 

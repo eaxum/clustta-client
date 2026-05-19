@@ -47,7 +47,7 @@ const props = defineProps({
   text-align: center;
   font-size: 14px;
   line-height: 14px;
-  color: var(--white);
+  color: var(--text);
   position: relative;
   border-radius: 8px;
   box-sizing: border-box;
@@ -81,7 +81,7 @@ const props = defineProps({
 .action-button-pressed {
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
+  outline: solid 1px var(--border-strong);
   outline-offset: -1px;
 }
 

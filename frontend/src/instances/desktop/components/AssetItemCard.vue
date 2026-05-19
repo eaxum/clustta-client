@@ -159,14 +159,14 @@ const prepAssignAsset = (event) => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   min-height: 80px;
   width: 100%;
   width: 250px;
   overflow: hidden;
   border-radius: var(--small-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   /* background-color: darkorange; */
   padding: .2rem;
   border-radius: var(--large-radius);
@@ -186,9 +186,9 @@ const prepAssignAsset = (event) => {
 
 
 .collection-item-wrapper:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  outline: 1px solid var(--surface-4);
   outline-offset: -1px;
 }
 
@@ -196,7 +196,7 @@ const prepAssignAsset = (event) => {
   display: flex;
   flex-direction: column;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -221,7 +221,7 @@ const prepAssignAsset = (event) => {
   display: flex;
   flex-direction: column;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -278,7 +278,7 @@ const prepAssignAsset = (event) => {
   height: 100%;
   width: 100%;
   /* aspect-ratio: 4 / 3; */
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: 5px;
   pointer-events: none;
 }
@@ -386,7 +386,7 @@ const prepAssignAsset = (event) => {
 
 .collection-item-type-indicator {
   color: rgb(219, 219, 219);
-  color: var(--white);
+  color: var(--text);
   background-color: rgba(0, 0, 0, 0.216);
   padding: .3rem;
   border-radius: 5px;
@@ -420,9 +420,9 @@ const prepAssignAsset = (event) => {
   font-size: 12px;
   line-height: 1.4;
   border-radius: 12px;
-  border: 1px solid var(--steel);
-  background-color: var(--black-steel);
-  color: var(--white);
+  border: 1px solid var(--surface-3);
+  background-color: var(--surface-1);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -435,14 +435,14 @@ const prepAssignAsset = (event) => {
 }
 
 .collection-item-tag-chip.is-active {
-  outline: 1px solid var(--white);
+  outline: 1px solid var(--border-strong);
   outline-offset: -1px;
 }
 
 .collection-item-tag-chip.overflow {
-  background-color: var(--black-steel);
-  color: var(--light-steel);
-  border-color: var(--steel);
+  background-color: var(--surface-1);
+  color: var(--surface-4);
+  border-color: var(--surface-3);
 }
 
 

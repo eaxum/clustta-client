@@ -80,31 +80,31 @@ onMounted(() => {
 .preview-asset {
   display: flex;
   gap: 0.2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: 0 0.5rem;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1px;
   transition: all 0.2s ease-out;
 }
 
 .preview-asset:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  outline: 1px solid var(--surface-4);
 }
 
 .preview-asset-selected {
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .preview-asset-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-spacer {
@@ -139,7 +139,7 @@ onMounted(() => {
 .preview-extension {
   font-size: 11px;
   font-weight: 400;
-  color: var(--bright-steel);
+  color: var(--surface-5);
   margin-left: 0.25rem;
   flex-shrink: 0;
 }
@@ -149,7 +149,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 0.1rem 0.4rem;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--tiny-radius);
   margin-right: 0.25rem;
 }

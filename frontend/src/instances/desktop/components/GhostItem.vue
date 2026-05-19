@@ -55,7 +55,6 @@ const props = defineProps({
     background-color: firebrick;
     border-radius: var(--normal-radius);
     border: var(--transparent-line);
-    background-color: var(--white);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -66,7 +65,7 @@ const props = defineProps({
 
     outline: var(--transparent-line);
     outline-offset: -1px;
-    background-color: var(--light-steel);
+    background-color: var(--surface-4);
 
 }
 

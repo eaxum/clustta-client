@@ -60,7 +60,7 @@ aspect-ratio: 1/1;
 overflow: hidden;
 transition: all 0.2s ease-in;
 border-radius: 50%;
-background-color: var(--steel);
+background-color: var(--surface-3);
 }
 
 .checkpoint-item-content-skeleton{
@@ -72,7 +72,7 @@ flex-direction: column;
 align-items: center;
 flex: 1;
 gap: .2rem;
-background-color: var(--steel);
+background-color: var(--surface-3);
 border-radius: 10px;
 }
 

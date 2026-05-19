@@ -55,8 +55,8 @@
   width: 60%;
   height: 70px;
   border-radius: 24px 22px 0 0;
-  background-color: var(--steel);
-  color: var(--white);
+  background-color: var(--surface-3);
+  color: var(--text);
   user-select: none;
   box-sizing: border-box;
   position: relative;
@@ -79,7 +79,7 @@
   background-color: transparent;
   border-bottom-right-radius: 16px;
   border-bottom-left-radius: 16px;
-  box-shadow: -25px 0 0 0 var(--steel);
+  box-shadow: -25px 0 0 0 var(--surface-3);
   border-left: var(--transparent-line);
   /* transition: all .2s ease-out; */
 }
@@ -89,7 +89,7 @@
   height: 100%;
   border-radius: 0 24px 0px 0px;
   border-radius: 0 36px 0px 0px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   display: flex;
   align-items: flex-end;
   box-sizing: border-box;

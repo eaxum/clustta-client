@@ -711,7 +711,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: var(--text);
   padding: 0px;
   justify-content: flex-start;
   padding: 0px;
@@ -728,7 +728,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: var(--text);
   padding: 1rem;
   padding-right: 0px;
   padding-top: 0px;
@@ -736,7 +736,7 @@ onUnmounted(() => {
 }
 
 .asset-graph-container {
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--large-radius);
   display: flex;
   width: 100%;
@@ -797,7 +797,7 @@ onUnmounted(() => {
 
 .sidebar-outer {
   padding: 1rem;
-  color: var(--white);
+  color: var(--text);
   /* border-left: var(--transparent-line); */
   position: relative;
   height: 100%;
@@ -810,7 +810,7 @@ onUnmounted(() => {
   overflow: hidden;
   flex: 1 1 50%;
   /* transition: all .2s ease-out; */
-  background-color: var(--black);
+  background-color: var(--surface-1);
   background-color: transparent;
   /* background-color: red; */
 }
@@ -833,7 +833,7 @@ onUnmounted(() => {
   padding: 10px;
   flex: 1 1 50%;
   background-color: tomato;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--large-radius);
   border-radius: var(--very-large-radius);
 }
@@ -859,7 +859,7 @@ onUnmounted(() => {
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
 }
 
 .sidebar::-webkit-scrollbar-track {
@@ -881,7 +881,7 @@ onUnmounted(() => {
   border-radius: 10px;
   padding: 3px;
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
 }
 
 
@@ -908,8 +908,8 @@ onUnmounted(() => {
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--steel);
-  color: var(--white);
+  background-color: var(--surface-3);
+  color: var(--text);
   transition: width 0.2s ease-out;
   width: 100%;
   max-width: 400px;
@@ -964,7 +964,7 @@ onUnmounted(() => {
   width: 100%;
   display: flex;
   /* background-color: firebrick; */
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--normal-radius);
   align-items: center;
   box-sizing: border-box;
@@ -975,7 +975,7 @@ onUnmounted(() => {
 .filter-header {
   width: 100%;
   display: flex;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
   /* background-color: green; */
   align-items: center;
@@ -1032,7 +1032,7 @@ onUnmounted(() => {
   width: max-content;
   font-style: italic;
   opacity: .4;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px
     /* background-color: red; */
 }

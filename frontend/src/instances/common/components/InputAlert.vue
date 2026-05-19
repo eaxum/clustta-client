@@ -52,7 +52,7 @@ const alertClass = computed(() => {
 }
 
 .input-alert-info {
-  color: var(--white);
+  color: var(--text);
   opacity: 0.6;
 }
 </style>

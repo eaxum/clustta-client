@@ -164,8 +164,8 @@ watch(() => projectStore.selectedStudio, (studio) => {
   border-radius: var(--large-radius);
   cursor: pointer;
   font-size: 11px;
-  color: var(--white);
-  background-color: var(--steel);
+  color: var(--text);
+  background-color: var(--surface-3);
   transition: background-color 0.15s ease;
   white-space: nowrap;
   height: 22px;
@@ -228,14 +228,14 @@ watch(() => projectStore.selectedStudio, (studio) => {
   fill: none;
   stroke: var(--bright-grape);
   stroke: var(--grape);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   stroke-width: 4;
 }
 
 .storage-donut-fill {
   fill: none;
   stroke: var(--grape);
-  stroke: var(--bright-steel);
+  stroke: var(--surface-5);
   stroke-width: 4;
   stroke-dasharray: 37.7;
   stroke-linecap: round;
@@ -243,8 +243,8 @@ watch(() => projectStore.selectedStudio, (studio) => {
 }
 
 [data-theme="dark"] .storage-donut-fill  {
-  stroke: var(--bright-steel);
-  stroke: var(--steel);
+  stroke: var(--surface-5);
+  stroke: var(--surface-3);
 }
 
 .storage-donut-fill.storage-warning {

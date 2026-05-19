@@ -941,8 +941,8 @@ onBeforeMount(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background-color: var(--black-steel); */
-  color: var(--white);
+  /* background-color: var(--surface-1); */
+  color: var(--text);
   /* border-radius: 12px; */
 }
 
@@ -974,12 +974,12 @@ onBeforeMount(async () => {
 }
 
 .user-profile-body::-webkit-scrollbar-thumb {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 3px;
 }
 
 .user-profile-body::-webkit-scrollbar-track {
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: 3px;
 }
 
@@ -1012,13 +1012,13 @@ onBeforeMount(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--normal-radius);
 }
 
 .visibility-label {
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
   font-weight: 400;
   user-select: none;
 }
@@ -1071,14 +1071,14 @@ onBeforeMount(async () => {
   font-size: 2rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
-  color: var(--white);
+  color: var(--text);
 }
 
 .profile-title {
   font-size: 1.25rem;
   margin: 0 0 1rem 0;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
 }
 
 /* Meta Info (Location & Availability) */
@@ -1096,7 +1096,7 @@ onBeforeMount(async () => {
   gap: 0.5rem;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .availability-badge {
@@ -1107,7 +1107,7 @@ onBeforeMount(async () => {
   background-color: rgba(255, 255, 255, 0.1);
   border-radius: 6px;
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .info-icon {
@@ -1140,7 +1140,7 @@ onBeforeMount(async () => {
 
 .form-label {
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
   font-weight: 400;
 }
 
@@ -1189,7 +1189,7 @@ onBeforeMount(async () => {
 
 .studio-name {
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
   text-align: center;
   font-weight: 400;
   line-height: 1.2;
@@ -1214,7 +1214,7 @@ onBeforeMount(async () => {
 }
 
 .danger-message {
-    color: var(--white);
+    color: var(--text);
   margin: 0;
   font-size: 0.875rem;
 }
@@ -1229,7 +1229,7 @@ onBeforeMount(async () => {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, var(--black-steel) 0%, var(--dark-steel) 100%);
+  background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-2) 100%);
   border-radius: 50px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.1);

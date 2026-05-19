@@ -131,7 +131,7 @@ onBeforeUnmount(() => {
   gap: .5rem;
   /* overflow: hidden; */
   /* border-radius: var(--normal-radius); */
-  /* background-color: var(--steel); */
+  /* background-color: var(--surface-3); */
   /* background-color: firebrick; */
 }
 

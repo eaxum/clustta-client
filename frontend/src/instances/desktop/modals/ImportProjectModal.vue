@@ -247,7 +247,7 @@ onMounted(async () => {
 .settings-section-card {
   display: flex;
   flex-direction: column;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
@@ -258,7 +258,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--normal-radius);
   margin: 0;
 }
@@ -273,7 +273,7 @@ onMounted(async () => {
 .settings-section-card-title {
   font-size: 16px;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
 }
 
@@ -286,7 +286,7 @@ onMounted(async () => {
 
 .card-description {
   font-size: 13px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.9;
   line-height: 1.5;
 }
@@ -299,7 +299,7 @@ onMounted(async () => {
   max-height: 300px;
   overflow-y: auto;
   padding: 0.5rem;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: var(--normal-radius);
 }
 
@@ -309,7 +309,7 @@ onMounted(async () => {
 
 .file-list::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .file-list::-webkit-scrollbar-track {
@@ -321,7 +321,7 @@ onMounted(async () => {
   align-items: center;
   gap: 0.75rem;
   padding: 0 0.75rem;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--normal-radius);
   min-height: 60px;
 }
@@ -345,7 +345,7 @@ onMounted(async () => {
 .file-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -353,7 +353,7 @@ onMounted(async () => {
 
 .file-path {
   font-size: 12px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.8;
   white-space: nowrap;
   overflow: hidden;
@@ -376,7 +376,7 @@ onMounted(async () => {
   height: max-content;
   padding: 0.75rem 1rem;
   gap: 0.75rem;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .location-item-single {
@@ -413,14 +413,14 @@ onMounted(async () => {
 .location-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .location-body {
-  color: var(--silver);
+  color: var(--text-muted);
   font-size: 12px;
   opacity: 0.8;
   padding: 0.1rem;

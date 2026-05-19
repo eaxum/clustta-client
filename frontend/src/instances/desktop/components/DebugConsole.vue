@@ -341,11 +341,11 @@ onBeforeUnmount(() => {
   position: relative;
   width: 100%;
   height: 250px;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   border-radius: var(--large-radius);
   /* padding: 1rem; */
@@ -356,7 +356,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.5rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   user-select: none;
   border-radius: var(--normal-radius);
 
@@ -371,7 +371,7 @@ onBeforeUnmount(() => {
 }
 
 .log-count {
-  color: var(--silver);
+  color: var(--text-muted);
   font-weight: 400;
 }
 
@@ -406,7 +406,7 @@ onBeforeUnmount(() => {
 
 .debug-console-logs::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .debug-console-logs::-webkit-scrollbar-track {
@@ -426,13 +426,13 @@ onBeforeUnmount(() => {
   background-color: var(--hover);
 }
 
-.log-log { border-left: 2px solid var(--silver); }
+.log-log { border-left: 2px solid var(--text-muted); }
 .log-info { border-left: 2px solid var(--info); }
 .log-warn { border-left: 2px solid var(--alert); background-color: rgba(255, 193, 7, 0.1); }
 .log-error { border-left: 2px solid var(--red); background-color: rgba(220, 53, 69, 0.1); }
 
 .log-time {
-  color: var(--silver);
+  color: var(--text-muted);
   font-size: 10px;
   min-width: 85px;
 }
@@ -443,7 +443,7 @@ onBeforeUnmount(() => {
   min-width: 45px;
 }
 
-.log-log .log-type { color: var(--silver); }
+.log-log .log-type { color: var(--text-muted); }
 .log-info .log-type { color: var(--info); }
 .log-warn .log-type { color: var(--alert); }
 .log-error .log-type { color: var(--red); }
@@ -462,7 +462,7 @@ onBeforeUnmount(() => {
 
 .no-logs {
   text-align: center;
-  color: var(--silver);
+  color: var(--text-muted);
   padding: 2rem;
 }
 </style>

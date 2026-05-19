@@ -230,13 +230,13 @@ onMounted(() => {
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   overflow-y: auto;
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
 }
 
@@ -277,7 +277,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: var(--bright-steel);
+  color: var(--surface-5);
 }
 
 .state-icon {
@@ -287,7 +287,7 @@ onMounted(() => {
 }
 
 .state-message {
-  color: var(--steel);
+  color: var(--surface-3);
   max-width: 400px;
   text-align: center;
 }
@@ -295,7 +295,7 @@ onMounted(() => {
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--steel);
+  border: 3px solid var(--surface-3);
   border-top-color: var(--grape);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -328,13 +328,13 @@ onMounted(() => {
 }
 
 .share-meta {
-  color: var(--bright-steel);
+  color: var(--surface-5);
   font-size: 0.9rem;
   margin: 0;
 }
 
 .share-expiry {
-  color: var(--bright-steel);
+  color: var(--surface-5);
   font-size: 0.85rem;
   margin: 0;
 }
@@ -355,7 +355,7 @@ onMounted(() => {
 .files-title {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--bright-steel);
+  color: var(--surface-5);
 }
 
 .download-all-btn {
@@ -366,7 +366,7 @@ onMounted(() => {
   background-color: var(--grape);
   border: none;
   border-radius: var(--small-radius);
-  color: var(--white);
+  color: var(--text);
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
@@ -385,7 +385,7 @@ onMounted(() => {
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: var(--white);
+  border-top-color: var(--text);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -445,7 +445,7 @@ onMounted(() => {
 }
 
 .file-size {
-  color: var(--bright-steel);
+  color: var(--surface-5);
   font-size: 0.8rem;
   flex-shrink: 0;
   margin-left: auto;
@@ -484,12 +484,12 @@ onMounted(() => {
 }
 
 .share-download-root::-webkit-scrollbar-track {
-  background: var(--midnight-steel);
+  background: var(--bg);
   border-radius: 5px;
 }
 
 .share-download-root::-webkit-scrollbar-thumb {
-  background: var(--steel);
+  background: var(--surface-3);
   border-radius: 5px;
 }
 

@@ -176,7 +176,7 @@ const getAppIcon = (iconName) => {
 .empty-state {
   padding: .5rem;
   text-align: center;
-  color: var(--white);
+  color: var(--text);
   opacity: .5;
   font-style: italic;
   font-size: 0.875rem;

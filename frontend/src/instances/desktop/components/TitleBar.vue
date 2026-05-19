@@ -502,7 +502,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 1rem;
   border-radius: var(--large-radius);
-  color: var(--white);
+  color: var(--text);
 
   overflow: hidden;
   box-sizing: border-box;
@@ -524,7 +524,7 @@ onBeforeUnmount(() => {
 
 .studio-list-container::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--silver);
+  background-color: var(--border-strong);
 }
 
 .studio-list-container::-webkit-scrollbar-track {
@@ -606,7 +606,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
   line-height: 14px;
   background-color: transparent;
-  color: var(--white);
+  color: var(--text);
   position: relative;
   border-radius: var(--large-radius);
   box-sizing: border-box;
@@ -636,7 +636,7 @@ onBeforeUnmount(() => {
 .studio-instance-pressed {
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
+  outline: solid 1px var(--border-strong);
   outline-offset: -1px;
 }
 
@@ -678,10 +678,10 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   min-height: 36px;
-  color: var(--white);
+  color: var(--text);
   overflow: hidden;
   border-bottom: var(--transparent-line);
-  background-color: var(--black);
+  background-color: var(--surface-1);
   z-index: 999999999;
   padding-left: .2rem;
   transition: background-color 0.3s ease;
@@ -765,7 +765,7 @@ onBeforeUnmount(() => {
 }
 
 .oudated:hover{
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .titlebar-button {

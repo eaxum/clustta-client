@@ -220,7 +220,7 @@ const deleteCollaborator = async (userId) => {
 
 .collaborators-list-wrapper::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .collaborators-list-wrapper::-webkit-scrollbar-track {
@@ -262,7 +262,7 @@ const deleteCollaborator = async (userId) => {
   border-radius: var(--large-radius);
   padding: 1rem;
   background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
 }
 </style>

@@ -299,7 +299,7 @@ onBeforeUnmount(() => {
     border-radius: 12px;
     outline: var(--transparent-line);
     outline-offset: -1px;
-    background-color: var(--dark-steel);
+    background-color: var(--surface-2);
     border-radius: var(--large-radius);
     transition: all .2s ease-in-out;
 }
@@ -477,7 +477,7 @@ onBeforeUnmount(() => {
     /* background-color: indianred; */
     font-family: 'Inter', sans-serif;
     font-size: 12px;
-    color: var(--silver);
+    color: var(--text-muted);
     width: 100%;
     max-width: 100%;
     /* display: flex; */
@@ -511,7 +511,7 @@ onBeforeUnmount(() => {
 .checkpoint-item:hover {
     /* outline: var(--solid-line); */
     border-radius: var(--normal-radius);
-    background-color: var(--steel);
+    background-color: var(--surface-3);
 }
 
 .checkpoint-item:hover .checkpoint-item-actions {
@@ -538,11 +538,11 @@ onBeforeUnmount(() => {
 }
 
 .checkpoint-active {
-    background-color: var(--solid-blue-steel);
+    background-color: var(--selected);
 }
 
 .checkpoint-active:hover {
-    background-color: var(--solid-blue-steel);
+    background-color: var(--selected);
 }
 
 .profile-picture {

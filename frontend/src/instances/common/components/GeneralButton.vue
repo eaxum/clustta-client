@@ -51,13 +51,13 @@ const props = defineProps({
 }
 
 .default{
-  background-color: var(--white);
-  color: var(--white);
+  background-color: var(--surface-inverse);
+  color: var(--text);
 }
 
 .colored{
   background-color: rgb(44, 117, 226);
-  color: var(--white);
+  color: var(--text);
 }
 
 .loading{

@@ -69,7 +69,7 @@ const triggerAction = () => {
 .assignee-list-item-name {
   font-family: 'Inter', sans-serif;
   /* font-weight: 100; */
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   display: flex;
   flex: 1;
@@ -79,7 +79,7 @@ const triggerAction = () => {
 }
 
 .assignee-list-item {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: space-between;

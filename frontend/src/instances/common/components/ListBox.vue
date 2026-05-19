@@ -169,7 +169,7 @@ onBeforeUnmount(() => {
   position: relative;
   box-sizing: border-box;
   color: black;
-  color: var(--white);
+  color: var(--text);
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -185,11 +185,11 @@ onBeforeUnmount(() => {
   gap: .5rem;
   flex: 1;
   min-height: 35px;
-  background-color: var(--light-steel)
+  background-color: var(--surface-4)
 }
 
 .list-box-parent:hover {
-  background-color: var(--steel)
+  background-color: var(--surface-3)
 }
 
 .list-box-parent-content {
@@ -223,13 +223,13 @@ onBeforeUnmount(() => {
 }
 
 .listbox-list-items-root {
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   z-index: 100000;
   border-radius: 8px;
   min-height: 32px;
   line-height: 1.4 !important;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   overflow: hidden;
   overflow-y: auto;
   max-height: 300px;
@@ -260,11 +260,11 @@ onBeforeUnmount(() => {
 }
 
 .listbox-list-items {
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   border-radius: 8px;
   min-height: 32px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   overflow: hidden;
   overflow-y: auto;
   display: flex;
@@ -290,7 +290,7 @@ onBeforeUnmount(() => {
 }
 
 .listbox-item:hover {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .listbox-item-closed {
@@ -315,7 +315,7 @@ onBeforeUnmount(() => {
 
 .list-box {
   box-sizing: border-box;
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
   width: 100%;
   border-radius: 8px;
   height: 35px;

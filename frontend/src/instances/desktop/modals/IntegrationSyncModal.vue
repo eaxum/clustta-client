@@ -256,7 +256,7 @@ onMounted(() => {
 
 .step-content::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .step-content::-webkit-scrollbar-track {
@@ -277,7 +277,7 @@ onMounted(() => {
 .preview-divider {
   width: 100%;
   height: 1px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   flex-shrink: 0;
 }
 
@@ -334,7 +334,7 @@ onMounted(() => {
 
 .sync-preview-scroll::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .sync-preview-scroll::-webkit-scrollbar-track {

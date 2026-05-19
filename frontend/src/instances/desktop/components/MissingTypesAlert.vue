@@ -157,7 +157,7 @@ const getTypeIcon = (iconName) => {
 
 .missing-types-list::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .missing-type-item {

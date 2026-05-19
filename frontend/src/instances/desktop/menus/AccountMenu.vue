@@ -331,7 +331,7 @@ onMounted(() => {
 
 .current-account {
   background-color: var(--dark-glass);
-  border: 1px solid var(--steel);
+  border: 1px solid var(--surface-3);
 }
 
 .clickable-account {
@@ -340,7 +340,7 @@ onMounted(() => {
 
 .clickable-account:hover {
   background-color: var(--dark-glass);
-  outline: 1px solid var(--steel);
+  outline: 1px solid var(--surface-3);
 }
 
 .account-avatar {
@@ -371,7 +371,7 @@ onMounted(() => {
 .account-name {
   font-weight: 500;
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -379,7 +379,7 @@ onMounted(() => {
 
 .account-email {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -428,7 +428,7 @@ onMounted(() => {
 .menu-divider {
   display: block;
   height: 1px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   margin: 0.5rem 0;
   border: none;
 }

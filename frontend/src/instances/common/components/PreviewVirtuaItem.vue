@@ -127,7 +127,7 @@ watch(() => itemChildren.value, async () => {
   left: 8px;
   top: 0;
   width: 1px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   opacity: 0.3;
 }
 

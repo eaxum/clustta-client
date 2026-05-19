@@ -37,11 +37,11 @@ defineProps({
 
 .filter-button {
 	overflow: hidden;
-	background-color: var(--black-steel);
+	background-color: var(--surface-1);
 	text-align: center;
 	font-size: 14px;
 	line-height: 14px;
-	color: var(--white);
+	color: var(--text);
 	position: relative;
 	border-radius: var(--large-radius);
 	box-sizing: border-box;
@@ -83,8 +83,8 @@ defineProps({
 }
 
 .button-background {
-	background-color: var(--white);
-	color: var(--black);
+	background-color: var(--surface-inverse);
+	color: var(--surface-1);
 }
 
 .label-text {

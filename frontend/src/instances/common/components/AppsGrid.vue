@@ -226,7 +226,7 @@ onMounted(async () => {
 .apps-grid-item {
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -239,7 +239,7 @@ onMounted(async () => {
 }
 
 .apps-grid-item:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
@@ -251,7 +251,7 @@ onMounted(async () => {
 .apps-grid-item-selected {
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.216);
-  /* border: 1px solid var(--white); */
+  /* border: 1px solid var(--text); */
   outline: var(--transparent-line);
   outline-offset: -1px;
 
@@ -276,7 +276,7 @@ onMounted(async () => {
 }
 
 .app-ext-text {
-  color: var(--white);
+  color: var(--text);
   font-size: 16px;
   overflow: hidden;
   overflow-wrap: break-word;

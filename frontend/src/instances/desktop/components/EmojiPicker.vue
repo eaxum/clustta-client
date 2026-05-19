@@ -244,7 +244,7 @@ margin-top: 0.5rem;
   /* max-width: 300px; */
   max-height: 260px;
   background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
   padding: .5rem;
   outline: var(--transparent-line);
@@ -358,7 +358,7 @@ margin-top: 0.5rem;
   align-items: center;
   height: 100%;
   min-height: 80px;
-  color: var(--white);
+  color: var(--text);
   font-size: 0.85rem;
 }
 </style>

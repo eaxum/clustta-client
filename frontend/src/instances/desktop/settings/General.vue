@@ -386,12 +386,12 @@ onMounted(async () => {
 }
 
 .settings-component-root::-webkit-scrollbar-thumb {
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: 3px;
 }
 
 .settings-component-root::-webkit-scrollbar-track {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 3px;
 }
 
@@ -415,7 +415,7 @@ onMounted(async () => {
 
 /* Settings item styling */
 .settings-item {
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   overflow: hidden;
   min-height: 50px;
@@ -425,10 +425,10 @@ onMounted(async () => {
   justify-content: space-between;
   width: 100%;
   height: max-content;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-bottom:  1px solid var(--light-steel);
+  border-bottom:  1px solid var(--surface-4);
 }
 
 .settings-item:hover {
@@ -468,7 +468,7 @@ onMounted(async () => {
 }
 
 .settings-body {
-  color: var(--silver);
+  color: var(--text-muted);
   padding: .1rem;
   font-size: 12px;
   opacity: .8;

@@ -403,7 +403,7 @@ onBeforeUnmount(() => {
 
 .pane-parameter-section::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .pane-parameter-section::-webkit-scrollbar-track {
@@ -435,7 +435,7 @@ onBeforeUnmount(() => {
 
 .assignees::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
 }
 
 .assignees::-webkit-scrollbar-track {

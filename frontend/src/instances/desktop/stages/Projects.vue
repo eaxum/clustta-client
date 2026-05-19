@@ -576,7 +576,7 @@ onUnmounted(() => {
 	justify-content: center;
 	/* background-color: khaki;
     background-color: firebrick; */
-	color: var(--white);
+	color: var(--text);
 	flex-direction: column;
 }
 
@@ -639,7 +639,7 @@ onUnmounted(() => {
 	height: 100%;
 	background-color: tomato;
 	border-radius: var(--very-large-radius);
-	background-color: var(--black-steel);
+	background-color: var(--surface-1);
 	width: 100%;
 	box-sizing: border-box;
 	min-width: 300px;
@@ -651,7 +651,7 @@ onUnmounted(() => {
 
 .project-list-root::-webkit-scrollbar-thumb {
 	border-radius: 4px;
-	background-color: var(--dark-steel);
+	background-color: var(--surface-2);
 }
 
 .project-list-root::-webkit-scrollbar-track {
@@ -664,7 +664,7 @@ onUnmounted(() => {
 	display: flex;
 	flex-direction: column;
 	/* background-color: firebrick; */
-	color: var(--white);
+	color: var(--text);
 	width: 100%;
 	/* min-width: max-content; */
 	/* max-width: 300px; */
@@ -688,7 +688,7 @@ onUnmounted(() => {
 	display: flex;
 	flex-direction: column;
 	/* background-color: firebrick; */
-	color: var(--white);
+	color: var(--text);
 	width: 100%;
 	/* height: 100%; */
 	box-sizing: border-box;
@@ -705,7 +705,7 @@ onUnmounted(() => {
 
 .project-list-container::-webkit-scrollbar-thumb {
 	border-radius: 8px;
-	background-color: var(--dark-steel);
+	background-color: var(--surface-2);
 }
 
 .project-list-container::-webkit-scrollbar-track {
@@ -742,7 +742,7 @@ onUnmounted(() => {
 }
 
 .bulk-selection-count {
-	color: var(--white);
+	color: var(--text);
 	font-size: .8rem;
 	padding: 0 .4rem;
 	min-width: 1rem;

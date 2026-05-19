@@ -191,7 +191,7 @@ onMounted(resolveIcon);
 .changelog-child-label {
   font-size: 12px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   opacity: .7;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -217,7 +217,7 @@ onMounted(resolveIcon);
   justify-content: space-between;
   width: 100%;
   padding: 0 .5rem;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: var(--small-radius);
   overflow: hidden;
 }
@@ -234,19 +234,19 @@ onMounted(resolveIcon);
   flex-direction: column;
   align-items: center;
   width: 100%;
-  color: var(--white);
+  color: var(--text);
   border-radius: var(--large-radius);
   overflow: hidden;
   min-height: max-content;
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   transition: all .2s ease-in-out;
 }
 
 .changelog-item-container:hover {
   border-radius: var(--small-radius);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .changelog-item-container:hover .changelog-item-actions {
@@ -270,7 +270,7 @@ onMounted(resolveIcon);
 .changelog-item-label-text {
   font-size: 13px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

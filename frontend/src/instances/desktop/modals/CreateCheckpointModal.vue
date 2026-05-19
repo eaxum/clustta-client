@@ -428,7 +428,7 @@ onUnmounted(() => {
 .desktop-input-long {
   margin-top: 0px;
   font-weight: 200;
-  color: var(--white);
+  color: var(--text);
 }
 
 .input-label {
@@ -444,7 +444,7 @@ onUnmounted(() => {
   gap: .5rem;
   padding: .5rem .6rem;
   border-radius: var(--normal-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   width: 100%;
   box-sizing: border-box;
 }
@@ -457,7 +457,7 @@ onUnmounted(() => {
 
 .attachment-name {
   font-size: 13px;
-  color: var(--bright-steel);
+  color: var(--surface-5);
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -3,16 +3,16 @@
 
     <!-- View Mode Section -->
     <!-- <ActionButton :icon="getAppIcon('list')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
-      :color="isListActive ? 'var(--steel)' : undefined" :buttonFunction="setListView" />
+      :color="isListActive ? 'var(--surface-3)' : undefined" :buttonFunction="setListView" />
 
     <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" :label="$t('menus.compactView')"
-      :color="isDenseActive ? 'var(--steel)' : undefined" :buttonFunction="setDenseView" />
+      :color="isDenseActive ? 'var(--surface-3)' : undefined" :buttonFunction="setDenseView" />
 
     <ActionButton :icon="getAppIcon('four-squares')" :showLabel="true" :fullWidth="true" :label="$t('menus.gridView')"
-      :color="isGridActive ? 'var(--steel)' : undefined" :buttonFunction="setGridView" />
+      :color="isGridActive ? 'var(--surface-3)' : undefined" :buttonFunction="setGridView" />
 
     <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" :showLabel="true" :fullWidth="true" :label="$t('menus.kanbanView')"
-      :color="isKanbanActive ? 'var(--steel)' : undefined" :buttonFunction="setKanbanView" />
+      :color="isKanbanActive ? 'var(--surface-3)' : undefined" :buttonFunction="setKanbanView" />
 
     <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')" class="menu-divider"></span> -->
 

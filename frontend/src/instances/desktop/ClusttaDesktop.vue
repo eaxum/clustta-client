@@ -164,7 +164,7 @@ onBeforeUnmount(async () => {
 	display: flex;
 	height: 100vh;
 	width: 100vw;
-	background-color: var(--black);
+	background-color: var(--surface-1);
 	overflow: hidden;
 	box-sizing: border-box;
 }
@@ -190,7 +190,7 @@ onBeforeUnmount(async () => {
 	padding-bottom: 0;
 	padding-top: 0;
 	background-color: forestgreen;
-	background-color: var(--shadow-steel);
+	background-color: var(--surface-3);
 }
 </style>
 

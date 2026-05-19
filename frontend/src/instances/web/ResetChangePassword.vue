@@ -238,13 +238,13 @@ onMounted(() => {
   align-items: center;
   height: 100%;
   flex-direction: column;
-  background-color: var(--black);
+  background-color: var(--surface-1);
   overflow: hidden;
   overflow-y: auto;
 }
 
 .auth-subheader {
-  color: var(--silver);
+  color: var(--text-muted);
   font-size: 14px;
   text-align: center;
   margin-top: 0.5rem;
@@ -293,7 +293,7 @@ onMounted(() => {
   line-height: 90%;
   width: max-content;
   text-align: left;
-  color: var(--white);
+  color: var(--text);
   height: max-content;
   min-width: 330px;
   width: 100%;
@@ -335,12 +335,12 @@ onMounted(() => {
   display: flex;
   overflow: hidden;
   gap: .2rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   align-items: center;
 }
 
 .form-input-mini {
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   border: 0px;
   border-radius: 4px;
@@ -348,7 +348,7 @@ onMounted(() => {
   width: 100%;
   height: 100%;
   padding: 0.75rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
   font-size: 16px;
@@ -357,8 +357,8 @@ onMounted(() => {
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .error-message {
@@ -375,7 +375,7 @@ onMounted(() => {
 .submit-button {
   font-size: x-large;
   background-color: var(--grape);
-  color: var(--white);
+  color: var(--text);
   color: white;
   padding: 0.75rem;
   height: 50px;
@@ -412,7 +412,7 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: var(--text);
   cursor: pointer;
   gap: 1rem;
 }

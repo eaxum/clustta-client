@@ -11,6 +11,8 @@ const ramps = {
     hoverAlpha: 'oklch(0 0 0 / 0.05)',
     accentL:    0.45,
     accentFgL:  0.99,
+    selectedAlpha:     0.70,
+    selectedSoftAlpha: 0.22,
     iconInvert: 0,
   },
   dark: {
@@ -21,6 +23,8 @@ const ramps = {
     hoverAlpha: 'oklch(1 0 0 / 0.05)',
     accentL:    0.72,
     accentFgL:  0.12,
+    selectedAlpha:     0.70,
+    selectedSoftAlpha: 0.22,
     iconInvert: 1,
   },
 };
@@ -46,12 +50,8 @@ export const tints = {
       dark:  { l: 0.50, fgL: 0.99 },
     },
   },
-  neutral: { hue: 60,  chroma: 0.008, accentHue: 60,  accentChroma: 0.09 },
   blue:    { hue: 240, chroma: 0.015, accentHue: 230, accentChroma: 0.20 },
   pink:    { hue: 350, chroma: 0.018, accentHue: 340, accentChroma: 0.20 },
-  orange:  { hue:  55, chroma: 0.020, accentHue:  35, accentChroma: 0.18 },
-  green:   { hue: 150, chroma: 0.015, accentHue: 145, accentChroma: 0.18 },
-  purple:  { hue: 290, chroma: 0.018, accentHue: 280, accentChroma: 0.20 },
 };
 
 export const TINT_NAMES = Object.keys(tints);
@@ -93,12 +93,20 @@ export function buildPalette({ mode = 'light', tint = 'default' } = {}) {
     '--text-muted':   `oklch(${ramp.textMuted} ${c * 0.5} ${h})`,
     '--text-inverse': `oklch(${1 - ramp.text} ${c * 0.3} ${h})`,
 
+    '--surface-inverse':       `oklch(${ramp.text} ${c * 0.3} ${h})`,
+    '--surface-inverse-muted': `oklch(${ramp.textMuted} ${c * 0.5} ${h})`,
+
+    '--skeleton':     `color-mix(in oklch, oklch(${ramp.text} ${c * 0.3} ${h}) 10%, transparent)`,
+
     '--border':        `oklch(${ramp.border} ${c} ${h})`,
     '--border-strong': `oklch(${mode === 'dark' ? 0.35 : 0.70} ${c} ${h})`,
 
     '--accent':       `oklch(${accentL} ${t.accentChroma} ${t.accentHue})`,
     '--accent-hover': `oklch(${accentL + (mode === 'dark' ? 0.05 : -0.05)} ${t.accentChroma} ${t.accentHue})`,
     '--accent-fg':    `oklch(${accentFgL} 0 0)`,
+
+    '--selected':      `color-mix(in oklch, oklch(${accentL} ${t.accentChroma} ${t.accentHue}) ${ramp.selectedAlpha * 100}%, transparent)`,
+    '--selected-soft': `color-mix(in oklch, oklch(${accentL} ${t.accentChroma} ${t.accentHue}) ${ramp.selectedSoftAlpha * 100}%, transparent)`,
 
     '--hover':        ramp.hoverAlpha,
     '--icon-invert':  String(ramp.iconInvert),

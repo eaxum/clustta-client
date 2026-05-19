@@ -67,7 +67,7 @@ const props = defineProps({
   width: 100%;
   height: 100%;
   background-color: rgb(24, 24, 24);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   /* opacity: .2; */
   cursor: not-allowed !important;
   border-radius: 10px;

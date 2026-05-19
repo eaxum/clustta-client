@@ -291,7 +291,7 @@ onMounted(() => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   white-space: nowrap;
   flex: 1;

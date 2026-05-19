@@ -3,19 +3,19 @@
 
     <!-- Sort Options Section -->
     <ActionButton :icon="getAppIcon('sort-a-z')" :showLabel="true" :fullWidth="true" :label="$t('menus.sortAlphabetically')"
-      :color="isAlphabeticalActive ? 'var(--steel)' : undefined" :buttonFunction="setSortByName" />
+      :color="isAlphabeticalActive ? 'var(--surface-3)' : undefined" :buttonFunction="setSortByName" />
 
     <ActionButton :icon="getAppIcon('clock')" :showLabel="true" :fullWidth="true" :label="$t('menus.sortByStatus')"
-      :color="isStatusActive ? 'var(--steel)' : undefined" :buttonFunction="setSortByStatus" />
+      :color="isStatusActive ? 'var(--surface-3)' : undefined" :buttonFunction="setSortByStatus" />
 
     <span class="menu-divider"></span>
 
     <!-- Sort Order Section -->
     <ActionButton :icon="getAppIcon(ascendingIcon)" :showLabel="true" :fullWidth="true" :label="$t('menus.ascending')"
-      :color="isAscending ? 'var(--steel)' : undefined" :buttonFunction="setSortAscending" />
+      :color="isAscending ? 'var(--surface-3)' : undefined" :buttonFunction="setSortAscending" />
 
     <ActionButton :icon="getAppIcon(descendingIcon)" :showLabel="true" :fullWidth="true" :label="$t('menus.descending')"
-      :color="!isAscending ? 'var(--steel)' : undefined" :buttonFunction="setSortDescending" />
+      :color="!isAscending ? 'var(--surface-3)' : undefined" :buttonFunction="setSortDescending" />
 
   </div>
 </template>

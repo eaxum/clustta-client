@@ -132,7 +132,7 @@ onMounted(() => {
 <style scoped>
 .contribution-graph {
   width: 100%;
-  color: var(--white);
+  color: var(--text);
 }
 
 .graph-header {
@@ -141,7 +141,7 @@ onMounted(() => {
 
 .activity-count {
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 7;
 }
 
@@ -162,7 +162,7 @@ onMounted(() => {
 
 .month-label {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   opacity: .6;
   min-width: 60px;
   text-align: left;
@@ -183,7 +183,7 @@ onMounted(() => {
 
 .day-label {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   opacity: .6;
   height: 12px;
   display: flex;
@@ -215,7 +215,7 @@ onMounted(() => {
 }
 
 .day-cell.level-0 {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .day-cell.level-1 {
@@ -240,7 +240,7 @@ onMounted(() => {
 
 .legend-label {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   opacity: .6;
 }
 
@@ -256,12 +256,12 @@ onMounted(() => {
 }
 
 .graph-container::-webkit-scrollbar-thumb {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 3px;
 }
 
 .graph-container::-webkit-scrollbar-track {
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: 3px;
 }
 </style>

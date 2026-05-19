@@ -251,12 +251,12 @@ onBeforeUnmount(() => {
 }
 
 .nav-link:hover {
-  color: var(--white);
+  color: var(--text);
   background-color: var(--hover);
 }
 
 .nav-link.active {
-  color: var(--white);
+  color: var(--text);
   background-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -311,7 +311,7 @@ onBeforeUnmount(() => {
   top: 60px;
   right: 1.5rem;
   min-width: 200px;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -332,7 +332,7 @@ onBeforeUnmount(() => {
 .account-name {
   font-weight: 500;
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
 
 .account-email {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
   white-space: nowrap;
   overflow: hidden;
@@ -349,7 +349,7 @@ onBeforeUnmount(() => {
 
 .dropdown-divider {
   height: 1px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   margin: 0.25rem 0;
 }
 

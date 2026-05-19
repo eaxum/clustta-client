@@ -156,7 +156,7 @@ label {
   display: block;
   font-size: 14px;
   color: #374151;
-  color: var(--white);
+  color: var(--text);
   margin-bottom: 8px;
 }
 
@@ -171,7 +171,7 @@ label {
 
 .input-short::-webkit-scrollbar-thumb {
 	border-radius: 10px;
-	background-color: var(--dark-steel);
+	background-color: var(--surface-2);
 }
 
 .input-short::-webkit-scrollbar-track {
@@ -184,7 +184,7 @@ label {
     padding: .5rem;
     font-size: 14px;
     box-sizing: border-box;
-    color: var(--white);
+    color: var(--text);
 }
 
 .no-results{

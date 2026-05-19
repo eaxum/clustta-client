@@ -198,14 +198,14 @@ const goToSelfHosted = () => {
   align-items: center;
   height: 100%;
   flex-direction: column;
-  background-color: var(--black);
+  background-color: var(--surface-1);
   overflow: hidden;
   overflow-y: auto;
 }
 
 .welcome-subheader {
   font-size: 0.9rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.6;
   text-align: left;
   font-weight: 300;
@@ -233,7 +233,7 @@ const goToSelfHosted = () => {
 }
 
 .signin-link {
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   font-weight: 300;
   opacity: 0.6;
@@ -253,7 +253,7 @@ const goToSelfHosted = () => {
 .loading-status {
   text-align: center;
   font-size: 0.85rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
   animation: pulse 1.5s ease-in-out infinite;
 }

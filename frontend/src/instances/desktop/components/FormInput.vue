@@ -159,7 +159,7 @@ onMounted(() => {
 }
 
 .form-label {
-  color: var(--white);
+  color: var(--text);
   font-weight: 400;
   font-size: 0.875rem;
   min-width: 120px;
@@ -179,8 +179,10 @@ onMounted(() => {
   width: 100%;
   box-sizing: border-box;
   border-radius: var(--large-radius);
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   padding-right: .25rem;
+  outline: var(--faint-line);
+  outline-offset: -1px;
 }
 
 .form-input {
@@ -192,7 +194,7 @@ onMounted(() => {
   border: 0px;
   outline: none;
   background-color: transparent;
-  color: var(--white);
+  color: var(--text);
   width: 100%;
   height: 40px;
   transition: opacity 0.2s;
@@ -204,7 +206,7 @@ onMounted(() => {
 }
 
 .form-input::placeholder {
-  color: var(--white);
+  color: var(--text);
   opacity: .5;
 }
 

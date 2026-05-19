@@ -202,7 +202,7 @@ onMounted(() => {
 .success-message {
   font-size: 14px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
 }
 
 .share-link-container {
@@ -221,7 +221,7 @@ onMounted(() => {
 .share-info-label {
   font-size: 12px;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -229,8 +229,8 @@ onMounted(() => {
 
 .share-link-input {
   width: 100%;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
   border: none;
   border-radius: 8px;
   padding: 10px 12px;

@@ -372,7 +372,7 @@ onBeforeUnmount(() => {
 
 .assignee-scroll-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .assignee-scroll-container::-webkit-scrollbar-track {
@@ -408,7 +408,7 @@ onBeforeUnmount(() => {
 
 .section-label {
   font-size: 11px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   padding-left: .2rem;
 }
@@ -419,7 +419,7 @@ onBeforeUnmount(() => {
   align-items: center;
   padding: 1rem;
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
 }
 
@@ -436,13 +436,13 @@ onBeforeUnmount(() => {
   content: '';
   flex: 1;
   height: 1px;
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
   opacity: 0.2;
 }
 
 .divider-text {
   font-size: 11px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   white-space: nowrap;
 }

@@ -241,7 +241,7 @@ onMounted(() => {
     gap: .5rem;
     display: flex;
     gap: .2rem;
-    color: var(--white);
+    color: var(--text);
     align-items: center;
     box-sizing: border-box;
     width: 100%;
@@ -252,7 +252,7 @@ onMounted(() => {
     border-radius: var(--large-radius);
     outline: var(--transparent-line);
     outline-offset: -1px;
-    background-color: var(--dark-steel);
+    background-color: var(--surface-2);
     transition: all .2s ease-in-out;
 }
 
@@ -285,7 +285,7 @@ onMounted(() => {
 
 .trash-item-container:hover {
     border-radius: var(--normal-radius);
-    background-color: var(--steel);
+    background-color: var(--surface-3);
 }
 
 .trash-checkpoints-root {
@@ -300,7 +300,7 @@ onMounted(() => {
 
 .trash-checkpoints{
     border-radius: var(--normal-radius);
-    background-color: var(--light-steel);
+    background-color: var(--surface-4);
     padding: .5rem 0;
     padding-right: 1rem;
     display: flex;
@@ -336,7 +336,7 @@ onMounted(() => {
     left: 19.6px;
     width: 1px;
     height: 100%;
-    background-color: var(--white);
+    background-color: var(--surface-inverse);
 }
 
 .status-pill {
@@ -418,7 +418,7 @@ onMounted(() => {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     /* font-weight: 200; */
-    color: var(--white);
+    color: var(--text);
     text-overflow: ellipsis;
 }
 
@@ -427,7 +427,7 @@ onMounted(() => {
 }
 
 .checkpoint-item-label-text {
-    color: var(--white);
+    color: var(--text);
     font-size: 14px;
     height: min-content;
     overflow: hidden;

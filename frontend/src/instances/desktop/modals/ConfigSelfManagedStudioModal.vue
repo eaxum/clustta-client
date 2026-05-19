@@ -317,7 +317,7 @@ onMounted(async () => {
   padding: 1rem;
   border-radius: 8px;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   display: flex;
   flex-direction: column;
   /* line-height: 1.6; */
@@ -346,7 +346,7 @@ onMounted(async () => {
 .env-usage-text {
   font-size: 14px;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
 }
 
 .input-section {
@@ -356,7 +356,7 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: flex-start;
   gap: 0.5rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .input-label-row {
@@ -493,8 +493,8 @@ onMounted(async () => {
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
   display: flex;
 }
 
@@ -529,7 +529,7 @@ onMounted(async () => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
@@ -559,7 +559,7 @@ onMounted(async () => {
 .studio-info-label {
   font-size: 12px;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -567,8 +567,8 @@ onMounted(async () => {
 
 .studio-info-value {
   font-size: 16px;
-  color: var(--white);
-  background-color: var(--midnight-steel);
+  color: var(--text);
+  background-color: var(--bg);
   padding: 10px 12px;
   border-radius: 8px;
   word-break: break-word;
@@ -606,8 +606,8 @@ onMounted(async () => {
 
 .secret-key-input {
   width: 100%;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
   border: none;
   border-radius: 8px;
   padding: 10px 12px;
@@ -653,8 +653,8 @@ onMounted(async () => {
   box-sizing: border-box;
   width: 100%;
   height: min-content;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
   border-radius: 8px;
   padding: 8px;
 }
@@ -666,7 +666,7 @@ onMounted(async () => {
 .env-file-textarea {
   width: 100%;
   min-height: 140px;
-  color: var(--white);
+  color: var(--text);
   border: none;
   font-family: 'Courier New', monospace;
   background-color: transparent;
@@ -690,7 +690,7 @@ onMounted(async () => {
 
 .env-file-textarea::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .studio-info-text {
@@ -698,7 +698,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   padding: .5rem 0;
   box-sizing: border-box;

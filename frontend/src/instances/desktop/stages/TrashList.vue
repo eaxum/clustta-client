@@ -174,7 +174,7 @@ onBeforeUnmount(() => {
   align-items: center;
   color: white;
   padding: 1rem;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
 }
 
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
 
 .trash-list-body::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .trash-list-body::-webkit-scrollbar-track {

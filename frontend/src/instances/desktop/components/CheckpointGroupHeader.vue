@@ -25,6 +25,6 @@ const props = defineProps({
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--silver);
+    color: var(--text-muted);
 }
 </style>

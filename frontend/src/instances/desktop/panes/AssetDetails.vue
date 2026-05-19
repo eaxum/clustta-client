@@ -565,7 +565,7 @@ onBeforeUnmount(() => {
 
 .pane-parameter-section::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .pane-parameter-section::-webkit-scrollbar-track {
@@ -691,10 +691,10 @@ onBeforeUnmount(() => {
 .tag-input-chip {
   display: inline-flex;
   align-items: center;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--large-radius);
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
   overflow: hidden;
   height: min-content;
 }
@@ -703,7 +703,7 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--white);
+  color: var(--text);
   font-size: 0.875rem;
   font-weight: 300;
   padding: 0.25rem 0.5rem;

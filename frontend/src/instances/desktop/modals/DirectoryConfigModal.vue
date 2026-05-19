@@ -120,7 +120,7 @@ onMounted(async () => {
 
 .regular {
   padding-left: .5rem;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
 }
 
@@ -145,7 +145,7 @@ onMounted(async () => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   white-space: nowrap;
   flex: 1;

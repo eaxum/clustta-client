@@ -623,7 +623,7 @@ onBeforeUnmount(() => {
 
 .action-bar::-webkit-scrollbar-thumb {
 	border-radius: 10px;
-	background-color: var(--steel);
+	background-color: var(--surface-3);
 }
 
 .action-bar::-webkit-scrollbar-track {
@@ -634,7 +634,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
   display: flex;
   flex-direction: column;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   width: 100%;
   height: min-content;
   min-height: min-content;
@@ -657,7 +657,7 @@ onBeforeUnmount(() => {
   padding: .5rem;
   gap: 5px;
   box-sizing: border-box;
-  color: var(--white);
+  color: var(--text);
 }
 
 .project-stats-collapsed{

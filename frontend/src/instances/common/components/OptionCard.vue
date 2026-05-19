@@ -90,7 +90,7 @@ watch(() => props.selected, (val) => {
   display: flex;
   flex-direction: column;
   border-radius: var(--very-large-radius);
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   outline: var(--transparent-line);
   outline-offset: -1px;
   cursor: pointer;
@@ -121,7 +121,7 @@ watch(() => props.selected, (val) => {
   height: 16px;
   min-width: 16px;
   border-radius: 50%;
-  border: 2px solid var(--light-steel);
+  border: 2px solid var(--surface-4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -166,13 +166,13 @@ watch(() => props.selected, (val) => {
 .option-title {
   font-size: 0.95rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
   line-height: 120%;
 }
 
 .option-description {
   font-size: 0.8rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.55;
   font-weight: 300;
   line-height: 130%;

@@ -71,7 +71,7 @@ const props = defineProps({
 }
 
 .toggle-input:checked + .toggle-switch {
-  background-color: var(--asset-item-selected);
+  background-color: var(--selected);
 }
 
 .toggle-input:checked +  .use-online {

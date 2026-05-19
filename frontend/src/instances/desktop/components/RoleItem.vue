@@ -61,7 +61,7 @@ const getAppIcon = (iconName) => {
 .role-item-main {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -69,7 +69,7 @@ const getAppIcon = (iconName) => {
   height: min-content;
   justify-content: flex-end;
   align-items: flex-start;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
@@ -79,9 +79,9 @@ const getAppIcon = (iconName) => {
 }
 
 .role-item-main:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  outline: 1px solid var(--surface-4);
 }
 
 .role-item-spacer {
@@ -105,7 +105,7 @@ const getAppIcon = (iconName) => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .3rem;
   box-sizing: border-box;
@@ -120,7 +120,7 @@ const getAppIcon = (iconName) => {
 .role-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .2rem .4rem;
   box-sizing: border-box;
@@ -165,7 +165,7 @@ const getAppIcon = (iconName) => {
 .role-item-summary {
   font-size: 12px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
 }
 

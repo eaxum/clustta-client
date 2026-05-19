@@ -292,7 +292,7 @@ const remainingTools = computed(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 .user-list-card {
-    background-color: var(--black-steel);
+    background-color: var(--surface-1);
     border-radius: var(--very-large-radius);
     border-radius: var(--gigantic-radius);
     outline: var(--transparent-line);
@@ -301,11 +301,11 @@ const remainingTools = computed(() => {
     transition: all .2s ease-in-out;
     width: 100%;
   box-sizing: border-box;
-  color: var(--white);
+  color: var(--text);
 }
 
 .user-list-card:hover {
-  /* background-color: var(--dark-steel); */
+  /* background-color: var(--surface-2); */
   border-radius: var(--large-radius);
   /* box-shadow: 0 0px 10px rgba(0, 0, 0, 0.4); */
   box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
@@ -355,7 +355,7 @@ const remainingTools = computed(() => {
 .user-name {
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
 }
 
 .user-title {
@@ -438,13 +438,13 @@ const remainingTools = computed(() => {
   font-weight: 500;
   background-color: transparent;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  color: var(--white);
+  color: var(--text);
 }
 
 .availability-badge.available {
   border-color: #4ade80;
   background-color: rgba(74, 222, 128, 0.15);
-  color:var(--white);
+  color:var(--text);
 }
 
 .availability-badge.available .availability-dot {
@@ -454,7 +454,7 @@ const remainingTools = computed(() => {
 .availability-badge.busy {
   border-color: #fbbf24;
   background-color: rgba(251, 191, 36, 0.15);
-  color:var(--white);
+  color:var(--text);
 }
 
 .availability-badge.busy .availability-dot {
@@ -462,13 +462,13 @@ const remainingTools = computed(() => {
 }
 
 .availability-badge.not-looking {
-  border-color:var(--white);
+  border-color:var(--border-strong);
   background-color: rgba(255, 255, 255, 0.1);
-  color:var(--white);
+  color:var(--text);
 }
 
 .availability-badge.not-looking .availability-dot {
-  background-color:var(--white);
+  background-color:var(--surface-inverse);
 }
 
 .availability-dot {

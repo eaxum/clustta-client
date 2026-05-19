@@ -332,7 +332,7 @@ onMounted(() => {
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -377,7 +377,7 @@ onMounted(() => {
 
 .back-nav-btn:hover {
   background-color: rgba(255, 255, 255, 0.05);
-  color: var(--white);
+  color: var(--text);
 }
 
 .back-icon {
@@ -392,7 +392,7 @@ onMounted(() => {
 
 .public-profile-root::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .public-profile-root::-webkit-scrollbar-track {
@@ -405,7 +405,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  color: var(--white);
+  color: var(--text);
   gap: 1rem;
 }
 
@@ -413,7 +413,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--white);
+  border-top-color: var(--text);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -428,7 +428,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  color: var(--white);
+  color: var(--text);
   gap: 1rem;
   text-align: center;
   padding: 2rem;
@@ -493,12 +493,12 @@ onMounted(() => {
 .profile-name {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
 }
 
 .profile-title {
   font-size: 1rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
 }
 
@@ -513,7 +513,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
   font-size: 0.875rem;
 }
@@ -531,7 +531,7 @@ onMounted(() => {
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .social-links {
@@ -550,7 +550,7 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--normal-radius);
 }
 
@@ -567,7 +567,7 @@ onMounted(() => {
 }
 
 .studio-name {
-  color: var(--white);
+  color: var(--text);
   font-size: 0.875rem;
 }
 

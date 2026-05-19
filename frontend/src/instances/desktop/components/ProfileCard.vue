@@ -38,9 +38,9 @@ defineEmits(['toggleEdit']);
 
 <style scoped>
 .profile-card {
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   overflow: hidden;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
   box-sizing: border-box;
   width: 100%;
@@ -55,7 +55,7 @@ defineEmits(['toggleEdit']);
   box-sizing: border-box;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--normal-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -64,13 +64,13 @@ defineEmits(['toggleEdit']);
 .profile-card-title {
   font-size: 1rem;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
   flex: 1;
 }
 
 .profile-card-content {
   padding: 1.5rem;
-  color: var(--white);
+  color: var(--text);
 }
 </style>

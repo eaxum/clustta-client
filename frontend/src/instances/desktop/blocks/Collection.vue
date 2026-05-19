@@ -748,7 +748,7 @@ onBeforeUnmount(() => {
 .collection-item-main {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -758,7 +758,7 @@ onBeforeUnmount(() => {
   border-radius: 10px;
   overflow: hidden;
   padding-right: 0px;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1px;
   border-radius: var(--large-radius);
@@ -766,13 +766,13 @@ onBeforeUnmount(() => {
 }
 
 .collection-item-main:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  outline: 1px solid var(--surface-4);
 }
 
 .collection-item-grid:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
 } 
 
@@ -780,7 +780,7 @@ onBeforeUnmount(() => {
 .collection-item-main-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   background-color: var(--collection-item-selected);
   background-color: crimson;
 }
@@ -790,11 +790,11 @@ onBeforeUnmount(() => {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .collection-item-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-cut{
@@ -808,7 +808,7 @@ onBeforeUnmount(() => {
   /* padding: .5rem; */
   align-items: center;
   justify-content: center;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1px;
   height: min-content;
@@ -820,11 +820,11 @@ onBeforeUnmount(() => {
 .collection-item-grid-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .collection-item-grid-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-grid-cut {
@@ -834,19 +834,19 @@ onBeforeUnmount(() => {
 .collection-item-grid-last-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-grid-only-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-grid-only-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .main-collection-item-grid{
@@ -910,26 +910,26 @@ onBeforeUnmount(() => {
 .collection-item-last-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-only-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-only-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .collection-item-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .1rem;
   box-sizing: border-box;
@@ -944,7 +944,7 @@ onBeforeUnmount(() => {
 .collection-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .2rem .4rem;
   box-sizing: border-box;
@@ -958,7 +958,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -1031,7 +1031,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 5px;
 }
 
@@ -1067,13 +1067,13 @@ onBeforeUnmount(() => {
   background-color: crimson;
   width: min-content;
   
-  color: var(--white);
+  color: var(--text);
   padding: .2rem .6rem;
   border-radius: var(--tiny-radius);
   font-size: 12px;
   overflow: hidden;
   outline: var(--transparent-line);
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   /* display: flex; */
   align-items: center;
   justify-content: center;
@@ -1222,7 +1222,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   border-radius: 26px;
-  outline: 3px solid var(--dark-steel);
+  outline: 3px solid var(--surface-2);
   outline-offset: -2px;
   display: flex;
   align-items: center;
@@ -1232,7 +1232,7 @@ onBeforeUnmount(() => {
 }
 
 .collection-item-assignee-container-selected {
-  outline: 3px solid var(--solid-blue-steel);
+  outline: 3px solid var(--selected);
 }
 
 .profile-spacer {
@@ -1261,7 +1261,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
   border-radius: 12px;
   height: 100%;
-  color: var(--white);
+  color: var(--text);
 }
 
 .collection-item-grid-left-section {

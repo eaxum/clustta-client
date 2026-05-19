@@ -139,7 +139,7 @@ const getCloudIcon = computed(() => {
 const cloudIconColor = computed(() => {
 	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) return 'var(--danger)';
 	if (!!notificationStore.getProgress.running) return null;
-	if (!unSynced.value) return 'var(--solid-blue-steel)';
+	if (!unSynced.value) return 'var(--selected)';
 	return 'var(--alert)';
 });
 
@@ -320,8 +320,8 @@ const logUserOut = async () => {
 	border: 0px;
 	border-style: solid;
 	outline: none;
-	background-color: var(--midnight-steel);
-	color: var(--white);
+	background-color: var(--bg);
+	color: var(--text);
 	transition: width 0.2s ease-out;
 	border-radius: var(--large-radius);
 	width: 100%;
@@ -331,7 +331,7 @@ const logUserOut = async () => {
 
 .desktop-search-bar::-ms-reveal {
 	filter: invert(100%);
-	/* color: var(--white); */
+	/* color: var(--text); */
 }
 
 .desktop-search-bar:hover {
@@ -407,7 +407,7 @@ const logUserOut = async () => {
 }
 
 .header-bar {
-	color: var(--white);
+	color: var(--text);
 	padding-top: .3rem;
 	width: 100%;
 	height: 50px;
@@ -419,7 +419,7 @@ const logUserOut = async () => {
 	justify-content: space-between;
 	overflow: hidden;
 	/* border-bottom: var(--transparent-line); */
-	background-color: var(--black);
+	background-color: var(--surface-1);
 	/* background-color: rebeccapurple; */
 }
 
@@ -508,7 +508,7 @@ const logUserOut = async () => {
 
 .actions-divider {
 	display: flex;
-	background-color: var(--light-steel);
+	background-color: var(--surface-4);
 	height: 16px;
 	width: 1.5px;
 }

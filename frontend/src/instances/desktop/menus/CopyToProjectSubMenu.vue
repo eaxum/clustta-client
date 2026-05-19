@@ -377,7 +377,7 @@ onBeforeUnmount(() => {
 
 .scrollable-list-container::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .scrollable-list-container::-webkit-scrollbar-track {
@@ -396,6 +396,6 @@ onBeforeUnmount(() => {
 .sub-menu-empty .menu-item-text.subtle {
   opacity: 0.6;
   font-style: italic;
-  color: var(--white);
+  color: var(--text);
 }
 </style>

@@ -59,7 +59,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   width: 100%;
   padding: 0.5rem;
   border-radius: var(--small-radius);
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   outline: var(--transparent-line);
 }
 
@@ -69,7 +69,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   gap: 0.5rem;
   font-size: 18px;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
 }
 
 .dependency-graph-modal-icon {

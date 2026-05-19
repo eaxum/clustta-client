@@ -233,7 +233,7 @@ onUnmounted(() => {
 
 .ignore-list-container::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .ignore-list-container::-webkit-scrollbar-track {
@@ -246,7 +246,7 @@ onUnmounted(() => {
   height: 27px;
   font-family: Inter, sans-serif;
   font-size: 16px;
-  color: var(--white);
+  color: var(--text);
   background: transparent;
   border: 0;
   outline: none;
@@ -278,17 +278,17 @@ onUnmounted(() => {
   outline: none;
   resize: none;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .desktop-input-long:hover{
-  outline: 1px solid var(--white);
+  outline: 1px solid var(--border-strong);
   outline-offset: -1px;
 }
 
 .desktop-input-long:focus{
-  outline: 1px solid var(--white);
+  outline: 1px solid var(--border-strong);
   outline-offset: -1px;
 }
 </style>

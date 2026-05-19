@@ -202,7 +202,7 @@ onUnmounted(() => {
 
 .context-menu-container::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
 }
 
 .context-menu-container::-webkit-scrollbar-track {

@@ -126,7 +126,7 @@ const leftTabPosition = (index) => {
   left: 0;
   right: 0;
   height: 1.5px;
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
   z-index: 0; */
 }
 
@@ -143,7 +143,7 @@ const leftTabPosition = (index) => {
 }
 
 .tab {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   /* width: 200px; */
@@ -166,7 +166,7 @@ const leftTabPosition = (index) => {
 .right-tab-split::after {
   content: "";
   position: absolute;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   left: -4px;
   height: 16px;
   width: 1.5px;
@@ -194,7 +194,7 @@ const leftTabPosition = (index) => {
 .left-tab-split::before {
   content: "";
   position: absolute;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   right: -4px;
   height: 16px;
   width: 1.5px;
@@ -220,8 +220,8 @@ const leftTabPosition = (index) => {
 
 .tab:hover {
   opacity: 1;
-  color: var(--white);
-  background: var(--blue-steel);
+  color: var(--text);
+  background: var(--selected-soft);
   border-radius: var(--normal-radius);
   border: 0px;
   height: 32px;
@@ -245,7 +245,7 @@ const leftTabPosition = (index) => {
 }
 
 .tab.active {
-  color: var(--white);
+  color: var(--text);
   border-bottom: none;
   border-radius: 12px 12px 0px 0px;
   height: 100%;
@@ -253,7 +253,7 @@ const leftTabPosition = (index) => {
   /* width: min-content; */
   /* height: 40px; */
   position: relative;
-  /* background-color: var(--steel); */
+  /* background-color: var(--surface-3); */
   border-bottom: 0px;
   box-sizing: border-box;
   z-index: 2;
@@ -275,7 +275,7 @@ const leftTabPosition = (index) => {
   top: 0;
   right: 50%;
   transform: translateX(50%);
-  /* background: linear-gradient(to bottom, var(--dark-steel), transparent); */
+  /* background: linear-gradient(to bottom, var(--surface-2), transparent); */
   /* background-color: crimson; */
   border-radius: 16px 16px 0px 0px;
   /* box-sizing: border-box; */
@@ -367,7 +367,7 @@ const leftTabPosition = (index) => {
   border-radius: 10px;
   padding: 3px;
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
 }
 
 .alert-items-with-text {

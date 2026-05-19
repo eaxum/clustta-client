@@ -59,6 +59,6 @@
 
 .menu-divider{
 width: 96%;
-border-bottom: 1px solid var(--white) ;
+border-bottom: 1px solid var(--border-strong) ;
 opacity: .1;
 } 

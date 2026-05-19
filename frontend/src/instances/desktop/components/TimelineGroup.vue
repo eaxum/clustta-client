@@ -125,7 +125,7 @@ watch(() => [props.group.items, props.expandedId], () => {
     bottom: 0;
     width: 2px;
     transform: translateX(-50%);
-    background-color: var(--light-steel);
+    background-color: var(--surface-4);
 }
 
 .timeline-rail-first::before {
@@ -144,7 +144,7 @@ watch(() => [props.group.items, props.expandedId], () => {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--light-steel);
+    background-color: var(--surface-4);
     z-index: 1;
 }
 

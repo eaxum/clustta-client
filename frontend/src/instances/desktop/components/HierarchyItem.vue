@@ -332,7 +332,7 @@ const selectCollectionType = (collectionTypeName) => {
 .hierarchy-item-meta {
   color: rgb(219, 219, 219);
   color: white;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   padding: .3rem;
   border-radius: 5px;
   font-size: 13px;
@@ -447,7 +447,7 @@ const selectCollectionType = (collectionTypeName) => {
   padding-left: .5rem;
   gap: .5rem;
   border-radius: var(--small-radius);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   min-height: 40px;
 }
 
@@ -455,7 +455,7 @@ const selectCollectionType = (collectionTypeName) => {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .no-expand {

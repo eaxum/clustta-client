@@ -133,12 +133,12 @@ onMounted( async () => {
   width: 96%;
   gap: .5rem;
   align-items: center;
-  color: var(--white);
+  color: var(--text);
   /* justify-content: space-between; */
   border-radius: var(--gigantic-radius);
   padding: 1rem;
   background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
 }
 
 .project-list {
@@ -159,7 +159,7 @@ onMounted( async () => {
 	height: 100%;
 	background-color: tomato;
 	border-radius: var(--large-radius);
-	background-color: var(--black-steel);
+	background-color: var(--surface-1);
 	width: 100%;
 	box-sizing: border-box;
 	min-width: 300px;
@@ -171,7 +171,7 @@ onMounted( async () => {
 
 .project-list-root::-webkit-scrollbar-thumb {
 	border-radius: 10px;
-	background-color: var(--dark-steel);
+	background-color: var(--surface-2);
 }
 
 .project-list-root::-webkit-scrollbar-track {
@@ -219,7 +219,7 @@ onMounted( async () => {
 
 .project-list-container::-webkit-scrollbar-thumb {
 	border-radius: 10px;
-	background-color: var(--dark-steel);
+	background-color: var(--surface-2);
 }
 
 .project-list-container::-webkit-scrollbar-track {

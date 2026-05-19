@@ -175,7 +175,7 @@ watchEffect(() => {
   width: 100%;
   height: min-content;
   border-radius: var(--normal-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .config-item {

@@ -68,11 +68,11 @@ const closeIcon = computed(() => iconStore.getAppIcon('close'));
   display: inline-flex;
   align-items: center;
   /* gap: 0.375rem; */
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--large-radius);
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   transition: background-color 0.2s;
   padding: 0px;
   overflow: hidden;
@@ -81,7 +81,7 @@ const closeIcon = computed(() => iconStore.getAppIcon('close'));
 
 .chip:hover {
   /* background-color: rgba(255, 255, 255, 0.1); */
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   outline: var(--transparent-line);
 }
 

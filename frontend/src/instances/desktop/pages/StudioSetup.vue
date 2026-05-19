@@ -738,7 +738,7 @@ const validateStudioUrl = () => {
   align-items: center;
   height: 100%;
   flex-direction: column;
-  background-color: var(--black);
+  background-color: var(--surface-1);
   overflow: hidden;
   overflow-y: auto;
 }
@@ -754,7 +754,7 @@ const validateStudioUrl = () => {
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   transition: opacity 0.2s;
   z-index: 10;
@@ -791,7 +791,7 @@ const validateStudioUrl = () => {
 }
 
 .back-link {
-  color: var(--white);
+  color: var(--text);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -812,7 +812,7 @@ const validateStudioUrl = () => {
   text-align: center;
   padding: 1rem 0.5rem;
   font-size: 12px;
-  color: var(--white);
+  color: var(--text);
   font-weight: 300;
   gap: 0.25rem;
 }
@@ -822,7 +822,7 @@ const validateStudioUrl = () => {
 }
 
 .legal-link {
-  color: var(--white);
+  color: var(--text);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -858,7 +858,7 @@ const validateStudioUrl = () => {
   width: 64px;
   height: 64px;
   border-radius: var(--large-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .managed-icon {
@@ -870,12 +870,12 @@ const validateStudioUrl = () => {
 .managed-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
 }
 
 .managed-description {
   font-size: 0.9rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.6;
   font-weight: 300;
   line-height: 150%;
@@ -898,7 +898,7 @@ const validateStudioUrl = () => {
 .desktop-input-long {
   margin-top: 0px;
   font-weight: 200;
-  color: var(--white);
+  color: var(--text);
   margin-bottom: .8rem;
 }
 
@@ -922,7 +922,7 @@ const validateStudioUrl = () => {
   padding: 0.6rem 1rem;
   margin-bottom: 0.5rem;
   border-radius: var(--large-radius);
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   outline: var(--transparent-line);
   outline-offset: -1px;
   gap: 1rem;
@@ -983,20 +983,20 @@ const validateStudioUrl = () => {
 .server-badge-name {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.9;
 }
 
 .server-badge-url {
   font-size: 0.7rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.4;
   font-weight: 300;
 }
 
 .server-change-link {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.5;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -1016,7 +1016,7 @@ const validateStudioUrl = () => {
 .plan-loading {
   text-align: center;
   padding: 1rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.6;
 }
 
@@ -1030,7 +1030,7 @@ const validateStudioUrl = () => {
 
 .plan-select-label {
   font-size: 0.85rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.6;
   font-weight: 300;
 }

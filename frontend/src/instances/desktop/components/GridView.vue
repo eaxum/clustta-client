@@ -209,7 +209,7 @@ const onMouseUp = (event, item) => {
 
 .navigator-root-viewport::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .navigator-root-viewport::-webkit-scrollbar-track {

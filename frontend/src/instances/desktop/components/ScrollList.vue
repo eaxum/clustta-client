@@ -293,7 +293,7 @@ const props = defineProps({
 
 .scroll-list-root::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .scroll-list-root::-webkit-scrollbar-track {
@@ -301,7 +301,7 @@ const props = defineProps({
 }
 
 .scroll-list-item-meta {
-  color: var(--white);
+  color: var(--text);
   background-color: rgba(0, 0, 0, 0.216);
   padding: .3rem;
   border-radius: 5px;
@@ -359,12 +359,12 @@ const props = defineProps({
 .scroll-list-item {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .3rem 1rem;
   box-sizing: border-box;
   width: 100%;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: 10px;
   overflow: hidden;
   height: 60px;
@@ -382,14 +382,14 @@ const props = defineProps({
 
 
 .scroll-list-item:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
 .asset-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -414,12 +414,12 @@ const props = defineProps({
 }
 
 .selected-item {
-  outline: 1px solid var(--white);
+  outline: 1px solid var(--border-strong);
   outline-offset: -1px;
 }
 
 .selected-item:hover {
-  outline: 1px solid var(--white);
+  outline: 1px solid var(--border-strong);
   outline-offset: -1px;
 }
 
@@ -615,7 +615,7 @@ const props = defineProps({
 }
 
 .scroll-list-item:hover>*::nth-last-child(2) {
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
   display: none;
   opacity: 0;
   transition: opacity 0.2s ease-in-out;

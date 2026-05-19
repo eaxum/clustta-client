@@ -174,11 +174,11 @@ onMounted(() => {
   gap: 0.3rem;
   padding: 0.15rem 0.6rem 0.15rem 0.35rem;
   margin: 2px 0;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--large-radius);
   font-size: 0.875rem;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
   max-width: 220px;
   vertical-align: middle;
   line-height: 1.2;
@@ -193,7 +193,7 @@ onMounted(() => {
 
 .console-chip-clickable:hover,
 .console-chip-clickable:focus-visible {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   outline: var(--transparent-line);
 }
 

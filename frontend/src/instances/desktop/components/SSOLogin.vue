@@ -111,12 +111,12 @@ const handleSSO = async (provider) => {
 .sso-divider-line {
   flex: 1;
   height: 1px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .sso-divider-text {
   font-size: 0.8rem;
-  color: var(--light-steel);
+  color: var(--surface-4);
   text-transform: lowercase;
 }
 
@@ -133,8 +133,8 @@ const handleSSO = async (provider) => {
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s, border-radius 0.2s;
-  background-color: var(--silver);
-  color: var(--black-steel);
+  background-color: var(--surface-inverse);
+  color: var(--text-inverse);
   height: 40px;
   min-height: 40px;
   max-height: 40px;

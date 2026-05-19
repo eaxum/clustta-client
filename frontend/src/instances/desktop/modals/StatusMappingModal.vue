@@ -220,7 +220,7 @@ onMounted(async () => {
 
 .general-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--bright-steel);
+  background-color: var(--surface-5);
 }
 
 .general-container::-webkit-scrollbar-track {
@@ -232,7 +232,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .empty-state {
@@ -253,12 +253,12 @@ onMounted(async () => {
 .empty-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
 }
 
 .empty-description {
   font-size: 0.875rem;
-  color: var(--bright-steel);
+  color: var(--surface-5);
 }
 
 .mapping-content {
@@ -276,7 +276,7 @@ onMounted(async () => {
 
 .section-description {
   font-size: 0.875rem;
-  color: var(--bright-steel);
+  color: var(--surface-5);
   margin: 0;
 }
 
@@ -292,10 +292,10 @@ onMounted(async () => {
 .table-header {
   display: flex;
   padding: 0.75rem 1rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--bright-steel);
+  color: var(--surface-5);
   text-transform: uppercase;
 }
 
@@ -312,18 +312,18 @@ onMounted(async () => {
 
 .table-body::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--bright-steel);
+  background-color: var(--surface-5);
 }
 
 .mapping-row {
   display: flex;
   padding: 0.75rem 1rem;
-  border-top: 1px solid var(--steel);
+  border-top: 1px solid var(--surface-3);
   align-items: center;
 }
 
 .mapping-row:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .col-local {
@@ -346,7 +346,7 @@ onMounted(async () => {
 
 .type-name {
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .warning-banner {

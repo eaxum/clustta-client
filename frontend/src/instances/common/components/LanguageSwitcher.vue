@@ -108,7 +108,7 @@ onUnmounted(() => {
 .language-label {
   font-size: 0.8rem;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
 }
 
 .chevron-icon {
@@ -128,7 +128,7 @@ onUnmounted(() => {
   min-width: 160px;
   max-height: 300px;
   overflow-y: auto;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--normal-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
@@ -142,7 +142,7 @@ onUnmounted(() => {
 
 .language-dropdown::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .language-dropdown::-webkit-scrollbar-track {
@@ -153,7 +153,7 @@ onUnmounted(() => {
   padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   cursor: pointer;
   transition: background-color 0.15s;
 }
@@ -167,7 +167,7 @@ onUnmounted(() => {
 }
 
 .language-option:hover {
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .language-active {

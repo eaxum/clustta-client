@@ -196,7 +196,7 @@ onBeforeUnmount(() => {
 	font-size: 14px;
 	line-height: 14px;
 	background-color: transparent;
-	color: var(--white);
+	color: var(--text);
 	position: relative;
 	border-radius: 8px;
 	box-sizing: border-box;
@@ -226,7 +226,7 @@ onBeforeUnmount(() => {
 .sidebar-tabs-pressed {
 	box-sizing: border-box;
 	background-color: rgba(0, 0, 0, 0.216);
-	outline: solid 1px var(--white);
+	outline: solid 1px var(--border-strong);
 	outline-offset: -1px;
 }
 
@@ -244,7 +244,7 @@ onBeforeUnmount(() => {
 
 .side-pane {
 	border-right: var(--transparent-line);
-	color: var(--white);
+	color: var(--text);
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
@@ -256,7 +256,7 @@ onBeforeUnmount(() => {
 	max-width: 240px;
 	height: 100%;
 	transition: all 0.1s cubic-bezier(0.6, 0.05, 0.01, 0.99);
-	background-color: var(--black);
+	background-color: var(--surface-1);
 	/* background-color: crimson; */
 
 	/* flex: 1 1 100%; */
@@ -304,7 +304,7 @@ onBeforeUnmount(() => {
 }
 
 .project-section-header {
-	color: var(--white);
+	color: var(--text);
 	display: flex;
 	box-sizing: border-box;
 	overflow: hidden;
@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
 .user-avatar {
 	overflow: hidden;
 	/* background-color: firebrick; */
-	color: var(--white);
+	color: var(--text);
 	position: relative;
 	border-radius: 8px;
 	box-sizing: border-box;

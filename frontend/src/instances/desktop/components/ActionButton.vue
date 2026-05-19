@@ -167,7 +167,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
   line-height: 14px;
   background-color: transparent;
-  color: var(--white);
+  color: var(--text);
   position: relative;
   border-radius: 8px;
   border-radius: var(--small-radius);
@@ -207,7 +207,7 @@ onBeforeUnmount(() => {
 .action-button-pressed {
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
+  outline: solid 1px var(--border-strong);
   outline-offset: -1px;
 }
 
@@ -219,7 +219,7 @@ onBeforeUnmount(() => {
 }
 
 .plain-background {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   background-color: rgba(0, 0, 0, 0.562);
   outline: 0px;
 }
@@ -268,7 +268,7 @@ onBeforeUnmount(() => {
 }
 
 .button-active {
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   outline: var(--transparent-line);
 }
 
@@ -356,7 +356,7 @@ onBeforeUnmount(() => {
 }
 
 .label-force-dark {
-  color: var(--black) !important;
+  color: var(--surface-1) !important;
 }
 
 </style>

@@ -304,7 +304,7 @@ onMounted(async () => {
 
 .general-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
 }
 
 .general-container::-webkit-scrollbar-track {
@@ -316,7 +316,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .mapping-content {
@@ -339,7 +339,7 @@ onMounted(async () => {
 
 .config-label {
   font-size: 0.875rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .templates-section,
@@ -352,13 +352,13 @@ onMounted(async () => {
 .section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
 }
 
 .section-description {
   font-size: 0.75rem;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
 }
 
@@ -367,7 +367,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 0.5rem;
   padding: 0.75rem;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
@@ -388,34 +388,34 @@ onMounted(async () => {
   background-color: transparent;
   border: 1px solid transparent;
   border-radius: var(--small-radius);
-  color: var(--white);
+  color: var(--text);
   font-size: 0.875rem;
   font-weight: 500;
 }
 
 .template-name-input:hover {
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
 }
 
 .template-name-input:focus {
   outline: none;
-  border-color: var(--white);
-  background-color: var(--midnight-steel);
+  border-color: var(--border-strong);
+  background-color: var(--bg);
 }
 
 .template-label {
   font-size: 0.875rem;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
 }
 
 .template-input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  background-color: var(--midnight-steel);
-  border: 1px solid var(--white);
+  background-color: var(--bg);
+  border: 1px solid var(--border-strong);
   border-radius: var(--small-radius);
-  color: var(--white);
+  color: var(--text);
   font-family: monospace;
   font-size: 0.875rem;
   box-sizing: border-box;
@@ -423,7 +423,7 @@ onMounted(async () => {
 
 .template-input:focus {
   outline: none;
-  border-color: var(--white);
+  border-color: var(--border-strong);
 }
 
 .template-preview {
@@ -433,11 +433,11 @@ onMounted(async () => {
 }
 
 .preview-label {
-  color: var(--white);
+  color: var(--text);
 }
 
 .preview-path {
-  color: var(--white);
+  color: var(--text);
   font-family: monospace;
 }
 
@@ -452,7 +452,7 @@ onMounted(async () => {
 }
 
 .placeholders-grid .chip:hover {
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
 }
 
 .pop-up-actions {

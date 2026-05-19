@@ -46,7 +46,7 @@ onMounted(async () => {
 .asset-skeleton-item{
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -54,7 +54,7 @@ onMounted(async () => {
   height: min-content;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: 10px;
   overflow: hidden;
   padding: .5rem;
@@ -66,8 +66,7 @@ onMounted(async () => {
 
 .asset-skeleton-item-launcher{
     box-sizing: border-box;
-    background-color: var(--white);
-    opacity: .1;
+    background-color: var(--skeleton);
     width: 100%;
     height: 30px;
     height: 60%;
@@ -76,8 +75,7 @@ onMounted(async () => {
 
 .asset-skeleton-spacer{
     box-sizing: border-box;
-    /* background-color: var(--white); */
-    opacity: .1;
+    /* background-color: var(--skeleton); */
     width: 50px;
     height: 30px;
     height: 60%;
@@ -86,8 +84,7 @@ onMounted(async () => {
 
 .thumb-skeleton{
     box-sizing: border-box;
-    background-color: var(--white);
-    opacity: .1;
+    background-color: var(--skeleton);
     height: 80%;
     aspect-ratio: 16/9;
     border-radius: 8px;
@@ -95,8 +92,7 @@ onMounted(async () => {
 
 .status-pill{
     box-sizing: border-box;
-    background-color: var(--white);
-    opacity: .1;
+    background-color: var(--skeleton);
     width: 5rem;
     height: 30px;
     height: 60%;
@@ -105,8 +101,7 @@ onMounted(async () => {
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: var(--white);
-    opacity: .1;
+    background-color: var(--skeleton);
     /* width: 5rem; */
     height: 50%;
     aspect-ratio: 1/1;

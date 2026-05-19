@@ -75,7 +75,7 @@ onMounted(async () => {
   /* max-width: 300px; */
   max-height: 260px;
   background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--large-radius);
   padding: .5rem;
   outline: var(--transparent-line);

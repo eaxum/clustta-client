@@ -774,7 +774,7 @@ onUnmounted(() => {
   justify-content: center;
   height: 100%;
   text-align: center;
-  color: var(--white);
+  color: var(--text);
   gap: 0.5rem;
 }
 
@@ -801,7 +801,7 @@ onUnmounted(() => {
   justify-content: center;
   height: 100%;
   text-align: center;
-  color: var(--white);
+  color: var(--text);
   gap: 0.5rem;
 }
 
@@ -818,7 +818,7 @@ onUnmounted(() => {
   outline: none;
   resize: none;
   background-color: transparent;
-  color: var(--white);
+  color: var(--text);
   padding: 0.5rem 0.5rem 0;
   overflow-y: auto;
   scrollbar-width: none;
@@ -839,7 +839,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--large-radius);
   transition: border-color 0.15s;
   outline-offset: -1px;
@@ -899,7 +899,7 @@ onUnmounted(() => {
 
 .console-messages::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .console-messages::-webkit-scrollbar-track {
@@ -920,7 +920,7 @@ onUnmounted(() => {
 .empty-text {
   font-size: 1.125rem;
   font-weight: 500;
-  color: var(--silver);
+  color: var(--text-muted);
 }
 
 .general-pane-root {
@@ -939,8 +939,8 @@ onUnmounted(() => {
 .msg-user-bubble {
   max-width: 80%;
   padding: 0.5rem 0.75rem;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
   border-radius: 12px 12px 2px 12px;
   font-size: 13px;
   line-height: 1.45;
@@ -954,8 +954,8 @@ onUnmounted(() => {
   max-width: 100%;
   font-size: 10px;
   font-weight: 500;
-  color: var(--silver);
-  background-color: var(--black-steel);
+  color: var(--text-muted);
+  background-color: var(--surface-1);
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   margin-bottom: 0.25rem;
@@ -975,7 +975,7 @@ onUnmounted(() => {
 .msg-assistant-text {
   font-size: 13px;
   line-height: 2;
-  color: var(--white);
+  color: var(--text);
   font-weight: 400;
   word-wrap: break-word;
 }
@@ -985,7 +985,7 @@ onUnmounted(() => {
 }
 
 .msg-assistant-text :deep(strong) {
-  color: var(--white);
+  color: var(--text);
   font-weight: 600;
 }
 
@@ -993,23 +993,23 @@ onUnmounted(() => {
   display: block;
   padding: 0.625rem 0.75rem;
   margin: 0.375rem 0;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--small-radius);
-  border: 1px solid var(--light-steel);
+  border: 1px solid var(--surface-4);
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
   overflow-x: auto;
   white-space: pre;
-  color: var(--silver);
+  color: var(--text-muted);
 }
 
 .msg-assistant-text :deep(.inline-code) {
   padding: 0.1rem 0.35rem;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: 3px;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
-  color: var(--silver);
+  color: var(--text-muted);
 }
 
 /* Tool call indicator — collapsible inline row */
@@ -1023,7 +1023,7 @@ onUnmounted(() => {
   cursor: pointer;
   user-select: none;
   transition: background-color 0.15s;
-  color: var(--white);
+  color: var(--text);
   font-weight: 400;
 }
 
@@ -1039,7 +1039,7 @@ onUnmounted(() => {
 
 .msg-tool-label {
   font-size: 12px;
-  color: var(--silver);
+  color: var(--text-muted);
   text-transform: capitalize;
 }
 
@@ -1054,7 +1054,7 @@ onUnmounted(() => {
 
 .msg-status span {
   font-size: 12px;
-  color: var(--silver);
+  color: var(--text-muted);
   font-style: italic;
 }
 

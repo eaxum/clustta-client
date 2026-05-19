@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: var(--shadow-steel);
+  background-color: var(--surface-3);
   box-sizing: border-box;
   z-index: 99999;
 }
@@ -294,11 +294,11 @@ onBeforeUnmount(() => {
     box-sizing: border-box;
     align-items: center;
     justify-content: space-between;
-    color: var(--white);
+    color: var(--text);
     padding: 0 .8rem;
     font-size: 13px;
     font-weight: 300;
-    /* background-color: var(--dark-steel);uy7 */
+    /* background-color: var(--surface-2);uy7 */
   }
 
 .version-info {
@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
 }
 
 .oudated:hover{
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .outdated-icon-button {
@@ -398,7 +398,7 @@ onBeforeUnmount(() => {
 
 .mini-progress:hover {
   background-color: rgba(44, 117, 226, 0.25);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .mini-progress.write-operation:hover {
@@ -409,7 +409,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .mini-progress-icon {
@@ -438,7 +438,7 @@ onBeforeUnmount(() => {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   overflow: hidden;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .mini-progress-fill {
@@ -464,7 +464,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   height: 70%;
   justify-content: flex-start;
-  /* background-color: var(--dark-steel); */
+  /* background-color: var(--surface-2); */
   padding: .3rem .5rem;
   z-index: 99999;
 }

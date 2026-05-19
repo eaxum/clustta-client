@@ -506,13 +506,13 @@ watch(() => route.query, () => {
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   overflow-y: auto;
-  color: var(--white);
+  color: var(--text);
 }
 
 .discover-header {
@@ -551,13 +551,13 @@ watch(() => route.query, () => {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 3.5rem;
   font-weight: 700;
-  color: var(--white);
+  color: var(--text);
   margin: 0 0 0.5rem 0;
 }
 
 .discover-subtitle {
   font-size: 1rem;
-  color: var(--white);
+  color: var(--text);
   margin: 0 0 1.5rem 0;
 }
 
@@ -571,7 +571,7 @@ watch(() => route.query, () => {
 
 /* Filters */
 .filters-section {
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   box-sizing: border-box;
   border-radius: var(--large-radius);
   padding: 1rem 1.25rem;
@@ -628,7 +628,7 @@ watch(() => route.query, () => {
 
 .results-count {
   font-size: 0.9rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 .results-controls {
@@ -666,14 +666,14 @@ watch(() => route.query, () => {
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
-  color: var(--white);
+  color: var(--text);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: var(--white);
+  border-top-color: var(--text);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -695,7 +695,7 @@ watch(() => route.query, () => {
 .empty-container h2 {
   font-size: 1.25rem;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   margin: 0 0 0.5rem 0;
 }
 
@@ -727,7 +727,7 @@ watch(() => route.query, () => {
 
 .pagination-current {
   font-size: 0.85rem;
-  color: var(--white);
+  color: var(--text);
 }
 
 /* Responsive */
@@ -772,13 +772,13 @@ watch(() => route.query, () => {
 }
 
 .discover-root::-webkit-scrollbar-track {
-  background: var(--midnight-steel);
+  background: var(--bg);
   border-radius: 5px;
 }
 
 .discover-root::-webkit-scrollbar-thumb {
   background-color: rgba(255, 255, 255, 0.15);
-  background: var(--steel);
+  background: var(--surface-3);
   border-radius: 5px;
   transition: background-color 0.2s;
 }
@@ -792,6 +792,6 @@ watch(() => route.query, () => {
 }
 
 .discover-root::-webkit-scrollbar-corner {
-  background: var(--black);
+  background: var(--surface-1);
 }
 </style>

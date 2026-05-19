@@ -298,7 +298,7 @@ onBeforeUnmount(() => {
 
 .modified-items::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .modified-items::-webkit-scrollbar-track {
@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   height: min-content;
   padding: .1rem .1rem .1rem .1rem;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
 }
 
@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
   align-items: center;
   text-wrap: nowrap;
   overflow: hidden;
-  color: var(--white);
+  color: var(--text);
   /* background-color: royalblue; */
 }
 
@@ -347,12 +347,12 @@ onBeforeUnmount(() => {
 .desktop-input-long {
   margin-top: 0px;
   font-weight: 200;
-  color: var(--white);
+  color: var(--text);
 }
 
 .modified-items-count {
   padding-left: .5rem;
-  color: var(--white);
+  color: var(--text);
   /* background-color: forestgreen; */
   font-weight: 200;
   height: min-content;
@@ -376,7 +376,7 @@ onBeforeUnmount(() => {
 
 .loading-items-count {
   padding-left: .5rem;
-  color: var(--white);
+  color: var(--text);
   justify-content: flex-start;
 }
 
@@ -401,7 +401,7 @@ onBeforeUnmount(() => {
 .desktop-input-long {
   /* margin-top: 20px; */
   font-weight: 200;
-  color: var(--white);
+  color: var(--text);
 }
 
 .loading-children-icon {
@@ -415,7 +415,7 @@ onBeforeUnmount(() => {
 .refresh-label{
   font-style: italic;
   font-size: 14px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
 }
 </style>

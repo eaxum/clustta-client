@@ -293,7 +293,7 @@ onMounted(async () => {
 
 .settings-component-root::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .settings-component-root::-webkit-scrollbar-track {
@@ -358,7 +358,7 @@ onMounted(async () => {
   font-size: 2rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
-  color: var(--white);
+  color: var(--text);
 }
 
 .meta-info {
@@ -371,13 +371,13 @@ onMounted(async () => {
 
 .meta-badge {
   font-size: 0.875rem;
-  color: var(--silver);
+  color: var(--text-muted);
   text-transform: capitalize;
 }
 
 .meta-dot {
   font-size: 0.875rem;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.6;
 }
 
@@ -391,7 +391,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--silver);
+  color: var(--text-muted);
   font-size: 0.875rem;
   cursor: pointer;
 }
@@ -416,7 +416,7 @@ onMounted(async () => {
 }
 
 .settings-item {
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   overflow: hidden;
   min-height: 50px;
@@ -428,7 +428,7 @@ onMounted(async () => {
   height: max-content;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-bottom: 1px solid var(--light-steel);
+  border-bottom: 1px solid var(--surface-4);
 }
 
 .settings-item:last-child {
@@ -481,7 +481,7 @@ onMounted(async () => {
 }
 
 .settings-body {
-  color: var(--silver);
+  color: var(--text-muted);
   padding: .1rem;
   font-size: 12px;
   opacity: .8;
@@ -509,7 +509,7 @@ onMounted(async () => {
 }
 
 .danger-message {
-  color: var(--white);
+  color: var(--text);
   margin: 0;
   font-size: 0.875rem;
 }

@@ -534,7 +534,7 @@ onUnmounted(() => {
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
 }
 
 .sidebar::-webkit-scrollbar-track {
@@ -561,7 +561,7 @@ onUnmounted(() => {
   margin-bottom: .5rem;
   padding-bottom: .5rem;
   border-bottom: 1px solid var(--border-color);
-  color: var(--white);
+  color: var(--text);
 }
 
 .section-header {

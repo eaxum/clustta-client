@@ -189,7 +189,7 @@ onMounted(async () => {
 .description-text {
   font-family: Inter, sans-serif;
   font-size: 14px;
-  color: var(--silver);
+  color: var(--text-muted);
   line-height: 1.5;
   margin-bottom: 0.5rem;
 }
@@ -197,7 +197,7 @@ onMounted(async () => {
 .desktop-input-long {
   margin-top: 0px;
   font-weight: 200;
-  color: var(--white);
+  color: var(--text);
   min-height: 100px;
 }
 
@@ -212,7 +212,7 @@ onMounted(async () => {
   flex-direction: column;
   width: 100%;
   padding: 0.8rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--normal-radius);
   box-sizing: border-box;
   margin-top: 0.5rem;
@@ -224,7 +224,7 @@ onMounted(async () => {
   gap: 0.5rem;
   font-size: 13px;
   font-weight: 600;
-  color: var(--white);
+  color: var(--text);
   margin-bottom: 0.5rem;
 }
 
@@ -240,12 +240,12 @@ onMounted(async () => {
 }
 
 .info-label {
-  color: var(--silver);
+  color: var(--text-muted);
   min-width: 120px;
 }
 
 .info-value {
-  color: var(--white);
+  color: var(--text);
 }
 
 .attachment-section {
@@ -254,7 +254,7 @@ onMounted(async () => {
   gap: 0.5rem;
   width: 100%;
   padding: 0.6rem 0.8rem;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: var(--normal-radius);
   box-sizing: border-box;
   margin-top: 0.3rem;
@@ -262,6 +262,6 @@ onMounted(async () => {
 
 .attachment-label {
   font-size: 12px;
-  color: var(--silver);
+  color: var(--text-muted);
 }
 </style>

@@ -5,9 +5,9 @@
       <div class="ignore-list-header">
         <p class="ignore-description">
           {{ $t('settings.ignoreListDescriptionPre') }}
-          <Chip :label="'*.log'" :isStatic="true" :color="'var(--steel)'" />
+          <Chip :label="'*.log'" :isStatic="true" :color="'var(--surface-3)'" />
           {{ $t('settings.ignoreListDescriptionMid') }}
-          <Chip :label="'/FolderName'" :isStatic="true" :color="'var(--steel)'" />
+          <Chip :label="'/FolderName'" :isStatic="true" :color="'var(--surface-3)'" />
           {{ $t('settings.ignoreListDescriptionPost') }}
         </p>
 
@@ -220,7 +220,7 @@ onUnmounted(() => {
 
 .ignore-description {
   font-size: 14px;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
   line-height: 1.4;
   padding: .5rem;
@@ -279,7 +279,7 @@ onUnmounted(() => {
   border-radius: var(--large-radius);
   padding: 1rem;
   background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
 }
 </style>

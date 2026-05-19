@@ -1018,7 +1018,7 @@ onBeforeUnmount(() => {
   z-index: 100000;
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -1029,7 +1029,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   padding-right: 0px;
 
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1px;
   border-radius: var(--large-radius);
@@ -1037,9 +1037,9 @@ onBeforeUnmount(() => {
 }
 
 .asset-item-main:hover {
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  outline: 1px solid var(--surface-4);
 }
 
 .asset-item-main:hover  .main-asset-item-grid-thumb-container{
@@ -1049,11 +1049,11 @@ onBeforeUnmount(() => {
 .asset-item-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .asset-item-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-item-cut{
@@ -1064,7 +1064,7 @@ onBeforeUnmount(() => {
   align-items: flex-end;
   padding-left: 0px;
   padding: .5rem;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   outline: var(--transparent-line);
   outline-offset: -1.5px;
 }
@@ -1072,11 +1072,11 @@ onBeforeUnmount(() => {
 .asset-item-grid-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--blue-steel);
+  background-color: var(--selected-soft);
 }
 
 .asset-item-grid-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-item-grid-cut {
@@ -1086,19 +1086,19 @@ onBeforeUnmount(() => {
 .asset-item-grid-last-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-item-grid-only-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-item-grid-only-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .main-asset-item-grid {
@@ -1250,19 +1250,19 @@ onBeforeUnmount(() => {
   outline: 1px solid rgb(255, 255, 255);
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-item-only-selected {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-item-only-selected:hover {
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  background-color: var(--selected);
 }
 
 .asset-item-child {
@@ -1273,7 +1273,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .1rem;
   box-sizing: border-box;
@@ -1289,7 +1289,7 @@ onBeforeUnmount(() => {
 .asset-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .2rem .4rem;
   box-sizing: border-box;
@@ -1476,7 +1476,7 @@ onBeforeUnmount(() => {
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--white);
+  color: var(--text);
   justify-content: flex-end;
   /* direction: rtl; */
   text-align: left;
@@ -1489,7 +1489,7 @@ onBeforeUnmount(() => {
   text-wrap: nowrap;
   justify-content: flex-end;
   flex: 1;
-  color: var(--white);
+  color: var(--text);
   padding: .2rem .2rem;
   border-radius: var(--tiny-radius);
   font-size: 12px;
@@ -1685,7 +1685,7 @@ onBeforeUnmount(() => {
 .asset-item-grid-untracked-label span {
   font-style: italic;
   font-size: 14px;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.7;
 }
 
@@ -1772,7 +1772,7 @@ onBeforeUnmount(() => {
   font-size: 14px;
   border-radius: 12px;
   height: 100%;
-  color: var(--white);
+  color: var(--text);
 }
 
 @keyframes loadingRotate {

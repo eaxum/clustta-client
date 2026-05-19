@@ -417,7 +417,7 @@ onBeforeMount(async () => {
   display: flex;
   overflow: hidden;
   gap: .2rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
 }
 
 .form-input {
@@ -440,8 +440,8 @@ onBeforeMount(async () => {
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .dashboard-actions {
@@ -465,7 +465,7 @@ onBeforeMount(async () => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: var(--white);
+	color: var(--text);
 	/* background-color: sienna; */
 }
 
@@ -521,7 +521,7 @@ onBeforeMount(async () => {
     width: 100%;
     gap: 2rem;
     border-radius: var(--normal-radius);
-    background-color: var(--black-steel);
+    background-color: var(--surface-1);
     max-width: 800px;
 }
 
@@ -602,7 +602,7 @@ onBeforeMount(async () => {
   .form-group label {
     display: block;
     margin-bottom: 0.8rem;
-    color: var(--white);
+    color: var(--text);
     font-weight: 300;
   }
   

@@ -418,12 +418,12 @@ onMounted(async () => {
 }
 
 .settings-component-root::-webkit-scrollbar-thumb {
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: 3px;
 }
 
 .settings-component-root::-webkit-scrollbar-track {
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 3px;
 }
 
@@ -453,7 +453,7 @@ onMounted(async () => {
   /* gap: 0.5rem; */
   overflow-y: auto;
   /* padding-right: 0.25rem; */
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: var(--normal-radius);
 }
 
@@ -462,7 +462,7 @@ onMounted(async () => {
   display: flex;
   /* border-radius: 8px; */
   align-items: center;
-  /* background-color: var(--dark-steel); */
+  /* background-color: var(--surface-2); */
   overflow: hidden;
   box-sizing: border-box;
   min-height: 50px;
@@ -471,7 +471,7 @@ onMounted(async () => {
   gap: 0.5rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-bottom:  1px solid var(--light-steel);
+  border-bottom:  1px solid var(--surface-4);
 }
 
 .location-item:hover {
@@ -514,14 +514,14 @@ onMounted(async () => {
 .location-name {
   font-size: 14px;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .location-body {
-  color: var(--silver);
+  color: var(--text-muted);
   font-size: 12px;
   opacity: .8;
   padding: .1rem;

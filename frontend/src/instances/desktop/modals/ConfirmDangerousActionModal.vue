@@ -123,7 +123,7 @@ onBeforeUnmount(() => {
 
 .message-body {
   font-size: 13px;
-  color: var(--white);
+  color: var(--text);
   line-height: 1.5;
 }
 
@@ -143,7 +143,7 @@ onBeforeUnmount(() => {
 
 .toggle-label {
   font-size: 13px;
-  color: var(--white);
+  color: var(--text);
 }
 
 </style>

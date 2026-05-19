@@ -393,7 +393,7 @@ onMounted(async () => {
 
 .card-description {
   font-size: 13px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.9;
   line-height: 1.5;
 }
@@ -426,7 +426,7 @@ onMounted(async () => {
 }
 
 .location-body {
-  color: var(--silver);
+  color: var(--text-muted);
   font-size: 12px;
   opacity: 0.8;
   padding: 0.1rem;
@@ -474,8 +474,8 @@ onMounted(async () => {
   gap: 0.75rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-bottom: 1px solid var(--dark-steel);
-  background-color: var(--light-steel);
+  border-bottom: 1px solid var(--surface-2);
+  background-color: var(--surface-4);
 }
 
 .location-item:hover {
@@ -497,7 +497,7 @@ onMounted(async () => {
 .location-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -508,7 +508,7 @@ onMounted(async () => {
   flex-direction: column;
   overflow-y: auto;
   border-radius: var(--normal-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   max-height: 300px;
 }
 
@@ -521,7 +521,7 @@ onMounted(async () => {
 .settings-section-card {
   display: flex;
   flex-direction: column;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
@@ -543,7 +543,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--normal-radius);
   margin: 0;
 }
@@ -551,7 +551,7 @@ onMounted(async () => {
 .settings-section-card-title {
   font-size: 16px;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
 }
 </style>

@@ -99,7 +99,7 @@ onBeforeUnmount(() => {
 
 .pop-up-body {
   font-size: 13px;
-  color: var(--white);
+  color: var(--text);
 }
 
 .input-short {

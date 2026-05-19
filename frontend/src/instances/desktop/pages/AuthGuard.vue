@@ -37,7 +37,7 @@ const platformStore = usePlatformStore()
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--black-steel);
+    background-color: var(--surface-1);
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
@@ -49,7 +49,7 @@ const platformStore = usePlatformStore()
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--black-steel);
+    background-color: var(--surface-1);
 }
 
 .page-root{
@@ -59,7 +59,7 @@ const platformStore = usePlatformStore()
   align-items: center;
   height: 100%;
   flex-direction: column;
-  background-color: var(--black);
+  background-color: var(--surface-1);
   overflow: hidden;
   overflow-y: auto;
 }
@@ -108,7 +108,7 @@ const platformStore = usePlatformStore()
   line-height: 90%;
   width: max-content;
   text-align: left;
-  color: var(--white);
+  color: var(--text);
   height: max-content;
   min-width: 330px;
   width: 100%;
@@ -154,7 +154,7 @@ const platformStore = usePlatformStore()
 .toggle-button {
   background: none;
   border: none;
-  color: var(--white);
+  color: var(--text);
   font-weight: 300;
   cursor: pointer;
   transition: color 0.2s;
@@ -196,12 +196,12 @@ const platformStore = usePlatformStore()
   display: flex;
   overflow: hidden;
   gap: .2rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   align-items: center;
 }
 
 .form-input-mini {
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
   border: 0px;
   border-radius: 4px;
@@ -209,7 +209,7 @@ const platformStore = usePlatformStore()
   width: 100%;
   height: 100%;
   padding: 0.75rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   
   font-family: 'Inter', sans-serif;
   /* font-weight: 200; */
@@ -220,8 +220,8 @@ const platformStore = usePlatformStore()
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .form-input-icon {
@@ -274,7 +274,7 @@ const platformStore = usePlatformStore()
 .submit-button {
   font-size: x-large;
   background-color: var(--grape);
-  color: var(--white);
+  color: var(--text);
   color: white;
   padding: 0.75rem;
   height: 40px;
@@ -388,7 +388,7 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: var(--text);
   cursor: pointer;
   gap: 1rem;
 }

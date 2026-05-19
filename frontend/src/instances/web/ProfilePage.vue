@@ -21,13 +21,13 @@ import UserProfile from '@/instances/desktop/stages/UserProfile.vue';
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   overflow-y: auto;
-  color: var(--white);
+  color: var(--text);
   box-sizing: border-box;
 }
 
@@ -60,12 +60,12 @@ import UserProfile from '@/instances/desktop/stages/UserProfile.vue';
 }
 
 .profile-page-root::-webkit-scrollbar-track {
-  background: var(--midnight-steel);
+  background: var(--bg);
   border-radius: 5px;
 }
 
 .profile-page-root::-webkit-scrollbar-thumb {
-  background: var(--steel);
+  background: var(--surface-3);
   border-radius: 5px;
 }
 

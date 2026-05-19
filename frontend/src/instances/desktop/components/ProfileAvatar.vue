@@ -168,7 +168,7 @@ const getAppIcon = (iconName) => {
 }
 
 .avatar-action-button {
-  background-color: var(--white);
+  background-color: var(--surface-inverse);
   border: none;
   border-radius: 50%;
   width: 40px;

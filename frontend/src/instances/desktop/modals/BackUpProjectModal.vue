@@ -292,7 +292,7 @@ const selectBackupDirectory = async () => {
 .settings-section-card {
   display: flex;
   flex-direction: column;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
@@ -303,7 +303,7 @@ const selectBackupDirectory = async () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   border-radius: var(--normal-radius);
   margin: 0;
 }
@@ -318,7 +318,7 @@ const selectBackupDirectory = async () => {
 .settings-section-card-title {
   font-size: 16px;
   font-weight: 400;
-  color: var(--white);
+  color: var(--text);
   margin: 0;
 }
 
@@ -335,7 +335,7 @@ const selectBackupDirectory = async () => {
 
 .card-description {
   font-size: 13px;
-  color: var(--silver);
+  color: var(--text-muted);
   opacity: 0.9;
   line-height: 1.5;
 }
@@ -350,7 +350,7 @@ const selectBackupDirectory = async () => {
   height: max-content;
   padding: 0.75rem 1rem;
   gap: 0.75rem;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .location-item-single{
@@ -387,14 +387,14 @@ const selectBackupDirectory = async () => {
 .location-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--white);
+  color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .location-body {
-  color: var(--silver);
+  color: var(--text-muted);
   font-size: 12px;
   opacity: 0.8;
   padding: 0.1rem;

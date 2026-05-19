@@ -123,12 +123,12 @@ onMounted(async () => {
   width: 96%;
   gap: .5rem;
   align-items: center;
-  color: var(--white);
+  color: var(--text);
   justify-content: space-between;
   border-radius: var(--large-radius);
   padding: 1rem;
   background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
 }
 
@@ -149,7 +149,7 @@ onMounted(async () => {
 
 .workflow-items-container::-webkit-scrollbar-thumb {
   border-radius: 10px;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .workflow-items-container::-webkit-scrollbar-track {

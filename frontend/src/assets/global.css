@@ -100,27 +100,6 @@
   --online:       oklch(0.72 0.20 145);
   --info:         oklch(0.65 0.15 235);
 
-  /* Legacy aliases mapped onto semantic tokens for backward compatibility.
-     New code should consume the semantic tokens directly. */
-  --white:           var(--text);
-  --silver:          var(--text-muted);
-  --bright-steel:    var(--surface-5);
-  --light-steel:     var(--surface-4);
-  --shadow-steel:    var(--surface-3);
-  --steel:           var(--surface-3);
-  --dark-steel:      var(--surface-2);
-  --black-steel:     var(--surface-1);
-  --midnight-steel:  var(--bg);
-  --black:           var(--surface-1);
-
-  /* Selection surfaces use translucent accent so the underlying
-     surface keeps rows legible without flipping text color. */
-  --solid-blue-steel:       color-mix(in oklch, var(--accent) 70%, transparent);
-  --asset-item-selected:    color-mix(in oklch, var(--accent) 70%, transparent);
-  --project-item-selected:  color-mix(in oklch, var(--accent) 70%, transparent);
-  --resource-item-selected: color-mix(in oklch, var(--accent) 70%, transparent);
-  --entity-item-selected:   color-mix(in oklch, var(--accent) 70%, transparent);
-
   /* Untintable brand / status colors */
   --drop-hover: #1e7fee;
   --grape: #643193;
@@ -132,7 +111,6 @@
 
   --green-steel: hsl(136, 14%, 15%);
   --transparent-dark-steel: hsla(0, 0%, 11%, 0.1);
-  --blue-steel: color-mix(in oklch, var(--accent) 22%, transparent);
   --transparent-black: rgba(0, 0, 0, 0.4);
 
   --collection-item-color: hsl(215, 87%, 59%);
@@ -146,11 +124,11 @@
   --mild-blur: blur(20px);
 
   /* lines */
-  --faint-line: 1px solid var(--dark-steel);
-  --transparent-line: 1px solid var(--light-steel);
-  --medium-transparent-line: 1.5px solid var(--bright-steel);
+  --faint-line: 1px solid var(--surface-2);
+  --transparent-line: 1px solid var(--surface-4);
+  --medium-transparent-line: 1.5px solid var(--surface-5);
   --thick-transparent-line: 2px solid rgba(255, 255, 255, 0.2);
-  --solid-line: 1px solid var(--white);
+  --solid-line: 1px solid var(--text);
 
   /* radius */
   --tiny-radius: 4px;
@@ -203,7 +181,7 @@ body {
   
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 [data-theme="dark"] body{
@@ -259,7 +237,7 @@ animation: loadingRotate .5s linear infinite;
   visibility: hidden;
   opacity: .40;
   z-index: 9999;
-  color: var(--white);
+  color: var(--text);
   position: fixed;
   width: max-content;
   height: 30px;
@@ -272,7 +250,7 @@ animation: loadingRotate .5s linear infinite;
   top: 0;
   left: 0;
   outline: var(--transparent-line);
-  background-color: var(--midnight-steel);
+  background-color: var(--bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -295,7 +273,7 @@ animation: loadingRotate .5s linear infinite;
   padding: .4rem .2rem;
   font-weight: 100;
   box-sizing: border-box;
-  color: var(--white);
+  color: var(--text);
 }
 
 .pop-up-actions{
@@ -330,8 +308,8 @@ animation: loadingRotate .5s linear infinite;
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
   height: 40px;
 }
 
@@ -377,17 +355,17 @@ animation: loadingRotate .5s linear infinite;
   outline: none;
   resize: none;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: var(--bg);
+  color: var(--text);
 }
 
 .input-long:hover{
-  outline: 1px solid var(--white);
+  outline: 1px solid var(--text);
   outline-offset: -1px;
 }
 
 .input-long:focus{
-  outline: 1px solid var(--white);
+  outline: 1px solid var(--text);
   outline-offset: -1px;
 }
 
@@ -400,7 +378,7 @@ animation: loadingRotate .5s linear infinite;
   justify-content: space-between;
   justify-content: flex-start;
   gap: 8px;
-  color: var(--white);
+  color: var(--text);
 }
 
 /* list items */
@@ -605,7 +583,7 @@ img.no-filter {
   font-size: 14px;
   line-height: 14px;
   background-color: transparent;
-  color: var(--white);
+  color: var(--text);
   position: relative;
   /* border-radius: 8px; */
   border-radius: var(--small-radius);
@@ -638,7 +616,7 @@ img.no-filter {
 .single-action-button-pressed {
   box-sizing: border-box;
   background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
+  outline: solid 1px var(--text);
   outline-offset: -1px;
 }
 
@@ -745,7 +723,7 @@ img.no-filter {
 .input-label {
   padding-left: .5rem;
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   white-space: nowrap;
   font-weight: 350;
@@ -779,6 +757,6 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
 [data-os="linux"] .grid-status-menu-overlay,
 [data-os="linux"] .floating-actions,
 [data-os="linux"] .studio-list-container {
-  background-color: var(--black);
+  background-color: var(--surface-1);
 }
 

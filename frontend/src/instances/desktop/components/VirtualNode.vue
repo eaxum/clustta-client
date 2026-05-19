@@ -196,7 +196,7 @@ const selectItem = () => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   /* padding: .3rem; */
   box-sizing: border-box;
@@ -204,10 +204,10 @@ const selectItem = () => {
   height: min-content;
   justify-content: flex-end;
   background-color: darkblue;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   border-radius: 14px;
   overflow: hidden;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   /* border-radius: var(--very-large-radius); */
 
 }
@@ -219,7 +219,7 @@ const selectItem = () => {
 
 .virtual-node-container {
   display: flex;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -302,7 +302,7 @@ const selectItem = () => {
   overflow: hidden;
   height: 100%;
   aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
   border-radius: 5px;
 }
 

@@ -162,7 +162,7 @@ onMounted(resolveIcon);
 .trash-child-label {
   font-size: 12px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   opacity: .7;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -192,7 +192,7 @@ onMounted(resolveIcon);
 }
 
 .trash-item-collection {
-  color: var(--white);
+  color: var(--text);
   opacity: .5;
   background-color: rgba(0, 0, 0, 0.2);
   padding: .15rem .4rem;
@@ -210,19 +210,19 @@ onMounted(resolveIcon);
   flex-direction: column;
   align-items: center;
   width: 100%;
-  color: var(--white);
+  color: var(--text);
   border-radius: var(--large-radius);
   overflow: hidden;
   min-height: max-content;
   outline: var(--transparent-line);
   outline-offset: -1px;
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
   transition: all .2s ease-in-out;
 }
 
 .trash-item-container:hover {
   border-radius: var(--normal-radius);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
 }
 
 .trash-item-icon {
@@ -244,7 +244,7 @@ onMounted(resolveIcon);
 .trash-item-label-text {
   font-size: 13px;
   font-weight: 300;
-  color: var(--white);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

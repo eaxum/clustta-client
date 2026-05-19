@@ -260,7 +260,7 @@ onMounted(async () => {
 
 .general-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .general-container::-webkit-scrollbar-track {
@@ -272,7 +272,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: var(--white);
+  color: var(--text);
   font-size: 14px;
   padding: .5rem 0;
   box-sizing: border-box;
@@ -285,7 +285,7 @@ onMounted(async () => {
 .plan-loading {
   text-align: center;
   padding: 1rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.6;
 }
 
@@ -299,7 +299,7 @@ onMounted(async () => {
 
 .plan-select-label {
   font-size: 0.85rem;
-  color: var(--white);
+  color: var(--text);
   opacity: 0.6;
   font-weight: 300;
 }

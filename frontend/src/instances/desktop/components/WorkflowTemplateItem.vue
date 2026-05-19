@@ -296,7 +296,7 @@ const selectCollectionType = (collectionTypeName) => {
   gap: .5rem;
   border-radius: var(--small-radius);
   background-color: rgba(61, 61, 61, 0.377);
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   min-height: 40px;
 }
 

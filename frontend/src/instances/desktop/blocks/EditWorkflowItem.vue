@@ -362,7 +362,7 @@ onBeforeUnmount(() => {
 
 .workflow-item {
     box-sizing: border-box;
-    background-color: var(--dark-steel);
+    background-color: var(--surface-2);
     border-radius: var(--normal-radius);
     padding: .5rem;
     outline: var(--transparent-line);

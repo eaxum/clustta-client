@@ -121,11 +121,11 @@ onMounted(async () => {
   font-size: 14px;
   display: flex;
   padding: 1rem;
-  color: var(--white);
+  color: var(--text);
   max-height: 50vh;
   overflow: hidden;
   overflow-y: scroll;
-  background-color: var(--steel);
+  background-color: var(--surface-3);
   border-radius: var(--small-radius);
   margin: 0;
   white-space: pre-wrap;
@@ -139,7 +139,7 @@ onMounted(async () => {
 
 .eula-content::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .eula-content::-webkit-scrollbar-track {

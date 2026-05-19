@@ -349,7 +349,7 @@ const handleScroll = () => {
 	height: 100%;
 	width: 100%;
 	aspect-ratio: 1;
-	/* background-color: var(--light-steel); */
+	/* background-color: var(--surface-4); */
 	border-radius: 5px;
 	filter: blur(0px);
 }
@@ -363,14 +363,14 @@ const handleScroll = () => {
 
 .project-avatar-item-active {
 	background-color: rgb(173, 173, 173);
-	background-color: var(--light-steel);
-	color: var(--black-steel);
+	background-color: var(--surface-4);
+	color: var(--surface-1);
 	outline: var(--transparent-line);
 	outline-offset: -1px;
 }
 
 .project-avatar-item-active:hover {
-	color: var(--black-steel);
+	color: var(--surface-1);
 	transform: scale(1.25);
 }
 
@@ -383,7 +383,7 @@ const handleScroll = () => {
 	padding: 2px 2px;
 	width: 100%;
 	height: max-content;
-	/* background-color: var(--black-steel); */
+	/* background-color: var(--surface-1); */
 	border-radius: 10px;
 	transition: all 0.3s cubic-bezier(0.6, 0.05, 0.01, 0.99);
 	height: 100%;

@@ -207,7 +207,7 @@ const toggleField = (key) => {
 .role-config {
   display: flex;
   flex-direction: column;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   gap: .3rem;
   padding: .6rem;
@@ -226,7 +226,7 @@ const toggleField = (key) => {
 
 .role-config::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .role-config::-webkit-scrollbar-track {
@@ -236,7 +236,7 @@ const toggleField = (key) => {
 .role-config-group {
   display: flex;
   flex-direction: column;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   gap: .3rem;
   padding: .6rem;
@@ -244,12 +244,12 @@ const toggleField = (key) => {
   width: 100%;
   height: min-content;
   border-radius: var(--normal-radius);
-  background-color: var(--dark-steel);
+  background-color: var(--surface-2);
 }
 
 .role-config-group-meta {
   display: flex;
-  color: var(--white);
+  color: var(--text);
   align-items: center;
   gap: .5rem;
   padding: .6rem;
@@ -263,7 +263,7 @@ const toggleField = (key) => {
   font-size: large;
   font-weight: 300;
   display: flex;
-  color: var(--white);
+  color: var(--text);
   align-items: flex-start;
   gap: .3rem;
   box-sizing: border-box;
@@ -277,7 +277,7 @@ const toggleField = (key) => {
   text-align: center;
   font-size: 14px;
   line-height: 14px;
-  color: var(--white);
+  color: var(--text);
   position: relative;
   border-radius: var(--small-radius);
   box-sizing: border-box;

@@ -144,7 +144,7 @@ const secondaryActionMessage = () => {
   color: white;
   justify-content: space-between;
   padding: 1rem;
-  background-color: var(--black-steel);
+  background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
 }
 
@@ -161,7 +161,7 @@ const secondaryActionMessage = () => {
 
 .roles-list-wrapper::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: var(--surface-4);
 }
 
 .roles-list-wrapper::-webkit-scrollbar-track {
