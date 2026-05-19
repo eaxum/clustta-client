@@ -75,23 +75,8 @@
   --entity: hsla(0, 0%, 7%, 0.9);
   --entity-alt: hsla(0, 0%, 11%, 0.7);
 
-  /* ------------------------------------------------------------------ */
-  /* Design tokens                                                       */
-  /*                                                                     */
-  /* The semantic tokens below (--bg, --surface-1..5, --text, --text-    */
-  /* muted, --border, --accent, --hover, --danger, --warning, ...) are   */
-  /* generated at runtime by `frontend/src/theme/palette.js` based on    */
-  /* the user's selected mode and tint, and written to <html> as inline  */
-  /* style properties. The values declared here are only fallbacks for   */
-  /* the brief moment before the palette engine runs.                    */
-  /*                                                                     */
-  /* The "legacy alias" block remaps the old token names                 */
-  /* (--white, --black, --steel, --black-steel, --midnight-steel, ...)   */
-  /* onto the new semantic tokens so existing components keep working    */
-  /* unchanged. New code should consume the semantic tokens directly.    */
-  /* ------------------------------------------------------------------ */
-
-  /* Semantic-token fallbacks (overridden at runtime) */
+  /* Semantic tokens generated at runtime by `frontend/src/theme/palette.js`.
+     Values below are fallbacks before the palette engine runs. */
   --bg:           oklch(0.985 0 264);
   --surface-1:    oklch(0.97  0 264);
   --surface-2:    oklch(0.94  0 264);
@@ -115,7 +100,8 @@
   --online:       oklch(0.72 0.20 145);
   --info:         oklch(0.65 0.15 235);
 
-  /* Legacy alias layer — maps old token names onto semantic tokens. */
+  /* Legacy aliases mapped onto semantic tokens for backward compatibility.
+     New code should consume the semantic tokens directly. */
   --white:           var(--text);
   --silver:          var(--text-muted);
   --bright-steel:    var(--surface-5);
@@ -127,14 +113,15 @@
   --midnight-steel:  var(--bg);
   --black:           var(--surface-1);
 
-  /* Brand / accent legacy aliases */
-  --solid-blue-steel:       var(--accent);
-  --asset-item-selected:    var(--accent);
-  --project-item-selected:  var(--accent);
-  --resource-item-selected: var(--accent);
-  --entity-item-selected:   var(--accent);
+  /* Selection surfaces use translucent accent so the underlying
+     surface keeps rows legible without flipping text color. */
+  --solid-blue-steel:       color-mix(in oklch, var(--accent) 70%, transparent);
+  --asset-item-selected:    color-mix(in oklch, var(--accent) 70%, transparent);
+  --project-item-selected:  color-mix(in oklch, var(--accent) 70%, transparent);
+  --resource-item-selected: color-mix(in oklch, var(--accent) 70%, transparent);
+  --entity-item-selected:   color-mix(in oklch, var(--accent) 70%, transparent);
 
-  /* Untintable brand / status colors retained verbatim */
+  /* Untintable brand / status colors */
   --drop-hover: #1e7fee;
   --grape: #643193;
   --bright-grape: #301663;
@@ -145,7 +132,7 @@
 
   --green-steel: hsl(136, 14%, 15%);
   --transparent-dark-steel: hsla(0, 0%, 11%, 0.1);
-  --blue-steel: color-mix(in oklch, var(--accent) 55%, transparent);
+  --blue-steel: color-mix(in oklch, var(--accent) 22%, transparent);
   --transparent-black: rgba(0, 0, 0, 0.4);
 
   --collection-item-color: hsl(215, 87%, 59%);

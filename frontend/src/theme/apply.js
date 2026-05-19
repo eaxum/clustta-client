@@ -22,7 +22,7 @@ function writeVars(palette, mode, tint) {
 
 // Applies the theme for the given preference. If mode is "system" this also
 // installs a listener so the palette follows OS-level scheme changes.
-export function applyTheme({ mode = 'system', tint = 'neutral' } = {}) {
+export function applyTheme({ mode = 'system', tint = 'default' } = {}) {
   const resolved = resolveMode(mode);
   writeVars(buildPalette({ mode: resolved, tint }), resolved, tint);
 

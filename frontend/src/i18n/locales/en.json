@@ -476,6 +476,7 @@
     "accent": "Accent",
     "accentDescription": "Choose a color tint for the interface.",
     "tints": {
+      "default": "Blackberry",
       "neutral": "Coconut",
       "blue": "Blueberry",
       "pink": "Watermelon",

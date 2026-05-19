@@ -37,16 +37,16 @@ const fixed = {
 
 // Available tints. `chroma` tints surfaces (keep <= 0.025); `accentChroma`
 // controls saturation of the accent. Optional `accent` overrides the ramp's
-// accentL / accentFgL per mode (used to preserve the original deep-blue feel
-// on the neutral tint).
+// accentL / accentFgL per mode.
 export const tints = {
-  neutral: {
+  default: {
     hue: 264, chroma: 0.000, accentHue: 255, accentChroma: 0.16,
     accent: {
       light: { l: 0.42, fgL: 0.99 },
       dark:  { l: 0.50, fgL: 0.99 },
     },
   },
+  neutral: { hue: 60,  chroma: 0.008, accentHue: 60,  accentChroma: 0.09 },
   blue:    { hue: 240, chroma: 0.015, accentHue: 230, accentChroma: 0.20 },
   pink:    { hue: 350, chroma: 0.018, accentHue: 340, accentChroma: 0.20 },
   orange:  { hue:  55, chroma: 0.020, accentHue:  35, accentChroma: 0.18 },
@@ -71,9 +71,9 @@ export function resolveMode(mode) {
 }
 
 // Builds the full set of CSS variables for a given (mode, tint) pair.
-export function buildPalette({ mode = 'light', tint = 'neutral' } = {}) {
+export function buildPalette({ mode = 'light', tint = 'default' } = {}) {
   const ramp = ramps[mode] || ramps.light;
-  const t = tints[tint] || tints.neutral;
+  const t = tints[tint] || tints.default;
   const h = t.hue;
   const c = t.chroma;
   const s = (l) => `oklch(${l} ${c} ${h})`;

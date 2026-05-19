@@ -11,7 +11,7 @@ import { MODES, TINT_NAMES, resolveMode } from "@/theme/palette";
 export const useThemeStore = defineStore("theme", {
   state: () => ({
     mode: "system",
-    tint: "neutral",
+    tint: "default",
     initialized: false,
   }),
 
