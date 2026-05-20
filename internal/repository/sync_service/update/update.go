@@ -86,7 +86,8 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 		return err
 	}
 	if len(missingPreviews) > 0 {
-		if err := repository.PullPreviews(tx, remoteUrl, missingPreviews, nil); err != nil {
+		noop := func(int, int, string, string) {}
+		if err := repository.PullPreviews(tx, remoteUrl, missingPreviews, noop); err != nil {
 			return err
 		}
 	}

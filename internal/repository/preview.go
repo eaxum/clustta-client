@@ -228,8 +228,10 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 					return fmt.Errorf("error writing preview: %s", err.Error())
 				}
 				processedPreviews++
-				message := fmt.Sprintf("Receiving previews %d/%d", processedPreviews, totalPreviews)
-				callback(processedPreviews, totalPreviews, message, "")
+				if callback != nil {
+					message := fmt.Sprintf("Receiving previews %d/%d", processedPreviews, totalPreviews)
+					callback(processedPreviews, totalPreviews, message, "")
+				}
 			} else if responseCode == 400 {
 				body, err := io.ReadAll(response.Body)
 				if err != nil {
@@ -267,8 +269,10 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 				return err
 			}
 			processedPreviews++
-			message := fmt.Sprintf("Receiving previews %d/%d", processedPreviews, totalPreviews)
-			callback(processedPreviews, totalPreviews, message, "")
+			if callback != nil {
+				message := fmt.Sprintf("Receiving previews %d/%d", processedPreviews, totalPreviews)
+				callback(processedPreviews, totalPreviews, message, "")
+			}
 		}
 	}
 	return nil
@@ -320,8 +324,10 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 			responseCode := response.StatusCode
 			if responseCode == 200 {
 				processedPreviews++
-				message := fmt.Sprintf("Sending Preview %d/%d", processedPreviews, totalPreviews)
-				callback(processedPreviews, totalPreviews, message, "")
+				if callback != nil {
+					message := fmt.Sprintf("Sending Preview %d/%d", processedPreviews, totalPreviews)
+					callback(processedPreviews, totalPreviews, message, "")
+				}
 			} else if responseCode == 400 {
 				body, err := io.ReadAll(response.Body)
 				if err != nil {
@@ -358,8 +364,10 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 				return err
 			}
 			processedPreviews++
-			message := fmt.Sprintf("Sending Preview %d/%d", processedPreviews, totalPreviews)
-			callback(processedPreviews, totalPreviews, message, "")
+			if callback != nil {
+				message := fmt.Sprintf("Sending Preview %d/%d", processedPreviews, totalPreviews)
+				callback(processedPreviews, totalPreviews, message, "")
+			}
 		}
 		err = remoteTx.Commit()
 		if err != nil {
