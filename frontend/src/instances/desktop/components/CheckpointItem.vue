@@ -545,6 +545,10 @@ onBeforeUnmount(() => {
     background-color: var(--selected);
 }
 
+.checkpoint-active .checkpoint-item-label-text {
+    color: var(--white);
+}
+
 .profile-picture {
     background-color: red;
     height: 24px;
