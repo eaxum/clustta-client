@@ -267,18 +267,27 @@ onBeforeUnmount(() => {
   cursor: wait;
 }
 
-.modal-enter-from {
-  opacity: 0;
+@keyframes modal-bubble-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.modal-leave-to {
-  opacity: 0;
+:deep(.modal-container) {
+  animation: modal-bubble-up 90ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: center center;
+  will-change: transform, opacity;
 }
 
-.modal-enter-from .modal-container,
-.modal-leave-to .modal-container {
-  -webkit-transform: scale(1.1);
-  transform: scale(1.1);
+@media (prefers-reduced-motion: reduce) {
+  :deep(.modal-container) {
+    animation: none;
+  }
 }
 </style>
 
