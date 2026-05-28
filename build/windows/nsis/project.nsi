@@ -94,8 +94,14 @@ Section
     !insertmacro wails.associateFiles
 
     ; Register clustta:// URL protocol
-    WriteRegStr SHCTX "Software\Classes\clustta" "" "URL:Clustta Protocol"
+    ; Chromium browsers strip the "URL:" prefix and display "Clustta".
+    ; Firefox / Windows "Open with" dialogs read Application\ApplicationName.
+    WriteRegStr SHCTX "Software\Classes\clustta" "" "URL:Clustta"
     WriteRegStr SHCTX "Software\Classes\clustta" "URL Protocol" ""
+    WriteRegStr SHCTX "Software\Classes\clustta" "FriendlyTypeName" "Clustta"
+    WriteRegStr SHCTX "Software\Classes\clustta\Application" "ApplicationName" "Clustta"
+    WriteRegStr SHCTX "Software\Classes\clustta\Application" "ApplicationDescription" "Open Clustta projects and assets"
+    WriteRegStr SHCTX "Software\Classes\clustta\Application" "ApplicationIcon" "$INSTDIR\${PRODUCT_EXECUTABLE},0"
     WriteRegStr SHCTX "Software\Classes\clustta\DefaultIcon" "" "$INSTDIR\${PRODUCT_EXECUTABLE},0"
     WriteRegStr SHCTX "Software\Classes\clustta\shell\open\command" "" '"$INSTDIR\${PRODUCT_EXECUTABLE}" "%1"'
 

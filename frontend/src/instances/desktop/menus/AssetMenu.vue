@@ -43,6 +43,10 @@
         v-tooltip="$t('common.copyPath')" />
     </span>
 
+    <!-- Copy Clustta deep link (dev/test) -->
+    <ActionButton :icon="getAppIcon('copy')" :showLabel="true" :fullWidth="true"
+      :label="$t('menus.copyClusttaLink')" :buttonFunction="copyDeepLink" />
+
     <!-- Extract Archive -->
     <ActionButton v-if="!platformStore.isWeb && isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
       :label="$t('common.extract')" :buttonFunction="extractArchive" />
@@ -234,6 +238,27 @@ const copyToProject = () => {
     type: 'projects',
     title: t('menus.selectProject')
   });
+};
+
+// Builds clustta://open?studio=...&project=...&asset=... and copies it to the clipboard.
+const copyDeepLink = async () => {
+  const selectedAsset = assetStore.selectedAsset;
+  const project = projectStore.activeProject;
+  if (!selectedAsset || !project) {
+    menu.hideContextMenu();
+    return;
+  }
+
+  const params = new URLSearchParams();
+  const studioName = projectStore.selectedStudio?.name;
+  if (studioName) params.set('studio', studioName);
+  params.set('project', project.id);
+  params.set('asset', selectedAsset.id);
+
+  const deepLink = `clustta://open?${params.toString()}`;
+  await Clipboard.SetText(deepLink);
+  notificationStore.addNotification(t('notifications.pathCopied'), deepLink, 'success');
+  menu.hideContextMenu();
 };
 
 // Deletes the selected asset.

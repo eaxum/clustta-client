@@ -65,6 +65,10 @@
         v-tooltip="$t('common.copyPath')" />
     </span>
 
+    <!-- Copy Clustta deep link (dev/test) -->
+    <ActionButton :icon="getAppIcon('copy')" :showLabel="true" :fullWidth="true"
+      :label="$t('menus.copyClusttaLink')" :buttonFunction="copyDeepLink" />
+
     <!-- Free space -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
@@ -170,6 +174,27 @@ const copyCollectionPath = async () => {
   FSService.MakeDirs(collectionDir);
   await Clipboard.SetText(collectionDir);
   notificationStore.addNotification(t('notifications.pathCopied'), "", "success");
+  menu.hideContextMenu();
+};
+
+// Builds clustta://open?studio=...&project=...&collection=... and copies it to the clipboard.
+const copyDeepLink = async () => {
+  const selectedCollection = collectionStore.selectedCollection;
+  const project = projectStore.activeProject;
+  if (!selectedCollection || !project) {
+    menu.hideContextMenu();
+    return;
+  }
+
+  const params = new URLSearchParams();
+  const studioName = projectStore.selectedStudio?.name;
+  if (studioName) params.set('studio', studioName);
+  params.set('project', project.id);
+  params.set('collection', selectedCollection.id);
+
+  const deepLink = `clustta://open?${params.toString()}`;
+  await Clipboard.SetText(deepLink);
+  notificationStore.addNotification(t('notifications.pathCopied'), deepLink, 'success');
   menu.hideContextMenu();
 };
 

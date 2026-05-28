@@ -6,7 +6,7 @@
 
 <script setup>
 
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { useNotificationStore } from './stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useSyncConflictStore } from '@/stores/syncConflict';
@@ -16,9 +16,12 @@ import emitter from '@/lib/mitt';
 import { pullData, updateProject } from '@/lib/sync';
 
 import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
+import { usePaneStore } from '@/stores/panes';
 import { useProjectStore } from './stores/projects';
 import { useStudioStore } from './stores/studio';
-import { ProjectService, SettingsService } from "@/services";
+import { AssetService, CollectionService, ProjectService, SettingsService } from "@/services";
 import { System } from "@wailsio/runtime";
 import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
@@ -34,6 +37,9 @@ const menu = useMenu();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
 const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
+const paneStore = usePaneStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const syncConflictStore = useSyncConflictStore();
@@ -108,40 +114,188 @@ const handleopenClusttaFile = async (filePath) => {
     }
 };
 
-// handleDeepLink processes a clustta:// URL and navigates accordingly.
-const handleDeepLink = (rawUrl) => {
-    if (!rawUrl) return;
-    try {
-        const url = new URL(rawUrl);
-        if (url.protocol !== 'clustta:') return;
+// Resolves a reactive predicate to truthy or rejects on timeout.
+const waitForReactive = (predicate, { timeout = 60000 } = {}) =>
+    new Promise((resolve, reject) => {
+        if (predicate()) return resolve();
+        let timer;
+        const stop = watch(predicate, (ready) => {
+            if (!ready) return;
+            clearTimeout(timer);
+            stop();
+            resolve();
+        });
+        timer = setTimeout(() => { stop(); reject(new Error('timeout')); }, timeout);
+    });
 
-        const action = url.hostname || url.pathname.replace(/^\/+/, '');
-        if (action === 'sso-complete') {
-            return;
-        }
-        if (action === 'invite') {
-            const studioName = url.searchParams.get('studio');
-            if (studioName) {
-                const matchingStudio = projectStore.studios.find(
-                    (s) => s.name.toLowerCase() === studioName.toLowerCase()
-                );
-                if (matchingStudio) {
-                    projectStore.selectStudio(matchingStudio);
-                    notificationStore.successNotification(
-                        "Studio Invitation",
-                        `Switched to studio "${matchingStudio.name}"`
-                    );
-                } else {
-                    notificationStore.addNotification(
-                        "Studio Not Found",
-                        `Studio "${studioName}" was not found. You may need to sync first.`,
-                        "warning"
-                    );
+// Navigates the browser to the deep-link target and opens the details pane.
+const resolveDeepLinkTarget = async ({ assetId, collectionId, collectionPath }) => {
+    const projectUri = projectStore.activeProject?.uri;
+    if (!projectUri) return;
+
+    const focusAsset = async (asset) => {
+        if (!asset?.id) return;
+        if (asset.collection_id) {
+            try {
+                const parent = await CollectionService.GetCollectionByID(projectUri, asset.collection_id);
+                if (parent) {
+                    collectionStore.navigateToCollection(parent);
+                    commonStore.navigatorMode = true;
                 }
+            } catch (error) {
+                console.error('Failed to resolve asset parent collection:', error);
             }
         }
+        stageStore.selectItem(asset, 'asset', true);
+        stageStore.firstSelectedItemId = asset.id;
+        stageStore.markedItems = [asset.id];
+        paneStore.showDetailsPane = true;
+    };
+
+    const focusCollection = (collection) => {
+        if (!collection?.id) return;
+        collectionStore.navigateToCollection(collection);
+        commonStore.navigatorMode = true;
+        stageStore.selectItem(collection, 'collection', true);
+        stageStore.firstSelectedItemId = collection.id;
+        stageStore.markedItems = [collection.id];
+        paneStore.showDetailsPane = true;
+    };
+
+    try {
+        if (assetId) {
+            const asset = await AssetService.GetAssetByID(projectUri, assetId);
+            await focusAsset(asset);
+            return;
+        }
+        if (collectionId) {
+            const collection = await CollectionService.GetCollectionByID(projectUri, collectionId);
+            focusCollection(collection);
+            return;
+        }
+        if (collectionPath) {
+            try {
+                const collection = await CollectionService.GetCollectionByPath(projectUri, collectionPath);
+                if (collection?.id) { focusCollection(collection); return; }
+            } catch (_) { /* fall through to notification */ }
+            notificationStore.addNotification(
+                "Not Found",
+                `Could not find collection "${collectionPath}" in this project.`,
+                "warning"
+            );
+        }
     } catch (error) {
-        console.error('Failed to process deep link:', error);
+        console.error('Deep link target resolution failed:', error);
+        notificationStore.addNotification(
+            "Deep Link Failed",
+            `Could not open the requested item: ${error?.message || error}`,
+            "warning"
+        );
+    }
+};
+
+// Processes a clustta:// URL. Grammars:
+// clustta://sso-complete | clustta://invite?studio=<name>
+// clustta://open?studio=<name>&project=<id>[&asset=<id>|&collection=<id>|&collectionPath=<path>]
+const handleDeepLink = async (rawUrl) => {
+    if (!rawUrl) return;
+    let url;
+    try {
+        url = new URL(rawUrl);
+    } catch (error) {
+        console.error('Failed to parse deep link:', error);
+        return;
+    }
+    if (url.protocol !== 'clustta:') return;
+
+    const action = url.hostname || url.pathname.replace(/^\/+/, '');
+    if (action === 'sso-complete') {
+        return;
+    }
+    if (action === 'invite') {
+        const studioName = url.searchParams.get('studio');
+        if (!studioName) return;
+        const matchingStudio = projectStore.studios.find(
+            (s) => s.name.toLowerCase() === studioName.toLowerCase()
+        );
+        if (matchingStudio) {
+            projectStore.selectStudio(matchingStudio);
+            notificationStore.successNotification(
+                "Studio Invitation",
+                `Switched to studio "${matchingStudio.name}"`
+            );
+        } else {
+            notificationStore.addNotification(
+                "Studio Not Found",
+                `Studio "${studioName}" was not found. You may need to sync first.`,
+                "warning"
+            );
+        }
+        return;
+    }
+    if (action === 'open') {
+        const studioName = url.searchParams.get('studio');
+        const projectId = url.searchParams.get('project');
+        if (!projectId) {
+            notificationStore.addNotification(
+                "Invalid Deep Link",
+                "Missing project identifier.",
+                "warning"
+            );
+            return;
+        }
+
+        if (studioName) {
+            const studio = projectStore.studios.find(
+                (s) => s.name.toLowerCase() === studioName.toLowerCase()
+            );
+            if (!studio) {
+                notificationStore.addNotification(
+                    "Studio Not Found",
+                    `Studio "${studioName}" was not found. You may need to sync first.`,
+                    "warning"
+                );
+                return;
+            }
+            if (projectStore.selectedStudio?.name !== studio.name) {
+                await projectStore.selectStudio(studio);
+            }
+        }
+
+        const project = projectStore.projects.find((p) => p.id === projectId);
+        if (!project) {
+            notificationStore.addNotification(
+                "Project Not Found",
+                "This project isn't available locally. Sync the studio or open the project once to use this link.",
+                "warning"
+            );
+            return;
+        }
+
+        if (projectStore.activeProject?.id !== projectId) {
+            await projectStore.gotoProject(project);
+        }
+        stageStore.setStageVisibility('browser', true);
+
+        const assetId = url.searchParams.get('asset');
+        const collectionId = url.searchParams.get('collection');
+        const collectionPath = url.searchParams.get('collectionPath');
+        if (!assetId && !collectionId && !collectionPath) return;
+
+        try {
+            await waitForReactive(
+                () => projectStore.activeProject?.id === projectId && assetStore.assetsLoaded
+            );
+        } catch (_) {
+            notificationStore.addNotification(
+                "Deep Link Timeout",
+                "Project did not finish loading in time.",
+                "warning"
+            );
+            return;
+        }
+
+        await resolveDeepLinkTarget({ assetId, collectionId, collectionPath });
     }
 };
 
