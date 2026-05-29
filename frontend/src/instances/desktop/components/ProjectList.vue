@@ -6,7 +6,8 @@
          'bottom-gradient': showBottomGradient && !showCenterGradient,
          'center-gradient': showCenterGradient 
        }" 
-       @scroll="handleScroll">
+       @scroll="handleScroll"
+       @mousemove="onDockMove" @mouseleave="onDockLeave">
 		
 	   <div v-if="projects.length" v-tooltip="pinnedIndicatorTooltip" 
 			class="pinned-indicator" :class="{ 'clickable': isHoveringPinned }"
@@ -19,9 +20,9 @@
 		<span class="compound-list-item" v-for="(project, index) in projects" :key="project.uri">
 
 
-			<div ref="listItem" class="project-avatar-item" v-tooltip="sidePaneActive ? '' : project.name"
+			<div :ref="setDockRef(`p-${project.uri}`)" class="project-avatar-item" v-tooltip="sidePaneActive ? '' : project.name"
 				@click="projectStore.gotoProject(project)"
-				:class="{ 'project-avatar-item-centered': !sidePaneActive, 'project-avatar-item-active': isActiveProject(project) }">
+				:class="{ 'project-avatar-item-centered': !sidePaneActive, 'project-avatar-item-active': isActiveProject(project), 'dock-magnified-source': isMagnified(`p-${project.uri}`) }">
 
 				<span v-if="project.icon.length < 10" class="project-icon">{{ decodeEmoji(project.icon) }}</span>
 				<span v-else class="project-icon">
@@ -43,9 +44,9 @@
 		<span class="compound-list-item" v-for="(project, index) in recents" :key="project.uri">
 
 
-			<div ref="listItem" class="project-avatar-item" v-tooltip="sidePaneActive ? '' : project.name"
+			<div :ref="setDockRef(`r-${project.uri}`, index)" class="project-avatar-item" v-tooltip="sidePaneActive ? '' : project.name"
 				@click="projectStore.gotoProject(project)"
-				:class="{ 'project-avatar-item-centered': !sidePaneActive, 'project-avatar-item-active': isActiveProject(project) }">
+				:class="{ 'project-avatar-item-centered': !sidePaneActive, 'project-avatar-item-active': isActiveProject(project), 'dock-magnified-source': isMagnified(`r-${project.uri}`) }">
 
 				<span v-if="project.icon.length < 10" class="project-icon">{{ decodeEmoji(project.icon) }}</span>
 				<span v-else class="project-icon">
@@ -63,6 +64,17 @@
 
 		</span>
 	</div>
+
+	<Teleport to="body">
+		<div v-if="dockMouseY !== null" class="dock-overlay">
+			<div v-for="item in magnifiedItems" :key="item.key" class="dock-overlay-item" :style="item.style">
+				<span v-if="item.project.icon.length < 10" class="project-icon">{{ decodeEmoji(item.project.icon) }}</span>
+				<span v-else class="project-icon">
+					<img class="screenshot-thumb" :src="item.project.icon">
+				</span>
+			</div>
+		</div>
+	</Teleport>
 	
 </template>
 
@@ -76,7 +88,7 @@ const getAppIcon = (iconName) => {
 };
 
 // imports
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, reactive, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // services
@@ -96,9 +108,84 @@ const platformStore = usePlatformStore();
 const notificationStore = useNotificationStore();
 
 const { t } = useI18n();
-const listItem = ref(null);
+const listItem = ref([]);
 const isHoveringPinned = ref(false);
 const isHoveringRecents = ref(false);
+
+// --- dock-style magnification ---------------------------------------------
+// Tunables for the vertical sidebar dock effect.
+const DOCK_BASE = 35;     // base icon size (matches .project-avatar-item)
+const DOCK_MAX = 43.75;   // max size at cursor center (1.25× base)
+const DOCK_RANGE = 140;   // px radius of influence along the Y axis
+
+const dockMouseY = ref(null);
+const dockScrollTick = ref(0);
+const dockItemRefs = reactive({});
+
+// Collect refs for each dock item. When `recentsIndex` is provided, also
+// populate the legacy listItem array used by the `anchor` computed.
+const setDockRef = (key, recentsIndex = null) => (el) => {
+	if (el) {
+		dockItemRefs[key] = el;
+		if (recentsIndex !== null) listItem.value[recentsIndex] = el;
+	} else {
+		delete dockItemRefs[key];
+	}
+};
+
+const onDockMove = (e) => { dockMouseY.value = e.clientY; };
+const onDockLeave = () => { dockMouseY.value = null; };
+
+// Cosine-bell falloff for smooth, symmetric dock magnification.
+const dockScaleFor = (key) => {
+	if (dockMouseY.value == null) return 1;
+	const el = dockItemRefs[key];
+	if (!el) return 1;
+	const rect = el.getBoundingClientRect();
+	const center = rect.top + rect.height / 2;
+	const dist = Math.abs(dockMouseY.value - center);
+	if (dist >= DOCK_RANGE) return 1;
+	const t = dist / DOCK_RANGE;
+	const falloff = 0.5 * (1 + Math.cos(Math.PI * t));
+	const maxScale = DOCK_MAX / DOCK_BASE;
+	return 1 + (maxScale - 1) * falloff;
+};
+
+const isMagnified = (key) => dockScaleFor(key) > 1.001;
+
+// Floating magnified copies teleported to <body> so they can grow outside the
+// scroll container instead of being clipped by it.
+const magnifiedItems = computed(() => {
+	// Touch dockScrollTick so the overlay recomputes while scrolling.
+	void dockScrollTick.value;
+	if (dockMouseY.value == null) return [];
+	const out = [];
+	const collect = (list, prefix) => {
+		for (const project of list) {
+			const key = `${prefix}-${project.uri}`;
+			const el = dockItemRefs[key];
+			if (!el) continue;
+			const rect = el.getBoundingClientRect();
+			const s = dockScaleFor(key);
+			if (s <= 1.001) continue;
+			out.push({
+				key,
+				project,
+				style: {
+					left: `${rect.left}px`,
+					top: `${rect.top}px`,
+					width: `${rect.width}px`,
+					height: `${rect.height}px`,
+					transform: `scale(${s})`,
+					transformOrigin: 'left center',
+				},
+			});
+		}
+	};
+	collect(projects.value, 'p');
+	collect(recents.value, 'r');
+	return out;
+});
 
 const props = defineProps({
 	sidePaneActive: Boolean,
@@ -218,6 +305,8 @@ const handleScroll = () => {
     showBottomGradient.value = hasBottomOverflow;
     
     showCenterGradient.value = hasTopOverflow && hasBottomOverflow;
+
+    dockScrollTick.value++;
   }
 };
 </script>
@@ -313,17 +402,20 @@ const handleScroll = () => {
 	aspect-ratio: 1;
 	position: relative;
 	justify-content: space-between;
-	transform-origin: center;
+	transform-origin: left center;
 	transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.project-avatar-item:hover {
-	transform: scale(1.25);
+	will-change: transform;
 }
 
 .project-avatar-item:active {
 	transform: scale(1.1);
 	transition: transform 0.08s ease-out;
+}
+
+/* While an icon is mirrored in the floating overlay, hide the in-flow glyph so
+   the clipped original doesn't show behind the un-clipped overlay copy. */
+.dock-magnified-source .project-icon {
+	visibility: hidden;
 }
 
 .project-avatar-item-text {
@@ -371,7 +463,6 @@ const handleScroll = () => {
 
 .project-avatar-item-active:hover {
 	color: var(--surface-1);
-	transform: scale(1.25);
 }
 
 .project-list {
@@ -462,6 +553,37 @@ const handleScroll = () => {
 	height: min-content;
 	/* background-color: teal; */
 	transition: all 0.3s ease;
+}
+
+/* Floating magnified copies rendered outside the scroll container via Teleport
+   so they can grow over the main content instead of being clipped. */
+.dock-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 9999;
+	pointer-events: none;
+}
+
+.dock-overlay-item {
+	position: fixed;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 8px;
+	transform-origin: left center;
+	will-change: transform;
+	pointer-events: none;
+}
+
+.dock-overlay-item .project-icon {
+	font-size: 1.8rem;
+}
+
+.dock-overlay-item .screenshot-thumb {
+	height: 100%;
+	width: 100%;
+	object-fit: cover;
+	border-radius: 5px;
 }
 </style>
 

@@ -243,32 +243,39 @@ onBeforeUnmount(() => {
 }
 
 .side-pane {
-	border-right: var(--transparent-line);
+	/* border-right: var(--transparent-line); */
 	color: var(--text);
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	box-sizing: border-box;
 	overflow: hidden;
-	padding: .1rem;
+	padding: .3rem;
+	padding-bottom: 0;
 	align-items: center;
 	width: 100%;
 	max-width: 240px;
 	height: 100%;
 	transition: all 0.1s cubic-bezier(0.6, 0.05, 0.01, 0.99);
-	background-color: var(--surface-1);
+	background-color: var(--surface-3);
 	/* background-color: crimson; */
 
 	/* flex: 1 1 100%; */
 }
 
 .side-pane-content {
-	/* background-color: greenyellow; */
+	background-color: var(--surface-1);
+	
+	outline: var(--transparent-line);
+	outline-offset: -1px;
 	display: flex;
 	flex-direction: column;
 	justify-content: space-between;
 	box-sizing: border-box;
 	overflow: hidden;
+	border-radius: var(--large-radius);
+	/* border-bottom-left-radius: var(--small-radius);
+	border-top-left-radius: var(--small-radius); */
 	/* padding: 1rem .1rem; */
 	/* padding-bottom: 1rem; */
 	width: 100%;

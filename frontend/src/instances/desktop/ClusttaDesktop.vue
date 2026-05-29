@@ -6,14 +6,16 @@
 		<ModalView v-if="modals.activeModal" />
 		<div class="desktop-container">
 			<div ref="desktopBody" id="desktop-body" class="desktop-body tray-root">
-				<SidePane v-if="panes.enabledPanes.includes(stage.selectedStage)" :isWideScreen="isWideScreen" />
-				<div class="active-project">
-					<HeaderBar v-if="stage.activeStage !== 'projects'" />
-					<div ref="mainAreaContainer" class="main-area">
-						<CenterStage />
+				<div class="desktop-body-main">
+					<SidePane v-if="panes.enabledPanes.includes(stage.selectedStage)" :isWideScreen="isWideScreen" />
+					<div class="active-project">
+						<HeaderBar v-if="stage.activeStage !== 'projects'" />
+						<div ref="mainAreaContainer" class="main-area">
+							<CenterStage />
+						</div>
 					</div>
-					<InfoBar v-if="!platformStore.isWeb" />
 				</div>
+				<InfoBar v-if="!platformStore.isWeb" />
 			</div>
 		</div>
 	</div>
@@ -162,9 +164,18 @@ onBeforeUnmount(async () => {
 
 .desktop-body {
 	display: flex;
+	flex-direction: column;
 	height: 100vh;
 	width: 100vw;
 	background-color: var(--surface-1);
+	overflow: hidden;
+	box-sizing: border-box;
+}
+
+.desktop-body-main {
+	display: flex;
+	flex: 1;
+	width: 100%;
 	overflow: hidden;
 	box-sizing: border-box;
 }
