@@ -216,14 +216,15 @@ export function GetAssetByID(projectPath, assetId) {
 }
 
 /**
- * GetAssetByPath retrieves an asset by its asset_path.
+ * GetAssetByPath retrieves an asset by its asset_path and extension.
  * Returns the asset or an error if not found.
  * @param {string} projectPath
  * @param {string} assetPath
+ * @param {string} extension
  * @returns {$CancellablePromise<models$0.Asset>}
  */
-export function GetAssetByPath(projectPath, assetPath) {
-    return $Call.ByID(473301761, projectPath, assetPath);
+export function GetAssetByPath(projectPath, assetPath, extension) {
+    return $Call.ByID(473301761, projectPath, assetPath, extension);
 }
 
 /**

@@ -18,6 +18,7 @@ import * as models$0 from "../internal/repository/models/models.js";
  * Returns the created checkpoints or an error if the operation fails.
  * @param {string} projectPath
  * @param {string[]} assetPaths
+ * @param {string[]} extensions
  * @param {string} message
  * @param {string} previewPath
  * @param {string} groupId
@@ -25,8 +26,8 @@ import * as models$0 from "../internal/repository/models/models.js";
  * @param {boolean} sendToIntegration
  * @returns {$CancellablePromise<models$0.Checkpoint[]>}
  */
-export function AddCheckpoint(projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail, sendToIntegration) {
-    return $Call.ByID(3142003966, projectPath, assetPaths, message, previewPath, groupId, useAsThumbnail, sendToIntegration).then(/** @type {($result: any) => any} */(($result) => {
+export function AddCheckpoint(projectPath, assetPaths, extensions, message, previewPath, groupId, useAsThumbnail, sendToIntegration) {
+    return $Call.ByID(3142003966, projectPath, assetPaths, extensions, message, previewPath, groupId, useAsThumbnail, sendToIntegration).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }

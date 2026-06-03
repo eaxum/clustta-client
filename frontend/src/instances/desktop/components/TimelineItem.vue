@@ -58,7 +58,7 @@
                             <span><img class="small-icons" :src="getAppIcon('generic')"></span>
                             <div ref="trash_name" class="trash-item-label" @mouseenter="handleHover($event)"
                                 @mouseleave="resetScroll($event)">
-                                <div @click="selectItem(assetPath)" class="trash-item-label-text">{{ assetPath }}</div>
+                                <div @click="selectItem(assetPath, timelineItem.extensions[index])" class="trash-item-label-text">{{ assetPath }}</div>
                             </div>
                         </div>
 
@@ -177,12 +177,12 @@ const revertProject = async (createdAt) => {
 
 const selectedAssetId = ref('');
 
-const selectItem = async (assetPath) => {
-    await findItem(assetPath);
+const selectItem = async (assetPath, extension) => {
+    await findItem(assetPath, extension);
 }
 
-const findItem = async (assetPath) => {
-    const asset = await AssetService.GetAssetByPath(projectStore.activeProject.uri, assetPath);
+const findItem = async (assetPath, extension) => {
+    const asset = await AssetService.GetAssetByPath(projectStore.activeProject.uri, assetPath, extension);
     if (!asset?.id) return;
     const assetParent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, asset.collection_id);
     if(assetParent){

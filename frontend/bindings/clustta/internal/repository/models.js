@@ -26,6 +26,13 @@ export class CompatTimeline {
              */
             this["asset_paths"] = [];
         }
+        if (!("extensions" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["extensions"] = [];
+        }
         if (!("group_id" in $$source)) {
             /**
              * @member
@@ -65,13 +72,17 @@ export class CompatTimeline {
      */
     static createFrom($$source = {}) {
         const $$createField1_0 = $$createType0;
-        const $$createField5_0 = $Create.ByteSlice;
+        const $$createField2_0 = $$createType0;
+        const $$createField6_0 = $Create.ByteSlice;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("asset_paths" in $$parsedSource) {
             $$parsedSource["asset_paths"] = $$createField1_0($$parsedSource["asset_paths"]);
         }
+        if ("extensions" in $$parsedSource) {
+            $$parsedSource["extensions"] = $$createField2_0($$parsedSource["extensions"]);
+        }
         if ("preview" in $$parsedSource) {
-            $$parsedSource["preview"] = $$createField5_0($$parsedSource["preview"]);
+            $$parsedSource["preview"] = $$createField6_0($$parsedSource["preview"]);
         }
         return new CompatTimeline(/** @type {Partial<CompatTimeline>} */($$parsedSource));
     }

@@ -221,7 +221,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, 
 
 // AddCheckpoint creates new checkpoints for multiple assets.
 // Returns the created checkpoints or an error if the operation fails.
-func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []string, message, previewPath, groupId string, useAsThumbnail, sendToIntegration bool) ([]models.Checkpoint, error) {
+func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extensions []string, message, previewPath, groupId string, useAsThumbnail, sendToIntegration bool) ([]models.Checkpoint, error) {
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -261,7 +261,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths []strin
 			return []models.Checkpoint{}, err
 		}
 
-		asset, err := repository.GetAssetByPath(tx, assetPath)
+		asset, err := repository.GetAssetByPath(tx, assetPath, extensions[i])
 		if err != nil {
 			return []models.Checkpoint{}, err
 		}
@@ -814,7 +814,7 @@ func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, asse
 	}
 
 	assetIds := []string{}
-	err = tx.Select(&assetIds, fmt.Sprintf("SELECT id FROM full_asset WHERE trashed = 0 AND asset_path IN (%s) ORDER BY created_at DESC", strings.Join(quotedAssetPaths, ",")))
+	err = tx.Select(&assetIds, fmt.Sprintf("SELECT id FROM full_asset WHERE trashed = 0 AND (asset_path || extension) IN (%s) ORDER BY created_at DESC", strings.Join(quotedAssetPaths, ",")))
 	if err != nil {
 		return err
 	}

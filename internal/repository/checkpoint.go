@@ -20,6 +20,7 @@ type Timeline struct {
 	CreatedAt string `db:"created_at" json:"created_at"`
 	AssetId    string `db:"asset_id" json:"asset_id"`
 	AssetPath  string `db:"asset_path" json:"asset_path"`
+	Extension  string `db:"extension" json:"extension"`
 	Comment   string `db:"comment" json:"comment"`
 	AuthorUID string `db:"author_id" json:"author_id"`
 	GroupId   string `db:"group_id" json:"group_id"`
@@ -28,6 +29,7 @@ type Timeline struct {
 type CompatTimeline struct {
 	CreatedAt string   `db:"created_at" json:"created_at"`
 	AssetPaths []string `db:"asset_paths" json:"asset_paths"`
+	Extensions []string `db:"extensions" json:"extensions"`
 	GroupId   string   `db:"group_id" json:"group_id"`
 	Comment   string   `db:"comment" json:"comment"`
 	AuthorUID string   `db:"author_id" json:"author_id"`
@@ -360,7 +362,8 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 		asset_checkpoint.author_id,
 		asset_checkpoint.group_id,
 		preview.preview AS preview,
-		IFNULL(full_asset.asset_path, '') AS asset_path
+		IFNULL(full_asset.asset_path, '') AS asset_path,
+		IFNULL(full_asset.extension, '') AS extension
 	FROM 
 		asset_checkpoint
 	LEFT JOIN 
@@ -382,6 +385,7 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 			previousCheckpoint = CompatTimeline{
 				CreatedAt: checkpoint.CreatedAt,
 				AssetPaths: []string{checkpoint.AssetPath},
+				Extensions: []string{checkpoint.Extension},
 				GroupId:   checkpoint.GroupId,
 				Comment:   checkpoint.Comment,
 				AuthorUID: checkpoint.AuthorUID,
@@ -395,11 +399,13 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 
 		if previousCheckpoint.GroupId == checkpoint.GroupId {
 			previousCheckpoint.AssetPaths = append(previousCheckpoint.AssetPaths, checkpoint.AssetPath)
+			previousCheckpoint.Extensions = append(previousCheckpoint.Extensions, checkpoint.Extension)
 		} else {
 			timeline = append(timeline, previousCheckpoint)
 			previousCheckpoint = CompatTimeline{
 				CreatedAt: checkpoint.CreatedAt,
 				AssetPaths: []string{checkpoint.AssetPath},
+				Extensions: []string{checkpoint.Extension},
 				Comment:   checkpoint.Comment,
 				AuthorUID: checkpoint.AuthorUID,
 				Preview:   checkpoint.Preview,

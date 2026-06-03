@@ -209,15 +209,16 @@ const closeStatusMenu = () => {
 const createCheckPoint = async () => {
   isAwaitingResponse.value = true;
   const assetPath = assetStore.selectedAsset.asset_path;
+  const extension = assetStore.selectedAsset.extension;
   const comment = message.value;
   const previewPath = trayStates.previewFullPath;
   const groupId = uuidv4();
   if (assetStore.selectedAsset.type === 'asset') {
-    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [assetPath], comment, previewPath, groupId, useImageAsCover.value, sendToIntegrationEnabled.value)
+    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [assetPath], [extension], comment, previewPath, groupId, useImageAsCover.value, sendToIntegrationEnabled.value)
       .then(() => {
         emitter.emit('refresh-browser');
         emitter.emit('update-checkpoints');
-        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedAssetPath) => modifiedAssetPath !== assetPath);
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedAssetPath) => modifiedAssetPath !== assetPath + extension);
         if (assetStore.selectedAsset) assetStore.selectedAsset.file_status = 'normal';
         projectStore.refreshProjects();
         isAwaitingResponse.value = false;

@@ -600,9 +600,9 @@ const freeUpSpace = async () => {
     await FSService.DeleteFile(assetPath)
       .then(() => {
         asset.file_status = 'rebuildable';
-        assetStore.rebuildableAssetsPath.push(asset.asset_path);
-        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
-        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+        assetStore.rebuildableAssetsPath.push(asset.asset_path + asset.extension);
+        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
+        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
         emitItemUpdates(asset.id, [{ property: 'file_status', value: 'rebuildable' }]);
       })
       .catch((error) => console.error(error));

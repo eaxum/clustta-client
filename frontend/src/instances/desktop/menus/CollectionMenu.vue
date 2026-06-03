@@ -435,7 +435,7 @@ const revertContents = async () => {
   
   const collectionId = collection.id;
   await collectionStore.reloadItemsForCheckpoint(collectionId, null);
-  const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.asset_path);
+  const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.display_path);
   
   if (filteredPaths.length === 0) {
     notificationStore.addNotification(t('notifications.noModifiedContents'), "", "info");
@@ -450,7 +450,7 @@ const revertContents = async () => {
     );
     
     assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
-      (item) => !filteredPaths.includes(item.asset_path)
+      (item) => !filteredPaths.includes(item.display_path)
     );
     
     emitter.emit('refresh-browser');

@@ -362,9 +362,9 @@ const freeUpSpace = async () => {
   await FSService.DeleteFile(assetDir)
     .then(() => {
       asset.file_status = 'rebuildable';
-      assetStore.rebuildableAssetsPath.push(asset.asset_path);
-      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
-      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+      assetStore.rebuildableAssetsPath.push(asset.asset_path + asset.extension);
+      assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -516,8 +516,9 @@ const revealInExplorer = async () => {
   if (assetStore.selectedAsset.file_status == "rebuildable") {
     await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
       .then(async () => {
-        assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
-        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path);
+        const selectedAsset = assetStore.selectedAsset;
+        assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension);
+        assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension);
         emitter.emit('get-project-data');
       })
       .catch((error) => {

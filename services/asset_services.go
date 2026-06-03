@@ -88,9 +88,9 @@ func (t *AssetService) GetAssetByID(projectPath, assetId string) (models.Asset, 
 	return repository.GetAsset(tx, assetId)
 }
 
-// GetAssetByPath retrieves an asset by its asset_path.
+// GetAssetByPath retrieves an asset by its asset_path and extension.
 // Returns the asset or an error if not found.
-func (t *AssetService) GetAssetByPath(projectPath, assetPath string) (models.Asset, error) {
+func (t *AssetService) GetAssetByPath(projectPath, assetPath, extension string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Asset{}, err
@@ -101,7 +101,7 @@ func (t *AssetService) GetAssetByPath(projectPath, assetPath string) (models.Ass
 		return models.Asset{}, err
 	}
 	defer tx.Rollback()
-	return repository.GetAssetByPath(tx, assetPath)
+	return repository.GetAssetByPath(tx, assetPath, extension)
 }
 
 func (t *AssetService) CreateAsset(projectPath, name, description, assetTypeId, collectionId string, isResource bool, templateId, templateFilePath, pointer string, isLink bool, tags []string, previewPath, comment string) (models.Asset, error) {

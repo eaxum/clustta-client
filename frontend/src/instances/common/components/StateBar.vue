@@ -131,11 +131,11 @@ const revertAllChanges = async () => {
 	if (navigated?.type === 'collection') collectionId = navigated.id;
 	else if (navigated?.type === 'untracked_collection') targetPath = navigated.file_path;
 	await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
-	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.asset_path);
+	const filteredPaths = assetStore.modifiedAssets.modified.map(asset => asset.display_path);
 	if (filteredPaths.length === 0) return;
 	await CheckpointService.RevertAssetPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then(() => { 
-			assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter((item) => !filteredPaths.includes(item.asset_path)); 
+			assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter((item) => !filteredPaths.includes(item.display_path)); 
 			emitter.emit('refresh-browser'); 
 		})
 		.catch((error) => { notificationStore.errorNotification(t('components.stateBar.failedToRevertAssets'), error); console.error(error); });
@@ -150,7 +150,7 @@ const updateAll = async () => {
 	let collectionId = null;
 	if (navigated?.type === 'collection') collectionId = navigated.id;
 	const outdatedAssets = await collectionStore.getOutdatedItems(collectionId);
-	const filteredPaths = outdatedAssets.map(asset => asset.asset_path);
+	const filteredPaths = outdatedAssets.map(asset => asset.asset_path + asset.extension);
 	if (filteredPaths.length === 0) return;
 	await CheckpointService.RevertAssetPaths(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, filteredPaths)
 		.then(() => emitter.emit('refresh-browser'))

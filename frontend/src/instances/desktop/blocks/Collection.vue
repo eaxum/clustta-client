@@ -653,7 +653,7 @@ const updateCollectionAssets = async () => {
   notificationStore.canCancel = true;
   
   const outdatedAssets = await collectionStore.getOutdatedItems(props.collection.id);
-  const collectionOutdatedAssets = outdatedAssets.map(asset => asset.asset_path);
+  const collectionOutdatedAssets = outdatedAssets.map(asset => asset.asset_path + asset.extension);
   
   if (collectionOutdatedAssets.length === 0) {
     return;

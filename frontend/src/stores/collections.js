@@ -297,6 +297,7 @@ export const useCollectionStore = defineStore("collection", {
         const modifiedAssets = items.modified_assets.map(asset => ({
           asset_id: asset.id,
           asset_path: asset.asset_path,
+          extension: asset.extension,
           display_path: asset.asset_path + asset.extension
         }));
 

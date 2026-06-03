@@ -530,11 +530,11 @@ func GetAssetByName(tx *sqlx.Tx, name, collectionId string, extension string) (m
 	return asset, nil
 }
 
-func GetAssetByPath(tx *sqlx.Tx, assetPath string) (models.Asset, error) {
+func GetAssetByPath(tx *sqlx.Tx, assetPath, extension string) (models.Asset, error) {
 	asset := models.Asset{}
-	query := "SELECT * FROM full_asset WHERE asset_path = ?"
+	query := "SELECT * FROM full_asset WHERE asset_path = ? AND extension = ?"
 
-	err := tx.Get(&asset, query, assetPath)
+	err := tx.Get(&asset, query, assetPath, extension)
 	if err != nil && err == sql.ErrNoRows {
 		return models.Asset{}, error_service.ErrAssetNotFound
 	} else if err != nil {

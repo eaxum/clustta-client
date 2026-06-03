@@ -182,9 +182,9 @@ const freeUpProjectSpace = async () => {
       projectStore.refreshProjects();
       
       AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates) => {
-        assetStore.modifiedAssetsPath = assetsStates.modified;
-        assetStore.outdatedAssetsPath = assetsStates.outdated;
-        assetStore.rebuildableAssetsPath = assetsStates.rebuildable;
+        assetStore.modifiedAssetsPath = assetsStates.modified.map(item => item.display_path);
+        assetStore.outdatedAssetsPath = assetsStates.outdated.map(item => item.display_path);
+        assetStore.rebuildableAssetsPath = assetsStates.rebuildable.map(item => item.display_path);
       });
 
       if (projectStore.activeProject.id == project.id) {
