@@ -64,7 +64,7 @@ import ViewOptions from '@/instances/common/components/ViewOptions.vue';
 import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
 
 // services
-import { AssetService, CollectionService, DialogService, FSService, TrashService } from '@/services';
+import { AssetService, CollectionService, DialogService, FSService, SyncService, TrashService } from '@/services';
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
@@ -454,6 +454,7 @@ const handleUpdateRootData = (eventData) => {
 	}
 	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
+	refreshUnsyncedState();
 };
 
 // Folder watched at the root level. Falls back to the project working dir.
@@ -888,8 +889,21 @@ const softRefresh = async () => {
 	rootData.value = sortItems(allCollections, allAssets, children.untracked_collections, children.untracked_assets);
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
+	refreshUnsyncedState();
 	await nextTick();
 	dndStore.triggerDomUpdate();
+};
+
+// Flips the sync indicator to unsynced after a local edit.
+// Skips the query when already unsynced.
+const refreshUnsyncedState = async () => {
+	const project = projectStore.activeProject;
+	if (!project || project.is_unsynced) return;
+	try {
+		project.is_unsynced = await SyncService.IsUnsynced(project.uri);
+	} catch (error) {
+		console.error(error);
+	}
 };
 
 // Toggles the details pane visibility.
