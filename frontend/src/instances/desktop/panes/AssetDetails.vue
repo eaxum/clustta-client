@@ -3,10 +3,9 @@
   <div class="general-pane-root">
     <div class="general-pane-container">
 
-      <div v-if="assetStore.selectedAsset?.preview" class="collection-thumb-container">
+      <div v-if="showAssetThumbnail" class="collection-thumb-container">
         <div class="collection-thumb">
-          <img v-if="assetStore.selectedAsset.preview" class="screenshot-thumb" :src="assetStore.selectedAsset.preview">
-          <img v-else class="screenshot-thumb" src="/page-states/no_image.png">
+          <img class="screenshot-thumb" :src="displayThumbnail">
         </div>
       </div>
 
@@ -157,6 +156,7 @@ import { FSService, TagService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
+import { useAssetThumbnail, getFileTypeIcon } from '@/composables/useAssetThumbnail';
 
 // store imports
 import { useProjectStore } from '@/stores/projects';
@@ -240,6 +240,21 @@ const selectedAssetIcon = computed(() => {
     return singleAsset.value ? assetStore.selectedAsset.icon : '/icons/categories.svg'
   }
 });
+
+// Whether the selected asset is an image file (controls on-disk thumbnail loading).
+const isImageAsset = computed(() => {
+  const asset = assetStore.selectedAsset;
+  return !!asset && singleAsset.value && getFileTypeIcon(asset) === 'image';
+});
+
+// Reactive on-disk thumbnail for image assets (embedded preview, else OS-generated).
+const { displayThumbnail, isFallbackIcon } = useAssetThumbnail(
+  () => assetStore.selectedAsset,
+  { enabled: () => isImageAsset.value }
+);
+
+// Show the thumbnail only for image assets that have a real preview/thumbnail.
+const showAssetThumbnail = computed(() => isImageAsset.value && !isFallbackIcon.value);
 
 // methods
 const addTag = async () => {
