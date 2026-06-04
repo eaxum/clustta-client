@@ -23,7 +23,7 @@
 
     <!-- Reveal in Explorer -->
     <span class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="showLabel"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyItemPath('asset')"
         v-tooltip="$t('common.copyPath')" />
@@ -51,6 +51,9 @@ import { addIgnoredItem } from '@/lib/untracked';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+
+// composables
+import { useRevealLabel } from '@/composables/useRevealLabel';
 
 // services
 import { FSService } from '@/services';
@@ -83,6 +86,7 @@ const untrackedItemStore = useUntrackedItemStore();
 const userStore = useUserStore();
 
 const { t } = useI18n();
+const { showLabel } = useRevealLabel();
 
 // refs
 const popUpMenu = ref(null);

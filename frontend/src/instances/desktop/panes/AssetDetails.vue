@@ -105,7 +105,7 @@
               </div>
               <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
                 <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyAssetPath('asset')"/>
-                <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
+                <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="revealLabel" :buttonFunction="revealInExplorer"/>
               </div>
           </div>
 
@@ -164,6 +164,7 @@
 // imports
 import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRevealLabel } from '@/composables/useRevealLabel';
 import { FSService, TagService } from '@/services';
 import { Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
@@ -206,6 +207,7 @@ const commonStore = useCommonStore();
 const platformStore = usePlatformStore();
 const tagStore = useTagStore();
 const { t } = useI18n();
+const { revealLabel } = useRevealLabel();
 
 // refs
 const assetTags = ref([]);

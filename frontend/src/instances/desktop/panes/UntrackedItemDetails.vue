@@ -51,7 +51,7 @@
             </div>
             <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
               <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyItemPath" />
-              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer" />
+              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="revealLabel" :buttonFunction="revealInExplorer" />
             </div>
           </div>
 
@@ -71,6 +71,7 @@ import { Clipboard } from '@wailsio/runtime';
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRevealLabel } from '@/composables/useRevealLabel';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
@@ -113,6 +114,7 @@ const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
 
 const { t } = useI18n();
+const { revealLabel } = useRevealLabel();
 
 // vars
 const debugging = ref(true);

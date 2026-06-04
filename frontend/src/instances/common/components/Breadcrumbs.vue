@@ -42,7 +42,7 @@
 				v-tooltip="$t('components.breadcrumbs.copyPath')" @click="copyDirectoryPath" />
 
 			<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false"
-				v-tooltip="$t('components.breadcrumbs.showInExplorer')" @click="revealInExplorer" />
+				v-tooltip="showLabel" @click="revealInExplorer" />
 		</template>
 	</div>
 
@@ -63,6 +63,7 @@
 // imports
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRevealLabel } from '@/composables/useRevealLabel';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
@@ -92,6 +93,7 @@ const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
 const stage = useStageStore();
 const { t } = useI18n();
+const { showLabel } = useRevealLabel();
 
 // refs
 const breadcrumbContainer = ref(null);

@@ -59,7 +59,7 @@
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="showLabel"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyCollectionPath('collection')"
         v-tooltip="$t('common.copyPath')" />
@@ -90,6 +90,9 @@ import emitter from '@/lib/mitt';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+
+// composables
+import { useRevealLabel } from '@/composables/useRevealLabel';
 
 // services
 import { CheckpointService, CollectionService, DialogService, FSService, SyncService } from "@/services";
@@ -125,6 +128,7 @@ const trayStates = useTrayStates();
 const userStore = useUserStore();
 const workflowStore = useWorkflowStore();
 const { t } = useI18n();
+const { showLabel } = useRevealLabel();
 
 // refs
 const collectionMenu = ref(null);

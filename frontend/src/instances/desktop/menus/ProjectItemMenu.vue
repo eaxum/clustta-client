@@ -22,7 +22,7 @@
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="showLabel"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyProjectPath()"
         v-tooltip="$t('common.copyPath')" />
@@ -84,6 +84,9 @@ import emitter from '@/lib/mitt';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
+// composables
+import { useRevealLabel } from '@/composables/useRevealLabel';
+
 // services
 import { CollectionService, DialogService, FSService, ProjectService, SettingsService, SyncService } from "@/services";
 
@@ -103,6 +106,7 @@ import { useUserStore } from '@/stores/users';
 import { useStudioStore } from '@/stores/studio';
 
 const { t } = useI18n();
+const { showLabel } = useRevealLabel();
 const assetStore = useAssetStore();
 const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();

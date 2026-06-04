@@ -67,7 +67,7 @@
             </div>
             <div v-if="!platformStore.isWeb" class="pane-parameter-actions">
               <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyPath')" @click="copyCollectionPath('collection')"/>
-              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="$t('common.revealInExplorer')" :buttonFunction="revealInExplorer"/>
+              <ActionButton :icon="getAppIcon('folder-arrow-up-right')" v-tooltip="revealLabel" :buttonFunction="revealInExplorer"/>
             </div>
         </div>
 
@@ -125,6 +125,7 @@ import AssigneeItem from '@/instances/common/components/AssigneeItem.vue'
 // imports
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRevealLabel } from '@/composables/useRevealLabel';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
@@ -154,6 +155,7 @@ const platformStore = usePlatformStore();
 
 // i18n
 const { t } = useI18n();
+const { revealLabel } = useRevealLabel();
 
 // vars
 const placeholder = computed(() => t('placeholders.searchCollaborators'));
