@@ -95,7 +95,7 @@ tasks:
       EXEC: '{{.APP_NAME}}'
       ICON: 'clustta'
       CATEGORIES: 'Development;'
-      MIMETYPE: 'application/x-clustta-project;'
+      MIMETYPE: 'application/x-clustta-project;x-scheme-handler/clustta;'
 
   run:
     cmds:
