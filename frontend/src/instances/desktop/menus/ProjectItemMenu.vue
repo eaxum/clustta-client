@@ -185,7 +185,7 @@ const deleteRemoteProject = async ({ deleteWorkingFiles } = {}) => {
     await FSService.DeleteFolder(project.working_directory);
   }
   
-  projectStore.removeProjectFromList(project.uri);
+  projectStore.removeProjectFromList(project.uri, { force: true });
   refreshEntitlements();
   notificationStore.addNotification(
     t('notifications.projectDeleted'),
@@ -381,7 +381,7 @@ const leaveProject = async () => {
     if (project.is_downloaded) {
       await FSService.DeleteFile(project.uri);
     }
-    projectStore.removeProjectFromList(project.uri);
+    projectStore.removeProjectFromList(project.uri, { force: true });
     notificationStore.addNotification(
       t('notifications.leftProject'),
       t('notifications.leftProjectDesc', { name: project.name }),

@@ -329,9 +329,30 @@ export const useProjectStore = defineStore("projects", {
         this.projects.splice(insertAt, 0, project);
       }
     },
-    removeProjectFromList(uri) {
+    // Removes a project from the in-memory list, or for remote projects marks it
+    // as not-downloaded so it stays visible and can be re-downloaded.
+    // Pass { force: true } to fully remove a remote project (e.g. deleted from the
+    // server or left as a collaborator).
+    removeProjectFromList(uri, { force = false } = {}) {
       if (!uri) return;
       const removed = this.projects.find((p) => p.uri === uri);
+
+      if (removed && removed.has_remote && !force) {
+        removed.is_downloaded = false;
+        removed.is_unsynced = false;
+        removed.preview = null;
+        this.pinnedProjects = this.pinnedProjects.filter((p) => p.uri !== uri);
+        this.recentProjects = this.recentProjects.filter((p) => p.uri !== uri);
+        if (this.activeProject?.uri === uri) {
+          this.activeProject = null;
+        }
+        this.markedProjectIds = this.markedProjectIds.filter((id) => id !== removed.id);
+        this.selectedProjects = this.selectedProjects.filter((p) => p.id !== removed.id);
+        if (this.firstSelectedProjectId === removed.id) this.firstSelectedProjectId = this.markedProjectIds[0] || "";
+        if (this.lastSelectedProjectId === removed.id) this.lastSelectedProjectId = "";
+        return;
+      }
+
       this.projects = this.projects.filter((p) => p.uri !== uri);
       this.pinnedProjects = this.pinnedProjects.filter((p) => p.uri !== uri);
       this.recentProjects = this.recentProjects.filter((p) => p.uri !== uri);
