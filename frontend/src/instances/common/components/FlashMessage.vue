@@ -15,7 +15,7 @@
 
       <div class="progress-bar-header">
         <div class="header-title">
-          <img :src="getAppIcon(progressIcon)" class="header-icon" />
+          <img :src="getAppIcon(progressIcon)" class="header-icon small-icons" />
           <span class="header-text">{{ notificationStore.getProgress.title }}</span>
         </div>
         <button @click="minimizeProgress" class="minimize-button single-action-button" v-tooltip="$t('components.flashMessage.minimize')">
