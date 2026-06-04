@@ -69,8 +69,19 @@ const focusSingleItem = (item) => {
   stage.selectedItems = [item];
 };
 
+// Opens the multi-selection menu when right-clicking an item that is part of
+// an existing multi-selection. Returns true when the selection menu was shown.
+const tryOpenSelectionMenu = (event, id) => {
+  if (stage.markedItems.length > 1 && stage.markedItems.includes(id)) {
+    menu.showContextMenu(event, 'selectionMenu', true);
+    return true;
+  }
+  return false;
+};
+
 const openCollectionMenu = (event) => {
   const id = props.child.id;
+  if (tryOpenSelectionMenu(event, id)) return;
   const collection = props.child;
   stage.markedCollections = [id];
   collectionStore.selectCollection(collection);
@@ -80,6 +91,7 @@ const openCollectionMenu = (event) => {
 
 const openAssetMenu = (event) => {
   const id = props.child.id;
+  if (tryOpenSelectionMenu(event, id)) return;
   const asset = props.child;
   assetStore.selectAsset(asset);
   stage.markedAssets = [id];
@@ -89,6 +101,7 @@ const openAssetMenu = (event) => {
 
 const openUntrackedItemMenu = (event) => {
   const id = props.child.id;
+  if (tryOpenSelectionMenu(event, id)) return;
   stage.markedCollections = [id];
   untrackedItemStore.selectUntrackedItem(props.child)
   focusSingleItem(props.child);
