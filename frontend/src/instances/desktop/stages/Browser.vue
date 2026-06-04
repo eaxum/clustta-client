@@ -20,7 +20,6 @@
 					v-tooltip="panes.showDetailsPane ? $t('stages.closePane') : $t('stages.openPane')" :buttonFunction="toggleDetailsPane" />
 			</div>
 		</div>
-		
 		<div v-if="!kanbanView" ref="assetListContainer" class="browser-root-container" @mousemove="onDrag($event)"
 			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)" @scroll="disableMenus">
 			<GhostItem :data="draggedCard" :index="0" />

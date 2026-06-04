@@ -439,6 +439,7 @@ function startCheckSycnTokenInterval() {
 
 
 onMounted(async () => {
+    await platformStore.initialize();
     await settingsStore.initializeShowTypeIcons();
     if (!platformStore.isWeb) {
         startCheckSycnTokenInterval();

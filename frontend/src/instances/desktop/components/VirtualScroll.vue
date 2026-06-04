@@ -92,6 +92,7 @@ const onMouseDown = (event, item, index) => {
 
 
   const id = item.id;
+  if (stage.isContextMenuClick(event)) return;
   dragTimer.value = setTimeout(() => {
     onDragStart(event, id);
   }, dndStore.dragDelay);

@@ -320,7 +320,7 @@ const onMouseDown = (event, item, index) => {
 
   menu.disableAllMenus();
   event.stopPropagation();
-  dragItem(event, id);
+  if (!stage.isContextMenuClick(event)) dragItem(event, id);
 };
 
 // Handles mouse up event for item selection.

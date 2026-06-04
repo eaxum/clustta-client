@@ -378,12 +378,23 @@ const loadCollectionChildren = async () => {
   loadingChildrenSkeleton.value = false;
 };
 
+// Focuses a single item so right-click menu actions (e.g. rename) work.
+// Preserves an existing multi-selection that already contains the item.
+const focusSingleItem = (item) => {
+  if (stage.markedItems.includes(item.id)) return;
+  stage.markedItems = [item.id];
+  stage.firstSelectedItemId = item.id;
+  stage.lastSelectedItemId = "";
+  stage.selectedItems = [item];
+};
+
 // Opens the asset context menu.
 const openAssetMenu = (event) => {
   const id = props.child.id;
   const asset = props.child;
   assetStore.selectAsset(asset);
   stage.markedAssets = [id];
+  focusSingleItem(asset);
   menu.showContextMenu(event, 'assetMenu', true);
 };
 
@@ -393,6 +404,7 @@ const openCollectionMenu = (event) => {
   const collection = props.child;
   stage.markedCollections = [id];
   collectionStore.selectCollection(collection);
+  focusSingleItem(collection);
   menu.showContextMenu(event, 'collectionMenu', true);
 };
 
@@ -401,6 +413,7 @@ const openUntrackedItemMenu = (event) => {
   const id = props.child.id;
   stage.markedCollections = [id];
   untrackedItemStore.selectUntrackedItem(props.child);
+  focusSingleItem(props.child);
   menu.showContextMenu(event, 'untrackedItemMenu', true);
 };
 

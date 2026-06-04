@@ -7,11 +7,11 @@ import { useCommonStore } from "@/stores/common";
 import { useDndStore } from "@/stores/dnd";
 import { useNotificationStore } from "@/stores/notifications";
 import { useProjectStore } from "@/stores/projects";
+import { usePlatformStore } from "@/stores/platform";
 import { AppService, AssetService, CollectionService, FSService } from '@/services';
 
 export const useStageStore = defineStore("stages", {
   state: () => ({
-    os: '',
     stages: {
       projects: false,
       browser: false,
@@ -92,7 +92,14 @@ export const useStageStore = defineStore("stages", {
   actions: {
     cmdOrCtrlKey(event) {
       // Use cmd key on macOS, ctrl key on other platforms
-      return this.os === 'darwin' ? event.metaKey : event.ctrlKey;
+      return usePlatformStore().isMac ? event.metaKey : event.ctrlKey;
+    },
+
+    // Returns true when the press is a context-menu gesture (right button,
+    // or Ctrl+Click on macOS) rather than a primary selection/drag press.
+    isContextMenuClick(event) {
+      if (event.button === 2) return true;
+      return usePlatformStore().isMac && event.button === 0 && event.ctrlKey;
     },
     
     setStageVisibility(stageName, value) {
