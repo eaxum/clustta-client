@@ -3,9 +3,12 @@
   <div class="general-pane-root">
     <div class="general-pane-container">
 
-      <div v-if="showAssetThumbnail" class="collection-thumb-container">
+      <div v-if="showAssetThumbnail" class="collection-thumb-container asset-thumb-preview">
         <div class="collection-thumb">
           <img class="screenshot-thumb" :src="displayThumbnail">
+        </div>
+        <div class="asset-thumb-expand" v-stop-propagation>
+          <ActionButton :icon="getAppIcon('arrows-expand')" v-tooltip="$t('common.viewImage')" :buttonFunction="openImageViewer" />
         </div>
       </div>
 
@@ -51,6 +54,15 @@
             </div>
             <div class="simple-text-value">
               {{ assetStore.selectedAsset.extension }}
+            </div>
+          </div>
+
+          <div v-if="imageResolution" class="pane-parameter-detail">
+            <div class="simple-text-key">
+              {{ $t('panes.resolution') }}
+            </div>
+            <div class="simple-text-value">
+              {{ imageResolution }}
             </div>
           </div>
 
@@ -256,6 +268,9 @@ const { displayThumbnail, isFallbackIcon } = useAssetThumbnail(
 // Show the thumbnail only for image assets that have a real preview/thumbnail.
 const showAssetThumbnail = computed(() => isImageAsset.value && !isFallbackIcon.value);
 
+// On-disk pixel dimensions for image assets, formatted as "W x H".
+const imageResolution = ref('');
+
 // methods
 const addTag = async () => {
   const name = tagInputValue.value.trim();
@@ -332,6 +347,18 @@ const openTagInput = () => {
   nextTick(() => {
     tagInput.value?.focus();
   });
+};
+
+// Opens the image viewer modal with the current asset, preferring the full-resolution file.
+const openImageViewer = () => {
+  if (!displayThumbnail.value) return;
+  const asset = assetStore.selectedAsset;
+  modals.openImageViewer(
+    displayThumbnail.value,
+    asset?.name || '',
+    asset?.file_path || '',
+    asset?.extension || '',
+  );
 };
 
 // Removes a tag from the selected asset.
@@ -529,18 +556,34 @@ const getAssetSize = async() => {
   assetSize.value = size.formattedSize;
 }
 
+// Loads the on-disk pixel dimensions for image assets the webview can decode.
+const loadImageResolution = async () => {
+  imageResolution.value = '';
+  if (!isImageAsset.value) return;
+  try {
+    const { width, height } = await FSService.GetImageResolution(assetPath.value);
+    if (width && height) {
+      imageResolution.value = `${width} x ${height}`;
+    }
+  } catch (error) {
+    imageResolution.value = '';
+  }
+}
+
 const getProjectData = async () => {
   if (!await FSService.Exists(assetPath.value)){
     assetSize.value = t('panes.notOnDisk')
     return
   }
   getAssetSize();
+  loadImageResolution();
   loadAssetTags();
   loadLatestCheckpoint();
 }
 
 watch(() => assetStore.selectedAsset, () => {
   assetSize.value = 0;
+  imageResolution.value = '';
   getProjectData();
   loadAssetTags();
   loadLatestCheckpoint();
@@ -566,6 +609,30 @@ onBeforeUnmount(() => {
 
 <style scoped>
 @import "@/assets/desktop.css";
+
+.asset-thumb-preview {
+  position: relative;
+  transition: box-shadow .2s ease-out;
+}
+
+.asset-thumb-preview:hover {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
+}
+
+.asset-thumb-expand {
+  position: absolute;
+  right: .4rem;
+  bottom: .4rem;
+  display: flex;
+  opacity: 0;
+  transition: opacity .2s ease-out;
+  background-color: var(--bg);
+  border-radius: var(--small-radius);
+}
+
+.asset-thumb-preview:hover .asset-thumb-expand {
+  opacity: 1;
+}
 
 .pane-parameter-section {
   overflow: hidden;

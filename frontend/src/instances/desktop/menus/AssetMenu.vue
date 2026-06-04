@@ -37,7 +37,7 @@
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
-      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="$t('common.showInExplorer')"
+      <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="showLabel"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyAssetPath('asset')"
         v-tooltip="$t('common.copyPath')" />
@@ -84,9 +84,11 @@ import { useI18n } from 'vue-i18n';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
+// composables
+import { useRevealLabel } from '@/composables/useRevealLabel';
+
 // services
 import { AssetService, CheckpointService, CollectionService, FSService, SyncService } from "@/services";
-
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
@@ -118,6 +120,7 @@ const trayStates = useTrayStates();
 const userStore = useUserStore();
 const studioStore = useStudioStore();
 const { t } = useI18n();
+const { showLabel } = useRevealLabel();
 
 // refs
 const popUpMenu = ref(null);

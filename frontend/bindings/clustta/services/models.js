@@ -1207,6 +1207,41 @@ export class Gender {
     }
 }
 
+export class ImageResolution {
+    /**
+     * Creates a new ImageResolution instance.
+     * @param {Partial<ImageResolution>} [$$source = {}] - The source object to create the ImageResolution.
+     */
+    constructor($$source = {}) {
+        if (!("width" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["width"] = 0;
+        }
+        if (!("height" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["height"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ImageResolution instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ImageResolution}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ImageResolution(/** @type {Partial<ImageResolution>} */($$parsedSource));
+    }
+}
+
 export class ImportItems {
     /**
      * Creates a new ImportItems instance.

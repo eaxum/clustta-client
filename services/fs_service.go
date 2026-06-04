@@ -14,6 +14,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 	"io/fs"
 	"os"
@@ -25,6 +29,9 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/skratchdot/open-golang/open"
 	"github.com/wailsapp/wails/v3/pkg/application"
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
 
 type FSService struct {
@@ -41,6 +48,11 @@ type FileInfo struct {
 	FormattedSize string `json:"formattedSize"`
 	IsDir         bool   `json:"isDir"`
 	ModTime       int64  `json:"modTime"`
+}
+
+type ImageResolution struct {
+	Width  int `json:"width"`
+	Height int `json:"height"`
 }
 
 // validatePath checks that the path is within a registered project directory.
@@ -408,6 +420,27 @@ func (f *FSService) ReadFile(path string) (string, error) {
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(data), nil
+}
+
+// GetImageResolution returns the pixel dimensions of an image file.
+// Only the image header is decoded, so large files are read cheaply.
+func (f *FSService) GetImageResolution(path string) (ImageResolution, error) {
+	if err := validatePath(path); err != nil {
+		return ImageResolution{}, err
+	}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return ImageResolution{}, err
+	}
+	defer file.Close()
+
+	config, _, err := image.DecodeConfig(file)
+	if err != nil {
+		return ImageResolution{}, err
+	}
+
+	return ImageResolution{Width: config.Width, Height: config.Height}, nil
 }
 
 // RevealInExplorer opens the system file explorer and highlights the specified path.

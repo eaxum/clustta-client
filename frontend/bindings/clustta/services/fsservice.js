@@ -192,6 +192,18 @@ export function GetFileIcon(ext) {
 }
 
 /**
+ * GetImageResolution returns the pixel dimensions of an image file.
+ * Only the image header is decoded, so large files are read cheaply.
+ * @param {string} path
+ * @returns {$CancellablePromise<$models.ImageResolution>}
+ */
+export function GetImageResolution(path) {
+    return $Call.ByID(1528345435, path).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * GetOSThumbnail generates a thumbnail for the specified file.
  * Attempts custom extraction first (Blender, Maya), falls back to OS thumbnail. Returns base64-encoded image.
  * @param {string} filePath
@@ -211,7 +223,7 @@ export function GetOSThumbnail(filePath, size) {
  */
 export function GetOSThumbnails(filePaths, size) {
     return $Call.ByID(4150854623, filePaths, size).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
 }
 
@@ -234,7 +246,7 @@ export function GetPersonalProjectsDirectory() {
  */
 export function ImportClusttaFiles(sourcePaths, destinationDirectory) {
     return $Call.ByID(2186594820, sourcePaths, destinationDirectory).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
@@ -392,5 +404,6 @@ export function WriteFile(path, data) {
 
 // Private type creation functions
 const $$createType0 = $models.FileInfo.createFrom;
-const $$createType1 = $Create.Map($Create.Any, $Create.Any);
-const $$createType2 = $Create.Array($Create.Any);
+const $$createType1 = $models.ImageResolution.createFrom;
+const $$createType2 = $Create.Map($Create.Any, $Create.Any);
+const $$createType3 = $Create.Array($Create.Any);

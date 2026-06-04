@@ -85,6 +85,7 @@ export {
     EntitlementUsage,
     FileInfo,
     Gender,
+    ImageResolution,
     ImportItems,
     ItemsForCheckpoint,
     ItemsForUpdate,

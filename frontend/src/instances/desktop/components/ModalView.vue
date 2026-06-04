@@ -91,6 +91,9 @@ import StatusMappingModal from '@/instances/desktop/modals/StatusMappingModal.vu
 // components - diagnostics
 import SubmitDiagnosticsModal from '@/instances/desktop/modals/SubmitDiagnosticsModal.vue';
 
+// components - image viewer
+import ImageViewerModal from '@/instances/desktop/modals/ImageViewerModal.vue';
+
 // components - workflow
 import ComposeWorkflowModal from '@/instances/desktop/modals/ComposeWorkflowModal.vue';
 import ConfigWorkflowModal from '@/instances/desktop/modals/ConfigWorkflowModal.vue';
@@ -194,6 +197,9 @@ const modalComponents = {
 
   // diagnostics
   submitDiagnosticsModal: SubmitDiagnosticsModal,
+
+  // image viewer
+  imageViewerModal: ImageViewerModal,
 
   // workflow
   composeWorkflowModal: ComposeWorkflowModal,

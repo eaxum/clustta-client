@@ -105,12 +105,18 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       // dependency
       dependencyGraphModal: false,
 
+      // image viewer
+      imageViewerModal: false,
+
       // diagnostics
       submitDiagnosticsModal: false,
     },
 
     activeModal: null,
     modalMaskVisible: false,
+
+    // Image viewer payload (thumbnail src + title + source file) for imageViewerModal.
+    imageViewer: { src: "", title: "", filePath: "", extension: "" },
   }),
   getters: {},
   actions: {
@@ -140,6 +146,12 @@ export const useDesktopModalStore = defineStore("desktopModals", {
     },
     isAnyModalActive() {
       return Object.values(this.modalStates).some((isVisible) => isVisible);
+    },
+
+    // Opens the image viewer modal with a fallback thumbnail src, title, and source file details.
+    openImageViewer(src, title = "", filePath = "", extension = "") {
+      this.imageViewer = { src, title, filePath, extension };
+      this.setModalVisibility("imageViewerModal", true);
     },
   },
 });
