@@ -398,6 +398,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			parentId := collection.ParentId
 			previewId := collection.PreviewId
 			isShared := collection.IsShared
+			collectionTypeId := collection.CollectionTypeId
 
 			collection, err = repository.RenameCollection(tx, collection.Id, collection.Name)
 			if err != nil {
@@ -407,6 +408,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			collection.ParentId = parentId
 			collection.PreviewId = previewId
 			collection.IsShared = isShared
+			collection.CollectionTypeId = collectionTypeId
 
 			if localCollection.ParentId != collection.ParentId {
 				err = repository.ChangeParent(tx, collection.Id, collection.ParentId)
@@ -423,6 +425,12 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 			}
 			if localCollection.IsShared != collection.IsShared {
 				err = repository.ChangeIsShared(tx, collection.Id, collection.IsShared)
+				if err != nil {
+					return err
+				}
+			}
+			if localCollection.CollectionTypeId != collection.CollectionTypeId {
+				err = repository.ChangeCollectionType(tx, collection.Id, collection.CollectionTypeId)
 				if err != nil {
 					return err
 				}
