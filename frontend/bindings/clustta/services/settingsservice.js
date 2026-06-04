@@ -106,6 +106,16 @@ export function CheckLocationHealth(locationID) {
 }
 
 /**
+ * CheckSystemBookmarksHealth reports staleness of the projects and shared projects directory bookmarks (macOS).
+ * @returns {$CancellablePromise<settings$0.SystemBookmarksHealth>}
+ */
+export function CheckSystemBookmarksHealth() {
+    return $Call.ByID(1023711302).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType4($result);
+    }));
+}
+
+/**
  * ClearRecentProject clears the recent projects list for the specified studio.
  * @param {string} studioName
  * @returns {$CancellablePromise<void>}
@@ -129,7 +139,7 @@ export function DeleteIntegrationCredential(integrationId) {
  */
 export function GetAllLocationPaths() {
     return $Call.ByID(1879856430).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
 }
 
@@ -190,7 +200,7 @@ export function GetIconScheme() {
  */
 export function GetIgnoreListPresets() {
     return $Call.ByID(4182633768).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -202,7 +212,7 @@ export function GetIgnoreListPresets() {
  */
 export function GetIntegrationCredential(integrationId) {
     return $Call.ByID(3906565165, integrationId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -276,7 +286,7 @@ export function GetPinnedProjects(studioName) {
  */
 export function GetProjectDependencyPresets(projectId) {
     return $Call.ByID(3058392474, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -304,7 +314,7 @@ export function GetProjectLocation(projectID) {
  */
 export function GetProjectWorkspaces(projectId) {
     return $Call.ByID(2164081225, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -342,7 +352,7 @@ export function GetShowTypeIcons() {
  */
 export function GetStudios(path) {
     return $Call.ByID(2852753313, path).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType10($result);
     }));
 }
 
@@ -717,9 +727,10 @@ const $$createType0 = settings$0.ProjectLocation.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = settings$0.LocationHealth.createFrom;
 const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = $Create.Array($$createType0);
-const $$createType5 = $Create.Map($Create.Any, $$createType1);
-const $$createType6 = settings$0.IntegrationCredential.createFrom;
-const $$createType7 = $Create.Array($Create.Any);
-const $$createType8 = settings$0.Studio.createFrom;
-const $$createType9 = $Create.Array($$createType8);
+const $$createType4 = settings$0.SystemBookmarksHealth.createFrom;
+const $$createType5 = $Create.Array($$createType0);
+const $$createType6 = $Create.Map($Create.Any, $$createType1);
+const $$createType7 = settings$0.IntegrationCredential.createFrom;
+const $$createType8 = $Create.Array($Create.Any);
+const $$createType9 = settings$0.Studio.createFrom;
+const $$createType10 = $Create.Array($$createType9);

@@ -7,6 +7,8 @@ export const useSettingsStore = defineStore("settings", {
     minimizeOnClose: true,
     pendingTab: null,
     showTypeIcons: true,
+    locationsStale: false,
+    systemBookmarksHealth: { projects_dir_stale: false, shared_projects_dir_stale: false },
     modalStates: {
       general: false,
       templates: false,
@@ -74,6 +76,20 @@ export const useSettingsStore = defineStore("settings", {
   }),
   getters: {},
   actions: {
+    // Refreshes the stale state of project locations (macOS security-scoped bookmarks).
+    // Sets locationsStale to true when any configured location's bookmark needs re-selection.
+    async refreshLocationsHealth() {
+      try {
+        const healthStatuses = await SettingsService.CheckAllLocationsHealth();
+        const systemHealth = await SettingsService.CheckSystemBookmarksHealth();
+        this.systemBookmarksHealth = systemHealth;
+        const locationsStale = healthStatuses.some((h) => h.stale);
+        const systemStale = systemHealth.projects_dir_stale || systemHealth.shared_projects_dir_stale;
+        this.locationsStale = locationsStale || systemStale;
+      } catch (error) {
+        console.log(error);
+      }
+    },
     // Loads the bridge enabled state from user settings.
     async initializeBridge() {
       try {

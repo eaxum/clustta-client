@@ -13,7 +13,9 @@
           <div class="location-item">
             <!-- Location Icon -->
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
+              <img v-if="settingsStore.systemBookmarksHealth.projects_dir_stale"
+                class="small-icons" :src="getAppIcon('alert')" v-tooltip="$t('settings.locationStale')">
+              <img v-else class="small-icons" :src="getAppIcon('folder')">
             </div>
             
             <!-- Location Content -->
@@ -43,7 +45,9 @@
           <div class="location-item" v-if="!accountStore.isOfflineMode">
             <!-- Location Icon -->
             <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
+              <img v-if="settingsStore.systemBookmarksHealth.shared_projects_dir_stale"
+                class="small-icons" :src="getAppIcon('alert')" v-tooltip="$t('settings.locationStale')">
+              <img v-else class="small-icons" :src="getAppIcon('folder')">
             </div>
             
             <!-- Location Content -->
@@ -86,16 +90,11 @@
           <div class="locations-scroll-container">
             <div v-for="location in locations" :key="location.id" class="location-item">
               
-              <!-- Location Icon - shows alert if path doesn't exist -->
+              <!-- Location Icon - shows alert if path doesn't exist or bookmark is stale -->
               <div class="location-icon">
-                <!-- <ActionButton 
-                  v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists"
-                  :icon="getAppIcon('alert')" 
-                  :useAlert="true"
-                  :isInactive="true"
-                  v-tooltip="'Path does not exist'"
-                /> -->
-                <img v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists" class="small-icons" :src="getAppIcon('alert')">
+                <img v-if="locationHealthMap[location.id] && (!locationHealthMap[location.id].exists || locationHealthMap[location.id].stale)"
+                  class="small-icons" :src="getAppIcon('alert')"
+                  v-tooltip="locationHealthMap[location.id].stale ? $t('settings.locationStale') : $t('settings.locationMissing')">
                 <img v-else class="small-icons" :src="getAppIcon('folder')">
               </div>
               
@@ -181,6 +180,7 @@ import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAccountStore } from '@/stores/accounts';
+import { useSettingsStore } from '@/stores/settings';
 import { SettingsService, DialogService } from '@/services';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
@@ -188,6 +188,7 @@ import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const accountStore = useAccountStore();
+const settingsStore = useSettingsStore();
 const { t } = useI18n();
 
 const getAppIcon = (iconName) => {
@@ -220,6 +221,7 @@ const selectDirectoryPath = async (context) => {
       projectsDirectory.value = fileDir;
       notificationStore.addNotification(t('notifications.projectsDirectoryUpdated'), '', 'success', false);
     }
+    await checkAllLocationHealth();
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorUpdatingDirectory'), error);
   }
@@ -241,6 +243,10 @@ const checkAllLocationHealth = async () => {
     healthStatuses.forEach(h => {
       locationHealthMap.value[h.id] = h;
     });
+    const systemHealth = await SettingsService.CheckSystemBookmarksHealth();
+    settingsStore.systemBookmarksHealth = systemHealth;
+    const systemStale = systemHealth.projects_dir_stale || systemHealth.shared_projects_dir_stale;
+    settingsStore.locationsStale = healthStatuses.some(h => h.stale) || systemStale;
   } catch (error) {
     console.error('Error checking location health:', error);
   }

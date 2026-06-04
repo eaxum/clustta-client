@@ -142,6 +142,14 @@ export class LocationHealth {
              */
             this["free_space"] = 0;
         }
+        if (!("stale" in $$source)) {
+            /**
+             * darwin: security-scoped bookmark needs re-selection
+             * @member
+             * @type {boolean}
+             */
+            this["stale"] = false;
+        }
 
         Object.assign(this, $$source);
     }
@@ -306,6 +314,44 @@ export class Studio {
             $$parsedSource["Users"] = $$createField7_0($$parsedSource["Users"]);
         }
         return new Studio(/** @type {Partial<Studio>} */($$parsedSource));
+    }
+}
+
+/**
+ * SystemBookmarksHealth reports staleness of the top-level projects directory bookmarks.
+ */
+export class SystemBookmarksHealth {
+    /**
+     * Creates a new SystemBookmarksHealth instance.
+     * @param {Partial<SystemBookmarksHealth>} [$$source = {}] - The source object to create the SystemBookmarksHealth.
+     */
+    constructor($$source = {}) {
+        if (!("projects_dir_stale" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["projects_dir_stale"] = false;
+        }
+        if (!("shared_projects_dir_stale" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["shared_projects_dir_stale"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SystemBookmarksHealth instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {SystemBookmarksHealth}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new SystemBookmarksHealth(/** @type {Partial<SystemBookmarksHealth>} */($$parsedSource));
     }
 }
 

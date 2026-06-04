@@ -497,6 +497,11 @@ func (s *SettingsService) CheckAllLocationsHealth() ([]settings.LocationHealth, 
 	return settings.CheckAllLocationsHealth()
 }
 
+// CheckSystemBookmarksHealth reports staleness of the projects and shared projects directory bookmarks (macOS).
+func (s *SettingsService) CheckSystemBookmarksHealth() (settings.SystemBookmarksHealth, error) {
+	return settings.CheckSystemBookmarksHealth()
+}
+
 // GetSyncAfterCheckpoint returns whether auto-sync after checkpoint is enabled.
 func (s *SettingsService) GetSyncAfterCheckpoint() (bool, error) {
 	return settings.GetSyncAfterCheckpoint()

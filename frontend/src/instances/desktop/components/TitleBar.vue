@@ -1,6 +1,7 @@
 <template>
   <div style="--wails-draggable:drag" @click="handleClickOutside" @dblclick="toggleMaximize" class="titlebar"
-    :class="{ 'title-only': titleOnly, 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive }" v-stop-propagation>
+    :class="{ 'title-only': titleOnly, 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || locationsStale }"
+    v-stop-propagation>
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
 
@@ -55,6 +56,10 @@
     </div>
 
     <div v-if="os === 'darwin'" class="titlebar-buttons">
+      <div v-if="locationsStale" class="location-stale-pill" @click="fixStaleLocations" v-stop-propagation v-tooltip="$t('components.titleBar.locationStale')">
+        <img class="small-icons" :src="getAppIcon('alert')">
+        <span>{{ $t('components.titleBar.locationStalePill') }}</span>
+      </div>
       <PlanInfo />
       <ClusttaLogo  :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
     </div>
@@ -66,6 +71,10 @@
     </div>
 
     <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
+      <div v-if="locationsStale" class="location-stale-pill" @click="fixStaleLocations" v-stop-propagation v-tooltip="$t('components.titleBar.locationStale')">
+        <img class="small-icons" :src="getAppIcon('alert')">
+        <span>{{ $t('components.titleBar.locationStalePill') }}</span>
+      </div>
       <PlanInfo />
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
@@ -211,6 +220,14 @@ const projectStages = ['browser', 'trash', 'projectSettings'];
 const showUnsyncedBar = computed(() => { return projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_unsynced && projectStages.includes(stage.activeStage) });
 
 const studioInactive = computed(() => !entitlementStore.isStudioActive);
+
+const locationsStale = computed(() => settingsStore.locationsStale);
+
+// Navigates to Settings > Directories so the user can re-select stale folders.
+const fixStaleLocations = () => {
+  settingsStore.pendingTab = 'directories';
+  stage.setStageVisibility('settings', true);
+};
 
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
@@ -698,6 +715,26 @@ onBeforeUnmount(() => {
 .titlebar-inactive,
 [data-theme="dark"] .titlebar-inactive {
   background-color: var(--danger);
+}
+
+.location-stale-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px 3px 5px;
+  border-radius: var(--large-radius);
+  cursor: pointer;
+  font-size: 11px;
+  color: white;
+  background-color: var(--danger);
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+  height: 22px;
+  margin-right: 6px;
+}
+
+.location-stale-pill:hover {
+  background-color: hsl(0, 70%, 45%);
 }
 
 .title-only {

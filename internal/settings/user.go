@@ -1708,17 +1708,20 @@ func UpdateProjectLocation(locationID, name, path string) error {
 			}
 
 			// Update path and bookmark
-			if path != "" && path != loc.Path {
-				// Check for duplicate paths (excluding current location)
-				for j, otherLoc := range settings.ProjectLocations {
-					if j != i && otherLoc.Path == path {
-						return fmt.Errorf("location with path %s already exists", path)
+			if path != "" {
+				// Check for duplicate paths (excluding current location) only when the path changes
+				if path != loc.Path {
+					for j, otherLoc := range settings.ProjectLocations {
+						if j != i && otherLoc.Path == path {
+							return fmt.Errorf("location with path %s already exists", path)
+						}
 					}
+
+					settings.ProjectLocations[i].Path = path
 				}
 
-				settings.ProjectLocations[i].Path = path
-
-				// Update bookmark on macOS
+				// Always (re)create the bookmark on macOS so that re-selecting the same
+				// folder re-establishes security-scoped access for stale bookmarks.
 				if runtime.GOOS == "darwin" {
 					bookmarkData, err := CreateBookmarkFromPath(path)
 					if err != nil {
@@ -1858,6 +1861,7 @@ type LocationHealth struct {
 	Exists    bool   `json:"exists"`
 	Writable  bool   `json:"writable"`
 	FreeSpace int64  `json:"free_space"`
+	Stale     bool   `json:"stale"` // darwin: security-scoped bookmark needs re-selection
 }
 
 // CheckLocationHealth checks the health of a specific location
@@ -1874,6 +1878,12 @@ func CheckLocationHealth(locationID string) (LocationHealth, error) {
 				Exists:    false,
 				Writable:  false,
 				FreeSpace: 0,
+			}
+
+			// On macOS, a security-scoped bookmark can go stale even when the
+			// path still exists, leaving the sandbox without access to the folder.
+			if runtime.GOOS == "darwin" && len(loc.Bookmark) > 0 {
+				health.Stale = IsBookmarkStale(loc.Bookmark)
 			}
 
 			// Check if path exists
@@ -1915,6 +1925,35 @@ func CheckAllLocationsHealth() ([]LocationHealth, error) {
 	}
 
 	return healthStatuses, nil
+}
+
+// SystemBookmarksHealth reports staleness of the top-level projects directory bookmarks.
+type SystemBookmarksHealth struct {
+	ProjectsDirStale       bool `json:"projects_dir_stale"`
+	SharedProjectsDirStale bool `json:"shared_projects_dir_stale"`
+}
+
+// CheckSystemBookmarksHealth reports whether the projects or shared projects
+// directory security-scoped bookmarks have gone stale on macOS.
+func CheckSystemBookmarksHealth() (SystemBookmarksHealth, error) {
+	health := SystemBookmarksHealth{}
+	if runtime.GOOS != "darwin" {
+		return health, nil
+	}
+
+	settings, err := loadUserSettings()
+	if err != nil {
+		return health, err
+	}
+
+	if len(settings.ProjectsDirBookmark) > 0 {
+		health.ProjectsDirStale = IsBookmarkStale(settings.ProjectsDirBookmark)
+	}
+	if len(settings.SharedProjectsDirBookmark) > 0 {
+		health.SharedProjectsDirStale = IsBookmarkStale(settings.SharedProjectsDirBookmark)
+	}
+
+	return health, nil
 }
 
 // migrateWorkingDirectory migrates old WorkingDirectory setting to ProjectLocations

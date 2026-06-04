@@ -3,7 +3,7 @@
     <template v-if="isInactive">
       <div class="plan-free-content">
         <img class="plan-free-icon" :src="getAppIcon('alert')" />
-        <span class="plan-upgrade">Inactive — click to fix</span>
+        <span class="plan-upgrade">Inactive. Click to fix</span>
       </div>
     </template>
 

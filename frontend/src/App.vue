@@ -444,6 +444,8 @@ onMounted(async () => {
     if (!platformStore.isWeb) {
         startCheckSycnTokenInterval();
         startConnectivityCheckInterval();
+        settingsStore.refreshLocationsHealth();
+        window.addEventListener('focus', () => settingsStore.refreshLocationsHealth());
     }
 });
 </script>

@@ -14,6 +14,8 @@ import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from "./stages";
 import { usePaneStore } from "./panes";
 import { useTrayStates } from "./TrayStates";
+import { useSettingsStore } from "./settings";
+import { t } from "@/i18n";
 
 let isProjectGridView = true;
 await SettingsService.IsProjectGridView()
@@ -279,8 +281,18 @@ export const useProjectStore = defineStore("projects", {
       const panes = usePaneStore();
       const trayStates = useTrayStates();
 
-      
- 
+      const settingsStore = useSettingsStore();
+      if (settingsStore.locationsStale) {
+        const notificationStore = useNotificationStore();
+        notificationStore.addNotification(
+          t("notifications.locationStaleTitle"),
+          t("notifications.locationStaleMessage"),
+          "danger",
+          false
+        );
+        return;
+      }
+
       await this.setActiveProject(project);
       commonStore.activeWorkspace = "Default";
       commonStore.resetFilters();

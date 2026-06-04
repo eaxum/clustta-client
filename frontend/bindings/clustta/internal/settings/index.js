@@ -6,5 +6,6 @@ export {
     IntegrationCredential,
     LocationHealth,
     ProjectLocation,
-    Studio
+    Studio,
+    SystemBookmarksHealth
 } from "./models.js";
