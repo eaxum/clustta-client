@@ -20,6 +20,9 @@
 
                 </div>
 
+                <ActionButton :icon="getAppIcon('file-plus')" @click="restoreDefaultTemplates"
+                    :label="$t('settings.restoreDefaultTemplates')" v-tooltip="$t('settings.restoreDefaultTemplates')" />
+
                 <ActionButton :icon="getAppIcon('plus-circle')" @click="addNewProjectTemplate"
                     :label="$t('settings.newProjectTemplate')" v-tooltip="$t('settings.newTemplate')" />
 
@@ -82,6 +85,7 @@ import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useSettingsStore } from '@/stores/settings';
+import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 
 // components
@@ -107,6 +111,7 @@ const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const modals = useDesktopModalStore();
 const settings = useSettingsStore();
+const stage = useStageStore();
 const projectTemplateStore = useProjectTemplateStore();
 const { t } = useI18n();
 
@@ -220,6 +225,19 @@ const getAppIcon = (iconName) => {
 
 const addNewProjectTemplate = () => {
     modals.setModalVisibility('addProjectTemplateModal', true);
+};
+
+const restoreDefaultTemplates = async () => {
+    stage.operationActive = true;
+    try {
+        await ProjectService.ResetDefaultTemplates();
+        await projectTemplateStore.loadProjectTemplates();
+        notificationStore.addNotification(t('settings.defaultTemplatesRestored'), t('settings.defaultTemplatesRestored'), 'success');
+    } catch (error) {
+        notificationStore.errorNotification(t('settings.errorRestoringDefaultTemplates'), error);
+    } finally {
+        stage.operationActive = false;
+    }
 };
 
 const editProjectTemplate = () => {

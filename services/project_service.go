@@ -15,6 +15,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -618,17 +619,20 @@ func (p *ProjectService) GetTemplates() ([]repository.ProjectInfo, error) {
 
 			err := repository.UpdateProject(projectPath)
 			if err != nil {
-				return templateProjects, err
+				log.Printf("Skipping template %s: %v", projectPath, err)
+				continue
 			}
 
 			userInProject, err := repository.UserInProject(projectPath, user.Id)
 			if err != nil {
-				return templateProjects, err
+				log.Printf("Skipping template %s: %v", projectPath, err)
+				continue
 			}
 			if userInProject {
 				projectInfo, err := repository.GetProjectInfo(projectPath, user)
 				if err != nil {
-					return templateProjects, err
+					log.Printf("Skipping template %s: %v", projectPath, err)
+					continue
 				}
 				projectInfo.Uri = projectPath
 				projectInfo.Remote = projectPath

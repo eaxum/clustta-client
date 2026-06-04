@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 //go:embed project_templates.json
@@ -98,7 +100,8 @@ func InitializeDefaultTemplates(user *auth_service.User) error {
 	return nil
 }
 
-// hasDefaultTemplates checks if any .clst template files exist in the directory
+// hasDefaultTemplates reports whether any valid .clst template exists in the directory.
+// Corrupt or partially-created templates are quarantined so the defaults can be rebuilt.
 func hasDefaultTemplates(templatesPath string) (bool, error) {
 	entries, err := os.ReadDir(templatesPath)
 	if err != nil {
@@ -109,9 +112,21 @@ func hasDefaultTemplates(templatesPath string) (bool, error) {
 	}
 
 	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".clst") {
-			return true, nil
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".clst") {
+			continue
 		}
+
+		path := filepath.Join(templatesPath, entry.Name())
+		ok, err := VerifyProjectIntegrity(path)
+		if err != nil || !ok {
+			log.Printf("Removing corrupt template %s (integrity check failed: %v)", path, err)
+			os.Remove(path)
+			os.Remove(path + "-wal")
+			os.Remove(path + "-shm")
+			continue
+		}
+
+		return true, nil
 	}
 
 	return false, nil
@@ -129,15 +144,29 @@ func loadTemplateDefinitions() (*ProjectTemplatesConfig, error) {
 	return &config, nil
 }
 
-// createDefaultTemplate creates a new template .clst file with the specified metadata
+// createDefaultTemplate creates a new template .clst file with the specified metadata.
+// It builds in a temp directory and atomically renames once verified, so a partial template is never published.
 func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefinition, user auth_service.User) error {
-	_, err := CreateProject(templatePath, "Personal", "", "", "", user)
+	// Build the template inside a temporary sibling directory using its final
+	// base name, so the derived project name stays correct (e.g. "Animation",
+	// not "Animation.clst.tmp-..."). The final rename within the same templates
+	// directory is atomic.
+	tmpDir := filepath.Join(filepath.Dir(templatePath), ".tmp-"+uuid.NewString())
+	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
+		log.Printf("Failed to create temp template directory: %v", err)
+		return fmt.Errorf("failed to create temp template directory: %w", err)
+	}
+	defer os.RemoveAll(tmpDir)
+
+	tmpPath := filepath.Join(tmpDir, filepath.Base(templatePath))
+
+	_, err := CreateProject(tmpPath, "Personal", "", "", "", user)
 	if err != nil {
 		log.Printf("Failed to create template project: %v", err)
 		return fmt.Errorf("failed to create template project: %w", err)
 	}
 
-	db, err := utils.OpenDb(templatePath)
+	db, err := utils.OpenDb(tmpPath)
 	if err != nil {
 		log.Printf("Failed to open template database: %v", err)
 		return fmt.Errorf("failed to open template database: %w", err)
@@ -189,6 +218,25 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 	if err != nil {
 		log.Printf("Failed to commit template: %v", err)
 		return fmt.Errorf("failed to commit template: %w", err)
+	}
+
+	// Ensure the WAL is checkpointed into the main file before publishing.
+	if err := db.Close(); err != nil {
+		log.Printf("Failed to close template database: %v", err)
+		return fmt.Errorf("failed to close template database: %w", err)
+	}
+
+	// Verify the template is fully initialized before publishing it.
+	ok, err := VerifyProjectIntegrity(tmpPath)
+	if err != nil || !ok {
+		log.Printf("Template %s failed integrity check: %v", templateDef.Name, err)
+		return fmt.Errorf("template %s failed integrity check: %w", templateDef.Name, err)
+	}
+
+	// Atomically publish the completed template into the templates directory.
+	if err := os.Rename(tmpPath, templatePath); err != nil {
+		log.Printf("Failed to publish template %s: %v", templateDef.Name, err)
+		return fmt.Errorf("failed to publish template %s: %w", templateDef.Name, err)
 	}
 
 	return nil
