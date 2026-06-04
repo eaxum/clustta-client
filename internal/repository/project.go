@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -65,6 +66,67 @@ type ProjectConfig struct {
 	Name  string      `json:"name" db:"name"`
 	Value interface{} `json:"value" db:"value"`
 	Mtime int         `json:"mtime" db:"mtime"`
+}
+
+// defaultProjectIcons is a curated set of tasteful emoji used as random
+// default icons for newly created projects, stored as HTML numeric entities
+// to match the format produced by the frontend emoji picker.
+var defaultProjectIcons = []string{
+	"&#128640", // rocket
+	"&#127912", // artist palette
+	"&#127916", // clapper board
+	"&#127917", // performing arts masks
+	"&#127918", // video game
+	"&#129513", // jigsaw piece
+	"&#128230", // package
+	"&#127775", // glowing star
+	"&#128302", // crystal ball
+	"&#129412", // unicorn
+	"&#127797", // cactus
+	"&#127808", // four leaf clover
+	"&#128293", // fire
+	"&#127752", // rainbow
+	"&#129418", // fox
+	"&#128025", // octopus
+	"&#129419", // butterfly
+	"&#127800", // cherry blossom
+	"&#127815", // grapes
+	"&#9889",   // high voltage
+	"&#128142", // gem stone
+	"&#127919", // direct hit
+	"&#127754", // water wave
+	"&#129680", // ringed planet
+	"&#128760", // flying saucer
+	"&#129521", // brick
+	"&#128511", // moai
+	"&#127922", // game die
+	"&#129668", // magic wand
+}
+
+// RandomProjectIcon returns a random emoji entity from the curated set.
+func RandomProjectIcon() string {
+	return defaultProjectIcons[rand.Intn(len(defaultProjectIcons))]
+}
+
+// setRandomProjectIcon assigns a random default emoji icon to the project
+// at projectPath. Intended for newly created local projects only.
+func setRandomProjectIcon(projectPath string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = utils.SetProjectIcon(tx, RandomProjectIcon())
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func InitDB(projectPath string, studioName, workingDir, projectId string, user auth_service.User, walMode bool) error {
@@ -941,6 +1003,11 @@ func CreateProject(projectUri, studioName, workingDir, templateName, projectId s
 			return ProjectInfo{}, error_service.ErrInvalidProjectExists
 		}
 		err := InitDB(projectUri, studioName, workingDir, projectId, user, false)
+		if err != nil {
+			return ProjectInfo{}, err
+		}
+
+		err = setRandomProjectIcon(projectUri)
 		if err != nil {
 			return ProjectInfo{}, err
 		}
