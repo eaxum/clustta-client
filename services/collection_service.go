@@ -23,9 +23,9 @@ import (
 )
 
 type CollectionItems struct {
-	Assets            []models.Asset            `json:"assets"`
-	Collections         []models.Collection          `json:"collections"`
-	UntrackedFiles   []models.UntrackedAsset   `json:"untracked_assets"`
+	Assets           []models.Asset               `json:"assets"`
+	Collections      []models.Collection          `json:"collections"`
+	UntrackedFiles   []models.UntrackedAsset      `json:"untracked_assets"`
 	UntrackedFolders []models.UntrackedCollection `json:"untracked_collections"`
 }
 
@@ -37,16 +37,16 @@ type CollectionStateFlags struct {
 }
 
 type CollectionChildrenState struct {
-	ModifiedAssets    []models.Asset            `json:"modified_assets"`
-	OutdatedAssets    []models.Asset            `json:"outdated_assets"`
-	RebuildableAssets []models.Asset            `json:"rebuildable_assets"`
-	NormalAssets      []models.Asset            `json:"normal_assets"`
-	UntrackedFiles   []models.UntrackedAsset   `json:"untracked_files"`
-	UntrackedFolders []models.UntrackedCollection `json:"untracked_folders"`
+	ModifiedAssets    []models.Asset               `json:"modified_assets"`
+	OutdatedAssets    []models.Asset               `json:"outdated_assets"`
+	RebuildableAssets []models.Asset               `json:"rebuildable_assets"`
+	NormalAssets      []models.Asset               `json:"normal_assets"`
+	UntrackedFiles    []models.UntrackedAsset      `json:"untracked_files"`
+	UntrackedFolders  []models.UntrackedCollection `json:"untracked_folders"`
 }
 
 type ItemsForCheckpoint struct {
-	ModifiedAssets  []models.Asset          `json:"modified_assets"`
+	ModifiedAssets []models.Asset          `json:"modified_assets"`
 	UntrackedFiles []models.UntrackedAsset `json:"untracked_files"`
 }
 
@@ -246,8 +246,8 @@ func (e *CollectionService) GetCollections(projectPath string) ([]models.Collect
 // Returns separate lists for assets, collections, and untracked items.
 func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, projectWorkingDir, collectionFolderPath string, ignoreList []string, isUntracked bool) (CollectionItems, error) {
 	children := CollectionItems{
-		Assets:            make([]models.Asset, 0),
-		Collections:         make([]models.Collection, 0),
+		Assets:           make([]models.Asset, 0),
+		Collections:      make([]models.Collection, 0),
 		UntrackedFiles:   make([]models.UntrackedAsset, 0),
 		UntrackedFolders: make([]models.UntrackedCollection, 0),
 	}
@@ -329,12 +329,12 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 			}
 			if !clusttaIgnore.MatchesPath(relativePath) {
 				children.UntrackedFolders = append(children.UntrackedFolders, models.UntrackedCollection{
-					Id:         utils.GetMD5Hash(entryPath),
-					Name:       entry.Name(),
-					FilePath:   entryPath,
+					Id:             utils.GetMD5Hash(entryPath),
+					Name:           entry.Name(),
+					FilePath:       entryPath,
 					CollectionPath: "/" + relativePath + "/",
-					ItemPath:   "/" + relativePath + "/",
-					ParentId:   parentId,
+					ItemPath:       "/" + relativePath + "/",
+					ParentId:       parentId,
 				})
 			}
 		} else {
@@ -345,15 +345,15 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 			if !clusttaIgnore.MatchesPath(relativePath) {
 				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
 				children.UntrackedFiles = append(children.UntrackedFiles, models.UntrackedAsset{
-					Id:           utils.GetMD5Hash(entryPath),
-					Name:         assetName,
-					FilePath:     entryPath,
-					AssetPath:     "/" + relativePath,
-					CollectionId:     parentId,
-					CollectionPath:   "/" + relativeCollectionFolderPath + "/",
-					Extension:    filepath.Ext(entry.Name()),
-					ItemPath:     "/" + relativePath + "/",
-					AssetTypeIcon: "generic",
+					Id:             utils.GetMD5Hash(entryPath),
+					Name:           assetName,
+					FilePath:       entryPath,
+					AssetPath:      "/" + relativePath,
+					CollectionId:   parentId,
+					CollectionPath: "/" + relativeCollectionFolderPath + "/",
+					Extension:      filepath.Ext(entry.Name()),
+					ItemPath:       "/" + relativePath + "/",
+					AssetTypeIcon:  "generic",
 				})
 			}
 		}
@@ -465,7 +465,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 	offset := 0
 
 	type assetCheckpointInfo struct {
-		assetId             string
+		assetId            string
 		latestChecksum     string
 		latestTimeModified int64
 		latestFileSize     int64
@@ -476,7 +476,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 	type modifiedCandidate struct {
 		assetId       string
 		assetFilePath string
-		checkpoints  []string
+		checkpoints   []string
 	}
 	var candidatesNeedingHashCheck []modifiedCandidate
 
@@ -522,7 +522,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 			`, strings.Join(quotedAssetIds, ","))
 
 			var checkpoints []struct {
-				AssetId         string `db:"asset_id"`
+				AssetId        string `db:"asset_id"`
 				XXHashChecksum string `db:"xxhash_checksum"`
 				TimeModified   int64  `db:"time_modified"`
 				FileSize       int64  `db:"file_size"`
@@ -536,7 +536,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 					checkpointMap[cp.AssetId] = info
 				} else {
 					checkpointMap[cp.AssetId] = assetCheckpointInfo{
-						assetId:             cp.AssetId,
+						assetId:            cp.AssetId,
 						latestChecksum:     cp.XXHashChecksum,
 						latestTimeModified: cp.TimeModified,
 						latestFileSize:     cp.FileSize,
@@ -575,7 +575,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 						candidatesNeedingHashCheck = append(candidatesNeedingHashCheck, modifiedCandidate{
 							assetId:       asset.Id,
 							assetFilePath: assetFilePath,
-							checkpoints:  checkpointInfo.allChecksums,
+							checkpoints:   checkpointInfo.allChecksums,
 						})
 					} else {
 						fileModTime := fileInfo.ModTime().Unix()
@@ -584,7 +584,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 							candidatesNeedingHashCheck = append(candidatesNeedingHashCheck, modifiedCandidate{
 								assetId:       asset.Id,
 								assetFilePath: assetFilePath,
-								checkpoints:  checkpointInfo.allChecksums,
+								checkpoints:   checkpointInfo.allChecksums,
 							})
 						}
 					}
@@ -730,8 +730,8 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 		OutdatedAssets:    make([]models.Asset, 0),
 		RebuildableAssets: make([]models.Asset, 0),
 		NormalAssets:      make([]models.Asset, 0),
-		UntrackedFiles:   make([]models.UntrackedAsset, 0),
-		UntrackedFolders: make([]models.UntrackedCollection, 0),
+		UntrackedFiles:    make([]models.UntrackedAsset, 0),
+		UntrackedFolders:  make([]models.UntrackedCollection, 0),
 	}
 
 	if collectionId == "root" {
@@ -831,7 +831,7 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 	}
 
 	type checkpointInfo struct {
-		AssetId         string `db:"asset_id"`
+		AssetId        string `db:"asset_id"`
 		XXHashChecksum string `db:"xxhash_checksum"`
 		TimeModified   int64  `db:"time_modified"`
 		FileSize       int64  `db:"file_size"`
@@ -866,7 +866,7 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 	type hashCandidate struct {
 		assetId       string
 		assetFilePath string
-		checkpoints  []checkpointInfo
+		checkpoints   []checkpointInfo
 	}
 	candidatesNeedingHash := make([]hashCandidate, 0)
 	assetsWithMatchingMetadata := make([]string, 0)
@@ -889,7 +889,7 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 		candidatesNeedingHash = append(candidatesNeedingHash, hashCandidate{
 			assetId:       assetId,
 			assetFilePath: asset.FilePath,
-			checkpoints:  checkpoints,
+			checkpoints:   checkpoints,
 		})
 	}
 
@@ -1021,12 +1021,12 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 
 			if !clusttaIgnore.MatchesPath(relativePath) {
 				state.UntrackedFolders = append(state.UntrackedFolders, models.UntrackedCollection{
-					Id:         utils.GetMD5Hash(entryPath),
-					Name:       entry.Name(),
-					FilePath:   entryPath,
+					Id:             utils.GetMD5Hash(entryPath),
+					Name:           entry.Name(),
+					FilePath:       entryPath,
 					CollectionPath: "/" + relativePath + "/",
-					ItemPath:   "/" + relativePath + "/",
-					ParentId:   collectionId,
+					ItemPath:       "/" + relativePath + "/",
+					ParentId:       collectionId,
 				})
 			}
 		} else {
@@ -1037,15 +1037,15 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 			if !clusttaIgnore.MatchesPath(relativePath) {
 				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
 				state.UntrackedFiles = append(state.UntrackedFiles, models.UntrackedAsset{
-					Id:           utils.GetMD5Hash(entryPath),
-					Name:         assetName,
-					FilePath:     entryPath,
-					AssetPath:     "/" + relativePath,
-					CollectionId:     collectionId,
-					CollectionPath:   "/" + relativeCollectionFolderPath + "/",
-					Extension:    filepath.Ext(entry.Name()),
-					ItemPath:     "/" + relativePath + "/",
-					AssetTypeIcon: "generic",
+					Id:             utils.GetMD5Hash(entryPath),
+					Name:           assetName,
+					FilePath:       entryPath,
+					AssetPath:      "/" + relativePath,
+					CollectionId:   collectionId,
+					CollectionPath: "/" + relativeCollectionFolderPath + "/",
+					Extension:      filepath.Ext(entry.Name()),
+					ItemPath:       "/" + relativePath + "/",
+					AssetTypeIcon:  "generic",
 				})
 			}
 		}
@@ -1058,7 +1058,7 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 // Returns deduplicated modified assets and untracked files.
 func (e *CollectionService) GetItemsForCheckpoint(projectPath, collectionId, targetPath, projectWorkingDir string, ignoreList []string) (ItemsForCheckpoint, error) {
 	result := ItemsForCheckpoint{
-		ModifiedAssets:  make([]models.Asset, 0),
+		ModifiedAssets: make([]models.Asset, 0),
 		UntrackedFiles: make([]models.UntrackedAsset, 0),
 	}
 
@@ -1220,15 +1220,15 @@ func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir s
 			} else {
 				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
 				untrackedFile := models.UntrackedAsset{
-					Id:           utils.GetMD5Hash(entryPath),
-					Name:         assetName,
-					FilePath:     entryPath,
-					AssetPath:     "/" + relPath,
-					CollectionId:     "",
-					CollectionPath:   "/" + relativePath + "/",
-					Extension:    filepath.Ext(entry.Name()),
-					ItemPath:     "/" + relPath,
-					AssetTypeIcon: "generic",
+					Id:             utils.GetMD5Hash(entryPath),
+					Name:           assetName,
+					FilePath:       entryPath,
+					AssetPath:      "/" + relPath,
+					CollectionId:   "",
+					CollectionPath: "/" + relativePath + "/",
+					Extension:      filepath.Ext(entry.Name()),
+					ItemPath:       "/" + relPath,
+					AssetTypeIcon:  "generic",
 				}
 				untrackedFilesMap[untrackedFile.Id] = untrackedFile
 			}
@@ -1493,6 +1493,9 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, collectionIds, userI
 			return err
 		}
 		asset.FilePath = assetFilePath
+		if len(asset.Checkpoints) == 0 {
+			continue
+		}
 		if _, err := os.Stat(asset.GetFilePath()); os.IsNotExist(err) {
 			assetsToRebuild = append(assetsToRebuild, asset)
 		}
