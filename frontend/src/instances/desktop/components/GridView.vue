@@ -169,7 +169,7 @@ const onMouseUp = (event, item) => {
     itemType = item.item_type;
   }
 
-  if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event)) {
+  if (stage.markedItems.includes(id) && !stage.cmdOrCtrlKey(event) && !stage.isContextMenuClick(event)) {
     stage.handleClick(event, item, itemType, allItems);
   }
 
