@@ -78,7 +78,7 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="0.4.34" date="2026-04-29">
+    <release version="0.4.35" date="2026-04-29">
       <description>
         <p>Improved Linux desktop integration with proper dash icon and high-resolution icon support.</p>
       </description>
