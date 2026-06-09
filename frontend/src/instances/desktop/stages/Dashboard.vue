@@ -20,8 +20,7 @@ import { ref, computed, onMounted, watch, nextTick, markRaw, onBeforeUnmount  } 
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	/* background-color: khaki; */
-	color: white;
+	color: hsl(var(--foreground));
 }
 .absolute-pane{
   padding: 0px;

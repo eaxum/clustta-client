@@ -1,25 +1,16 @@
 <template>
   <div class="grid-skeleton-container" ref="containerRef" :style="gridStyles">
-    <div v-for="(skeleton, index) in skeletonArray" :key="index" class="grid-skeleton-wrapper"
-      :style="{
-        animationDelay: `${(skeleton - 1) * 0.2}s`,
-        animationDuration: `${animationDuration}s`,
-        minWidth: `${gridSize}px`,
-        height: `${gridSize}px`
-      }">
+    <div v-for="(skeleton, index) in skeletonArray" :key="index" class="grid-skeleton-wrapper animate-pulse"
+      :style="{ animationDelay: `${(skeleton - 1) * 0.2}s`, minWidth: `${gridSize}px`, height: `${gridSize}px` }">
       <div class="grid-skeleton-item">
-        <!-- Main icon area -->
         <div class="grid-skeleton-icon-area">
-          <div class="grid-skeleton-main-icon"></div>
-          <!-- Top right assignee placeholder -->
-          <div class="grid-skeleton-assignee-top-right"></div>
+          <div class="rounded-md bg-primary/10 w-1/2 h-1/2"></div>
+          <div class="absolute top-2 right-2 rounded-full bg-primary/10 w-5 h-5"></div>
         </div>
-        
-        <!-- Bottom bar -->
         <div class="grid-skeleton-bottom-bar">
-          <div class="grid-skeleton-type-icon"></div>
-          <div class="grid-skeleton-name"></div>
-          <div class="grid-skeleton-status"></div>
+          <div class="rounded-full bg-primary/10 w-5 h-5 shrink-0"></div>
+          <div class="rounded-md bg-primary/10 flex-1 h-5 mx-1"></div>
+          <div class="rounded-full bg-primary/10 w-5 h-5 shrink-0"></div>
         </div>
       </div>
     </div>
@@ -34,11 +25,11 @@ const commonStore = useCommonStore();
 
 const props = defineProps({
   height: { type: Number, default: null },
-  count: { type: Number, default: 12 }, // Default number of skeleton items
+  count: { type: Number, default: 12 },
 });
 
 const containerRef = ref(null);
-const containerHeight = ref(500); // fallback value
+const containerHeight = ref(500);
 
 const gridSize = computed(() => commonStore.gridSize);
 
@@ -50,20 +41,15 @@ const gridStyles = computed(() => ({
   width: '100%',
 }));
 
+// Calculates the number of skeleton items based on container dimensions.
 const skeletonArray = computed(() => {
   if (props.height && containerHeight.value && gridSize.value) {
-    // Calculate how many items can fit in the container
     const itemsPerRow = Math.floor((containerRef.value?.clientWidth || 800) / (gridSize.value + 10));
     const rowsNeeded = Math.ceil((props.height || containerHeight.value) / (gridSize.value + 10));
     const itemCount = Math.max(1, itemsPerRow * rowsNeeded);
     return Array.from({ length: itemCount }, (_, i) => i + 1);
   }
   return Array.from({ length: props.count }, (_, i) => i + 1);
-});
-
-const animationDuration = computed(() => {
-  // Base duration of 1s + 0.3s per skeleton item, capped at reasonable maximum
-  return Math.max(3, Math.min(skeletonArray.value.length * 0.1, 3));
 });
 
 onMounted(async () => {
@@ -77,8 +63,6 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-@import "@/assets/desktop.css";
-
 .grid-skeleton-container {
   position: relative;
   width: 100%;
@@ -90,15 +74,12 @@ onMounted(async () => {
 .grid-skeleton-wrapper {
   display: flex;
   flex-direction: column;
-  color: white;
   align-items: stretch;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   justify-content: flex-end;
   overflow: hidden;
-  opacity: 0;
-  animation: fadeInFadeOut infinite ease-in-out;
 }
 
 .grid-skeleton-item {
@@ -110,9 +91,7 @@ onMounted(async () => {
   padding: .5rem;
   box-sizing: border-box;
   border-radius: var(--large-radius);
-  /* background-color: var(--dark-steel); */
-  outline: var(--transparent-line);
-  outline-offset: -1.5px;
+  border: 1px solid hsl(var(--border));
 }
 
 .grid-skeleton-icon-area {
@@ -121,31 +100,11 @@ onMounted(async () => {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  /* background-color: rgba(0, 0, 0, 0.2); */
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   align-items: center;
   justify-content: center;
   margin-bottom: 1rem;
-  outline: var(--transparent-line);
-}
-
-.grid-skeleton-main-icon {
-  box-sizing: border-box;
-  background-color: var(--steel);
-  width: 50%;
-  height: 50%;
-  border-radius: 8px;
-}
-
-.grid-skeleton-assignee-top-right {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  box-sizing: border-box;
-  background-color: var(--steel);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  border: 1px solid hsl(var(--border));
 }
 
 .grid-skeleton-bottom-bar {
@@ -155,51 +114,5 @@ onMounted(async () => {
   gap: .2rem;
   min-height: 32px;
   box-sizing: border-box;
-}
-
-.grid-skeleton-type-icon {
-  box-sizing: border-box;
-  background-color: var(--steel);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.grid-skeleton-name {
-  box-sizing: border-box;
-  background-color: var(--steel);
-  flex: 1;
-  height: 20px;
-  border-radius: 8px;
-  margin-left: .3rem;
-  margin-right: .3rem;
-}
-
-.grid-skeleton-status {
-  box-sizing: border-box;
-  background-color: var(--steel);
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-@keyframes fadeInFadeOut {
-  from {
-    opacity: 0;
-  }
-  20% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0;
-  }
-  to {
-    opacity: 0;
-  }
 }
 </style>

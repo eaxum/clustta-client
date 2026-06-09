@@ -717,7 +717,7 @@ onBeforeUnmount(() => {
 .single-action-button{
   align-content: center;
   justify-content: center;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   border-radius: var(--small-radius);
 }
 
@@ -748,53 +748,53 @@ onBeforeUnmount(() => {
 .collection-item-main {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
   width: 100%;
   justify-content: flex-end;
   align-items: center;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--large-radius);
   transition: all .2s ease-out;
 }
 
 .collection-item-main:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  border: 1px solid hsl(var(--border));
 }
 
 .collection-item-grid:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
 } 
 
 
 .collection-item-main-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--black-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--background));
   background-color: var(--collection-item-selected);
-  background-color: crimson;
+  background-color: hsl(var(--destructive));
 }
 
 
 .collection-item-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--blue-steel);
+  outline: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .collection-item-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-cut{
@@ -808,9 +808,9 @@ onBeforeUnmount(() => {
   /* padding: .5rem; */
   align-items: center;
   justify-content: center;
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
   height: min-content;
   min-height: 50px;
   max-height: 50px;
@@ -818,13 +818,13 @@ onBeforeUnmount(() => {
 }
 
 .collection-item-grid-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .collection-item-grid-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-grid-cut {
@@ -832,21 +832,21 @@ onBeforeUnmount(() => {
 }
 
 .collection-item-grid-last-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-grid-only-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-grid-only-selected:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .main-collection-item-grid{
@@ -887,8 +887,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  background-color: hsl(var(--muted));
+  border-radius: var(--normal-radius);
   align-items: center;
   justify-content: center;
 }
@@ -908,35 +908,35 @@ onBeforeUnmount(() => {
 }
 
 .collection-item-last-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-only-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-only-selected:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .1rem;
   box-sizing: border-box;
   width: 100%;
   height: min-content;
   justify-content: flex-end;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
 }
@@ -944,7 +944,7 @@ onBeforeUnmount(() => {
 .collection-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .2rem .4rem;
   box-sizing: border-box;
@@ -958,7 +958,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -976,7 +976,6 @@ onBeforeUnmount(() => {
   width: 36px;
   height: 60px;
   height: 100%;
-  /* background-color: royalblue; */
   display: flex;
   box-sizing: border-box;
   align-items: center;
@@ -990,7 +989,6 @@ onBeforeUnmount(() => {
 }
 
 .collection-spacer-empty {
-  background-color: moccasin;
 }
 
 .action-column {
@@ -1031,7 +1029,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 5px;
 }
 
@@ -1064,16 +1062,16 @@ onBeforeUnmount(() => {
   flex-wrap: nowrap;
   text-wrap: nowrap;
   justify-content: flex-end;
-  background-color: crimson;
+  background-color: hsl(var(--destructive));
   width: min-content;
   
-  color: var(--white);
+  color: hsl(var(--foreground));
   padding: .2rem .6rem;
   border-radius: var(--tiny-radius);
   font-size: 12px;
   overflow: hidden;
-  outline: var(--transparent-line);
-  background-color: var(--black-steel);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
   /* display: flex; */
   align-items: center;
   justify-content: center;
@@ -1148,7 +1146,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   padding: .1rem .4rem;
   font-size: 12px;
-  background-color: black;
+  background-color: hsl(var(--background));
   border-radius: 20px;
 }
 
@@ -1173,11 +1171,11 @@ onBeforeUnmount(() => {
   padding: .4rem .4rem;
   height: max-content;
   height: 100%;
-  background-color: firebrick;
+  background-color: hsl(var(--destructive));
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
   transition: all 0.2s ease-out;
 }
 
@@ -1211,7 +1209,7 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   align-items: center;
   height: 100%;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   padding-right: .4rem;
 }
 
@@ -1222,21 +1220,20 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   border-radius: 26px;
-  outline: 3px solid var(--dark-steel);
-  outline-offset: -2px;
+  outline: 3px solid hsl(var(--muted));
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: black;
+  background-color: hsl(var(--background));
   margin-right: -0.5rem;
 }
 
 .collection-item-assignee-container-selected {
-  outline: 3px solid var(--solid-blue-steel);
+  outline: 3px solid hsl(var(--primary) / 0.3);
 }
 
 .profile-spacer {
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -1259,9 +1256,9 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   font-size: 14px;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
   height: 100%;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .collection-item-grid-left-section {

@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
 /* button */
 .pop-up-actions {
   box-sizing: border-box;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   justify-content: flex-end;
   gap: .5rem;
 }
@@ -244,8 +244,8 @@ onBeforeUnmount(() => {
 .pop-up-info{
   width: 100%;
   display: flex;
-  color: var(--white);
-  /* background-color: #20A41C; */
+  color: hsl(var(--foreground));
+  /* background-color: hsl(var(--success)); */
   height: 100%;
   min-height: 100%;
   font-weight: 500;
@@ -264,7 +264,7 @@ onBeforeUnmount(() => {
   height: 100%;
   display: flex;
   transition: opacity 0.3s ease;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: hsl(var(--background) / 0.5);
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(3px);
@@ -282,7 +282,7 @@ onBeforeUnmount(() => {
 
   display: flex;
   align-items: center;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
   justify-content: space-between;
   white-space: nowrap;
@@ -322,7 +322,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   /* box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); */
   justify-content: space-between;
   white-space: nowrap;
@@ -333,27 +333,27 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   /* height: min-content; */
   /* height: 1rem; */
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
   background-color: rgb(46, 46, 46);
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   justify-content: space-between;
   flex-direction: column;
   outline: solid 1px rgb(151, 151, 151);
-  /* outline: var(--transparent-line); */
-  outline-offset: -1px;
-  outline-offset: -1px;
-  outline: var(--transparent-line);
-  background-color: var(--black);
+  /* border: 1px solid hsl(var(--border)); */
+  
+  
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
   border-radius: var(--very-large-radius);
 
 }
 
 .progress-bar-meta {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* background-color: #FF3333; */
+  /* background-color: hsl(var(--destructive)); */
   width: 100%;
   gap: .5rem;
   box-sizing: border-box;
@@ -363,12 +363,12 @@ onBeforeUnmount(() => {
 .progress-bar-message {
   /* flex: 2; */
   overflow: hidden;
-  /* background-color: #FF3333; */
+  /* background-color: hsl(var(--destructive)); */
   align-items: center;
   justify-content: flex-start;
   flex: 1;
   text-overflow: ellipsis;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .progress-bar-total {
@@ -383,12 +383,12 @@ onBeforeUnmount(() => {
 }
 
 .progress-bar-header {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   font-size: 16px;
   justify-content: space-between;
-  /* background-color: #FF3333; */
+  /* background-color: hsl(var(--destructive)); */
   width: 100%;
 }
 
@@ -413,7 +413,7 @@ onBeforeUnmount(() => {
 }
 
 .minimize-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: hsl(var(--accent));
 }
 
 .minimize-icon {
@@ -427,14 +427,14 @@ onBeforeUnmount(() => {
   width: 100%;
   height: .2rem;
   border-radius: 999px;
-  /* background-color: white; */
+  /* background-color: hsl(var(--foreground)); */
 
 }
 
 .action-section {
   display: flex;
   gap: .5rem;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .cancel-button {
@@ -454,10 +454,10 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
   justify-content: space-between;
-  outline: solid 1px var(--white);
+  border: 1px solid hsl(var(--border));
   white-space: nowrap;
   overflow: hidden;
   display: flex;
@@ -466,21 +466,21 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   min-height: 3rem;
   height: max-content;
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
   background-color: rgb(46, 46, 46);
   /* background-color: green; */
   justify-content: space-between;
   opacity: .7;
-  outline-offset: -1px;
+  
   color: rgb(255, 255, 255);
 }
 
 .error {
-  outline: solid 1px #FF3333;
+  outline: solid 1px hsl(var(--destructive));
 }
 
 .success {
-  outline: solid 1px #20A41C;
+  outline: solid 1px hsl(var(--success));
 }
 </style>
 

@@ -139,31 +139,30 @@ onMounted(() => {
 
 <style scoped>
 .form-group {
-  margin-bottom: .8rem;
+  margin-bottom: .75rem;
   width: 100%;
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .form-group-vertical {
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.375rem;
 }
 
 .form-group-vertical .form-label {
   min-width: unset;
   padding-top: 0;
-  /* background-color: crimson; */
-  padding-left: .5rem;
+  padding-left: 0;
 }
 
 .form-label {
-  color: var(--white);
-  font-weight: 400;
+  color: hsl(var(--foreground));
+  font-weight: 500;
   font-size: 0.875rem;
   min-width: 120px;
-  padding-top: 0.75rem;
+  padding-top: 0.625rem;
   flex-shrink: 0;
 }
 
@@ -178,23 +177,25 @@ onMounted(() => {
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-  border-radius: var(--large-radius);
-  background-color: var(--midnight-steel);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--input));
+  background-color: transparent;
   padding-right: .25rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-input {
   font-family: 'Inter', sans-serif;
-  font-weight: 300;
+  font-weight: 400;
   box-sizing: border-box;
-  font-size: 14px;
-  padding: 0.75rem;
+  font-size: 0.875rem;
+  padding: 0.5rem 0.75rem;
   border: 0px;
   outline: none;
   background-color: transparent;
-  color: var(--white);
+  color: hsl(var(--foreground));
   width: 100%;
-  height: 40px;
+  height: 36px;
   transition: opacity 0.2s;
 }
 
@@ -204,14 +205,16 @@ onMounted(() => {
 }
 
 .form-input::placeholder {
-  color: var(--white);
-  opacity: .5;
+  color: hsl(var(--muted-foreground));
 }
 
-.form-input-container:hover,
+.form-input-container:hover {
+  border-color: hsl(var(--ring));
+}
+
 .form-input-container:focus-within {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 1px hsl(var(--ring));
 }
 
 .form-input-icon {

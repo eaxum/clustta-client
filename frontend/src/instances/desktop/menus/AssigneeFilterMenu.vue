@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
 @import "@/assets/menu.css";
 
 .profile-picture{
-    background-color: red;
+    background-color: hsl(var(--destructive));
     height: 24px;
     min-width: 24px;
     overflow: hidden;

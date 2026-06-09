@@ -65,16 +65,16 @@ defineExpose({ focus });
   padding-right: .2rem;
   box-sizing: border-box;
   outline: none;
-  background-color: var(--midnight-steel);
-  border-radius: var(--large-radius);
-  height: 40px;
-  min-height: 40px;
-  outline: var(--transparent-line);
+  background-color: transparent;
+  border-radius: calc(var(--radius) - 2px);
+  height: 36px;
+  min-height: 36px;
+  border: 1px solid hsl(var(--input));
+  transition: border-color 0.15s ease;
 }
 
 .searchbar-container:hover {
-  outline: var(--transparent-line);
-  outline-offset: 1px;
+  border-color: hsl(var(--ring));
 }
 
 .searchbar-input {
@@ -87,19 +87,19 @@ defineExpose({ focus });
   border: 0px;
   outline: none;
   background-color: transparent;
-  color: var(--white);
-  border-radius: var(--large-radius);
+  color: hsl(var(--foreground));
+  border-radius: calc(var(--radius) - 2px);
   transition: width 0.2s ease-out;
 }
 
 /* Large variant */
 .searchbar-container.searchbar-large {
-  border-radius: var(--very-large-radius);
-  height: 50px;
-  min-height: 50px;
+  border-radius: var(--radius);
+  height: 44px;
+  min-height: 44px;
 }
 
 .searchbar-container.searchbar-large .searchbar-input {
-  font-size: 18px;
+  font-size: 1rem;
 }
 </style>

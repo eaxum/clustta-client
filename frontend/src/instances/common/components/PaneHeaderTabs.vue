@@ -92,7 +92,7 @@ onMounted(() => {
   height: 34px;
   gap: .2rem;
   padding: .3rem 0;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .fullwidth-header-tab-root {
@@ -113,8 +113,8 @@ onMounted(() => {
   /* width: 100%; */
   justify-content: space-evenly;
   overflow: hidden;
-  border-radius: 8px;
-  color: var(--white);
+  border-radius: var(--normal-radius);
+  color: hsl(var(--foreground));
   padding: 1rem .3rem;
   gap: .5rem;
   overflow: hidden;
@@ -135,7 +135,7 @@ onMounted(() => {
 
 .tab-button {
   position: relative;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
@@ -150,26 +150,26 @@ onMounted(() => {
 }
 
 .tab-button:hover {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   opacity: 1;
 }
 
 .tab-button:active {
-  /* background-color: #00000013; */
+  /* background-color: hsl(var(--accent)); */
   opacity: 1;
 }
 
 .tab-button-pressed {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .selected-tab-button {
-  outline-offset: -1px;
+  
   width: 100%;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   opacity: 1;
   transition: background-color 0.2s ease-out, opacity 0.2s ease-out;
   min-width: 0;
@@ -182,7 +182,7 @@ onMounted(() => {
 }
 
 .selected-tab-button:hover {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: var(--normal-radius);
 }
 
@@ -206,11 +206,11 @@ onMounted(() => {
   justify-content: center;
   top: -3px;
   right: -3px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   padding: 3px;
   font-size: 12px;
-  color: var(--white);
-  /* outline-offset: -1px; */
+  color: hsl(var(--foreground));
+  /*  */
 }
 
 .alert-items-with-text {
@@ -223,8 +223,8 @@ onMounted(() => {
 }
 
 .critical-items {
-  outline: solid 1px #bd2d2d;
-  background-color: #bd2d2d;
+  border: 1px solid hsl(var(--destructive));
+  background-color: hsl(var(--destructive));
 }
 </style>
 

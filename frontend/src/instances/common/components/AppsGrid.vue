@@ -152,12 +152,12 @@ onMounted(async () => {
 }
 
 .page-state-container{
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   height: 300px;
 }
 
 .apps-container-full-desktop {
-  background-color: red;
+  background-color: hsl(var(--destructive));
 }
 
 .apps-container {
@@ -184,13 +184,13 @@ onMounted(async () => {
 }
 
 .apps-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .apps-container::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
+  border-radius: var(--large-radius);
+  /* background-color: transparent; */
 }
 
 .apps-grid {
@@ -226,46 +226,46 @@ onMounted(async () => {
 .apps-grid-item {
   width: 100%;
   box-sizing: border-box;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: .5rem;
   padding: .3rem .8rem;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--large-radius);
 	transition: all 0.2s ease-in-out;
 }
 
 .apps-grid-item:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
 .apps-grid-item:active {
   background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .apps-grid-item-selected {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  /* border: 1px solid var(--white); */
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  /* border: 1px solid hsl(var(--border)); */
+  border: 1px solid hsl(var(--border));
+  
 
 }
 
 .apps-grid-item-selected:hover {
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
 
 }
 
 .app-ext {
   box-sizing: border-box;
   background-color: rgb(6, 86, 117);
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   padding: 2px;
   height: 40px;
   width: 40px;
@@ -276,7 +276,7 @@ onMounted(async () => {
 }
 
 .app-ext-text {
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 16px;
   overflow: hidden;
   overflow-wrap: break-word;

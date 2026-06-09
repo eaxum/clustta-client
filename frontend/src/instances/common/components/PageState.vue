@@ -40,15 +40,15 @@ const props = defineProps({
   @import "@/assets/tray.css";
 
 .secondary-action-area{
-  color: var(--white);
+  color: hsl(var(--foreground));
   /* background-color: chocolate; */
 }
 .state-secondary-action{
 
   /* position: absolute; */
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.216);
-  border-radius: 16px;
+  background-color: hsl(var(--muted));
+  border-radius: var(--gigantic-radius);
   padding: .4rem 1rem;
   text-align: center;
   font-size: 14px;
@@ -58,7 +58,6 @@ const props = defineProps({
 .state-container{
   position: relative;
   box-sizing: border-box;
-  /* background-color: darkmagenta; */
   display: flex;
   flex-direction: column;
   width: 100%;
@@ -84,17 +83,16 @@ const props = defineProps({
   width: 100%;
   height: max-content;
   flex-direction: column;
-  color: var(--white);
+  color: hsl(var(--foreground));
   overflow: hidden;
   /* max-height: 80%; */
   /* padding: .5rem 0; */
-  border-radius: 10px;
-  /* background-color: royalblue; */
+  border-radius: var(--large-radius);
   gap: .5rem;
 }
 
 .page-state-illustration{
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
   box-sizing: border-box;
   padding: 2px;
   /* height: 100%; */
@@ -121,7 +119,7 @@ const props = defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
   width: 96%;
   height:20px;
   text-align: center;

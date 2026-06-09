@@ -73,8 +73,8 @@ onBeforeUnmount(() => {
   width: max-content;
   padding: 0.2rem;
   border-radius: 0.5rem;
-  background-color: #fff;
-  border: 1px solid #e0e0e0;
+  background-color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--border));
   z-index: 1000;
   display: flex;
   flex-direction: column;
@@ -92,7 +92,7 @@ onBeforeUnmount(() => {
   background-color: #51e064;
   width: 4rem;
   height: 2rem;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -105,7 +105,7 @@ onBeforeUnmount(() => {
   width: 4rem;
   height: 2rem;
   width: 100%;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   padding: .2rem;
-  background-color: firebrick;
+  background-color: hsl(var(--destructive));
 }
 
 .status-box-pill:hover {
@@ -135,7 +135,7 @@ onBeforeUnmount(() => {
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
 }
 </style>
 

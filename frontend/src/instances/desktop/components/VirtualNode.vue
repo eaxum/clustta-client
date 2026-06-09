@@ -145,7 +145,7 @@ const selectItem = () => {
   cursor: pointer;
   height: 50%;
   background: #ffffff;
-  border: 1px solid #fff;
+  border: 1px solid hsl(var(--border));
 }
 
 .handle {
@@ -157,8 +157,8 @@ const selectItem = () => {
   position: relative;
   height: min-content;
   width: min-content;
-  border-radius: 10px;
-  color: black;
+  border-radius: var(--large-radius);
+  color: hsl(var(--background));
   cursor: pointer;
   text-align: center;
   background-color: transparent;
@@ -169,7 +169,7 @@ const selectItem = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
   font-size: 12px;
   overflow: hidden;
   text-align: center;
@@ -177,7 +177,7 @@ const selectItem = () => {
   width: 150px;
   height: 70px;
   padding: 10px;
-  color: black;
+  color: hsl(var(--background));
 
 }
 
@@ -201,7 +201,7 @@ const selectItem = () => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   /* padding: .3rem; */
   box-sizing: border-box;
@@ -209,22 +209,21 @@ const selectItem = () => {
   height: min-content;
   justify-content: flex-end;
   background-color: darkblue;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   border-radius: 14px;
   overflow: hidden;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   /* border-radius: var(--very-large-radius); */
 
 }
 
 .virtual-node-root:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1.5px;
+  border: 1px solid hsl(var(--border));
 }
 
 .virtual-node-container {
   display: flex;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -235,13 +234,11 @@ const selectItem = () => {
 }
 
 .virtual-node-container-selected {
-  outline: 1.5px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: 1.5px solid hsl(var(--primary));
 }
 
 .virtual-node-container-selected:hover {
-  outline: 1.5px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: 1.5px solid hsl(var(--primary));
 }
 
 .asset-spacer {
@@ -256,13 +253,12 @@ const selectItem = () => {
 }
 
 .asset-spacer-empty {
-  background-color: moccasin;
 }
 
 .checkboxes {
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   border: 2px solid yellow;
   background: #FFF;
   padding: 10px;
@@ -307,7 +303,7 @@ const selectItem = () => {
   overflow: hidden;
   height: 100%;
   aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 5px;
 }
 
@@ -341,7 +337,7 @@ const selectItem = () => {
   align-items: center;
   justify-content: space-between;
   height: 100%;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   width: 100%;
   width: min-content;
   min-width: min-content;
@@ -379,7 +375,7 @@ const selectItem = () => {
   overflow: hidden;
   padding: .1rem .4rem;
   font-size: 12px;
-  background-color: black;
+  background-color: hsl(var(--background));
   border-radius: 20px;
 }
 
@@ -404,11 +400,11 @@ const selectItem = () => {
   width: 50px;
   padding: .4rem .4rem;
   height: max-content;
-  background-color: firebrick;
+  background-color: hsl(var(--destructive));
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
 }
 
 .virtual-node-actions {

@@ -311,7 +311,6 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 
 .compound-input-section {
-  /* background-color: royalblue; */
   /* flex: 1; */
   display: flex;
   flex-direction: row;
@@ -338,12 +337,12 @@ onBeforeUnmount(() => {
 }
 
 .asset-details::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .asset-details::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 .pane-parameter-detail {
   display: flex;
@@ -353,7 +352,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 10px;
   height: 30px;
-  border-bottom: var(--transparent-line);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .simple-text-key {
@@ -379,8 +378,8 @@ onBeforeUnmount(() => {
   /* justify-content: space-around; */
   height: max-content;
   padding: .2rem;
-  /* background-color: black; */
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--background)); */
+  /* background-color: hsl(var(--destructive)); */
   align-items: flex-start;
   box-sizing: border-box;
 }

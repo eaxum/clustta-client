@@ -246,17 +246,17 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--dark-steel);
+  background: hsl(var(--muted));
   cursor: pointer;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--large-radius);
   transition: all 0.2s ease-in-out;
   width: 100%;
 }
 
 .linked-info:hover {
-  background: var(--steel);
+  background: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
@@ -274,12 +274,12 @@ onMounted(async () => {
 
 .project-name {
   font-weight: 300;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .integration-name {
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-weight: 400;
   text-transform: capitalize;
 }
@@ -293,7 +293,7 @@ onMounted(async () => {
 .section-label {
   font-size: 13px;
   font-weight: 400;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin-bottom: 12px;
 }
 
@@ -314,7 +314,7 @@ onMounted(async () => {
 .integration-list::-webkit-scrollbar-thumb,
 .project-list::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .integration-item,
@@ -323,17 +323,17 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: var(--dark-steel);
+  background: hsl(var(--muted));
   cursor: pointer;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--large-radius);
   transition: all 0.2s ease-in-out;
 }
 
 .integration-item:hover,
 .project-item:hover {
-  background: var(--steel);
+  background: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
@@ -343,14 +343,14 @@ onMounted(async () => {
 }
 
 .project-item.selected {
-  outline: var(--transparent-line);
-  background: var(--black-steel);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--background));
   border-radius: var(--small-radius);
 }
 
 .project-desc {
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .integration-icon {
@@ -381,7 +381,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 32px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   text-align: center;
   gap: 12px;
 }

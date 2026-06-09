@@ -228,12 +228,12 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   width: 98%;
 }
 
 .category-item {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -254,7 +254,7 @@ onMounted(() => {
   align-items: center;
   flex-direction: column;
   gap: .2rem;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   height: 290px;
   overflow: hidden;
   overflow-y: scroll;
@@ -268,7 +268,7 @@ onMounted(() => {
 
 .category-list::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .category-list::-webkit-scrollbar-track {
@@ -277,12 +277,12 @@ onMounted(() => {
 
 .extension-badge {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   font-weight: 400;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--small-radius);
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -299,7 +299,7 @@ onMounted(() => {
   width: 100%;
   display: flex;
   flex-direction: column;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .input-short {

@@ -286,13 +286,13 @@ onBeforeUnmount(() => {
   display: flex;
   padding: 0.3rem;
   border-radius: var(--large-radius);
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   cursor: text;
 }
 
 .selector-container:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .search-input-container {
@@ -311,19 +311,19 @@ onBeforeUnmount(() => {
   font-family: Inter, sans-serif;
   font-size: 14px;
   font-weight: 300;
-  color: var(--white);
+  color: hsl(var(--foreground));
   background: transparent;
   border: 0;
   outline: none;
   white-space: nowrap;
   width: 100%;
   box-sizing: border-box;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   min-height: 40px;
 }
 
 .input-field::placeholder {
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-style: italic;
 }
 
@@ -336,31 +336,31 @@ onBeforeUnmount(() => {
   gap: 0.3rem;
   padding: 0.5rem;
   box-sizing: border-box;
-  background-color: var(--black);
+  background-color: hsl(var(--background));
   border-radius: var(--large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .suggestions-parent::-webkit-scrollbar {
   width: 6px;
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .suggestions-parent::-webkit-scrollbar-thumb {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 3px;
 }
 
 .suggestions-parent::-webkit-scrollbar-track {
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   border-radius: 3px;
 }
 
 .item-suggestion {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -375,7 +375,7 @@ onBeforeUnmount(() => {
 }
 
 .item-suggestion:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
 }
 
 .item-meta {

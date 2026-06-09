@@ -332,30 +332,22 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  flex-direction: column;
-  gap: 5px;
   box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
   display: block;
   overflow-y: scroll;
-  border-radius: var(--very-large-radius);
 }
 
-
 .settings-component-root::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .settings-component-root::-webkit-scrollbar-thumb {
-  background-color: var(--midnight-steel);
-  border-radius: 3px;
+  background-color: hsl(var(--border));
+  border-radius: var(--small-radius);
 }
 
 .settings-component-root::-webkit-scrollbar-track {
-  background-color: var(--light-steel);
-  border-radius: 3px;
+  border-radius: var(--small-radius);
 }
 
 .settings-component-scroll {
@@ -370,36 +362,34 @@ onMounted(async () => {
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  gap: 1.5rem;
+  gap: 1rem;
   width: 100%;
   padding-right: .2rem;
-  border-radius: var(--large-radius);
 }
 
-/* Settings item styling */
 .settings-item {
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
   overflow: hidden;
-  min-height: 50px;
+  min-height: 44px;
   display: flex;
-  padding: .5rem 1rem;
+  padding: .5rem 0.75rem;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   height: max-content;
-  background-color: var(--dark-steel);
+  background-color: transparent;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-bottom:  1px solid var(--light-steel);
+  transition: background-color 0.15s ease;
+  border-radius: calc(var(--radius) - 2px);
 }
 
 .settings-item:hover {
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
 }
 
 .settings-item:active {
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .settings-icon {
@@ -431,7 +421,7 @@ onMounted(async () => {
 }
 
 .settings-body {
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   padding: .1rem;
   font-size: 12px;
   opacity: .8;

@@ -376,13 +376,13 @@ onBeforeUnmount(() => {
 }
 
 .scrollable-list-container::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: var(--light-steel);
+  border-radius: var(--normal-radius);
+  background-color: hsl(var(--border));
 }
 
 .scrollable-list-container::-webkit-scrollbar-track {
   margin-top: 5px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .sub-menu-loading,
@@ -396,6 +396,6 @@ onBeforeUnmount(() => {
 .sub-menu-empty .menu-item-text.subtle {
   opacity: 0.6;
   font-style: italic;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 </style>

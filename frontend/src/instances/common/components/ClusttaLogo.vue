@@ -61,7 +61,7 @@ const getAppIcon = (iconName) => {
 }
 
 .clustta-logo-text{
-    color: var(--white);
+    color: hsl(var(--foreground));
     font-size: 1.3rem;
     font-family: 'Bricolage Grotesque', sans-serif;
 	font-weight: 500;

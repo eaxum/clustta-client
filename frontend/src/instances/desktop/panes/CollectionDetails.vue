@@ -395,7 +395,7 @@ onBeforeUnmount(() => {
 
 .pane-parameter-section::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .pane-parameter-section::-webkit-scrollbar-track {
@@ -429,12 +429,12 @@ onBeforeUnmount(() => {
 }
 
 .assignees::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--white);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--foreground));
 }
 
 .assignees::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .assignees-search {
@@ -447,7 +447,6 @@ onBeforeUnmount(() => {
 }
 
 .compound-input-section {
-  /* background-color: royalblue; */
   /* flex: 1; */
   display: flex;
   flex-direction: row;
@@ -467,7 +466,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 10px;
   height: 30px;
-  border-bottom: var(--transparent-line);
+  border-bottom: 1px solid hsl(var(--border));
   overflow: hidden;
 }
 

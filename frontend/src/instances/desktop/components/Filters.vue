@@ -84,7 +84,7 @@ const handleWheel = (event) => {
   font-size: 14px;
   line-height: 14px;
   background-color: transparent;
-  color: white;
+  color: hsl(var(--foreground));
   position: relative;
   /* border-radius: 8px; */
   border-radius: 20px;
@@ -101,28 +101,28 @@ const handleWheel = (event) => {
   min-height: max-content;
   /* aspect-ratio: 1/1; */
   transition: all 0.3s ease;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 
 }
 
 .filter-action-button:hover{
   background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
 }
 .filter-action-button:active{
   background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .filter-action-button-pressed {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
   outline: solid 1px white;
-  outline-offset: -1px;
+  
 }
 
 .profile-picture{
-    background-color: red;
+    background-color: hsl(var(--destructive));
     height: 24px;
     min-width: 24px;
     overflow: hidden;
@@ -156,7 +156,7 @@ const handleWheel = (event) => {
   align-items: flex-start;
 	/* max-width: 600px; */
 	min-width: 300px;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 .filter-root-single{
   height: min-content;
@@ -167,18 +167,18 @@ const handleWheel = (event) => {
 }
 
 .filter-root::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--dark-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--muted));
 }
 
 .filter-root::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .filter-item-meta {
     color: rgb(219, 219, 219);
-    color: white;
-    background-color: rgba(0, 0, 0, 0.216);
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--muted));
     padding: .3rem;
     border-radius: 5px;
     font-size: 12px;
@@ -215,27 +215,27 @@ const handleWheel = (event) => {
 }
 
 .filter-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: white;
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--foreground));
   /* background-color: rgb(236, 0, 0); */
 }
 
 .filter-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 
 .filter-item{
   display: flex;
   /* gap: .2rem; */
-  color: white;
+  color: hsl(var(--foreground));
   align-items: center;
   padding-left: .3rem;
   padding: .3rem .5rem ;
   box-sizing: border-box;
   width: 100%;
   width: min-content;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: var(--large-radius);
   /* overflow: hidden; */
   height: min-content;
@@ -248,14 +248,14 @@ const handleWheel = (event) => {
 
 
 .filter-item:hover{
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .asset-item-container{
   display: flex;
   gap: .5rem;
-  color: white;
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -270,22 +270,22 @@ const handleWheel = (event) => {
 }
 
 .asset-item-container-selected{
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1px;
+  outline: 1px solid hsl(var(--primary));
+  
 }
 
 .asset-item-container-selected:hover{
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1px;
+  outline: 1px solid hsl(var(--primary));
+  
 }
 .selected-item{
   outline: 1px solid white;
-  outline-offset: -1px;
+  
 }
 
 .selected-item:hover{
   outline: 1px solid white;
-  outline-offset: -1px;
+  
 }
 .asset-spacer{
   display: flex;
@@ -301,13 +301,12 @@ const handleWheel = (event) => {
 }
 
 .asset-spacer-empty{
-  background-color: moccasin;
 }
 
 .checkboxes{
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   border: 2px solid yellow;
   background: #FFF;
   padding: 10px;
@@ -329,7 +328,6 @@ const handleWheel = (event) => {
   overflow: hidden;
   min-width: min-content;
   height: 100%;
-  /* background-color: royalblue; */
 }
 
 
@@ -342,7 +340,7 @@ const handleWheel = (event) => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .asset-item-content{
@@ -376,8 +374,8 @@ const handleWheel = (event) => {
     text-overflow: ellipsis;
     font-size: 12px;
     font-weight: 700;
-    /* color: black; */
-    /* background-color: forestgreen; */
+    /* color: hsl(var(--background)); */
+    /* background-color: hsl(var(--success)); */
 }
 
 .asset-item-meta{
@@ -389,7 +387,6 @@ const handleWheel = (event) => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* background-color: rosybrown; */
 }
 .asset-item-tag{
   display: flex;
@@ -397,7 +394,7 @@ const handleWheel = (event) => {
   overflow: hidden;
   padding: .1rem .4rem;
   font-size: 12px;
-  background-color: black;
+  background-color: hsl(var(--background));
   border-radius: 20px;
 }
 
@@ -410,12 +407,10 @@ const handleWheel = (event) => {
   width: min-content;
   padding: .2rem;
   height: 100%;
-  /* background-color: darkorange; */
   /* flex: 1; */
 }
 
 .asset-item-container-footer{
-  /* background-color: royalblue; */
   align-items: center;
   display: flex;
   width: min-content;
@@ -439,11 +434,11 @@ const handleWheel = (event) => {
   width: 80px;
   padding: .4rem .4rem;
   height: max-content;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
 }
 
 .asset-item-actions{

@@ -41,18 +41,17 @@ const alertClass = computed(() => {
 }
 
 .input-alert {
-  margin-top: .5rem;
+  margin-top: 0.375rem;
   font-weight: 400;
-  font-size: .8rem;
-  padding: 0.25rem .5rem;
+  font-size: 0.8rem;
+  padding: 0.25rem 0;
 }
 
 .input-alert-error {
-  color: var(--attention);
+  color: hsl(var(--destructive));
 }
 
 .input-alert-info {
-  color: var(--white);
-  opacity: 0.6;
+  color: hsl(var(--muted-foreground));
 }
 </style>

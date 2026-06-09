@@ -374,7 +374,7 @@ onBeforeUnmount(() => {
 
 .assignee-scroll-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .assignee-scroll-container::-webkit-scrollbar-track {
@@ -388,7 +388,7 @@ onBeforeUnmount(() => {
   gap: .2rem;
   overflow: hidden;
   width: 100%;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .current-assignee {
@@ -407,7 +407,7 @@ onBeforeUnmount(() => {
 
 .section-label {
   font-size: 11px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
   padding-left: .2rem;
 }
@@ -418,7 +418,7 @@ onBeforeUnmount(() => {
   align-items: center;
   padding: 1rem;
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
 }
 
@@ -435,13 +435,13 @@ onBeforeUnmount(() => {
   content: '';
   flex: 1;
   height: 1px;
-  background-color: var(--white);
+  background-color: hsl(var(--foreground));
   opacity: 0.2;
 }
 
 .divider-text {
   font-size: 11px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
   white-space: nowrap;
 }

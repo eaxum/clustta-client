@@ -139,7 +139,7 @@ const getCloudIcon = computed(() => {
 const cloudIconColor = computed(() => {
 	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) return 'var(--danger)';
 	if (!!notificationStore.getProgress.running) return null;
-	if (!unSynced.value) return 'var(--solid-blue-steel)';
+	if (!unSynced.value) return 'hsl(var(--primary))';
 	return 'var(--alert)';
 });
 
@@ -312,36 +312,32 @@ const logUserOut = async () => {
 
 .desktop-search-bar {
 	font-family: 'Inter', sans-serif;
-	font-weight: 200;
+	font-weight: 400;
 	box-sizing: border-box;
-	font-size: 16px;
-	border-radius: 8px;
-	padding: 10px;
-	border: 0px;
-	border-style: solid;
+	font-size: 0.875rem;
+	padding: 0.5rem 0.75rem;
+	border: 1px solid hsl(var(--input));
 	outline: none;
-	background-color: var(--midnight-steel);
-	color: var(--white);
-	transition: width 0.2s ease-out;
-	border-radius: var(--large-radius);
+	background-color: transparent;
+	color: hsl(var(--foreground));
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	border-radius: calc(var(--radius) - 2px);
 	width: 100%;
-	width: 500px;
 	max-width: 400px;
+	height: 36px;
 }
 
 .desktop-search-bar::-ms-reveal {
 	filter: invert(100%);
-	/* color: var(--white); */
 }
 
 .desktop-search-bar:hover {
-	outline: var(--transparent-line);
-	outline-offset: -1px;
+	border-color: hsl(var(--ring));
 }
 
 .desktop-search-bar:focus {
-	outline: var(--solid-line);
-	outline-offset: -1px;
+	border-color: hsl(var(--ring));
+	box-shadow: 0 0 0 1px hsl(var(--ring));
 }
 
 .sync-button {
@@ -353,11 +349,11 @@ const logUserOut = async () => {
 }
 
 .project-unsynced {
-	background-color: #bd2d2d;
+	background-color: hsl(var(--destructive));
 }
 
 .revert-button {
-	color: #E6CC49;
+	color: hsl(var(--warning));
 }
 
 .workspace-section {
@@ -379,13 +375,12 @@ const logUserOut = async () => {
 	overflow: hidden;
 	width: min-content;
 	height: min-content;
-	background-color: teal;
 	transition: all 0.3s ease;
 	/* transform: rotate(-90deg); */
 }
 
 .workspace-name {
-	background-color: darkred;
+	background-color: transparent;
 	height: min-content;
 	overflow: hidden;
 	padding: .2rem;
@@ -396,7 +391,7 @@ const logUserOut = async () => {
 }
 
 .category-name {
-	background-color: darkgrey;
+	background-color: transparent;
 	height: min-content;
 	overflow: hidden;
 	padding: .2rem;
@@ -407,7 +402,7 @@ const logUserOut = async () => {
 }
 
 .header-bar {
-	color: var(--white);
+	color: hsl(var(--foreground));
 	padding-top: .3rem;
 	width: 100%;
 	height: 50px;
@@ -418,9 +413,7 @@ const logUserOut = async () => {
 	align-items: center;
 	justify-content: space-between;
 	overflow: hidden;
-	/* border-bottom: var(--transparent-line); */
-	background-color: var(--black);
-	/* background-color: rebeccapurple; */
+	background-color: hsl(var(--background));
 }
 
 .header-bar-breadcrumbs-parent {
@@ -432,7 +425,7 @@ const logUserOut = async () => {
 	width: 100%;
 	height: min-content;
 	height: 100%;
-	/* background-color: firebrick; */
+	/* background-color: hsl(var(--destructive)); */
 	align-items: center;
 	/* gap: .1rem; */
 
@@ -446,7 +439,7 @@ const logUserOut = async () => {
 	width: max-content;
 	height: min-content;
 	height: 100%;
-	/* background-color: forestgreen; */
+	/* background-color: hsl(var(--success)); */
 	align-items: center;
 	gap: .1rem;
 }
@@ -465,7 +458,7 @@ const logUserOut = async () => {
 
 .header-area-container {
 	width: 100%;
-	/* background-color: forestgreen; */
+	/* background-color: hsl(var(--success)); */
 }
 
 .header-bar-actions {
@@ -480,7 +473,7 @@ const logUserOut = async () => {
 	height: 100%;
 	/* gap: .5rem; */
 	min-width: max-content;
-	/* background-color: forestgreen; */
+	/* background-color: hsl(var(--success)); */
 }
 
 .search-container {
@@ -503,12 +496,11 @@ const logUserOut = async () => {
 	height: min-content;
 	gap: .4rem;
 	min-width: max-content;
-	/* background-color: hotpink; */
 }
 
 .actions-divider {
 	display: flex;
-	background-color: var(--light-steel);
+	background-color: hsl(var(--border));
 	height: 16px;
 	width: 1.5px;
 }
@@ -525,7 +517,6 @@ const logUserOut = async () => {
 	height: min-content;
 	gap: .4rem;
 	min-width: max-content;
-	/* background-color: hotpink; */
 }
 
 .desktop-search-bar {

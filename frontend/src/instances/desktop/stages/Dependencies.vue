@@ -19,8 +19,7 @@ import DependencyGraph from '@/instances/desktop/components/DependencyGraph.vue'
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	/* background-color: khaki; */
-	color: white;
+	color: hsl(var(--foreground));
 }
 .absolute-pane{
   padding: 0px;

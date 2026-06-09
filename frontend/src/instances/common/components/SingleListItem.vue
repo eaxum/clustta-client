@@ -53,8 +53,8 @@ const props = defineProps({
 
 .scroll-list-item-name{
     font-family: 'Inter', sans-serif;
-    font-weight: 200;
-    color: white;
+    font-weight: 300;
+    color: hsl(var(--foreground));
     font-size: 16px;
     display: flex;
     flex: 1;
@@ -65,7 +65,7 @@ const props = defineProps({
 
 .scroll-list-item-meta {
     color: rgb(219, 219, 219);
-    background-color: rgba(0, 0, 0, 0.216);
+    background-color: hsl(var(--muted));
     padding: .3rem;
     border-radius: 5px;
     font-size: 12px;
@@ -82,7 +82,7 @@ const props = defineProps({
   overflow: hidden;
   overflow-y: scroll;
   width: 100%;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .scroll-list-container::-webkit-scrollbar {
@@ -90,30 +90,30 @@ const props = defineProps({
 }
 
 .scroll-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
   /* background-color: rgb(236, 0, 0); */
 }
 
 .scroll-list-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .scroll-list-item {
-  color: white;
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
   width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+  border-bottom: 1px solid hsl(var(--border));
   height: 40px;
   overflow: hidden;
   padding: .2rem;
 }
 .scroll-list-item:last-child{
   border-bottom: 0px;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 
 }
 .scroll-list-item-actions {

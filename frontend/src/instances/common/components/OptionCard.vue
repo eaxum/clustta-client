@@ -89,24 +89,22 @@ watch(() => props.selected, (val) => {
 .option-card {
   display: flex;
   flex-direction: column;
-  border-radius: var(--very-large-radius);
-  background-color: var(--midnight-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border-radius: var(--radius);
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   cursor: pointer;
-  transition: border-color 0.2s, background-color 0.2s, border-radius 0.2s;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   overflow: hidden;
 }
 
 .option-card:hover {
-  border-color: var(--grape);
-  border-radius: var(--large-radius);
-  box-shadow: 0 0px 4px rgba(0, 0, 0, 0.1);
+  border-color: hsl(var(--ring));
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.1);
 }
 
 .option-card-selected {
-  outline: 1px solid var(--grape);
-  border-radius: var(--large-radius);
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 1px hsl(var(--primary));
 }
 
 .option-card-main {
@@ -121,22 +119,22 @@ watch(() => props.selected, (val) => {
   height: 16px;
   min-width: 16px;
   border-radius: 50%;
-  border: 2px solid var(--light-steel);
+  border: 2px solid hsl(var(--border));
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.2s;
+  transition: border-color 0.15s ease;
 }
 
 .option-radio-selected {
-  border-color: var(--grape);
+  border-color: hsl(var(--primary));
 }
 
 .option-radio-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: var(--grape);
+  background-color: hsl(var(--primary));
 }
 
 .option-icon-container {
@@ -159,30 +157,29 @@ watch(() => props.selected, (val) => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.15rem;
+  gap: 0.25rem;
   min-width: 0;
 }
 
 .option-title {
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  color: var(--white);
-  line-height: 120%;
+  color: hsl(var(--foreground));
+  line-height: 1.25;
 }
 
 .option-description {
   font-size: 0.8rem;
-  color: var(--white);
-  opacity: 0.55;
-  font-weight: 300;
-  line-height: 130%;
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
+  line-height: 1.35;
 }
 
 .option-action {
   display: flex;
   align-items: center;
   opacity: 0;
-  transition: opacity .5s;
+  transition: opacity .3s ease;
 }
 
 .option-card:hover .option-action {

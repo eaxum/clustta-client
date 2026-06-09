@@ -122,19 +122,17 @@ onMounted(() => {
 
 .header-icons {
   padding: 2px;
-  height: 30px;
-  min-width: 30px;
+  height: 28px;
+  min-width: 28px;
   overflow: hidden;
   display: flex;
   align-items: center;
 }
 
 .project-icon {
-  font-size: x-large;
-
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Emoji",
     "Segoe UI", "Apple Color Emoji", sans-serif;
-  font-size: 2rem;
+  font-size: 1.75rem;
 }
 
 .page-header-area-container {
@@ -143,37 +141,38 @@ onMounted(() => {
   flex-direction: row;
   box-sizing: border-box;
   width: 100%;
-  height: 60px;
+  height: 56px;
   gap: .5rem;
   overflow: hidden;
   justify-content: space-between;
-  /* background-color: crimson; */
   padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
-  border-radius: var(--small-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border-bottom: 1px solid hsl(var(--border));
+  border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.not-modal{
+.not-modal {
   background-color: transparent;
   border-radius: 0px;
-  outline: 0px;
+  border-bottom: none;
 }
 
 .page-header-title {
   font-family: Inter, sans-serif;
-  color: var(--white);
-  font-size: 20px;
+  color: hsl(var(--foreground));
+  font-size: 18px;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.025em;
 }
 
 .mini-display {
-  font-size: 16px;
+  font-size: 15px;
 }
-.input-short{
+
+.input-short {
   width: 100%;
 }
 </style>

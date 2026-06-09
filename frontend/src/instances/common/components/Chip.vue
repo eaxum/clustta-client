@@ -1,29 +1,18 @@
 <template>
-  <span class="chip" :class="{ 'readonly': readonly || isStatic }" :style="chipStyle">
-    <div v-if="useImage && !isStatic" class="chip-icon-container">
-      <img class="chip-logo no-filter" :src="icon">
+  <Badge variant="secondary" :class="['gap-1 pl-1 pr-1', { 'pr-2.5': readonly || isStatic }]" :style="chipStyle">
+    <div v-if="useImage && !isStatic" class="flex items-center justify-center min-w-[24px] min-h-[24px] p-0.5">
+      <img class="w-6 h-6 object-contain" :src="icon">
     </div>
-    <ActionButton
-      v-else-if="!isStatic"
-      :icon="icon"
-      :isInactive="true"
-      :showIcon="true"
-      :showLabel="false"
-    />
-    <span class="chip-name" :class="{ 'chip-name-static': isStatic }">{{ label }}</span>
-    <ActionButton
-      v-if="!readonly && !isStatic"
-      :icon="closeIcon"
-      :buttonFunction="onRemove"
-      :showIcon="true"
-      :showLabel="false"
-    />
-  </span>
+    <ActionButton v-else-if="!isStatic" :icon="icon" :isInactive="true" :showIcon="true" :showLabel="false" />
+    <span class="font-light select-none overflow-hidden text-ellipsis whitespace-nowrap min-w-0" :class="{ 'px-2 py-1': isStatic }">{{ label }}</span>
+    <ActionButton v-if="!readonly && !isStatic" :icon="closeIcon" :buttonFunction="onRemove" :showIcon="true" :showLabel="false" />
+  </Badge>
 </template>
 
 <script setup>
 import { computed } from 'vue';
 import { useIconStore } from '@/stores/icons';
+import { Badge } from '@/components/ui/badge';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 const iconStore = useIconStore();
@@ -62,58 +51,3 @@ const props = defineProps({
 const chipStyle = computed(() => props.color ? { 'background-color': props.color } : {});
 const closeIcon = computed(() => iconStore.getAppIcon('close'));
 </script>
-
-<style scoped>
-.chip {
-  display: inline-flex;
-  align-items: center;
-  /* gap: 0.375rem; */
-  background-color: var(--steel);
-  border-radius: var(--large-radius);
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--white);
-  transition: background-color 0.2s;
-  padding: 0px;
-  overflow: hidden;
-  max-width: 100%;
-}
-
-.chip:hover {
-  /* background-color: rgba(255, 255, 255, 0.1); */
-  background-color: var(--light-steel);
-  outline: var(--transparent-line);
-}
-
-.chip-name {
-  font-weight: 300;
-  user-select: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.chip.readonly {
-  padding-right: 0.75rem;
-}
-
-.chip-name-static {
-  padding: 0.25rem 0.5rem;
-}
-
-.chip-icon-container {
-  padding: 0.3rem;
-  align-items: center;
-  justify-content: center;
-  display: flex;
-  min-width: 24px;
-  min-height: 24px;
-}
-
-.chip-logo {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-</style>

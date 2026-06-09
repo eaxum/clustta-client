@@ -228,7 +228,6 @@ const handleScroll = () => {
 .pinned-indicator{
 	display: flex;
 	align-items: center;
-	/* background-color: hotpink; */
 }
 
 .pinned-indicator.clickable {
@@ -259,11 +258,11 @@ const handleScroll = () => {
 	justify-content: center;
 	top: 15px;
 	right: 15px;
-	border-radius: 10px;
+	border-radius: var(--large-radius);
 	padding: 3px;
 	font-size: 12px;
-	color: white;
-	/* outline-offset: -1px; */
+	color: hsl(var(--foreground));
+	/*  */
 	outline: solid 1px rgb(236, 182, 3);
 }
 
@@ -281,12 +280,12 @@ const handleScroll = () => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 10px;
+	border-radius: var(--large-radius);
 	padding: 3px;
 	font-size: 12px;
-	color: white;
-	outline: solid 1px #bd2d2d;
-	background-color: #bd2d2d;
+	color: hsl(var(--foreground));
+	border: 1px solid hsl(var(--destructive));
+	background-color: hsl(var(--destructive));
 }
 
 .critical-items-static {
@@ -295,7 +294,7 @@ const handleScroll = () => {
 
 
 .project-avatar-item {
-	border-radius: 8px;
+	border-radius: var(--normal-radius);
 	box-sizing: border-box;
 	cursor: pointer;
 	display: flex;
@@ -304,7 +303,7 @@ const handleScroll = () => {
 	align-items: center;
 	padding: 3px 3px;
 	width: 100%;
-	color: #fff;
+	color: hsl(var(--foreground));
 	/* background-color: coral; */
 	overflow: hidden;
 	text-wrap: nowrap;
@@ -315,20 +314,20 @@ const handleScroll = () => {
 	aspect-ratio: 1;
 	position: relative;
 	justify-content: space-between;
-	/* background-color: crimson; */
+	/* background-color: hsl(var(--destructive)); */
 
 }
 
 .project-avatar-item:hover {
 	background-color: rgb(121, 121, 121);
-	background-color: #ffffff15;
-	outline: var(--transparent-line);
-	outline-offset: -1px;
+	background-color: hsl(var(--accent));
+	border: 1px solid hsl(var(--border));
+	
 }
 
 .project-avatar-item:active {
 	background-color: rgb(70, 70, 70);
-	background-color: #00000013;
+	background-color: hsl(var(--accent));
 }
 
 .project-avatar-item-text {
@@ -354,7 +353,7 @@ const handleScroll = () => {
 	height: 100%;
 	width: 100%;
 	aspect-ratio: 1;
-	/* background-color: var(--light-steel); */
+	/* background-color: hsl(var(--border)); */
 	border-radius: 5px;
 	filter: blur(0px);
 }
@@ -368,17 +367,17 @@ const handleScroll = () => {
 
 .project-avatar-item-active {
 	background-color: rgb(173, 173, 173);
-	background-color: var(--light-steel);
-	color: var(--black-steel);
-	outline: var(--transparent-line);
-	outline-offset: -1px;
+	background-color: hsl(var(--border));
+	color: hsl(var(--background));
+	border: 1px solid hsl(var(--border));
+	
 }
 
 .project-avatar-item-active:hover {
-	/* background-color: white; */
-	color: var(--black-steel);
+	/* background-color: hsl(var(--foreground)); */
+	color: hsl(var(--background));
 	outline: var(--solid-line);
-	outline-offset: -1px;
+	
 }
 
 .project-list {
@@ -390,8 +389,8 @@ const handleScroll = () => {
 	padding: 2px 2px;
 	width: 100%;
 	height: max-content;
-	/* background-color: var(--black-steel); */
-	border-radius: 10px;
+	/* background-color: hsl(var(--background)); */
+	border-radius: var(--large-radius);
 	transition: all 0.3s cubic-bezier(0.6, 0.05, 0.01, 0.99);
 	height: 100%;
 	overflow-y: scroll;
@@ -434,7 +433,6 @@ const handleScroll = () => {
 }
 
 .compound-list-item {
-	/* background-color: hotpink; */
 	align-items: center;
 	justify-content: center;
 }
@@ -457,7 +455,6 @@ const handleScroll = () => {
 	width: 100%;
 	height: max-content;
 	height: 44px;
-	/* background-color: darkorange; */
 	transition: all 0.3s cubic-bezier(0.6, 0.05, 0.01, 0.99);
 }
 
@@ -467,7 +464,6 @@ const handleScroll = () => {
 	overflow: hidden;
 	width: min-content;
 	height: min-content;
-	/* background-color: teal; */
 	transition: all 0.3s ease;
 }
 </style>

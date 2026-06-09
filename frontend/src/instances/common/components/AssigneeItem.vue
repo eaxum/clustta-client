@@ -69,7 +69,7 @@ const triggerAction = () => {
 .assignee-list-item-name {
   font-family: 'Inter', sans-serif;
   /* font-weight: 100; */
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   display: flex;
   flex: 1;
@@ -79,7 +79,7 @@ const triggerAction = () => {
 }
 
 .assignee-list-item {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -91,8 +91,8 @@ const triggerAction = () => {
 }
 
 .assignee-list-item:hover {
-  background-color: #ffffff15;
-  border-radius: 10px;
+  background-color: hsl(var(--accent));
+  border-radius: var(--large-radius);
 }
 
 .assignee-list-item:last-child {

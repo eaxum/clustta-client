@@ -281,7 +281,7 @@ const getAppIcon = (iconName) => {
 }
 
 .no-links-message {
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 0.875rem;
   opacity: .5;
   margin: 0;

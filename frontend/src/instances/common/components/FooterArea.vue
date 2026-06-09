@@ -154,7 +154,7 @@ const logUserOut = async () => {
 @import "@/assets/tray.css";
 
 .project-unsynced {
-  background-color: #bd2d2d;
+  background-color: hsl(var(--destructive));
 }
 
 .button-disabled {
@@ -173,7 +173,7 @@ const logUserOut = async () => {
   height: 35px;
   /* height: 100%; */
   min-height: 35px;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   /* background-color: blue; */
   overflow: hidden;
   gap: 10px;
@@ -183,8 +183,8 @@ const logUserOut = async () => {
 
 .footer-actions {
   display: flex;
-  /* background-color: red; */
-  border-radius: 8px;
+  /* background-color: hsl(var(--destructive)); */
+  border-radius: var(--normal-radius);
   height: 100%;
 
 }
@@ -197,7 +197,7 @@ const logUserOut = async () => {
 }
 
 .footer-item {
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
@@ -206,8 +206,7 @@ const logUserOut = async () => {
   align-items: center;
   padding: 5px 5px;
   width: 90%;
-  color: #fff;
-  /* background-color: darkmagenta; */
+  color: hsl(var(--foreground));
   overflow: hidden;
   text-wrap: nowrap;
   height: 100%;
@@ -216,19 +215,18 @@ const logUserOut = async () => {
 
 .footer-item:hover {
   background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
   /* background-color: darkviolet; */
 }
 
 .footer-item:active {
   background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .footer-item-text {
   overflow: hidden;
   text-overflow: ellipsis;
-  background-color: darkorange;
 }
 </style>
 

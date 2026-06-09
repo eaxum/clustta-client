@@ -360,7 +360,7 @@ onBeforeUnmount(() => {
   height: 50px;
   padding: .4rem;
   box-sizing: border-box;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .project-item-container-cards {
@@ -400,11 +400,11 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   text-overflow: ellipsis;
   font-size: 14px;
-  font-weight: 350;
+  font-weight: 400;
 }
 
 [data-theme="dark"] .project-item-details {
-  font-weight: 200;
+  font-weight: 300;
 }
 
 .project-item-preview-container {
@@ -416,14 +416,14 @@ onBeforeUnmount(() => {
   aspect-ratio: 16 / 9;
   box-sizing: border-box;
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
   transition: all .2s ease-out;
 }
 
 .project-item-preview-container-cards {
   width: 100%;
   aspect-ratio: 16 / 9;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
 }
 
 .project-item-preview-image {
@@ -434,7 +434,7 @@ onBeforeUnmount(() => {
   height: 100%;
   box-sizing: border-box;
   overflow: hidden;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
 }
 
 .project-item-root {
@@ -448,31 +448,31 @@ onBeforeUnmount(() => {
   min-width: 500px;
   box-sizing: border-box;
   overflow: hidden;
-  color: var(--white);
-  background-color: var(--dark-steel);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
   border-radius: var(--large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   transition: all .2s ease-out;
 }
 
 .project-item-root:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
 .project-item-root:hover :deep(.folder) {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 0px;
 }
 
 .project-item-root:hover :deep(.tab) {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 24px 16px 0 0;
 }
 
 .project-item-root:hover :deep(.tab::after) {
-  box-shadow: -25px 0 0 0 var(--light-steel);
+  box-shadow: -25px 0 0 0 hsl(var(--border));
 }
 
 .project-item-root:hover .project-item-preview-container {
@@ -481,19 +481,19 @@ onBeforeUnmount(() => {
 
 
 .project-item-container-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   background-color: var(--project-item-selected);
 }
 
 .project-item-container-selected :deep(.folder),
 .project-item-container-selected:hover :deep(.folder) {
-  background-color: var(--blue-steel);
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .project-item-container-selected:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   background-color: var(--project-item-selected);
 }
 
@@ -534,7 +534,7 @@ onBeforeUnmount(() => {
 
 .project-item-path {
   font-size: 12px;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   opacity: 0.8;
   overflow: hidden;
   white-space: nowrap;

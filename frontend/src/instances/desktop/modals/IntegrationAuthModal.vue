@@ -215,15 +215,15 @@ onMounted(async () => {
   gap: .5rem;
   padding: 1rem 1rem;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
   cursor: pointer;
   transition: all 0.2s ease-in-out;
 }
 
 .integration-item:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
@@ -250,12 +250,12 @@ onMounted(async () => {
 
 .integration-name {
   font-weight: 500;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .integration-desc {
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .auth-status {
@@ -282,7 +282,7 @@ onMounted(async () => {
 .oauth-info {
   text-align: center;
   padding: 20px;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .oauth-note {

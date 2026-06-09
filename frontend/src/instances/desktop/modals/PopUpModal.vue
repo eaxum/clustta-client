@@ -88,7 +88,6 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 
 .pop-up-text-container {
-  /* background-color: crimson; */
   padding: .5rem;
 }
 
@@ -98,8 +97,9 @@ onBeforeUnmount(() => {
 }
 
 .pop-up-body {
-  font-size: 13px;
-  color: var(--white);
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.5;
 }
 
 .input-short {

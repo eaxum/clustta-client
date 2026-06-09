@@ -116,19 +116,19 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
-.general-container{
-    gap: 0px !important;
-    padding-top: 0px;
+.general-container {
+  gap: 0px !important;
+  padding-top: 0px;
 }
 
 .message-body {
-  font-size: 13px;
-  color: var(--white);
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
   line-height: 1.5;
 }
 
 .hint-destructive {
-  color: var(--danger);
+  color: hsl(var(--destructive));
   font-weight: 500;
 }
 
@@ -142,8 +142,7 @@ onBeforeUnmount(() => {
 }
 
 .toggle-label {
-  font-size: 13px;
-  color: var(--white);
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
 }
-
 </style>

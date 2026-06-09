@@ -5,9 +5,9 @@
       <div class="ignore-list-header">
         <p class="ignore-description">
           {{ $t('settings.ignoreListDescriptionPre') }}
-          <Chip :label="'*.log'" :isStatic="true" :color="'var(--steel)'" />
+          <Chip :label="'*.log'" :isStatic="true" :color="'hsl(var(--accent))'" />
           {{ $t('settings.ignoreListDescriptionMid') }}
-          <Chip :label="'/FolderName'" :isStatic="true" :color="'var(--steel)'" />
+          <Chip :label="'/FolderName'" :isStatic="true" :color="'hsl(var(--accent))'" />
           {{ $t('settings.ignoreListDescriptionPost') }}
         </p>
 
@@ -155,7 +155,7 @@ onMounted(async () => {
 
 .ignore-description {
   font-size: 14px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0;
   line-height: 1.4;
   padding: .5rem;
@@ -191,13 +191,13 @@ onMounted(async () => {
   width: 96%;
   gap: .5rem;
   align-items: center;
-  color: white;
+  color: hsl(var(--foreground));
   justify-content: space-between;
-  border-radius: var(--large-radius);
+  
   padding: 1rem;
-  background-color: crimson;
-  background-color: var(--black-steel);
-  border-radius: var(--very-large-radius);
+  background-color: hsl(var(--destructive));
+  background-color: hsl(var(--background));
+  
 }
 </style>
 

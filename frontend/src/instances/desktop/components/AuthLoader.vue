@@ -35,7 +35,7 @@ defineProps({
   width: 200px;
   height: 4px;
   background-color: var(--thick-transparent-line);
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   overflow: hidden;
   position: relative;
 }
@@ -54,7 +54,7 @@ defineProps({
 
 .loader-status {
   font-size: 0.85rem;
-  color: var(--steel);
+  color: hsl(var(--muted-foreground));
   animation: pulse 1.5s ease-in-out infinite;
 }
 

@@ -325,7 +325,7 @@ onBeforeUnmount(() => {
 
 .conflict-message p {
   font-size: 13px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0.25rem 0;
 }
 
@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: flex-start;
   margin-bottom: 1rem;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   border-radius: var(--very-large-radius);
 }
 
@@ -353,13 +353,13 @@ onBeforeUnmount(() => {
 }
 
 .conflict-list-container::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: var(--light-steel);
+  border-radius: var(--normal-radius);
+  background-color: hsl(var(--border));
 }
 
 .conflict-list-container::-webkit-scrollbar-track {
   margin-top: 5px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .conflict-list {
@@ -384,7 +384,7 @@ onBeforeUnmount(() => {
 .conflict-tabs {
   padding: 0.3rem 0.5rem;
   display: flex;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   width: 100%;
   max-width: 250px;
   border-radius: var(--very-large-radius);

@@ -153,7 +153,7 @@ const getAppIcon = (iconName) => {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background-color: rgba(255, 193, 7, 0.1);
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  border: 1px solid hsl(var(--warning) / 0.3);
   border-radius: var(--normal-radius);
   color: rgba(255, 193, 7, 0.9);
   font-size: 0.875rem;
@@ -169,7 +169,7 @@ const getAppIcon = (iconName) => {
 .empty-state {
   padding: .5rem;
   text-align: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: .5;
   font-style: italic;
   font-size: 0.875rem;

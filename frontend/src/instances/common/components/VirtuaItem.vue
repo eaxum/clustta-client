@@ -439,7 +439,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .indent-guide {
-  border-left: var(--transparent-line);
+  border-left: 1px solid hsl(var(--border));
   box-sizing: border-box;
   height: 300px;
   left: 15px;

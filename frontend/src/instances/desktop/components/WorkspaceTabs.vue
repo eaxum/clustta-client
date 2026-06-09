@@ -401,7 +401,7 @@ const getTabStyle = (index) => {
 }
 
 .tab {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   width: 200px;
@@ -418,7 +418,7 @@ const getTabStyle = (index) => {
 .right-tab-split::after {
   content: "";
   position: absolute;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   left: -4px;
   height: 16px;
   width: 1.5px;
@@ -447,7 +447,7 @@ const getTabStyle = (index) => {
 .left-tab-split::before {
   content: "";
   position: absolute;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   right: -4px;
   height: 16px;
   width: 1.5px;
@@ -474,9 +474,9 @@ const getTabStyle = (index) => {
 /* end */
 
 .tab:hover {
-  color: var(--white);
-  background: var(--blue-steel);
-  border-radius: var(--normal-radius);
+  color: hsl(var(--foreground));
+  background: hsl(var(--accent));
+  border-radius: calc(var(--radius) - 2px);
   border: 0px;
 }
 
@@ -497,12 +497,12 @@ const getTabStyle = (index) => {
 }
 
 .tab.active {
-  color: var(--white);
+  color: hsl(var(--foreground));
   border-bottom: none;
-  border-radius: 16px 16px 0px 0px;
+  border-radius: calc(var(--radius) - 2px) calc(var(--radius) - 2px) 0px 0px;
   height: 100%;
   position: relative;
-  background-color: var(--shadow-steel);
+  background-color: hsl(var(--background));
 }
 
 .tab.active::before {
@@ -513,8 +513,8 @@ const getTabStyle = (index) => {
   bottom: 0px;
   height: 25px;
   width: 50px;
-  border-bottom-right-radius: 16px;
-  box-shadow: 25px 0 0 0 var(--shadow-steel);
+  border-bottom-right-radius: calc(var(--radius) - 2px);
+  box-shadow: 25px 0 0 0 hsl(var(--background));
 }
 
 .tab.active::after {
@@ -525,8 +525,8 @@ const getTabStyle = (index) => {
   bottom: 0px;
   height: 25px;
   width: 50px;
-  border-bottom-left-radius: 16px;
-  box-shadow: -25px 0 0 0 var(--shadow-steel);
+  border-bottom-left-radius: calc(var(--radius) - 2px);
+  box-shadow: -25px 0 0 0 hsl(var(--background));
 }
 
 .tab.dragging {
@@ -541,7 +541,6 @@ const getTabStyle = (index) => {
 .tab-spacer {
   width: 4px;
   height: 30px;
-  background-color: rgb(255, 255, 255);
 }
 
 
@@ -573,12 +572,11 @@ const getTabStyle = (index) => {
   justify-content: center;
   font-size: 18px;
   opacity: 0.3;
-  color: var(--white);
-  color: black
+  color: hsl(var(--foreground));
 }
 
 .workspace-tab-button:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: hsl(var(--accent));
   opacity: 1;
 }
 
@@ -620,12 +618,12 @@ const getTabStyle = (index) => {
   justify-content: center;
   font-size: 20px;
   flex-shrink: 0;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
 }
 
 .new-tab-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
+  background: hsl(var(--accent));
   opacity: 1;
 }
 
@@ -641,7 +639,7 @@ const getTabStyle = (index) => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: var(--attention);
+  background-color: hsl(var(--destructive));
   flex-shrink: 0;
   margin-left: 4px;
 }

@@ -402,29 +402,23 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  flex-direction: column;
-  gap: 5px;
   box-sizing: border-box;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
   display: block;
   overflow-y: auto;
 }
 
 
 .settings-component-root::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .settings-component-root::-webkit-scrollbar-thumb {
-  background-color: var(--midnight-steel);
-  border-radius: 3px;
+  background-color: hsl(var(--border));
+  border-radius: var(--small-radius);
 }
 
 .settings-component-root::-webkit-scrollbar-track {
-  background-color: var(--light-steel);
-  border-radius: 3px;
+  border-radius: var(--small-radius);
 }
 
 .settings-component-scroll {
@@ -440,9 +434,8 @@ onMounted(async () => {
   box-sizing: border-box;
   height: 100%;
   width: 100%;
-  gap: 1.5rem;
+  gap: 1rem;
   padding-right: .2rem;
-  border-radius: var(--large-radius);
 }
 
 
@@ -450,36 +443,31 @@ onMounted(async () => {
 .locations-scroll-container {
   display: flex;
   flex-direction: column;
-  /* gap: 0.5rem; */
   overflow-y: auto;
-  /* padding-right: 0.25rem; */
-  background-color: var(--dark-steel);
-  border-radius: var(--normal-radius);
+  border-radius: calc(var(--radius) - 2px);
 }
 
 /* Location item - styled like settings-item */
 .location-item {
   display: flex;
-  /* border-radius: 8px; */
   align-items: center;
-  /* background-color: var(--dark-steel); */
   overflow: hidden;
   box-sizing: border-box;
-  min-height: 50px;
+  min-height: 44px;
   height: max-content;
-  padding: .5rem 1rem;
+  padding: .5rem 0.75rem;
   gap: 0.5rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-bottom:  1px solid var(--light-steel);
+  transition: background-color 0.15s ease;
+  border-radius: calc(var(--radius) - 2px);
 }
 
 .location-item:hover {
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
 }
 
 .location-item:active {
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 /* Location icon (optional) */
@@ -514,14 +502,14 @@ onMounted(async () => {
 .location-name {
   font-size: 14px;
   font-weight: 400;
-  color: var(--white);
+  color: hsl(var(--foreground));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .location-body {
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   font-size: 12px;
   opacity: .8;
   padding: .1rem;

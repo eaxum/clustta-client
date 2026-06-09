@@ -114,7 +114,7 @@ const profileColor = (uuid) => {
 .collection-item-wrapper {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   box-sizing: border-box;
   height: 80px;
@@ -122,23 +122,21 @@ const profileColor = (uuid) => {
   width: 250px;
   overflow: hidden;
   border-radius: var(--small-radius);
-  background-color: var(--dark-steel);
-  /* background-color: darkorange; */
+  background-color: hsl(var(--muted));
   padding: .2rem;
   border-radius: var(--large-radius);
 }
 
 
 .collection-item-wrapper:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1.5px;
+  border: 1px solid hsl(var(--border));
 }
 
 .collection-item-root {
   display: flex;
   flex-direction: column;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -163,7 +161,7 @@ const profileColor = (uuid) => {
   display: flex;
   flex-direction: column;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -180,13 +178,11 @@ const profileColor = (uuid) => {
 }
 
 .collection-item-container-selected {
-  outline: 1.5px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: 1.5px solid hsl(var(--primary));
 }
 
 .collection-item-container-selected:hover {
-  outline: 1.5px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: 1.5px solid hsl(var(--primary));
 }
 
 .collection-item-preview-container {
@@ -198,7 +194,7 @@ const profileColor = (uuid) => {
   padding: .1rem;
   overflow: hidden;
   min-width: 60px;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   /* width: 100%; */
   height: 100%;
   aspect-ratio: 4 / 3;
@@ -215,7 +211,7 @@ const profileColor = (uuid) => {
   height: 100%;
   width: 100%;
   /* aspect-ratio: 4 / 3; */
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
   border-radius: 5px;
   pointer-events: none;
 }
@@ -229,7 +225,7 @@ const profileColor = (uuid) => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .collection-item-icon-container {
@@ -241,7 +237,7 @@ const profileColor = (uuid) => {
   padding: .1rem;
   overflow: hidden;
   /* height: 100%; */
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .collection-item-content {
@@ -278,7 +274,7 @@ const profileColor = (uuid) => {
   box-sizing: border-box;
   align-items: center;
   height: 100%;
-  /* background-color: black; */
+  /* background-color: hsl(var(--background)); */
   justify-content: space-between;
   width: 100%;
   gap: .3rem;
@@ -295,7 +291,7 @@ const profileColor = (uuid) => {
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
   font-size: 14px;
   /* font-weight: 200; */
 }
@@ -309,13 +305,12 @@ const profileColor = (uuid) => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* background-color: rosybrown; */
 }
 
 .collection-item-type-indicator {
   color: rgb(219, 219, 219);
-  color: var(--white);
-  background-color: rgba(0, 0, 0, 0.216);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
   padding: .3rem;
   border-radius: 5px;
   font-size: 12px;
@@ -327,7 +322,7 @@ const profileColor = (uuid) => {
   overflow: hidden;
   padding: .1rem .4rem;
   font-size: 12px;
-  background-color: black;
+  background-color: hsl(var(--background));
   border-radius: 20px;
 }
 
@@ -343,7 +338,7 @@ const profileColor = (uuid) => {
   gap: .7rem;
   /* padding: 0px .3rem; */
   height: 100%;
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
   /* flex: 1; */
 }
 

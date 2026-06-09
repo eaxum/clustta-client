@@ -92,7 +92,7 @@ const setListView = () => {
 
 .view-options-root:hover {
   /* padding: .2rem; */
-  /* background-color: var(--black-steel); */
+  /* background-color: hsl(var(--background)); */
   border-radius: var(--large-radius);
 }
 </style>

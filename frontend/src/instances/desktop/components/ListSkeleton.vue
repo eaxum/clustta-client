@@ -72,7 +72,7 @@ onMounted(async () => {
   position: absolute;
   width: 100%;
   box-sizing: border-box;
-  border-left: var(--transparent-line);
+  border-left: 1px solid hsl(var(--border));
   left: 15px;
 }
 
@@ -92,7 +92,7 @@ onMounted(async () => {
 
 .virtua-skeleton-wrapper{
   display: flex;
-  color: white;
+  color: hsl(var(--foreground));
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -108,7 +108,7 @@ onMounted(async () => {
 .virtua-skeleton-item{
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -116,37 +116,37 @@ onMounted(async () => {
   height: min-content;
   justify-content: space-between;
   align-items: center;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
   overflow: hidden;
   padding: .5rem 1rem;
   height: 90%;
-  outline: var(--transparent-line);
+  border: 1px solid hsl(var(--border));
   
-  outline-offset: -1px;
+  
   border-radius: var(--large-radius);
 }
 
 .virtua-skeleton-item-launcher{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
     width: 100%;
     height: 30px;
     height: 60%;
-    border-radius: 8px;
+    border-radius: var(--normal-radius);
 }
 
 .status-pill{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
     width: 5rem;
     height: 30px;
     height: 60%;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
 }
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
     height: 60%;
     aspect-ratio: 1/1;
     border-radius: 50%;

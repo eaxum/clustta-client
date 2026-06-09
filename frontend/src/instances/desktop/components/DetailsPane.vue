@@ -909,7 +909,7 @@ onUnmounted(() => {
 
 .details-pane-inner {
   padding: 1rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   position: relative;
   height: 100%;
   max-width: 600px;
@@ -920,7 +920,7 @@ onUnmounted(() => {
   justify-content: center;
   overflow: hidden;
   flex: 1 1 50%;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
   border-radius: var(--large-radius);
 }
 

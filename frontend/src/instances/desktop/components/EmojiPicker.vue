@@ -107,16 +107,16 @@ const emit = defineEmits(['select']);
 max-width: 400px;
 margin: 0 auto;
 padding: 1rem;
-border: 1px solid #ccc;
-border-radius: 8px;
+border: 1px solid hsl(var(--border));
+border-radius: var(--normal-radius);
 }
 
 .search-input {
 width: 100%;
 padding: 8px;
 margin-bottom: 1rem;
-border: 1px solid #ddd;
-border-radius: 4px;
+border: 1px solid hsl(var(--border));
+border-radius: var(--tiny-radius);
 font-size: 1rem;
 box-sizing: border-box;
 }
@@ -133,7 +133,7 @@ min-height: 30px;
 /* height: 100px; */
 width: 100%;
 /* flex : 1; */
-/* background-color: crimson; */
+/* background-color: hsl(var(--destructive)); */
 }
 
 .category-buttons::-webkit-scrollbar {
@@ -141,19 +141,19 @@ width: 100%;
 }
 
 .category-buttons::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .category-buttons::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
+  border-radius: var(--large-radius);
+  /* background-color: transparent; */
 }
 
 .category-button {
 /* padding: 0.5rem; */
-/* border: 1px solid #ddd; */
-border-radius: 4px;
+/* border: 1px solid hsl(var(--border)); */
+border-radius: var(--tiny-radius);
 background: none;
 cursor: pointer;
 transition: background-color 0.2s;
@@ -168,7 +168,7 @@ box-sizing: border-box;
 padding: .2rem;
 
 
-  border-radius: 16px;
+  border-radius: var(--gigantic-radius);
   border-width: 0px;
   cursor: pointer;
 
@@ -193,7 +193,7 @@ padding: 0.5rem;
 border: none;
 background: none;
 cursor: pointer;
-border-radius: 4px;
+border-radius: var(--tiny-radius);
 transition: background-color 0.2s;
 }
 
@@ -209,7 +209,7 @@ background-color: #f0f0f0;
 
 .selected-emoji {
 padding: 0.5rem;
-border-top: 1px solid #ddd;
+border-top: 1px solid hsl(var(--border));
 margin-top: 1rem;
 }
 
@@ -243,12 +243,12 @@ margin-top: 0.5rem;
   align-items: center;
   /* max-width: 300px; */
   max-height: 260px;
-  background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--destructive));
+  background-color: hsl(var(--background));
   border-radius: var(--very-large-radius);
   padding: .5rem;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   overflow: hidden;
 }
 
@@ -279,13 +279,13 @@ margin-top: 0.5rem;
 }
 
 .apps-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .apps-container::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
+  border-radius: var(--large-radius);
+  /* background-color: transparent; */
 }
 
 .apps-grid {
@@ -321,33 +321,33 @@ margin-top: 0.5rem;
   align-items: center;
   /* background-color: rebeccapurple; */
   overflow: hidden;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
   /* padding: .2rem; */
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   
 }
 .apps-grid-item:hover {
   background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--accent));
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .apps-grid-item:active {
   background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .apps-grid-item-selected {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
   outline: solid 1px white;
-  outline-offset: -1px;
+  
 
 }
 
 .apps-grid-item-selected:hover {
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
 
 }
 
@@ -358,7 +358,7 @@ margin-top: 0.5rem;
   align-items: center;
   height: 100%;
   min-height: 80px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 0.85rem;
 }
 </style>

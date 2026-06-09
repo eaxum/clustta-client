@@ -133,7 +133,7 @@ const getAppIcon = (iconName) => {
   align-items: center;
   justify-content: center;
   /* border: 2px solid rgba(255, 255, 255, 0.1); */
-  outline: var(--transparent-line);
+  border: 1px solid hsl(var(--border));
   box-sizing: border-box;
 }
 
@@ -149,7 +149,7 @@ const getAppIcon = (iconName) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: hsl(var(--background) / 0.5);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -168,7 +168,7 @@ const getAppIcon = (iconName) => {
 }
 
 .avatar-action-button {
-  background-color: var(--white);
+  background-color: hsl(var(--foreground));
   border: none;
   border-radius: 50%;
   width: 40px;

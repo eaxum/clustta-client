@@ -137,7 +137,7 @@ const canScrollRef = () => {
 
 .arrow-buttons {
   position: relative;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
@@ -151,7 +151,7 @@ const canScrollRef = () => {
 }
 
 .arrow-buttons-disabled {
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   opacity: .2;
   cursor: not-allowed;
 }
@@ -169,7 +169,7 @@ const canScrollRef = () => {
 
 .apps-flex-item {
   padding: .2rem;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
 }
 
 /* .app-icons{
@@ -179,7 +179,7 @@ const canScrollRef = () => {
 .app-ext {
   box-sizing: border-box;
   background-color: rgb(6, 86, 117);
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   padding: 2px;
   height: 40px;
   width: 40px;
@@ -198,25 +198,25 @@ const canScrollRef = () => {
 
 .apps-flex-item:hover {
   background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
 }
 
 .apps-flex-item:active {
   background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .apps-flex-item-selected {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
   /* border: 1px solid white; */
   outline: solid 1px white;
-  outline-offset: -1px;
+  
 
 }
 
 .apps-flex-item-selected:hover {
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
 
 }
 </style>

@@ -196,7 +196,6 @@ onUnmounted(() => {
 .new-user {
   width: 100%;
   min-height: 35px;
-  background-color: hotpink;
   border-radius: var(--small-radius);
 }
 
@@ -218,13 +217,13 @@ onUnmounted(() => {
   gap: .1rem;
   padding: .1rem;
   border-radius: var(--large-radius);
-  background-color: var(--transparent-black);
+  background-color: hsl(var(--background) / 0.4);
   overflow-y: auto;
 }
 
 .ignore-list-container:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .ignore-list-container::-webkit-scrollbar {
@@ -232,12 +231,12 @@ onUnmounted(() => {
 }
 
 .ignore-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .ignore-list-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .input-field {
@@ -246,7 +245,7 @@ onUnmounted(() => {
   height: 27px;
   font-family: Inter, sans-serif;
   font-size: 16px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   background: transparent;
   border: 0;
   outline: none;
@@ -261,7 +260,7 @@ onUnmounted(() => {
   font-weight: 300;
   box-sizing: border-box;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05000000074505806);
   padding: 10px;
   border-color: rgba(234, 236, 240, 1);
@@ -278,18 +277,18 @@ onUnmounted(() => {
   outline: none;
   resize: none;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
 }
 
 .desktop-input-long:hover{
-  outline: 1px solid var(--white);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .desktop-input-long:focus{
-  outline: 1px solid var(--white);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 </style>
 

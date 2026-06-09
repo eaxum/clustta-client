@@ -213,15 +213,14 @@ onUnmounted(() => {
 
 .listbox-list-items-root {
   opacity: 0;
-  animation: fadeIn .1s ease-in-out forwards;
+  animation: fadeIn .15s ease-in-out forwards;
 }
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-4px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -234,13 +233,10 @@ onUnmounted(() => {
   min-width: 100px;
   width: min-content;
   flex-direction: column;
-  /* flex: 1; */
-  
 }
 
 .list-box-container-full {
   width: 100%;
-  /* max-width: 200px; */
 }
 
 .list-box-container-fixed {
@@ -251,30 +247,30 @@ onUnmounted(() => {
 .list-box-parent {
   position: relative;
   box-sizing: border-box;
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   flex-direction: row;
   width: 100%;
-  border-radius: var(--normal-radius);
-  height: 35px;
+  border-radius: calc(var(--radius) - 2px);
+  height: 36px;
   align-items: center;
-  padding: 6px;
+  padding: 0.5rem 0.75rem;
   overflow: hidden;
   font-family: Inter, sans-serif;
-  font-size: 16px;
+  font-size: 0.875rem;
   white-space: nowrap;
   justify-content: space-between;
   gap: .5rem;
   flex: 1;
-  min-height: 35px;
-  background-color: var(--midnight-steel);
-  outline-offset: -1px;
-  /* background-color: crimson; */
+  min-height: 36px;
+  border: 1px solid hsl(var(--input));
+  background-color: transparent;
+  transition: border-color 0.15s ease;
+  cursor: pointer;
 }
 
 .list-box-parent:hover {
-    outline: var(--transparent-line);
-    background-color: var(--dark-steel);
+  border-color: hsl(var(--ring));
 }
 
 .list-box-parent-content {
@@ -293,14 +289,14 @@ onUnmounted(() => {
   position: absolute;
   pointer-events: none;
   white-space: nowrap;
-  padding-left: .5rem;
-  font-size: 14px;
+  font-size: 0.875rem;
   width: 100%;
   font-weight: 400;
 }
 
 .list-box-parent-chevron {
   pointer-events: none;
+  opacity: 0.5;
 }
 
 .chevron {
@@ -309,61 +305,54 @@ onUnmounted(() => {
 }
 
 .listbox-list-items-root {
-  color: black;
-  color: var(--white);
+  color: hsl(var(--popover-foreground));
   box-sizing: border-box;
   z-index: 100000;
-  border-radius: 8px;
+  border-radius: calc(var(--radius) - 2px);
   min-height: 32px;
   line-height: 1.4 !important;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
   overflow: hidden;
   overflow-y: auto;
   max-height: 300px;
   text-align: left;
   flex-direction: column;
   flex-wrap: nowrap;
-  gap: .2rem;
-  padding: .3rem .3rem;
-  outline-offset: -1px;
+  gap: 0.25rem;
+  padding: 0.25rem;
   position: absolute;
-  outline: var(--transparent-line);
   width: min-content;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
-
 .listbox-list-items-root::-webkit-scrollbar {
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   width: 4px;
 }
 
 .listbox-list-items-root::-webkit-scrollbar-thumb {
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--tiny-radius);
+  background-color: hsl(var(--border));
 }
 
 .listbox-list-items-root::-webkit-scrollbar-track {
-    margin: 10px;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.295);
+  margin: 10px;
+  border-radius: var(--tiny-radius);
 }
 
 .listbox-list-items {
-  color: var(--white);
+  color: hsl(var(--popover-foreground));
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: calc(var(--radius) - 4px);
   min-height: min-content;
-  /* background-color: #2e2e2e; */
   overflow: hidden;
   overflow-y: auto;
   display: flex;
-  /* flex: 1; */
   flex-direction: column;
   flex-wrap: nowrap;
   height: max-content;
-  gap: .2rem;
-  /* padding: .3rem .3rem;  */
-  /* background-color: blue; */
+  gap: 0.125rem;
 }
 
 .listbox-item {
@@ -371,20 +360,18 @@ onUnmounted(() => {
   list-style: none;
   cursor: pointer;
   background-color: transparent;
-  transition: background-color 0.2s ease-in-out;
-  border-radius: 8px;
-  width: max-content;
+  transition: background-color 0.15s ease;
+  border-radius: calc(var(--radius) - 4px);
   width: 100%;
-  /* height: 50px; */
   display: flex;
-  /* background-color: red; */
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
 }
 
 .listbox-item:hover {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--accent));
+  color: hsl(var(--accent-foreground));
 }
 
 .listbox-item-closed {
@@ -392,15 +379,14 @@ onUnmounted(() => {
 }
 
 .listbox-item-text-mask {
-  padding: .1rem .1rem;
+  padding: 0.125rem;
 }
 
 .listbox-item-text {
-  padding: 0.2rem .4rem;
+  padding: 0.25rem 0.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 14px;
-
+  font-size: 0.875rem;
 }
 
 .overflow-text {
@@ -416,16 +402,17 @@ onUnmounted(() => {
 }
 
 .placeholder-text {
+  color: hsl(var(--muted-foreground));
   font-style: italic;
-  opacity: 0.6;
+  opacity: 1;
 }
 
 .list-box {
   box-sizing: border-box;
-  background-color: var(--white);
+  background-color: hsl(var(--background));
   width: 100%;
-  border-radius: 8px;
-  height: 35px;
+  border-radius: calc(var(--radius) - 2px);
+  height: 36px;
   padding-right: 8px;
   overflow: hidden;
 }

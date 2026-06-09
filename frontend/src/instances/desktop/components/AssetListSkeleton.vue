@@ -46,7 +46,7 @@ onMounted(async () => {
 .asset-skeleton-item{
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -54,8 +54,8 @@ onMounted(async () => {
   height: min-content;
   justify-content: space-between;
   align-items: center;
-  background-color: var(--dark-steel);
-  border-radius: 10px;
+  background-color: hsl(var(--muted));
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding: .5rem;
   min-height: 60px;
@@ -66,51 +66,51 @@ onMounted(async () => {
 
 .asset-skeleton-item-launcher{
     box-sizing: border-box;
-    background-color: var(--white);
+    background-color: hsl(var(--foreground));
     opacity: .1;
     width: 100%;
     height: 30px;
     height: 60%;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
 }
 
 .asset-skeleton-spacer{
     box-sizing: border-box;
-    /* background-color: var(--white); */
+    /* background-color: hsl(var(--foreground)); */
     opacity: .1;
     width: 50px;
     height: 30px;
     height: 60%;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
 }
 
 .thumb-skeleton{
     box-sizing: border-box;
-    background-color: var(--white);
+    background-color: hsl(var(--foreground));
     opacity: .1;
     height: 80%;
     aspect-ratio: 16/9;
-    border-radius: 8px;
+    border-radius: var(--normal-radius);
 }
 
 .status-pill{
     box-sizing: border-box;
-    background-color: var(--white);
+    background-color: hsl(var(--foreground));
     opacity: .1;
     width: 5rem;
     height: 30px;
     height: 60%;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
 }
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: var(--white);
+    background-color: hsl(var(--foreground));
     opacity: .1;
     /* width: 5rem; */
     height: 50%;
     aspect-ratio: 1/1;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
 }
 
 

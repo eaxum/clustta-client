@@ -158,7 +158,7 @@ onBeforeUnmount(() => {
 	min-height: 30px;
 	overflow: hidden;
 	width: 100%;
-	/* background-color: crimson; */
+	/* background-color: hsl(var(--destructive)); */
 }
 
 .filter-options {
@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
 	/* min-height: 35px; */
 	/* min-width: min-content; */
 	/* flex: 0 0 auto; */
-	/* background-color: crimson; */
+	/* background-color: hsl(var(--destructive)); */
 }
 </style>
 

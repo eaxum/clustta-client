@@ -330,8 +330,8 @@ onMounted(() => {
 }
 
 .current-account {
-  background-color: var(--dark-glass);
-  border: 1px solid var(--steel);
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
 }
 
 .clickable-account {
@@ -339,8 +339,8 @@ onMounted(() => {
 }
 
 .clickable-account:hover {
-  background-color: var(--dark-glass);
-  outline: 1px solid var(--steel);
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
 }
 
 .account-avatar {
@@ -371,7 +371,7 @@ onMounted(() => {
 .account-name {
   font-weight: 500;
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -379,7 +379,7 @@ onMounted(() => {
 
 .account-email {
   font-size: 0.75rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -394,7 +394,7 @@ onMounted(() => {
 }
 
 .status-indicator.active {
-  color: #22c55e; /* Green for active */
+  color: hsl(var(--success)); /* Green for active */
 }
 
 .status-indicator.inactive {
@@ -402,7 +402,7 @@ onMounted(() => {
 }
 
 .status-indicator.offline {
-  color: #f59e0b; /* Amber/orange for offline */
+  color: hsl(var(--warning)); /* Amber/orange for offline */
 }
 
 .offline-banner {
@@ -413,7 +413,7 @@ onMounted(() => {
   margin-top: 0.5rem;
   background: rgba(245, 158, 11, 0.15);
   border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 6px;
+  border-radius: var(--small-radius);
   font-size: 0.75rem;
   color: #fbbf24;
 }
@@ -428,7 +428,7 @@ onMounted(() => {
 .menu-divider {
   display: block;
   height: 1px;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   margin: 0.5rem 0;
   border: none;
 }

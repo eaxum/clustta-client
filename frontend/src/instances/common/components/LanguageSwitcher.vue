@@ -78,7 +78,7 @@ onUnmounted(() => {
 
 <style scoped>
 .language-switcher {
-    /* background-color: crimson; */
+    /* background-color: hsl(var(--destructive)); */
     top: 0px;
     right: .5rem;
     position: absolute;
@@ -108,7 +108,7 @@ onUnmounted(() => {
 .language-label {
   font-size: 0.8rem;
   font-weight: 400;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .chevron-icon {
@@ -128,10 +128,10 @@ onUnmounted(() => {
   min-width: 160px;
   max-height: 300px;
   overflow-y: auto;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   border-radius: var(--normal-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   z-index: 100;
 }
@@ -142,7 +142,7 @@ onUnmounted(() => {
 
 .language-dropdown::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .language-dropdown::-webkit-scrollbar-track {
@@ -153,7 +153,7 @@ onUnmounted(() => {
   padding: 0.5rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 300;
-  color: var(--white);
+  color: hsl(var(--foreground));
   cursor: pointer;
   transition: background-color 0.15s;
 }
@@ -167,11 +167,11 @@ onUnmounted(() => {
 }
 
 .language-option:hover {
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
 }
 
 .language-active {
-  color: var(--grape);
+  color: hsl(var(--primary));
   font-weight: 500;
 }
 </style>

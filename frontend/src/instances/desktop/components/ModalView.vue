@@ -241,8 +241,6 @@ onBeforeUnmount(() => {
 
 
 <style scoped>
-@import "@/assets/desktop.css";
-
 .modal-mask {
   position: absolute;
   z-index: 2;
@@ -250,10 +248,10 @@ onBeforeUnmount(() => {
   height: 100%;
   display: flex;
   transition: opacity 0.3s ease;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: hsl(var(--background) / 0.8);
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(8px);
   box-sizing: border-box;
 }
 

@@ -88,8 +88,8 @@ const emitAssetUpdates = (assetId, updates) => {
   opacity: 0;
   animation: fadeInScale 0.15s ease-out forwards;
   border-radius: var(--normal-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   backdrop-filter: blur(35px);
 }
 
@@ -127,14 +127,14 @@ const emitAssetUpdates = (assetId, updates) => {
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
   transition: all 0.2s ease-out;
   cursor: pointer;
 }
 
 .grid-status-menu-pill:hover {
   filter: brightness(1.2);
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .grid-status-menu-pill-text {

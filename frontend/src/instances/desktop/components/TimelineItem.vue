@@ -241,18 +241,18 @@ onMounted(() => {
     gap: .5rem;
     display: flex;
     gap: .2rem;
-    color: var(--white);
+    color: hsl(var(--foreground));
     align-items: center;
     box-sizing: border-box;
     width: 100%;
-    border-radius: 10px;
+    border-radius: var(--large-radius);
     overflow: hidden;
     min-height: 60px;
     min-height: max-content;
     border-radius: var(--large-radius);
-    outline: var(--transparent-line);
-    outline-offset: -1px;
-    background-color: var(--dark-steel);
+    border: 1px solid hsl(var(--border));
+    
+    background-color: hsl(var(--muted));
     transition: all .2s ease-in-out;
 }
 
@@ -285,7 +285,7 @@ onMounted(() => {
 
 .trash-item-container:hover {
     border-radius: var(--normal-radius);
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
 }
 
 .trash-checkpoints-root {
@@ -300,7 +300,7 @@ onMounted(() => {
 
 .trash-checkpoints{
     border-radius: var(--normal-radius);
-    background-color: var(--light-steel);
+    background-color: hsl(var(--border));
     padding: .5rem 0;
     padding-right: 1rem;
     display: flex;
@@ -336,7 +336,7 @@ onMounted(() => {
     left: 19.6px;
     width: 1px;
     height: 100%;
-    background-color: var(--white);
+    background-color: hsl(var(--foreground));
 }
 
 .status-pill {
@@ -368,7 +368,7 @@ onMounted(() => {
 .status-pill-text {
     font-family: 'Inter', sans-serif;
     font-size: 12px;
-    font-weight: 200;
+    font-weight: 300;
     color: rgb(15, 15, 15);
 }
 
@@ -407,7 +407,7 @@ onMounted(() => {
 
 .trash-item-collection {
     color: rgb(219, 219, 219);
-    background-color: rgba(0, 0, 0, 0.216);
+    background-color: hsl(var(--muted));
     padding: .3rem;
     border-radius: 5px;
     font-size: 12px;
@@ -418,7 +418,7 @@ onMounted(() => {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     /* font-weight: 200; */
-    color: var(--white);
+    color: hsl(var(--foreground));
     text-overflow: ellipsis;
 }
 
@@ -427,7 +427,7 @@ onMounted(() => {
 }
 
 .checkpoint-item-label-text {
-    color: var(--white);
+    color: hsl(var(--foreground));
     font-size: 14px;
     height: min-content;
     overflow: hidden;
@@ -444,7 +444,7 @@ onMounted(() => {
 }
 
 .profile-picture {
-    background-color: red;
+    background-color: hsl(var(--destructive));
     height: 24px;
     min-width: 24px;
     overflow: hidden;

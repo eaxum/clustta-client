@@ -119,11 +119,11 @@ const handleCancel = () => {
   min-width: 0;
   padding: 0.4rem 0.5rem;
   box-sizing: border-box;
-  background: var(--midnight-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--normal-radius);
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   /* max-height: 50% !important;
   height: 30px; */

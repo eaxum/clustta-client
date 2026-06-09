@@ -374,10 +374,10 @@ onUnmounted(() => {
 
 .general-pane-header{
   box-sizing: border-box;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   border-radius: var(--small-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   gap: .5rem;
   padding: 0 1rem;
   padding-left: 0px;
@@ -396,7 +396,7 @@ onUnmounted(() => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   white-space: nowrap;
   flex: 1;
@@ -412,12 +412,12 @@ onUnmounted(() => {
   /* width: 100%; */
   justify-content: space-evenly;
   overflow: hidden;
-  border-radius: 8px;
-  color: var(--white);
+  border-radius: var(--normal-radius);
+  color: hsl(var(--foreground));
   padding: .3rem;
   gap: .5rem;
   overflow: hidden;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .selected-tab-button-text {
@@ -439,8 +439,8 @@ onUnmounted(() => {
 }
 
 .tab-button:hover {
-  background-color: #ffffff15;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--accent));
+  background-color: hsl(var(--border));
   opacity: 1;
 }
 
@@ -450,13 +450,13 @@ onUnmounted(() => {
 
 .tab-button-pressed {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .selected-tab-button {
-  border-bottom: solid 2px var(--white);
+  border-bottom: solid 2px hsl(var(--border));
   width: 100%;
   opacity: 1;
 }
@@ -466,7 +466,7 @@ onUnmounted(() => {
 }
 
 .selected-tab-button:hover {
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
 
 }
 
@@ -477,12 +477,12 @@ onUnmounted(() => {
 
 .upload-image {
   background-color: rgb(82, 81, 81);
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   cursor: pointer;
   display: flex;
   padding: 14px 90px;
-  border-radius: 6px;
-  color: var(--white);
+  border-radius: var(--small-radius);
+  color: hsl(var(--foreground));
   flex-direction: row;
   font-weight: 500;
   gap: 10px;
@@ -515,7 +515,7 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: flex-start;
   gap: .4px;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 </style>
 

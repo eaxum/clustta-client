@@ -506,20 +506,20 @@ watch(() => route.query, () => {
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   overflow-y: auto;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .discover-header {
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: hsl(var(--accent));
   position: sticky;
   top: 0;
   z-index: 99999;
@@ -543,7 +543,7 @@ watch(() => route.query, () => {
 .discover-title-section {
   text-align: center;
   margin-bottom: 1rem;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   width: 100%;
 }
 
@@ -551,19 +551,19 @@ watch(() => route.query, () => {
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 3.5rem;
   font-weight: 700;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0 0 0.5rem 0;
 }
 
 .discover-subtitle {
   font-size: 1rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0 0 1.5rem 0;
 }
 
 /* Search */
 .search-container {
-    /* background-color: forestgreen; */
+    /* background-color: hsl(var(--success)); */
     width: 90%;
   max-width: 90%;
   margin: 0 auto;
@@ -571,12 +571,12 @@ watch(() => route.query, () => {
 
 /* Filters */
 .filters-section {
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
   box-sizing: border-box;
   border-radius: var(--large-radius);
   padding: 1rem 1.25rem;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   width: 100%;
 }
 
@@ -604,7 +604,7 @@ watch(() => route.query, () => {
   gap: 0.5rem;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: var(--transparent-line);
+  border-top: 1px solid hsl(var(--border));
   flex-wrap: wrap;
 }
 
@@ -628,7 +628,7 @@ watch(() => route.query, () => {
 
 .results-count {
   font-size: 0.9rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .results-controls {
@@ -666,14 +666,14 @@ watch(() => route.query, () => {
   justify-content: center;
   padding: 4rem 2rem;
   text-align: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.1);
-  border-top-color: var(--white);
+  border-top-color: hsl(var(--foreground));
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -695,7 +695,7 @@ watch(() => route.query, () => {
 .empty-container h2 {
   font-size: 1.25rem;
   font-weight: 500;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0 0 0.5rem 0;
 }
 
@@ -711,7 +711,7 @@ watch(() => route.query, () => {
   align-items: center;
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: var(--transparent-line);
+  border-top: 1px solid hsl(var(--border));
 }
 
 .pagination-info {
@@ -727,7 +727,7 @@ watch(() => route.query, () => {
 
 .pagination-current {
   font-size: 0.85rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 /* Responsive */
@@ -772,13 +772,13 @@ watch(() => route.query, () => {
 }
 
 .discover-root::-webkit-scrollbar-track {
-  background: var(--midnight-steel);
+  background: hsl(var(--card));
   border-radius: 5px;
 }
 
 .discover-root::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.15);
-  background: var(--steel);
+  background-color: hsl(var(--accent));
+  background: hsl(var(--accent));
   border-radius: 5px;
   transition: background-color 0.2s;
 }
@@ -792,6 +792,6 @@ watch(() => route.query, () => {
 }
 
 .discover-root::-webkit-scrollbar-corner {
-  background: var(--black);
+  background: hsl(var(--background));
 }
 </style>

@@ -37,7 +37,7 @@ const platformStore = usePlatformStore()
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: var(--black-steel);
+    background-color: hsl(var(--background));
     box-sizing: border-box;
     overflow: hidden;
     position: relative;
@@ -49,7 +49,7 @@ const platformStore = usePlatformStore()
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--black-steel);
+    background-color: hsl(var(--background));
 }
 
 .page-root{
@@ -59,7 +59,7 @@ const platformStore = usePlatformStore()
   align-items: center;
   height: 100%;
   flex-direction: column;
-  background-color: var(--black);
+  background-color: hsl(var(--background));
   overflow: hidden;
   overflow-y: auto;
 }
@@ -73,7 +73,7 @@ const platformStore = usePlatformStore()
   max-width: min-content;
   width: 100%;
   justify-content: space-around;
-  gap: 2rem;
+  gap: 3rem;
   box-sizing: border-box;
 }
 
@@ -81,7 +81,6 @@ const platformStore = usePlatformStore()
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-width: 400px;
   box-sizing: border-box;
   overflow: hidden;
   height: max-content;
@@ -94,7 +93,6 @@ const platformStore = usePlatformStore()
   justify-content: center;
   align-items: center;
   width: min-content;
-  min-width: 350px;
   min-width: 400px;
   box-sizing: border-box;
   overflow: hidden;
@@ -103,17 +101,17 @@ const platformStore = usePlatformStore()
 
 .auth-header {
   font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: 4rem;
-  font-weight: 600;
-  line-height: 90%;
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
   width: max-content;
   text-align: left;
-  color: var(--white);
+  color: hsl(var(--foreground));
   height: max-content;
-  min-width: 330px;
+  min-width: 300px;
   width: 100%;
   text-wrap: wrap;
-  /* background-color: crimson; */
+  letter-spacing: -0.025em;
 }
 
 .auth-form-container {
@@ -144,7 +142,7 @@ const platformStore = usePlatformStore()
   flex-direction: column;
   gap: 0px;
   width: 100%;
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
   align-items: center;
   /* padding: .2rem; */
   box-sizing: border-box;
@@ -154,7 +152,7 @@ const platformStore = usePlatformStore()
 .toggle-button {
   background: none;
   border: none;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-weight: 300;
   cursor: pointer;
   transition: color 0.2s;
@@ -167,7 +165,7 @@ const platformStore = usePlatformStore()
 
 .error-message {
   margin-top: .5rem;
-  color: #dc2626;
+  color: hsl(var(--destructive));
   text-align: center;
   font-size: 0.875rem;
   font-weight: 300;
@@ -179,49 +177,38 @@ const platformStore = usePlatformStore()
 .submit-button-icon {
   box-sizing: border-box;
   display: flex;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   max-width: 30px;
   max-height: 30px;
 }
 
 .compound-form-input{
   box-sizing: border-box;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   width: 100%;
-  height: 40px;
-  border-radius: var(--normal-radius);
+  height: 36px;
+  border-radius: calc(var(--radius) - 2px);
   padding-right: .2rem;
   display: flex;
   overflow: hidden;
   gap: .2rem;
-  background-color: var(--midnight-steel);
+  background-color: transparent;
+  border: 1px solid hsl(var(--input));
   align-items: center;
 }
 
 .form-input-mini {
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
   border: 0px;
-  border-radius: 4px;
-  font-size: 1rem;
+  font-size: 0.875rem;
   width: 100%;
   height: 100%;
-  padding: 0.75rem;
-  background-color: var(--midnight-steel);
-  
+  padding: 0.5rem 0.75rem;
+  background-color: transparent;
   font-family: 'Inter', sans-serif;
-  /* font-weight: 200; */
-  box-sizing: border-box;
-  font-size: 16px;
-  border-radius: 12px;
-  padding: 10px;
-  border: 0px;
-  border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
 }
 
 .form-input-icon {
@@ -232,7 +219,7 @@ const platformStore = usePlatformStore()
   flex: 1;
   box-sizing: border-box;
   border: 0px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   font-size: 1rem;
   width: 100%;
   height: 100%;
@@ -262,48 +249,43 @@ const platformStore = usePlatformStore()
 
 .form-input {
   box-sizing: border-box;
-  border-radius: 4px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+  font-size: 0.875rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   width: 100%;
-  height: 50px;
-  border-radius: var(--normal-radius);
-  padding: 0.75rem;
+  height: 36px;
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0.5rem 0.75rem;
 }
 
 .submit-button {
-  font-size: x-large;
-  background-color: var(--grape);
-  color: var(--white);
-  color: white;
-  padding: 0.75rem;
-  height: 40px;
+  font-size: 0.875rem;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  padding: 0 1rem;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   border: none;
-  border-radius: var(--large-radius);
+  border-radius: calc(var(--radius) - 2px);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s, border-radius 0.2s;
-  font-family: 'Bricolage Grotesque', sans-serif;
-  font-weight: 600;
-  line-height: 90%;
+  transition: opacity 0.15s ease;
+  font-family: 'Inter', sans-serif;
 }
 
 .submit-button:hover {
-  background-color: var(--bright-grape);
-  border-radius: var(--normal-radius);
+  opacity: 0.9;
 }
 
 .button-inactive{
-  opacity: .5;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .button-inactive:hover{
-  background-color: var(--grape);
+  opacity: 0.5;
 }
 
 input.error {
@@ -346,13 +328,13 @@ input.error {
 .photo-container{
   width: 100%;
   height: 100%;
-  background-color: var(--grape);
+  background-color: hsl(var(--muted));
 }
 
 .photo-overlay{
   width: 100%;
   height: 100%;
-  background-color: black;
+  background-color: hsl(var(--background) / 0.5);
   opacity: 0;
   position: absolute;
 }
@@ -388,7 +370,7 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
   cursor: pointer;
   gap: 1rem;
 }

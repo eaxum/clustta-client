@@ -141,13 +141,13 @@ const handleClick = () => {
 
 .notification-title {
   font-weight: 500;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
 }
 
 .notification-message {
   font-size: 13px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   line-height: 1.4;
   font-weight: 400;
 }

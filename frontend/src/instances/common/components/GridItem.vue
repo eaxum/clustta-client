@@ -267,7 +267,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   margin: 0 auto;
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-sizing: border-box;
   width: 100%;
 }
@@ -276,7 +276,7 @@ onBeforeUnmount(() => {
   position: absolute;
   width: 100%;
   box-sizing: border-box;
-  border-left: var(--transparent-line);
+  border-left: 1px solid hsl(var(--border));
   left: 15px;
 }
 
@@ -297,7 +297,7 @@ onBeforeUnmount(() => {
   height: 100%;
   position: absolute;
   opacity: .3;
-  background-color: var(--drop-hover);
+  background-color: hsl(var(--primary));
 }
 
 
@@ -310,7 +310,7 @@ onBeforeUnmount(() => {
   padding-left: 30px;
   box-sizing: border-box;
   overflow: hidden;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   /* padding-right: 1px; */
 }
 </style>

@@ -441,14 +441,7 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	/* background-color: khaki;
-    background-color: firebrick; */
-	color: var(--white);
-	flex-direction: column;
-}
 
-.project-item {
-	opacity: 0;
 	animation: fadeIn .2s ease-in-out forwards;
 }
 
@@ -481,7 +474,6 @@ onUnmounted(() => {
 
 .project-list-divider {
 	display: flex;
-	/* background-color: hotpink; */
 	width: 100%;
 	align-items: center;
 	justify-content: space-between;
@@ -504,9 +496,9 @@ onUnmounted(() => {
 	overflow: hidden;
 	/* overflow-y: scroll; */
 	height: 100%;
-	background-color: tomato;
+	background-color: hsl(var(--destructive));
 	border-radius: var(--very-large-radius);
-	background-color: var(--black-steel);
+	background-color: hsl(var(--background));
 	width: 100%;
 	box-sizing: border-box;
 	min-width: 300px;
@@ -517,12 +509,12 @@ onUnmounted(() => {
 }
 
 .project-list-root::-webkit-scrollbar-thumb {
-	border-radius: 4px;
-	background-color: var(--dark-steel);
+	border-radius: var(--tiny-radius);
+	background-color: hsl(var(--muted));
 }
 
 .project-list-root::-webkit-scrollbar-track {
-	border-radius: 4px;
+	border-radius: var(--tiny-radius);
 }
 
 .project-list-root {
@@ -530,8 +522,8 @@ onUnmounted(() => {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	/* background-color: firebrick; */
-	color: var(--white);
+	/* background-color: hsl(var(--destructive)); */
+	color: hsl(var(--foreground));
 	width: 100%;
 	/* min-width: max-content; */
 	/* max-width: 300px; */
@@ -544,9 +536,9 @@ onUnmounted(() => {
 }
 
 .project-list-root-hover-drop {
-	background-color: #1e7fee6c;
-	outline: 1px solid rgb(255, 255, 255);
-	outline-offset: -1px;
+	background-color: hsl(var(--primary) / 0.15);
+	border: 1px solid hsl(var(--primary));
+	
 }
 
 .project-list-container {
@@ -554,8 +546,8 @@ onUnmounted(() => {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	/* background-color: firebrick; */
-	color: var(--white);
+	/* background-color: hsl(var(--destructive)); */
+	color: hsl(var(--foreground));
 	width: 100%;
 	/* height: 100%; */
 	box-sizing: border-box;
@@ -571,12 +563,12 @@ onUnmounted(() => {
 }
 
 .project-list-container::-webkit-scrollbar-thumb {
-	border-radius: 8px;
-	background-color: var(--dark-steel);
+	border-radius: var(--normal-radius);
+	background-color: hsl(var(--muted));
 }
 
 .project-list-container::-webkit-scrollbar-track {
-	border-radius: 8px;
+	border-radius: var(--normal-radius);
 	margin: 10px;
 }
 

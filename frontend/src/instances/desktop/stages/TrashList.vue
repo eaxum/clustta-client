@@ -238,7 +238,7 @@ onBeforeUnmount(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: hsl(var(--foreground));
   /* background-color: darkblue; */
 }
 
@@ -246,7 +246,7 @@ onBeforeUnmount(async () => {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   width: 100%;
   height: 100%;
   gap: .5rem;
@@ -268,7 +268,6 @@ onBeforeUnmount(async () => {
   height: 100%;
   display: flex;
   box-sizing: border-box;
-  /* background-color: teal; */
   align-items: flex-start;
   justify-content: flex-start;
   justify-content: center;
@@ -278,7 +277,7 @@ onBeforeUnmount(async () => {
 
 .trash-list-stage-body-root {
 
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
   max-width: 960px;
   position: relative;
   display: flex;
@@ -296,12 +295,12 @@ onBeforeUnmount(async () => {
 }
 
 .trash-list-stage-body-root::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--dark-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--muted));
 }
 
 .trash-list-stage-body-root::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .trash-list-stage-body-container {
@@ -313,7 +312,7 @@ onBeforeUnmount(async () => {
   display: flex;
   box-sizing: border-box;
   flex-direction: column;
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
   align-items: flex-start;
   justify-content: flex-start;
   overflow: hidden;
@@ -350,12 +349,12 @@ onBeforeUnmount(async () => {
 }
 
 .page-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   background-color: rgb(36, 49, 59);
 }
 
 .page-list-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .page-header {
@@ -366,7 +365,6 @@ onBeforeUnmount(async () => {
   height: max-content;
   gap: 1rem;
   justify-content: space-between;
-  background-color: khaki;
   padding: .2rem;
   box-sizing: border-box;
   min-width: max-content;

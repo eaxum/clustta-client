@@ -47,9 +47,9 @@ const props = defineProps({
   text-align: center;
   font-size: 14px;
   line-height: 14px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   position: relative;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
@@ -61,7 +61,7 @@ const props = defineProps({
   min-width: max-content;
   opacity: .4;
   transition: all 0.3s ease;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 
 }
 
@@ -71,27 +71,27 @@ const props = defineProps({
 
 .action-button:hover{
   opacity: 7;
-  /* background-color: #ffffff15; */
+  /* background-color: hsl(var(--accent)); */
 }
 .action-button:active{
   opacity: 1;
-  /* background-color: #00000013; */
+  /* background-color: hsl(var(--accent)); */
 }
 
 .action-button-pressed {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .button-background{
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
   border-radius: var(--small-radius);
   padding: .3rem 1rem;
 }
 .full-width{
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   /* padding: 1.2rem .5rem; */
   width: 100%;
 }

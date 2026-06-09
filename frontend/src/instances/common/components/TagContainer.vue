@@ -113,7 +113,7 @@ onMounted(()=>{
 .tag-chip-wrapper-parent-closed{
   height: 0px;
   padding: 0;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 
 }
 
@@ -123,7 +123,7 @@ onMounted(()=>{
   /* border-radius: 8px; */
   min-height: 32px;
   line-height: 1.4 !important;
-  /* background-color: #fff; */
+  /* background-color: hsl(var(--foreground)); */
   /* overflow: unset; */
   overflow-x: scroll;
   text-align: left;
@@ -148,14 +148,13 @@ onMounted(()=>{
 }
 
 .tag-chip:hover {
-  background-color: red;
+  background-color: hsl(var(--destructive));
   background-color: rgb(110, 163, 241);
   background-color: #ffffff17;
 }
 
 .selected-tag {
 
-  background-color: darkmagenta;
 }
 
 .query-tag {

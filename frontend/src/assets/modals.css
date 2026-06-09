@@ -1,5 +1,5 @@
 .input-alert{
-    /* background-color: red; */
+    /* background-color: hsl(var(--destructive)); */
     padding: 0 .8rem;
     color: rgb(255, 54, 94);
 }

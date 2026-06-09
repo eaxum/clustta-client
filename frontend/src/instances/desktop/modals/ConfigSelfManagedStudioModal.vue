@@ -315,9 +315,9 @@ onMounted(async () => {
   font-weight: 300;
   width: 100%;
   padding: 1rem;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   flex-direction: column;
   /* line-height: 1.6; */
@@ -346,7 +346,7 @@ onMounted(async () => {
 .env-usage-text {
   font-size: 14px;
   font-weight: 400;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .input-section {
@@ -356,7 +356,7 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: flex-start;
   gap: 0.5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .input-label-row {
@@ -393,7 +393,7 @@ onMounted(async () => {
   align-self: stretch;
   width: 464px;
   color: rgba(16, 24, 40, 1);
-  color: white;
+  color: hsl(var(--foreground));
   font-size: 18px;
   line-height: 28px;
   letter-spacing: 0%;
@@ -411,7 +411,7 @@ onMounted(async () => {
 .input-count {
   background-color: none;
   font-size: 14px;
-  color: white;
+  color: hsl(var(--foreground));
 }
 
 .modal-subtitle {
@@ -420,7 +420,7 @@ onMounted(async () => {
   align-self: stretch;
   width: 464px;
   color: rgba(16, 24, 40, 1);
-  color: white;
+  color: hsl(var(--foreground));
   font-size: 14px;
   /* line-height: 28px; */
   letter-spacing: 0%;
@@ -488,13 +488,13 @@ onMounted(async () => {
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
   font-size: 16px;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
   padding: 10px;
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
   display: flex;
 }
 
@@ -508,7 +508,7 @@ onMounted(async () => {
   outline: none;
   background-color: transparent;
   width: min-content;
-  background-color: crimson;
+  background-color: hsl(var(--destructive));
 }
 
 .compound-input-append{
@@ -518,7 +518,7 @@ onMounted(async () => {
 }
 
 [data-theme="dark"] .input-short{
-  font-weight: 200;
+  font-weight: 300;
 }
 
 .listbox-short {
@@ -529,7 +529,7 @@ onMounted(async () => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   font-weight: 500;
   white-space: nowrap;
@@ -559,7 +559,7 @@ onMounted(async () => {
 .studio-info-label {
   font-size: 12px;
   font-weight: 500;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.7;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -567,10 +567,10 @@ onMounted(async () => {
 
 .studio-info-value {
   font-size: 16px;
-  color: var(--white);
-  background-color: var(--midnight-steel);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   word-break: break-word;
 }
 
@@ -606,10 +606,10 @@ onMounted(async () => {
 
 .secret-key-input {
   width: 100%;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
   border: none;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   padding: 10px 12px;
   font-family: 'Courier New', monospace;
   font-size: 14px;
@@ -653,9 +653,9 @@ onMounted(async () => {
   box-sizing: border-box;
   width: 100%;
   height: min-content;
-  background-color: var(--midnight-steel);
-  color: var(--white);
-  border-radius: 8px;
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  border-radius: var(--normal-radius);
   padding: 8px;
 }
 
@@ -666,7 +666,7 @@ onMounted(async () => {
 .env-file-textarea {
   width: 100%;
   min-height: 140px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   border: none;
   font-family: 'Courier New', monospace;
   background-color: transparent;
@@ -680,7 +680,7 @@ onMounted(async () => {
   overflow: hidden;
   box-sizing: border-box;
   overflow-x: auto;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   cursor: pointer;
 }
 
@@ -689,8 +689,8 @@ onMounted(async () => {
 }
 
 .env-file-textarea::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--accent));
 }
 
 .studio-info-text {
@@ -698,7 +698,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   padding: .5rem 0;
   box-sizing: border-box;

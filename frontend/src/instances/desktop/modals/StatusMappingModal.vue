@@ -220,7 +220,7 @@ onMounted(async () => {
 
 .general-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--bright-steel);
+  background-color: hsl(var(--muted-foreground));
 }
 
 .general-container::-webkit-scrollbar-track {
@@ -232,7 +232,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .empty-state {
@@ -253,12 +253,12 @@ onMounted(async () => {
 .empty-title {
   font-size: 1rem;
   font-weight: 600;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .empty-description {
   font-size: 0.875rem;
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
 }
 
 .mapping-content {
@@ -276,15 +276,15 @@ onMounted(async () => {
 
 .section-description {
   font-size: 0.875rem;
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
   margin: 0;
 }
 
 .mapping-table {
   display: flex;
   flex-direction: column;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--large-radius);
   overflow: hidden;
 }
@@ -292,10 +292,10 @@ onMounted(async () => {
 .table-header {
   display: flex;
   padding: 0.75rem 1rem;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
   text-transform: uppercase;
 }
 
@@ -312,18 +312,18 @@ onMounted(async () => {
 
 .table-body::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--bright-steel);
+  background-color: hsl(var(--muted-foreground));
 }
 
 .mapping-row {
   display: flex;
   padding: 0.75rem 1rem;
-  border-top: 1px solid var(--steel);
+  border-top: 1px solid hsl(var(--border));
   align-items: center;
 }
 
 .mapping-row:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
 }
 
 .col-local {
@@ -346,7 +346,7 @@ onMounted(async () => {
 
 .type-name {
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .warning-banner {
@@ -355,10 +355,10 @@ onMounted(async () => {
   gap: 0.5rem;
   padding: 0.75rem 1rem;
   background-color: rgba(255, 193, 7, 0.1);
-  border: 1px solid var(--attention);
+  border: 1px solid hsl(var(--destructive));
   border-radius: var(--small-radius);
   font-size: 0.875rem;
-  color: var(--attention);
+  color: hsl(var(--destructive));
 }
 
 .warning-icon {

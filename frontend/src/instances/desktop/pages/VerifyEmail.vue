@@ -358,7 +358,7 @@ onMounted(async () => {
   font-family: 'Inter', sans-serif;
   font-size: 1rem;
   font-weight: 300;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   margin-top: 0.5rem;
   text-align: left;
   width: 100%;
@@ -379,21 +379,21 @@ onMounted(async () => {
   text-align: center;
   font-size: 1.5rem;
   font-weight: 600;
-  border: 2px solid var(--midnight-steel);
-  border-radius: var(--normal-radius);
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  border: 2px solid hsl(var(--input));
+  border-radius: var(--radius);
+  background-color: transparent;
+  color: hsl(var(--foreground));
   outline: none;
   transition: border-color 0.2s ease, background-color 0.2s ease;
 }
 
 .token-digit-input:focus {
-  border-color: var(--grape);
-  background-color: var(--black-steel);
+  border-color: hsl(var(--primary));
+  background-color: hsl(var(--background));
 }
 
 .token-digit-input:valid {
-  border-color: var(--bright-grape);
+  border-color: hsl(var(--primary) / 0.3);
 }
 
 .token-input {
@@ -422,18 +422,18 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--grape);
+  color: hsl(var(--primary));
   cursor: pointer;
   font-weight: 500;
   transition: color 0.2s;
   padding: 0.5rem;
-  border-radius: var(--normal-radius);
+  border-radius: var(--radius);
   border: 1px solid transparent;
 }
 
 .resend-container:hover:not(.disabled) {
-  color: var(--bright-grape);
-  border-color: var(--grape);
+  color: hsl(var(--primary) / 0.3);
+  border-color: hsl(var(--primary));
 }
 
 .resend-container.disabled {
@@ -445,7 +445,7 @@ onMounted(async () => {
 .loading-status {
   text-align: center;
   font-size: 0.85rem;
-  color: var(--white);
+  color: hsl(var(--muted-foreground));
   opacity: 0.7;
   margin-top: 0.5rem;
   animation: pulse 1.5s ease-in-out infinite;

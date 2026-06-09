@@ -235,7 +235,7 @@ onMounted(async () => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: hsl(var(--foreground));
   white-space: nowrap;
   flex: 1;
 }
@@ -247,7 +247,7 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: flex-start;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .settings-section-card{

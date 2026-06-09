@@ -76,7 +76,6 @@ const props = defineProps({
 	height: max-content;
 	gap: 1rem;
 	justify-content: space-between;
-	/* background-color: khaki; */
 	padding: .2rem;
 	box-sizing: border-box;
 	min-width: max-content;
@@ -89,7 +88,7 @@ const props = defineProps({
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
+	/* background-color: hsl(var(--background)); */
 }
 
 .action-bar{
@@ -100,7 +99,7 @@ const props = defineProps({
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
+	/* background-color: hsl(var(--background)); */
 }
 .view-options{
 	display: flex;
@@ -109,7 +108,6 @@ const props = defineProps({
 	padding: .2rem;
 	width: max-content;
 	height: max-content;
-	/* background-color: darkorange; */
 }
 </style>
 

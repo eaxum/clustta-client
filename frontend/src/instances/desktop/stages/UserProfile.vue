@@ -941,8 +941,8 @@ onBeforeMount(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background-color: var(--black-steel); */
-  color: var(--white);
+  /* background-color: hsl(var(--background)); */
+  color: hsl(var(--foreground));
   /* border-radius: 12px; */
 }
 
@@ -965,7 +965,6 @@ onBeforeMount(async () => {
   justify-content: center;
   overflow-y: auto;
   padding: 0.5rem;
-  /* background-color: royalblue; */
   /* padding-bottom: 200px; */
 }
 
@@ -974,12 +973,12 @@ onBeforeMount(async () => {
 }
 
 .user-profile-body::-webkit-scrollbar-thumb {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 3px;
 }
 
 .user-profile-body::-webkit-scrollbar-track {
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   border-radius: 3px;
 }
 
@@ -991,7 +990,6 @@ onBeforeMount(async () => {
   gap: 1.5rem;
   padding: 1rem;
   box-sizing: border-box;
-  /* background-color: hotpink; */
   height: 100%;
   height: min-content;
   border-radius: 0px;
@@ -1012,13 +1010,13 @@ onBeforeMount(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 0.75rem;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--normal-radius);
 }
 
 .visibility-label {
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-weight: 400;
   user-select: none;
 }
@@ -1071,14 +1069,14 @@ onBeforeMount(async () => {
   font-size: 2rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .profile-title {
   font-size: 1.25rem;
   margin: 0 0 1rem 0;
   font-weight: 400;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 /* Meta Info (Location & Availability) */
@@ -1096,7 +1094,7 @@ onBeforeMount(async () => {
   gap: 0.5rem;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .availability-badge {
@@ -1104,10 +1102,10 @@ onBeforeMount(async () => {
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+  background-color: hsl(var(--accent));
+  border-radius: var(--small-radius);
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .info-icon {
@@ -1128,7 +1126,7 @@ onBeforeMount(async () => {
 .links-section {
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid hsl(var(--border));
 }
 
 /* Professional Info in Edit Mode */
@@ -1140,7 +1138,7 @@ onBeforeMount(async () => {
 
 .form-label {
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-weight: 400;
 }
 
@@ -1164,15 +1162,15 @@ onBeforeMount(async () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem;
-  background-color: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
+  background-color: hsl(var(--accent));
+  border-radius: var(--very-large-radius);
   transition: all 0.2s ease;
   cursor: pointer;
   min-width: 120px;
 }
 
 .studio-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: hsl(var(--accent));
   transform: translateY(-2px);
 }
 
@@ -1180,7 +1178,7 @@ onBeforeMount(async () => {
   width: 64px;
   height: 64px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
 }
 
 .studio-icon-default {
@@ -1189,7 +1187,7 @@ onBeforeMount(async () => {
 
 .studio-name {
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   text-align: center;
   font-weight: 400;
   line-height: 1.2;
@@ -1210,11 +1208,11 @@ onBeforeMount(async () => {
   padding: 1rem;
   background-color: rgba(220, 38, 38, 0.1);
   border-radius: var(--normal-radius);
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  border: 1px solid hsl(var(--destructive) / 0.3);
 }
 
 .danger-message {
-    color: var(--white);
+    color: hsl(var(--foreground));
   margin: 0;
   font-size: 0.875rem;
 }
@@ -1229,10 +1227,10 @@ onBeforeMount(async () => {
   align-items: center;
   gap: 1rem;
   padding: 1rem 1.5rem;
-  background: linear-gradient(135deg, var(--black-steel) 0%, var(--dark-steel) 100%);
+  background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted)) 100%);
   border-radius: 50px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid hsl(var(--border));
   z-index: 1000;
   animation: slideUp 0.3s ease-out;
   backdrop-filter: blur(10px);

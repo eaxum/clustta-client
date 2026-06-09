@@ -238,13 +238,13 @@ onMounted(() => {
   align-items: center;
   height: 100%;
   flex-direction: column;
-  background-color: var(--black);
+  background-color: hsl(var(--background));
   overflow: hidden;
   overflow-y: auto;
 }
 
 .auth-subheader {
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   font-size: 14px;
   text-align: center;
   margin-top: 0.5rem;
@@ -293,7 +293,7 @@ onMounted(() => {
   line-height: 90%;
   width: max-content;
   text-align: left;
-  color: var(--white);
+  color: hsl(var(--foreground));
   height: max-content;
   min-width: 330px;
   width: 100%;
@@ -325,7 +325,7 @@ onMounted(() => {
 
 .compound-form-input {
   box-sizing: border-box;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   font-size: 1rem;
   transition: border-color 0.2s;
   width: 100%;
@@ -335,35 +335,35 @@ onMounted(() => {
   display: flex;
   overflow: hidden;
   gap: .2rem;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   align-items: center;
 }
 
 .form-input-mini {
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
   border: 0px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   font-size: 1rem;
   width: 100%;
   height: 100%;
   padding: 0.75rem;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
   font-size: 16px;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
   padding: 10px;
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--midnight-steel);
-  color: var(--white);
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
 }
 
 .error-message {
   margin-top: .5rem;
-  color: #dc2626;
+  color: hsl(var(--destructive));
   text-align: center;
   font-size: 0.875rem;
   font-weight: 300;
@@ -374,9 +374,9 @@ onMounted(() => {
 
 .submit-button {
   font-size: x-large;
-  background-color: var(--grape);
-  color: var(--white);
-  color: white;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
+  color: hsl(var(--foreground));
   padding: 0.75rem;
   height: 50px;
   display: flex;
@@ -391,7 +391,7 @@ onMounted(() => {
 }
 
 .submit-button:hover {
-  background-color: var(--bright-grape);
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .button-inactive {
@@ -400,7 +400,7 @@ onMounted(() => {
 }
 
 .button-inactive:hover {
-  background-color: var(--grape);
+  background-color: hsl(var(--primary));
 }
 
 input.error {
@@ -412,7 +412,7 @@ input.error {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
   cursor: pointer;
   gap: 1rem;
 }

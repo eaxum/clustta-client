@@ -44,10 +44,10 @@ defineProps({
   flex: 1;
   min-width: 0;
   padding: 1.2rem;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
   border-radius: var(--very-large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   box-sizing: border-box;
 }
 
@@ -65,20 +65,20 @@ defineProps({
 
 .metric-card-title {
   font-size: 0.8rem;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   font-weight: 400;
 }
 
 .metric-card-value {
   font-size: 1.6rem;
   font-weight: 600;
-  color: var(--white);
+  color: hsl(var(--foreground));
   line-height: 1.2;
 }
 
 .metric-card-subtitle {
   font-size: 0.75rem;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   opacity: 0.8;
 }
 
@@ -89,7 +89,7 @@ defineProps({
 .progress-bar-track {
   width: 100%;
   height: 4px;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 2px;
   overflow: hidden;
 }

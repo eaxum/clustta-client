@@ -203,7 +203,7 @@ onBeforeUnmount(() => {
 .ghost-item-backdrop{
   width: 300px;
   height: 60px;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   border-radius: var(--large-radius);
 }
 
@@ -222,13 +222,13 @@ onBeforeUnmount(() => {
   width: 98%;
   height: 60px;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .depth-1 {
@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
   top: 0;
   left: 0;
   z-index: 3;
-  outline-offset: -1px;
+  
   padding: 1rem;
   box-sizing: border-box;
 }

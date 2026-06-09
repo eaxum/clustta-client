@@ -332,7 +332,7 @@ onMounted(() => {
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -343,7 +343,7 @@ onMounted(() => {
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: hsl(var(--accent));
   position: sticky;
   top: 0;
   z-index: 99999;
@@ -376,8 +376,8 @@ onMounted(() => {
 }
 
 .back-nav-btn:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  color: var(--white);
+  background-color: hsl(var(--accent));
+  color: hsl(var(--foreground));
 }
 
 .back-icon {
@@ -391,12 +391,12 @@ onMounted(() => {
 }
 
 .public-profile-root::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .public-profile-root::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .loading-container {
@@ -405,7 +405,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  color: var(--white);
+  color: hsl(var(--foreground));
   gap: 1rem;
 }
 
@@ -413,7 +413,7 @@ onMounted(() => {
   width: 40px;
   height: 40px;
   border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--white);
+  border-top-color: hsl(var(--foreground));
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -428,7 +428,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  color: var(--white);
+  color: hsl(var(--foreground));
   gap: 1rem;
   text-align: center;
   padding: 2rem;
@@ -493,12 +493,12 @@ onMounted(() => {
 .profile-name {
   font-size: 1.5rem;
   font-weight: 600;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .profile-title {
   font-size: 1rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.7;
 }
 
@@ -513,7 +513,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.7;
   font-size: 0.875rem;
 }
@@ -531,7 +531,7 @@ onMounted(() => {
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .social-links {
@@ -550,14 +550,14 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--normal-radius);
 }
 
 .studio-logo {
   width: 24px;
   height: 24px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   object-fit: cover;
 }
 
@@ -567,7 +567,7 @@ onMounted(() => {
 }
 
 .studio-name {
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 0.875rem;
 }
 

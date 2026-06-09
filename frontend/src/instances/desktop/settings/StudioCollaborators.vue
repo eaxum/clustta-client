@@ -120,12 +120,12 @@ onMounted( async () => {
   width: 96%;
   gap: .5rem;
   align-items: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
   /* justify-content: space-between; */
   border-radius: var(--gigantic-radius);
   padding: 1rem;
-  background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--destructive));
+  background-color: hsl(var(--background));
 }
 
 .project-list {
@@ -144,9 +144,9 @@ onMounted( async () => {
 	overflow: hidden;
 	/* overflow-y: scroll; */
 	height: 100%;
-	background-color: tomato;
-	border-radius: var(--large-radius);
-	background-color: var(--black-steel);
+	background-color: hsl(var(--destructive));
+	
+	background-color: hsl(var(--background));
 	width: 100%;
 	box-sizing: border-box;
 	min-width: 300px;
@@ -157,12 +157,12 @@ onMounted( async () => {
 }
 
 .project-list-root::-webkit-scrollbar-thumb {
-	border-radius: 10px;
-	background-color: var(--dark-steel);
+	border-radius: var(--large-radius);
+	background-color: hsl(var(--border));
 }
 
 .project-list-root::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: var(--large-radius);
 }
 
 .project-list-root {
@@ -170,8 +170,8 @@ onMounted( async () => {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	/* background-color: firebrick; */
-	color: white;
+	/* background-color: hsl(var(--destructive)); */
+	color: hsl(var(--foreground));
 	width: 100%;
 	/* min-width: max-content; */
 	/* max-width: 300px; */
@@ -188,8 +188,8 @@ onMounted( async () => {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	/* background-color: firebrick; */
-	color: white;
+	/* background-color: hsl(var(--destructive)); */
+	color: hsl(var(--foreground));
 	width: 100%;
 	/* height: 100%; */
 	box-sizing: border-box;
@@ -205,12 +205,12 @@ onMounted( async () => {
 }
 
 .project-list-container::-webkit-scrollbar-thumb {
-	border-radius: 10px;
-	background-color: var(--dark-steel);
+	border-radius: var(--large-radius);
+	background-color: hsl(var(--border));
 }
 
 .project-list-container::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: var(--large-radius);
 }
 
 .asset-header {
@@ -221,7 +221,6 @@ onMounted( async () => {
 	height: max-content;
 	gap: 1rem;
 	justify-content: space-between;
-	/* background-color: khaki; */
 	padding: .2rem;
 	box-sizing: border-box;
 	min-width: max-content;
@@ -235,7 +234,7 @@ onMounted( async () => {
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
+	/* background-color: hsl(var(--background)); */
 }
 
 .action-bar {
@@ -246,7 +245,7 @@ onMounted( async () => {
 	width: max-content;
 	height: max-content;
 	padding: .2rem;
-	/* background-color: black; */
+	/* background-color: hsl(var(--background)); */
 }
 
 .view-options {
@@ -256,7 +255,6 @@ onMounted( async () => {
 	padding: .2rem;
 	width: max-content;
 	height: max-content;
-	/* background-color: darkorange; */
 }
 
 </style>

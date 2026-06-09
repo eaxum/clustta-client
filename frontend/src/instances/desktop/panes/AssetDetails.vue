@@ -557,7 +557,7 @@ onBeforeUnmount(() => {
 
 .pane-parameter-section::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .pane-parameter-section::-webkit-scrollbar-track {
@@ -577,7 +577,7 @@ onBeforeUnmount(() => {
   gap: 10px;
   min-height: 30px;
   height: min-content;
-  border-bottom: var(--transparent-line);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .menu-divider {
@@ -619,7 +619,7 @@ onBeforeUnmount(() => {
 .input-label {
 
   font-family: Inter, sans-serif;
-  color: white;
+  color: hsl(var(--foreground));
   font-size: 14px;
   white-space: nowrap;
   flex: 1;
@@ -628,11 +628,9 @@ onBeforeUnmount(() => {
 
 .pop-up-prompt {
   gap: 10px;
-  /* background-color: bisque; */
   align-items: center;
   justify-content: center;
   /* height: 400px; */
-  /* background-color: darkseagreen; */
 }
 
 .action-bar {
@@ -646,8 +644,8 @@ onBeforeUnmount(() => {
   /* justify-content: space-around; */
   height: max-content;
   padding: .2rem;
-  /* background-color: black; */
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--background)); */
+  /* background-color: hsl(var(--destructive)); */
   align-items: flex-start;
   box-sizing: border-box;
 }
@@ -661,7 +659,7 @@ onBeforeUnmount(() => {
 }
 
 .multi-assign {
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
   width: 100%;
   display: flex;
   align-items: flex-start;
@@ -683,10 +681,10 @@ onBeforeUnmount(() => {
 .tag-input-chip {
   display: inline-flex;
   align-items: center;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--large-radius);
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   overflow: hidden;
   height: min-content;
 }
@@ -695,7 +693,7 @@ onBeforeUnmount(() => {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 0.875rem;
   font-weight: 300;
   padding: 0.25rem 0.5rem;

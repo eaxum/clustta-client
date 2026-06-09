@@ -328,7 +328,7 @@ onUnmounted(() => {
 
 .status-section {
   display: flex;
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
   width: 100%;
 }
 
@@ -342,13 +342,12 @@ onUnmounted(() => {
   padding: .4rem .2rem;
   height: 3.2rem;
   overflow: hidden;
-  /* background-color: darkorange; */
   /* flex: 1; */
 }
 
 .status-displayed {
   justify-content: center;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
 
 }
 
@@ -362,16 +361,16 @@ onUnmounted(() => {
   width: 60px;
   padding: .4rem .4rem;
   height: max-content;
-  background-color: firebrick;
+  background-color: hsl(var(--destructive));
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
   transition: all 0.2s ease-out;
 }
 
 .asset-item-status:hover {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   transform: scale(1.03);
 }
 
@@ -383,8 +382,8 @@ onUnmounted(() => {
 
 .desktop-input-long {
   margin-top: 0px;
-  font-weight: 200;
-  color: var(--white);
+  font-weight: 300;
+  color: hsl(var(--foreground));
 }
 
 .input-label {

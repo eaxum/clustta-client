@@ -419,7 +419,7 @@ onUnmounted(() => {
 
 /* Profile and User Item Styles */
 .profile-picture {
-  background-color: black;
+  background-color: hsl(var(--background));
   height: 24px;
   min-width: 24px;
   overflow: hidden;
@@ -442,12 +442,12 @@ onUnmounted(() => {
   width: min-content;
   height: min-content;
   padding: .2rem .2rem .2rem .4rem;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
 .user-item-suggestion {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -456,21 +456,20 @@ onUnmounted(() => {
   width: 100%;
   height: min-content;
   padding: .4rem .8rem .4rem .4rem;
-  /* background-color: var(--steel); */
+  /* background-color: hsl(var(--accent)); */
   border-radius: var(--small-radius);
 }
 
 .user-item-suggestion:hover {
-  background-color: var(--black-steel);
-  /* outline: var(--transparent-line);
-  outline-offset: -1px; */
+  background-color: hsl(var(--background));
+  /* border: 1px solid hsl(var(--border));
+   */
 }
 
 .user-item-meta {
   width: min-content;
   height: min-content;
   display: flex;
-  /* background-color: hotpink; */
   width: 100%;
   justify-items: flex-start;
   flex-direction: column;
@@ -479,7 +478,7 @@ onUnmounted(() => {
 }
 
 .user-item-name {
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
   font-weight: 250;
   width: min-content;
   height: min-content;
@@ -494,7 +493,7 @@ onUnmounted(() => {
 
 .user-item-email {
   font-size: 14px;
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
   opacity: .6;
   width: min-content;
   height: min-content;
@@ -518,7 +517,7 @@ onUnmounted(() => {
   transition: all .2s ease-in-out;
   max-height: 200px;
   overflow: hidden;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .multiple-entries{
@@ -527,17 +526,17 @@ onUnmounted(() => {
 
 .added-users::-webkit-scrollbar {
   width: 6px;
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .added-users::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.295);
-  background-color: var(--steel);
-  border-radius: 6px;
+  background-color: hsl(var(--border));
+  background-color: hsl(var(--accent));
+  border-radius: var(--small-radius);
 }
 
 .added-users::-webkit-scrollbar-track {
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .user-item-wrapper {
@@ -553,7 +552,6 @@ onUnmounted(() => {
 .new-user {
   width: 100%;
   min-height: 35px;
-  background-color: hotpink;
   /* padding: .2rem .4rem; */
   border-radius: var(--small-radius);
 }
@@ -568,32 +566,32 @@ onUnmounted(() => {
   gap: .5rem;
   padding: .3rem;
   box-sizing: border-box;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   border-radius: var(--small-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   overflow-y: auto;
 }
 
 .tag-parent::-webkit-scrollbar {
   width: 8px;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
 }
 
 .tag-parent::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.295);
-  border-radius: 8px;
+  background-color: hsl(var(--border));
+  border-radius: var(--normal-radius);
 }
 
 .tag-parent::-webkit-scrollbar-track {
-  background-color: rgba(0, 0, 0, 0.295);
-  border-radius: 8px;
+  background-color: transparent;
+  border-radius: var(--normal-radius);
 }
 
 .tag-item {
   width: 100%;
   padding: 10px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   outline: solid 1px #2e2e2e;
   border-radius: var(--small-radius);
   box-sizing: border-box;
@@ -632,17 +630,17 @@ onUnmounted(() => {
   padding: .1rem;
   max-height: 50vh;
   border-radius: var(--normal-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   overflow-y: auto;
 }
 
 [data-theme="dark"] .search-container{
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
 }
 
 .search-container:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .input-field {
@@ -654,12 +652,11 @@ onUnmounted(() => {
   font-family: Inter, sans-serif;
   font-size: 14px;
   font-weight: 300;
-  color: var(--white);
+  color: hsl(var(--foreground));
   background: transparent;
   border: 0;
   outline: none;
   white-space: nowrap;
-  /* background-color: hotpink; */
   width: 100%;
   box-sizing: border-box;
 }
@@ -678,19 +675,19 @@ onUnmounted(() => {
 .user-type-indicator {
   font-size: 10px;
   padding: 2px 6px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   text-transform: uppercase;
   font-weight: 500;
 }
 
 .user-type-user {
   background-color: #FFA500;
-  color: white;
+  color: hsl(var(--foreground));
 }
 
 .user-type-new {
   background-color: #2D9CDB;
-  color: white;
+  color: hsl(var(--foreground));
 }
 
 /* Animations */

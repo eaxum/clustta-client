@@ -292,20 +292,20 @@ const remainingTools = computed(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 .user-list-card {
-    background-color: var(--black-steel);
+    background-color: hsl(var(--background));
     border-radius: var(--very-large-radius);
     border-radius: var(--gigantic-radius);
-    outline: var(--transparent-line);
-    outline-offset: -1px;
+    border: 1px solid hsl(var(--border));
+    
     cursor: pointer;
     transition: all .2s ease-in-out;
     width: 100%;
   box-sizing: border-box;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .user-list-card:hover {
-  /* background-color: var(--dark-steel); */
+  /* background-color: hsl(var(--muted)); */
   border-radius: var(--large-radius);
   /* box-shadow: 0 0px 10px rgba(0, 0, 0, 0.4); */
   box-shadow: 0 0px 8px rgba(0, 0, 0, 0.1);
@@ -327,7 +327,7 @@ const remainingTools = computed(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  outline: var(--transparent-line);
+  border: 1px solid hsl(var(--border));
 }
 
 .avatar-img {
@@ -355,7 +355,7 @@ const remainingTools = computed(() => {
 .user-name {
   font-size: 1.1rem;
   font-weight: 500;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .user-title {
@@ -417,8 +417,8 @@ const remainingTools = computed(() => {
 .divider-line {
   flex: 1;
   height: 1px;
-  background-color: var(--transparent-line);
-  background-color: crimson;
+  background-color: hsl(var(--border));
+  background-color: hsl(var(--destructive));
 }
 
 /* Extended Info */
@@ -437,14 +437,14 @@ const remainingTools = computed(() => {
   font-size: 0.7rem;
   font-weight: 500;
   background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: var(--white);
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
 }
 
 .availability-badge.available {
   border-color: #4ade80;
   background-color: rgba(74, 222, 128, 0.15);
-  color:var(--white);
+  color:hsl(var(--foreground));
 }
 
 .availability-badge.available .availability-dot {
@@ -454,7 +454,7 @@ const remainingTools = computed(() => {
 .availability-badge.busy {
   border-color: #fbbf24;
   background-color: rgba(251, 191, 36, 0.15);
-  color:var(--white);
+  color:hsl(var(--foreground));
 }
 
 .availability-badge.busy .availability-dot {
@@ -462,13 +462,13 @@ const remainingTools = computed(() => {
 }
 
 .availability-badge.not-looking {
-  border-color:var(--white);
-  background-color: rgba(255, 255, 255, 0.1);
-  color:var(--white);
+  border-color:hsl(var(--foreground));
+  background-color: hsl(var(--accent));
+  color:hsl(var(--foreground));
 }
 
 .availability-badge.not-looking .availability-dot {
-  background-color:var(--white);
+  background-color:hsl(var(--foreground));
 }
 
 .availability-dot {
@@ -503,9 +503,9 @@ const remainingTools = computed(() => {
 .studio-badge {
   width: 24px;
   height: 24px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   overflow: hidden;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: hsl(var(--accent));
   display: flex;
   align-items: center;
   justify-content: center;

@@ -345,7 +345,7 @@ onMounted(async () => {
 
 .cloud-modal-tabs {
   display: flex;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   border-radius: var(--very-large-radius);
   padding: 0.3rem 0.5rem;
   width: 100%;
@@ -355,7 +355,7 @@ onMounted(async () => {
 .cloud-loading {
   text-align: center;
   padding: 2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
   font-size: 13px;
 }
@@ -373,25 +373,25 @@ onMounted(async () => {
   gap: 10px;
   padding: 1.2rem;
   border-radius: var(--very-large-radius);
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   transition: all 0.2s ease-out;
   min-width: 0;
-  outline: var(--transparent-line);
+  border: 1px solid hsl(var(--border));
   box-sizing: border-box;
-  outline-offset: -1px;
+  
 }
 
 .plan-card:hover {
   border-radius: var(--small-radius);
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
 }
 
 .plan-card-current {
-  border-color: var(--grape);
+  border-color: hsl(var(--primary));
 }
 
 .plan-card-highlighted {
-  border-color: var(--light-steel);
+  border-color: hsl(var(--muted-foreground));
 }
 
 .plan-card-header {
@@ -403,7 +403,7 @@ onMounted(async () => {
 .plan-card-name {
   font-size: 16px;
   font-weight: 600;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .plan-badge {
@@ -411,13 +411,13 @@ onMounted(async () => {
   font-weight: 500;
   padding: 2px 8px;
   border-radius: var(--small-radius);
-  background-color: var(--grape);
-  color: white;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--foreground));
 }
 
 .plan-card-tagline {
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
   min-height: 32px;
 }
@@ -431,7 +431,7 @@ onMounted(async () => {
 .price-amount {
   font-size: 28px;
   font-weight: 700;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .price-contact {
@@ -441,7 +441,7 @@ onMounted(async () => {
 
 .price-period {
   font-size: 13px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
 }
 
@@ -450,7 +450,7 @@ onMounted(async () => {
   flex-direction: column;
   gap: 10px;
   margin-top: 4px;
-  border-top: 1px solid var(--light-steel);
+  border-top: 1px solid hsl(var(--border));
   padding-top: 10px;
   max-height: 280px;
   overflow-y: auto;
@@ -462,7 +462,7 @@ onMounted(async () => {
 
 .plan-card-features::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .plan-card-features::-webkit-scrollbar-track {
@@ -474,7 +474,7 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 6px;
   font-size: 13px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.75;
   cursor: help;
 }
@@ -484,13 +484,13 @@ onMounted(async () => {
 }
 
 .feature-check {
-  color: var(--grape);
+  color: hsl(var(--primary));
   font-weight: 600;
   flex-shrink: 0;
 }
 
 .plan-card :deep(.general-button) {
-  background-color: var(--grape);
+  background-color: hsl(var(--primary));
   border-radius: var(--small-radius);
   height: 32px;
   font-size: 13px;
@@ -503,7 +503,7 @@ onMounted(async () => {
 }
 
 .plan-card :deep(.general-button.item-inactive) {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   opacity: 0.5;
 }
 

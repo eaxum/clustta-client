@@ -168,12 +168,12 @@ onBeforeUnmount(() => {
 .list-box-parent {
   position: relative;
   box-sizing: border-box;
-  color: black;
-  color: var(--white);
+  color: hsl(var(--background));
+  color: hsl(var(--foreground));
   display: flex;
   flex-direction: row;
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   height: 35px;
   align-items: center;
   padding: 4px;
@@ -185,11 +185,11 @@ onBeforeUnmount(() => {
   gap: .5rem;
   flex: 1;
   min-height: 35px;
-  background-color: var(--light-steel)
+  background-color: hsl(var(--border))
 }
 
 .list-box-parent:hover {
-  background-color: var(--steel)
+  background-color: hsl(var(--accent))
 }
 
 .list-box-parent-content {
@@ -223,13 +223,13 @@ onBeforeUnmount(() => {
 }
 
 .listbox-list-items-root {
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
   z-index: 100000;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   min-height: 32px;
   line-height: 1.4 !important;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   overflow: hidden;
   overflow-y: auto;
   max-height: 300px;
@@ -238,33 +238,33 @@ onBeforeUnmount(() => {
   flex-wrap: nowrap;
   gap: .2rem;
   padding: .3rem .3rem;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   position: absolute;
 }
 
 
 .listbox-list-items-root::-webkit-scrollbar {
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: 8px;
 }
 
 .listbox-list-items-root::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: hsl(var(--border));
 }
 
 .listbox-list-items-root::-webkit-scrollbar-track {
-  border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: transparent;
 }
 
 .listbox-list-items {
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   min-height: 32px;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   overflow: hidden;
   overflow-y: auto;
   display: flex;
@@ -280,7 +280,7 @@ onBeforeUnmount(() => {
   cursor: pointer;
   background-color: transparent;
   transition: background-color 0.2s ease-in-out;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: max-content;
   width: 100%;
   display: flex;
@@ -290,7 +290,7 @@ onBeforeUnmount(() => {
 }
 
 .listbox-item:hover {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .listbox-item-closed {
@@ -315,9 +315,9 @@ onBeforeUnmount(() => {
 
 .list-box {
   box-sizing: border-box;
-  background-color: var(--white);
+  background-color: hsl(var(--foreground));
   width: 100%;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   height: 35px;
   padding-right: 8px;
   overflow: hidden;

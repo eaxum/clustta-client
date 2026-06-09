@@ -74,13 +74,13 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     gap: .2rem;
-    color: white;
+    color: hsl(var(--foreground));
     align-items: center;
     box-sizing: border-box;
     width: 100%;
     height: min-content;
     justify-content: flex-start;
-    /* background-color: var(--dark-steel); */
+    /* background-color: hsl(var(--muted)); */
     border-radius: var(--large-radius);
     overflow: hidden;
     min-width: 500px;
@@ -88,8 +88,8 @@ onMounted(async () => {
     opacity: 0;
     animation: fadeInFadeOut infinite  3s ease-in-out;
     box-sizing: border-box;
-    outline: var(--transparent-line);
-    outline-offset: -1px;
+    border: 1px solid hsl(var(--border));
+    
 }
 
 .asset-skeleton-item-cards{
@@ -109,11 +109,11 @@ onMounted(async () => {
 
 .preview-skeleton{
     box-sizing: border-box;
-    outline: var(--transparent-line);
-    outline-offset: -1px;
+    border: 1px solid hsl(var(--border));
+    
     width: 100%;
     aspect-ratio: 16/9;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
     height: 100%;
 }
 
@@ -130,20 +130,20 @@ onMounted(async () => {
 
 .thumb-skeleton{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
     height: 100%;
     aspect-ratio: 16/9;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
     min-width: 60px;
 }
 
 /* Project name skeleton */
 .name-skeleton{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
     width: 100%;
     height: 30px;
-    border-radius: 12px;
+    border-radius: var(--very-large-radius);
 }
 
 /* Action buttons container */
@@ -157,10 +157,10 @@ onMounted(async () => {
 
 .icon-skeleton{
     box-sizing: border-box;
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
     width: 20px;
     height: 20px;
-    border-radius: 8px;
+    border-radius: var(--normal-radius);
 }
 
 

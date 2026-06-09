@@ -172,14 +172,14 @@ watch(() => [props.group.items, props.expandedId], () => {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background-color: var(--light-steel);
+    background-color: hsl(var(--border));
     z-index: 1;
 }
 
 .timeline-dot-active {
     width: 10px;
     height: 10px;
-    background-color: var(--solid-blue-steel);
+    background-color: hsl(var(--primary) / 0.3);
     border-radius: 2px;
     transform: translate(-50%, -50%) rotate(45deg);
 }

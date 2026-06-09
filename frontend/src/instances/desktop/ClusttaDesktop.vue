@@ -115,7 +115,7 @@ onBeforeUnmount(async () => {
   height: 100%;
   display: flex;
   transition: opacity 0.3s ease;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: hsl(var(--background) / 0.5);
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
@@ -124,7 +124,7 @@ onBeforeUnmount(async () => {
 }
 
 .holder {
-	color: white;
+	color: hsl(var(--foreground));
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -164,9 +164,7 @@ onBeforeUnmount(async () => {
 	display: flex;
 	height: 100vh;
 	width: 100vw;
-	background-color: var(--black);
-	overflow: hidden;
-	box-sizing: border-box;
+  background-color: hsl(var(--background));
 }
 
 .active-project {
@@ -189,8 +187,8 @@ onBeforeUnmount(async () => {
 	padding: .4rem;
 	padding-bottom: 0;
 	padding-top: 0;
-	background-color: forestgreen;
-	background-color: var(--shadow-steel);
+	background-color: hsl(var(--success));
+	background-color: hsl(var(--muted));
 }
 </style>
 

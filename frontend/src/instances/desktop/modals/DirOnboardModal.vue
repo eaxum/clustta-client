@@ -393,7 +393,7 @@ onMounted(async () => {
 
 .card-description {
   font-size: 13px;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   opacity: 0.9;
   line-height: 1.5;
 }
@@ -403,7 +403,7 @@ onMounted(async () => {
   flex-direction: column;
   width: 600px;
   max-width: 600px;
-  color: white;
+  color: hsl(var(--foreground));
   box-sizing: border-box;
 }
 
@@ -426,7 +426,7 @@ onMounted(async () => {
 }
 
 .location-body {
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   font-size: 12px;
   opacity: 0.8;
   padding: 0.1rem;
@@ -474,12 +474,12 @@ onMounted(async () => {
   gap: 0.75rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-bottom: 1px solid var(--dark-steel);
-  background-color: var(--light-steel);
+  border-bottom: 1px solid hsl(var(--border));
+  background-color: hsl(var(--border));
 }
 
 .location-item:hover {
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
 }
 
 .location-item:hover .hover-action {
@@ -497,7 +497,7 @@ onMounted(async () => {
 .location-name {
   font-size: 14px;
   font-weight: 500;
-  color: var(--white);
+  color: hsl(var(--foreground));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -508,7 +508,7 @@ onMounted(async () => {
   flex-direction: column;
   overflow-y: auto;
   border-radius: var(--normal-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   max-height: 300px;
 }
 
@@ -521,7 +521,7 @@ onMounted(async () => {
 .settings-section-card {
   display: flex;
   flex-direction: column;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   overflow: hidden;
   box-sizing: border-box;
   padding: 0;
@@ -543,7 +543,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   border-radius: var(--normal-radius);
   margin: 0;
 }
@@ -551,7 +551,7 @@ onMounted(async () => {
 .settings-section-card-title {
   font-size: 16px;
   font-weight: 400;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0;
 }
 </style>

@@ -102,7 +102,7 @@ onMounted(() => {
 
 .page-header-title {
   font-family: Inter, sans-serif;
-  color: white;
+  color: hsl(var(--foreground));
   font-size: 20px;
   white-space: nowrap;
   overflow: hidden;

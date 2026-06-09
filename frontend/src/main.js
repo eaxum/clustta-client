@@ -18,6 +18,7 @@ if (process.env.NODE_ENV === "development") {
   // devtools.connect("http://127.0.0.1", 8098);
 }
 
+import "./assets/tailwind.css";
 import "./assets/global.css";
 
 const app = createApp(App);

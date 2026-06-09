@@ -141,11 +141,11 @@ const secondaryActionMessage = () => {
   width: 96%;
   gap: .5rem;
   align-items: center;
-  color: white;
+  color: hsl(var(--foreground));
   justify-content: space-between;
   padding: 1rem;
-  background-color: var(--black-steel);
-  border-radius: var(--very-large-radius);
+  background-color: hsl(var(--background));
+  
 }
 
 .roles-list-wrapper {
@@ -161,7 +161,7 @@ const secondaryActionMessage = () => {
 
 .roles-list-wrapper::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .roles-list-wrapper::-webkit-scrollbar-track {

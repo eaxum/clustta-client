@@ -260,7 +260,7 @@ onBeforeUnmount(() => {
   height: max-content;
   gap: .5rem;
   padding: .3rem .3rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   position: relative;
 }
 
@@ -290,7 +290,7 @@ onBeforeUnmount(() => {
 
 .tab-button {
   position: relative;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
@@ -306,7 +306,7 @@ onBeforeUnmount(() => {
 }
 
 .tab-button:hover {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   opacity: 1;
 }
 
@@ -316,15 +316,15 @@ onBeforeUnmount(() => {
 
 .tab-button-pressed {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .selected-tab-button {
-  background-color: var(--black-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
+  
   opacity: 1;
 }
 
@@ -333,7 +333,7 @@ onBeforeUnmount(() => {
 }
 
 .selected-tab-button:hover {
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
 }
 
 .tab-content {
@@ -375,9 +375,9 @@ onBeforeUnmount(() => {
   padding: .4rem;
   min-width: 160px;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
   backdrop-filter: blur(55px);
   animation: overflowFadeIn .15s ease-out;
 }
@@ -403,15 +403,15 @@ onBeforeUnmount(() => {
   font-size: 14px;
   white-space: nowrap;
   transition: background-color .15s ease;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .overflow-menu-item:hover {
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .overflow-menu-item-selected {
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
 }
 
 .overflow-alert-dot {
@@ -434,10 +434,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   top: -3px;
   right: -3px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   padding: 3px;
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .alert-items-with-text {
@@ -449,8 +449,8 @@ onBeforeUnmount(() => {
 }
 
 .critical-items {
-  outline: solid 1px #bd2d2d;
-  background-color: #bd2d2d;
+  border: 1px solid hsl(var(--destructive));
+  background-color: hsl(var(--destructive));
 }
 </style>
 

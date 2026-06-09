@@ -59,7 +59,7 @@
 
     <!-- Web mode auth buttons (only when not logged in) -->
     <div v-else-if="platformStore.isWeb && !userStore.isUserAuthenticated" class="titlebar-auth-buttons">
-      <ActionButton :icon="getAppIcon('launch')" :label="$t('components.titleBar.signUp')" color="var(--grape)" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : $t('components.titleBar.signUp')" />
+      <ActionButton :icon="getAppIcon('launch')" :label="$t('components.titleBar.signUp')" color="hsl(var(--primary))" forceIconColor="light" :buttonFunction="goToSignUp" v-tooltip="isWideScreen ? '' : $t('components.titleBar.signUp')" />
       <ActionButton :icon="getAppIcon('login')" :label="isWideScreen ? $t('components.titleBar.login') : ''" :useOutline="true" :buttonFunction="goToLogin" v-tooltip="isWideScreen ? '' : $t('components.titleBar.login')" />
     </div>
 
@@ -380,7 +380,7 @@ onBeforeUnmount(() => {
   right: 100%;
   bottom: 0;
   left: 0;
-  background: linear-gradient(to right, transparent, #643193, transparent);
+  background: linear-gradient(to right, transparent, hsl(var(--primary)), transparent);
   width: 0;
   animation: borealisBar 1.2s linear infinite;
   z-index: 1;
@@ -477,7 +477,7 @@ onBeforeUnmount(() => {
 
 .divider {
   width: 96%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+  border-bottom: 1px solid hsl(var(--border));
 }
 
 .menu-divider{
@@ -489,7 +489,6 @@ onBeforeUnmount(() => {
 .studio-list-container {
   position: absolute;
   z-index: 10000;
-  /* top: 206px; */
   min-width: 160px;
   width: max-content;
   height: max-content;
@@ -497,20 +496,15 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: center;
   gap: 1rem;
-  border-radius: var(--large-radius);
-  color: var(--white);
-
+  color: hsl(var(--foreground));
   overflow: hidden;
   box-sizing: border-box;
   max-height: 500px;
   overflow-y: scroll;
-
-  /* background-color: hotpink; */
-  
-  border-radius: var(--very-large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  backdrop-filter: blur(35px);
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--popover));
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 }
 
 
@@ -519,13 +513,13 @@ onBeforeUnmount(() => {
 }
 
 .studio-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--silver);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--muted-foreground));
 }
 
 .studio-list-container::-webkit-scrollbar-track {
   margin: 20px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .chevron {
@@ -538,26 +532,23 @@ onBeforeUnmount(() => {
   height: 80%;
   gap: .5rem;
   display: flex;
-  /* padding: .3rem; */
   box-sizing: border-box;
   overflow: hidden;
   flex-direction: column;
-  border-radius: var(--small-radius);
-  background-color: hsla(0, 0%, 0%, 0.2);
-  border-radius: var(--normal-radius);
+  border-radius: calc(var(--radius) - 2px);
+  background-color: hsl(var(--muted));
 }
 
 .studio-tabs-container:hover {
-  outline: var(--transparent-line);
-  background-color: hsla(0, 0%, 0%, 0.15);
+  background-color: hsl(var(--accent));
 }
 
 [data-theme="dark"] .studio-tabs-container {
-  background-color: hsla(0, 0%, 0%, 0.8);
+  background-color: hsl(var(--muted));
 }
 
 [data-theme="dark"] .studio-tabs-container:hover {
-  background-color: hsla(0, 0%, 0%, 0.2);
+  background-color: hsl(var(--accent));
 }
 
 .studio-tabs-parent {
@@ -567,7 +558,7 @@ onBeforeUnmount(() => {
   height: 100%;
   gap: .5rem;
   align-items: center;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   position: relative;
   transition: all 0.1s ease;
 }
@@ -599,41 +590,35 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background-color: transparent;
   text-align: center;
-  font-size: 14px;
-  line-height: 14px;
-  background-color: transparent;
-  color: var(--white);
+  font-size: 0.875rem;
+  color: hsl(var(--foreground));
   position: relative;
-  border-radius: var(--large-radius);
+  border-radius: calc(var(--radius) - 2px);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
   gap: 5px;
   align-items: center;
   padding: .1rem;
-  height: 20px;
-  width: max-content;
-  min-width: max-content;
   min-height: 35px;
-  transition: all 0..1s ease;
+  transition: all 0.15s ease;
   justify-content: space-between;
   width: 100%;
 }
 
 .studio-instance:hover {
-  background-color: var(--hover);
+  background-color: hsl(var(--accent));
 }
 
 .studio-instance:active {
-  background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .studio-instance-pressed {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--white);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .studio-instance-actions {
@@ -674,21 +659,21 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   min-height: 36px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   overflow: hidden;
-  border-bottom: var(--transparent-line);
-  background-color: var(--black);
+  border-bottom: 1px solid hsl(var(--border));
+  background-color: hsl(var(--background));
   z-index: 999999999;
   padding-left: .2rem;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.15s ease;
 }
 
 .titlebar-unsynced {
-  background-color: #d99a22;
+  background-color: hsl(var(--warning));
 }
 
 [data-theme="dark"] .titlebar-unsynced {
-  background-color: hsl(49, 74%, 35%);
+  background-color: hsl(var(--warning) / 0.7);
 }
 
 .title-only {
@@ -747,7 +732,7 @@ onBeforeUnmount(() => {
   font-size: 12px;
   width: 100%;
   display: flex;
-  font-weight: 100;
+  font-weight: 300;
   font-weight: 300;
   padding: .2rem;
   padding: .3rem .5rem;
@@ -756,7 +741,7 @@ onBeforeUnmount(() => {
 }
 
 .oudated:hover{
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
 }
 
 .titlebar-button {
@@ -774,7 +759,7 @@ onBeforeUnmount(() => {
 }
 
 .titlebar-button.close:hover {
-  background-color: crimson;
+  background-color: hsl(var(--destructive));
 }
 
 .titlebar-button.minimize img {
@@ -783,7 +768,7 @@ onBeforeUnmount(() => {
 }
 
 .titlebar-button.minimize:hover {
-  background-color: #6d6d6d;
+  background-color: hsl(var(--accent));
 }
 
 .titlebar-button.maximize img {
@@ -792,7 +777,7 @@ onBeforeUnmount(() => {
 }
 
 .titlebar-button.maximize:hover {
-  background-color: #6d6d6d;
+  background-color: hsl(var(--accent));
 }
 
 .outdated-icon-button {
@@ -830,11 +815,11 @@ onBeforeUnmount(() => {
 }
 
 .online-indicator.online {
-  background-color: #22c55e;
+  background-color: hsl(var(--success));
 }
 
 .online-indicator.offline {
-  background-color: #f59e0b;
+  background-color: hsl(var(--warning));
 }
 </style>
 

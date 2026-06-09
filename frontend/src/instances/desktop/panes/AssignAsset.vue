@@ -154,17 +154,16 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  /* background-color: hotpink; */
+  color: hsl(var(--foreground));
   flex-direction: column;
-  color: white;
+  color: hsl(var(--foreground));
   justify-content: flex-start;
 }
 
 .general-pane-container {
   display: flex;
   gap: 1rem;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   align-items: flex-start;
   justify-content: flex-start;
 }

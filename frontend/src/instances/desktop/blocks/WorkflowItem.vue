@@ -164,7 +164,7 @@ onBeforeUnmount(() => {
 .collection-item-main {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -172,56 +172,56 @@ onBeforeUnmount(() => {
   height: min-content;
   justify-content: flex-end;
   align-items: flex-start;
-  background-color: var(--dark-steel);
-  border-radius: 10px;
+  background-color: hsl(var(--muted));
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
 
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--large-radius);
   transition: all .2s ease-out;
 
 }
 
 .collection-item-main:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  border: 1px solid hsl(var(--border));
 }
 
 .collection-item-main-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--black-steel);
+  outline: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--background));
   background-color: var(--collection-item-selected);
 }
 
 .collection-item-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--blue-steel);
+  outline: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .collection-item-last-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  outline: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-only-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  outline: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .collection-item-main-selected:hover {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1px;
+  outline: 1px solid hsl(var(--primary));
+  
 }
 
 
@@ -230,11 +230,11 @@ onBeforeUnmount(() => {
   height: 100%;
   position: absolute;
   opacity: .3;
-  background-color: var(--drop-hover);
+  background-color: hsl(var(--primary));
 }
 
 .alt-item {
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .collection-item-root {
@@ -242,14 +242,14 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .3rem;
   box-sizing: border-box;
   width: 100%;
   height: min-content;
   justify-content: flex-end;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
 
@@ -258,7 +258,7 @@ onBeforeUnmount(() => {
 .collection-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -273,7 +273,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   box-sizing: border-box;
   width: 100%;
@@ -297,7 +297,6 @@ onBeforeUnmount(() => {
 }
 
 .collection-spacer-empty {
-  background-color: moccasin;
 }
 
 .action-column {
@@ -316,7 +315,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   min-width: min-content;
   height: 100%;
-  /* background-color: royalblue; */
 }
 
 .collection-item-preview-container {
@@ -330,7 +328,7 @@ onBeforeUnmount(() => {
   min-width: 60px;
   height: 100%;
   aspect-ratio: 16 / 9;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .collection-item-preview-image {
@@ -341,7 +339,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   aspect-ratio: 16 / 9;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   border-radius: 5px;
 }
 
@@ -354,7 +352,7 @@ onBeforeUnmount(() => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .collection-item-content {
@@ -372,7 +370,7 @@ onBeforeUnmount(() => {
 
 
 .collection-item-meta-container {
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   width: 100%;
   display: flex;
   justify-content: flex-end;
@@ -387,8 +385,8 @@ onBeforeUnmount(() => {
   /* width: 100%; */
   height: 100%;
   overflow: hidden;
-  /* background-color: forestgreen; */
-  font-weight: 100;
+  /* background-color: hsl(var(--success)); */
+  font-weight: 300;
   font-size: 14px;
 }
 
@@ -406,7 +404,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
 }
 
 
@@ -416,7 +414,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   padding: .1rem .4rem;
   font-size: 12px;
-  background-color: black;
+  background-color: hsl(var(--background));
   border-radius: 20px;
 }
 
@@ -429,7 +427,6 @@ onBeforeUnmount(() => {
   width: min-content;
   padding: .4rem;
   height: 100%;
-  /* background-color: darkorange; */
   /* flex: 1; */
 }
 
@@ -444,16 +441,16 @@ onBeforeUnmount(() => {
   padding: .4rem .4rem;
   height: max-content;
   height: 100%;
-  background-color: firebrick;
+  background-color: hsl(var(--destructive));
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
   transition: all 0.2s ease-out;
 }
 
 /* .collection-item-status:hover {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   transform: scale(1.03);
 } */
 
@@ -497,7 +494,7 @@ onBeforeUnmount(() => {
 }
 
 .profile-spacer {
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   overflow: hidden;
   display: flex;
   align-items: center;

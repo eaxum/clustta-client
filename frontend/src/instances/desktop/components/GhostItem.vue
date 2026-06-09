@@ -52,10 +52,10 @@ const props = defineProps({
     z-index: 99999;
     width: 260px;
     height: 70px;
-    background-color: firebrick;
+    background-color: hsl(var(--destructive));
     border-radius: var(--normal-radius);
-    border: var(--transparent-line);
-    background-color: var(--white);
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--foreground));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -64,9 +64,9 @@ const props = defineProps({
     box-sizing: border-box;
     overflow: hidden;
 
-    outline: var(--transparent-line);
-    outline-offset: -1px;
-    background-color: var(--light-steel);
+    border: 1px solid hsl(var(--border));
+    
+    background-color: hsl(var(--border));
 
 }
 
@@ -79,7 +79,7 @@ const props = defineProps({
     padding: .1rem;
     overflow: hidden;
     height: 100%;
-    /* background-color: firebrick; */
+    /* background-color: hsl(var(--destructive)); */
     padding: .3rem;
     box-sizing: border-box;
 }
@@ -87,7 +87,7 @@ const props = defineProps({
 .file-drop-text {
     font-weight: 600;
     font-size: xx-large;
-    color: white;
+    color: hsl(var(--foreground));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,6 +103,6 @@ const props = defineProps({
     justify-content: flex-start;
     padding: .3rem;
     box-sizing: border-box;
-    color: white;
+    color: hsl(var(--foreground));
 }
 </style>

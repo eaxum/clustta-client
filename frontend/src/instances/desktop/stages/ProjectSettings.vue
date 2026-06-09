@@ -126,7 +126,7 @@ onUnmounted(() => {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: white;
+	color: hsl(var(--foreground));
 	/* background-color: sienna; */
 }
 
@@ -134,7 +134,7 @@ onUnmounted(() => {
 	display: flex;
 	flex-direction: column;
 	box-sizing: border-box;
-	/* background-color: firebrick; */
+	/* background-color: hsl(var(--destructive)); */
 	width: 100%;
 	height: 100%;
 	gap: .5rem;
@@ -156,7 +156,6 @@ onUnmounted(() => {
 	height: 100%;
 	display: flex;
 	box-sizing: border-box;
-	/* background-color: teal; */
 	align-items: flex-start;
 	justify-content: flex-start;
 	justify-content: center;
@@ -170,7 +169,7 @@ onUnmounted(() => {
 	height: 100%;
 	display: flex;
 	box-sizing: border-box;
-	/* background-color: tomato; */
+	/* background-color: hsl(var(--destructive)); */
 	align-items: flex-start;
 	justify-content: flex-start;
 	justify-content: center;
@@ -208,12 +207,12 @@ onUnmounted(() => {
 }
 
 .page-list-container::-webkit-scrollbar-thumb {
-	border-radius: 10px;
+	border-radius: var(--large-radius);
 	background-color: rgb(36, 49, 59);
 }
 
 .page-list-container::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: var(--large-radius);
 }
 
 .page-header {
@@ -224,7 +223,6 @@ onUnmounted(() => {
 	height: max-content;
 	gap: 1rem;
 	justify-content: space-between;
-	background-color: khaki;
 	padding: .2rem;
 	box-sizing: border-box;
 	min-width: max-content;

@@ -344,7 +344,7 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: flex-start;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .general-container {
@@ -366,7 +366,7 @@ onMounted(async () => {
   color: var(--text-secondary);
   padding: 0.5rem;
   background: var(--bg-secondary);
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   margin-top: 0.5rem;
   word-break: break-all;
 }

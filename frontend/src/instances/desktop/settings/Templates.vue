@@ -161,12 +161,12 @@ onMounted(async () => {
   width: 96%;
   gap: .5rem;
   align-items: center;
-  color: white;
+  color: hsl(var(--foreground));
   justify-content: space-between;
-  border-radius: var(--very-large-radius);
+  
   padding: 1rem;
-  background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--destructive));
+  background-color: hsl(var(--background));
 }
 </style>
 

@@ -304,14 +304,14 @@ watch(() => props.items.length, () => {
 }
 
 .virtual-scroll-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: white;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--foreground));
+  background-color: hsl(var(--border));
 
 }
 
 .virtual-scroll-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .scroll-height {
@@ -332,14 +332,14 @@ watch(() => props.items.length, () => {
 }
 
 .darker {
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .column-card {
   /* background: tomato; */
   /* padding: 10px; */
   /* margin: 10px 0; */
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   cursor: grab;
 }
 
@@ -376,8 +376,7 @@ watch(() => props.items.length, () => {
 }
 
 #ghost-card.active {
-  outline: 1.5px solid rgb(255, 255, 255);
-  outline-offset: -1.5px;
+  outline: 1.5px solid hsl(var(--primary));
   opacity: 1;
   /* box-shadow: 0 12px 24px -6px rgba(9, 30, 66, 0.25), 0 0 0 1px rgba(9, 30, 66, 0.08); */
 }

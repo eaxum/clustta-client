@@ -115,7 +115,6 @@ const updateAssetMapping = (externalType, localType) => {
   padding: 16px;
   background-color: var(--background-secondary);
   border-radius: var(--small-radius);
-  background-color: royalblue;
   box-sizing: border-box;
 }
 
@@ -178,7 +177,7 @@ const updateAssetMapping = (externalType, localType) => {
   color: var(--text-tertiary);
   background-color: var(--background-tertiary);
   padding: 2px 6px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .mapping-rows {

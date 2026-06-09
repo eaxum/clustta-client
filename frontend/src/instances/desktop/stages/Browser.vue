@@ -1105,7 +1105,7 @@ onBeforeUnmount(() => {
 	overflow: hidden;
 	height: 100%;
 	border-radius: var(--large-radius);
-	background-color: var(--black-steel);
+	background-color: hsl(var(--background));
 	width: 100%;
 	box-sizing: border-box;
 	display: flex;
@@ -1131,7 +1131,7 @@ onBeforeUnmount(() => {
 	overflow: hidden;
 	height: 100%;
 	border-radius: var(--very-large-radius);
-	background-color: var(--black-steel);
+	background-color: hsl(var(--background));
 	width: 100%;
 	min-width: 550px;
 	box-sizing: border-box;
@@ -1139,8 +1139,8 @@ onBeforeUnmount(() => {
 
 .browser-root-container-hover-drop {
 	background-color: #1e7fee6c;
-	outline: 1px solid rgb(255, 255, 255);
-	outline-offset: -1px;
+	outline: 1px solid hsl(var(--primary));
+	
 }
 
 .dash-board-header {

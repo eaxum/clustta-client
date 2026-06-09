@@ -297,12 +297,12 @@ onBeforeUnmount(() => {
 }
 
 .modified-items::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .modified-items::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .modified-item {
@@ -314,7 +314,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   height: min-content;
   padding: .1rem .1rem .1rem .1rem;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
@@ -331,8 +331,7 @@ onBeforeUnmount(() => {
   align-items: center;
   text-wrap: nowrap;
   overflow: hidden;
-  color: var(--white);
-  /* background-color: royalblue; */
+  color: hsl(var(--foreground));
 }
 
 .modal-container {
@@ -346,15 +345,15 @@ onBeforeUnmount(() => {
 
 .desktop-input-long {
   margin-top: 0px;
-  font-weight: 200;
-  color: var(--white);
+  font-weight: 300;
+  color: hsl(var(--foreground));
 }
 
 .modified-items-count {
   padding-left: .5rem;
-  color: var(--white);
-  /* background-color: forestgreen; */
-  font-weight: 200;
+  color: hsl(var(--foreground));
+  /* background-color: hsl(var(--success)); */
+  font-weight: 300;
   height: min-content;
   overflow: hidden;
   box-sizing: border-box;
@@ -367,7 +366,7 @@ onBeforeUnmount(() => {
 }
 
 [data-theme="dark"] .modified-items-count:hover{
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
 }
 
 .modified-items-count:hover {
@@ -376,7 +375,7 @@ onBeforeUnmount(() => {
 
 .loading-items-count {
   padding-left: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   justify-content: flex-start;
 }
 
@@ -400,8 +399,8 @@ onBeforeUnmount(() => {
 
 .desktop-input-long {
   /* margin-top: 20px; */
-  font-weight: 200;
-  color: var(--white);
+  font-weight: 300;
+  color: hsl(var(--foreground));
 }
 
 .loading-children-icon {
@@ -415,7 +414,7 @@ onBeforeUnmount(() => {
 .refresh-label{
   font-style: italic;
   font-size: 14px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.7;
 }
 </style>

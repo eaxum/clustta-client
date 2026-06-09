@@ -344,12 +344,12 @@ onUnmounted(async () => {
 }
 
 .navigator-root-viewport::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .navigator-root-viewport::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .navigator-root {

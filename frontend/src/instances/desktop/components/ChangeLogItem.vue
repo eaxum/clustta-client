@@ -64,19 +64,19 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   flex-direction: column;
   align-items: center;
   width: 100%;
-  color: var(--white);
+  color: hsl(var(--foreground));
   border-radius: var(--large-radius);
   overflow: hidden;
   min-height: max-content;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--dark-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--muted));
   transition: all .2s ease-in-out;
 }
 
 .changelog-item-container:hover {
   border-radius: var(--normal-radius);
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
 }
 
 .changelog-item {
@@ -121,7 +121,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 .changelog-item-label-text {
   font-size: 13px;
   font-weight: 300;
-  color: var(--white);
+  color: hsl(var(--foreground));
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -131,7 +131,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   font-size: 10px;
   font-weight: 500;
   padding: 1px 5px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;

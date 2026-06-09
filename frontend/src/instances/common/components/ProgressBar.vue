@@ -67,10 +67,10 @@ const props = defineProps({
   width: 100%;
   height: 100%;
   background-color: rgb(24, 24, 24);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
   /* opacity: .2; */
   cursor: not-allowed !important;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
 }
 
@@ -79,7 +79,7 @@ const props = defineProps({
   height: 100%;
   background-color: rgb(67, 210, 67);
   opacity: 1;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .queued {
@@ -87,7 +87,7 @@ const props = defineProps({
   height: 100%;
   background-color: rgb(205, 210, 67);
   opacity: 1;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .progress-bar::before {
@@ -98,7 +98,7 @@ const props = defineProps({
   height: 100%;
   width: 100%;
   background-color: rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
   pointer-events: none;

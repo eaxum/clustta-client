@@ -24,7 +24,7 @@
         <ActionButton 
           :icon="getAppIcon('launch')" 
           :label="isWideScreen ? 'Sign Up' : ''" 
-          color="var(--grape)" 
+          color="hsl(var(--primary))" 
           forceIconColor="light" 
           :buttonFunction="goToSignUp" 
           v-tooltip="!isWideScreen ? 'Sign Up' : ''" 
@@ -251,13 +251,13 @@ onBeforeUnmount(() => {
 }
 
 .nav-link:hover {
-  color: var(--white);
-  background-color: var(--hover);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--accent));
 }
 
 .nav-link.active {
-  color: var(--white);
-  background-color: rgba(255, 255, 255, 0.1);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--accent));
 }
 
 .nav-icon {
@@ -279,8 +279,8 @@ onBeforeUnmount(() => {
 }
 
 .user-menu:hover {
-  background-color: var(--hover);
-  outline: var(--transparent-line);
+  background-color: hsl(var(--accent));
+  border: 1px solid hsl(var(--border));
 }
 
 .user-avatar {
@@ -311,10 +311,10 @@ onBeforeUnmount(() => {
   top: 60px;
   right: 1.5rem;
   min-width: 200px;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
   border-radius: var(--large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   z-index: 10000;
   overflow: hidden;
@@ -332,7 +332,7 @@ onBeforeUnmount(() => {
 .account-name {
   font-weight: 500;
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -340,7 +340,7 @@ onBeforeUnmount(() => {
 
 .account-email {
   font-size: 0.75rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.7;
   white-space: nowrap;
   overflow: hidden;
@@ -349,7 +349,7 @@ onBeforeUnmount(() => {
 
 .dropdown-divider {
   height: 1px;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   margin: 0.25rem 0;
 }
 

@@ -220,7 +220,7 @@ const selectCollectionType = (collectionTypeName) => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .hierarchy-item-config {
@@ -230,7 +230,7 @@ const selectCollectionType = (collectionTypeName) => {
 }
 
 .hierarchy-header-config {
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   display: flex;
   gap: .5rem;
   flex: 1;
@@ -254,7 +254,7 @@ const selectCollectionType = (collectionTypeName) => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .file-hierarchy {
@@ -263,7 +263,7 @@ const selectCollectionType = (collectionTypeName) => {
 }
 
 .item-children {
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -296,19 +296,19 @@ const selectCollectionType = (collectionTypeName) => {
   gap: .5rem;
   border-radius: var(--small-radius);
   background-color: rgba(61, 61, 61, 0.377);
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   min-height: 40px;
 }
 
 .no-expand {
   cursor: pointer;
-  /* background-color: white; */
+  /* background-color: hsl(var(--foreground)); */
   pointer-events: none;
 }
 
 .item-header:hover.no-expand {
   /* background-color: #f0f0f0; */
-  outline: var(--transparent-line);
+  border: 1px solid hsl(var(--border));
 }
 
 .hierarchy-item-spacer {
@@ -320,7 +320,6 @@ const selectCollectionType = (collectionTypeName) => {
   box-sizing: border-box;
   align-items: center;
   transition: 0s;
-  /* background-color: salmon; */
 }
 
 .hierarchy-collection-collapsed {
@@ -340,7 +339,7 @@ const selectCollectionType = (collectionTypeName) => {
 }
 
 .is-root {
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   /* padding-left: 0px; */
 }
 </style>

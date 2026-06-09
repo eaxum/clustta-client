@@ -116,7 +116,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   padding: .5rem 0;
   box-sizing: border-box;

@@ -373,11 +373,11 @@ onMounted(async () => {
     width: 100%;
     gap: .5rem;
     /* align-items: center; */
-    color: white;
+    color: hsl(var(--foreground));
     /* justify-content: space-between; */
     padding: 1rem;
-    background-color: var(--black-steel);
-    border-radius: var(--very-large-radius);
+    background-color: hsl(var(--background));
+    
 }
 
 .settings-component-header {
@@ -402,7 +402,6 @@ onMounted(async () => {
     display: flex;
     gap: 10px;
     height: 100%;
-    /* background-color: royalblue; */
     overflow: hidden;
 }
 

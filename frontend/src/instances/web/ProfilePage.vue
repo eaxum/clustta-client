@@ -21,13 +21,13 @@ import UserProfile from '@/instances/desktop/stages/UserProfile.vue';
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   overflow-y: auto;
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
 }
 
@@ -35,7 +35,7 @@ import UserProfile from '@/instances/desktop/stages/UserProfile.vue';
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: hsl(var(--accent));
   position: sticky;
   top: 0;
   z-index: 99999;
@@ -60,12 +60,12 @@ import UserProfile from '@/instances/desktop/stages/UserProfile.vue';
 }
 
 .profile-page-root::-webkit-scrollbar-track {
-  background: var(--midnight-steel);
+  background: hsl(var(--card));
   border-radius: 5px;
 }
 
 .profile-page-root::-webkit-scrollbar-thumb {
-  background: var(--steel);
+  background: hsl(var(--accent));
   border-radius: 5px;
 }
 

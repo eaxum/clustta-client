@@ -123,13 +123,13 @@ onMounted(async () => {
   width: 96%;
   gap: .5rem;
   align-items: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
   justify-content: space-between;
-  border-radius: var(--large-radius);
+  
   padding: 1rem;
-  background-color: crimson;
-  background-color: var(--black-steel);
-  border-radius: var(--very-large-radius);
+  background-color: hsl(var(--destructive));
+  background-color: hsl(var(--background));
+  
 }
 
 .workflow-items-container {
@@ -144,16 +144,16 @@ onMounted(async () => {
 }
 
 .workflow-items-container::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 
 .workflow-items-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .workflow-items-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .settings-component-body {
@@ -162,7 +162,6 @@ onMounted(async () => {
   flex-direction: column;
   gap: 10px;
   height: 100%;
-  /* background-color: royalblue; */
   overflow: hidden;
 }
 </style>

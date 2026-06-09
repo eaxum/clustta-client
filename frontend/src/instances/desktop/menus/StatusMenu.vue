@@ -131,8 +131,8 @@ onBeforeUnmount(() => {
   gap: .5rem;
   /* overflow: hidden; */
   /* border-radius: var(--normal-radius); */
-  /* background-color: var(--steel); */
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--accent)); */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .status-menu-pill {
@@ -145,17 +145,17 @@ onBeforeUnmount(() => {
   width: 55px;
   padding: .4rem .4rem;
   height: 100%;
-  background-color: firebrick;
+  background-color: hsl(var(--destructive));
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
   transition: all 0.2s ease-out;
 }
 
 .status-menu-pill:hover {
   background-color: rgb(206, 165, 51);
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   transform: scale(1.03);
 }
 
@@ -168,7 +168,7 @@ onBeforeUnmount(() => {
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
 }
 </style>
 

@@ -214,14 +214,14 @@ onMounted(async () => {
 
 .preview-summary {
   font-size: 14px;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
 }
 
 .preview-extension {
   font-size: 12px;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   opacity: 0.7;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   padding: 2px 8px;
   border-radius: var(--small-radius);
 }
@@ -229,7 +229,7 @@ onMounted(async () => {
 .preview-divider {
   width: 100%;
   height: 1px;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   flex-shrink: 0;
 }
 
@@ -248,7 +248,7 @@ onMounted(async () => {
 
 .squash-preview-scroll::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .squash-preview-scroll::-webkit-scrollbar-track {
@@ -271,7 +271,7 @@ onMounted(async () => {
 
 .empty-text {
   font-size: 14px;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   opacity: 0.7;
 }
 
@@ -284,12 +284,12 @@ onMounted(async () => {
 
 .option-label {
   font-size: 13px;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
   user-select: none;
 }
 
 .option-label:hover {
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 </style>

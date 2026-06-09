@@ -171,7 +171,7 @@ onUnmounted(() => {
 }
 
 [data-theme="dark"] .menu-item-text {
-  font-weight: 200;
+  font-weight: 300;
 }
 
 .context-menu-container {
@@ -188,8 +188,8 @@ onUnmounted(() => {
   overflow: hidden;
   overflow-y: scroll;
   border-radius: var(--large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   backdrop-filter: blur(55px);
 }
 
@@ -199,13 +199,13 @@ onUnmounted(() => {
 }
 
 .context-menu-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--black-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--background));
 }
 
 .context-menu-container::-webkit-scrollbar-track {
   margin: 10px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .menu-fade-enter-active,

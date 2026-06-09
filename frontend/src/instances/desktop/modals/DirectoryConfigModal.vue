@@ -120,7 +120,7 @@ onMounted(async () => {
 
 .regular {
   padding-left: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
 }
 
@@ -131,7 +131,7 @@ onMounted(async () => {
   flex-direction: column;
   justify-content: flex-start;
   gap: .4px;
-  color: white;
+  color: hsl(var(--foreground));
 }
 
 .general-container {
@@ -145,7 +145,7 @@ onMounted(async () => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   white-space: nowrap;
   flex: 1;

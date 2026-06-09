@@ -152,13 +152,13 @@ onMounted(() => {
 @import "@/assets/desktop.css";
 
 .category-item {
-  color: white;
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
   width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+  border-bottom: 1px solid hsl(var(--border));
   height: max-content;
   padding: .2rem;
 }

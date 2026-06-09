@@ -175,7 +175,7 @@ const updateRole = async () => {
 .role-config {
   display: flex;
   flex-direction: column;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   gap: .3rem;
   padding: .6rem;
@@ -194,7 +194,7 @@ const updateRole = async () => {
 
 .role-config::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .role-config::-webkit-scrollbar-track {
@@ -204,7 +204,7 @@ const updateRole = async () => {
 .role-config-group {
   display: flex;
   flex-direction: column;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   gap: .3rem;
   padding: .6rem;
@@ -212,12 +212,12 @@ const updateRole = async () => {
   width: 100%;
   height: min-content;
   border-radius: var(--normal-radius);
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
 }
 
 .role-config-group-meta {
   display: flex;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   gap: .5rem;
   padding: .6rem;
@@ -231,7 +231,7 @@ const updateRole = async () => {
   font-size: large;
   font-weight: 300;
   display: flex;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: flex-start;
   gap: .3rem;
   box-sizing: border-box;
@@ -245,7 +245,7 @@ const updateRole = async () => {
   text-align: center;
   font-size: 14px;
   line-height: 14px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   position: relative;
   border-radius: var(--small-radius);
   box-sizing: border-box;
@@ -261,11 +261,11 @@ const updateRole = async () => {
 }
 
 .role-item:hover {
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: hsl(var(--accent));
 }
 
 [data-theme="dark"] .horizontal-flex {
-  font-weight: 200;
+  font-weight: 300;
 }
 </style>
 

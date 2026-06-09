@@ -365,7 +365,7 @@ onBeforeUnmount(() => {
 	align-items: center;
 	font-size: 0.875rem;
 	font-weight: 500;
-	background-color: var(--black-steel);
+	background-color: hsl(var(--background));
 	border-radius: var(--large-radius);
 	overflow: hidden;
 	max-width: 70%;
@@ -420,10 +420,10 @@ onBeforeUnmount(() => {
 	justify-content: center;
 	gap: 1rem;
 	border-radius: var(--small-radius);
-	background-color: var(--black);
-	color: var(--white);
-	outline: var(--transparent-line);
-	outline-offset: -1px;
+	background-color: hsl(var(--background));
+	color: hsl(var(--foreground));
+	border: 1px solid hsl(var(--border));
+	
 	overflow: hidden;
 	box-sizing: border-box;
 }
@@ -445,7 +445,7 @@ onBeforeUnmount(() => {
 	text-align: center;
 	font-size: 14px;
 	line-height: 14px;
-	color: var(--white);
+	color: hsl(var(--foreground));
 	position: relative;
 	border-radius: var(--small-radius);
 	box-sizing: border-box;
@@ -463,11 +463,11 @@ onBeforeUnmount(() => {
 }
 
 .breadcrumb-instance:hover {
-	background-color: #ffffff15;
+	background-color: hsl(var(--accent));
 }
 
 .breadcrumb-instance:active {
-	background-color: #00000013;
+	background-color: hsl(var(--accent));
 }
 
 .breadcrumb-instance-meta {

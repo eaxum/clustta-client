@@ -283,7 +283,6 @@ onMounted(async () => {
   overflow: hidden;
   display: block;
   overflow-y: scroll;
-  border-radius: var(--very-large-radius);
   box-sizing: border-box;
 }
 
@@ -293,7 +292,7 @@ onMounted(async () => {
 
 .settings-component-root::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .settings-component-root::-webkit-scrollbar-track {
@@ -312,17 +311,16 @@ onMounted(async () => {
   flex-direction: column;
   box-sizing: border-box;
   height: 100%;
-  gap: 1.5rem;
+  gap: 1rem;
   width: 100%;
   padding-right: .2rem;
-  border-radius: var(--large-radius);
 }
 
 /* Studio Info Header — matches UserProfile header-layout */
 .header-layout {
   display: flex;
   flex-direction: row;
-  gap: 1.5rem;
+  gap: 1rem;
   align-items: flex-start;
 }
 
@@ -331,7 +329,7 @@ onMounted(async () => {
   height: 80px;
   min-width: 80px;
   border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: hsl(var(--accent));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -358,7 +356,7 @@ onMounted(async () => {
   font-size: 2rem;
   font-weight: 500;
   margin: 0 0 0.25rem 0;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .meta-info {
@@ -371,13 +369,13 @@ onMounted(async () => {
 
 .meta-badge {
   font-size: 0.875rem;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   text-transform: capitalize;
 }
 
 .meta-dot {
   font-size: 0.875rem;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   opacity: 0.6;
 }
 
@@ -391,7 +389,7 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   font-size: 0.875rem;
   cursor: pointer;
 }
@@ -412,23 +410,23 @@ onMounted(async () => {
 .admin-list {
   display: flex;
   flex-direction: column;
-  margin: -1.5rem;
+  margin: -0.75rem;
 }
 
 .settings-item {
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
   overflow: hidden;
-  min-height: 50px;
+  min-height: 44px;
   display: flex;
-  padding: .5rem 1rem;
+  padding: .5rem 0.75rem;
   align-items: center;
   justify-content: space-between;
   width: 100%;
   height: max-content;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-bottom: 1px solid var(--light-steel);
+  transition: background-color 0.15s ease;
+  border-radius: calc(var(--radius) - 2px);
 }
 
 .settings-item:last-child {
@@ -436,11 +434,11 @@ onMounted(async () => {
 }
 
 .settings-item:hover {
-  background-color: #ffffff15;
+  background-color: hsl(var(--accent));
 }
 
 .settings-item:active {
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .settings-item.disabled {
@@ -481,7 +479,7 @@ onMounted(async () => {
 }
 
 .settings-body {
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   padding: .1rem;
   font-size: 12px;
   opacity: .8;
@@ -503,13 +501,13 @@ onMounted(async () => {
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
-  background-color: rgba(220, 38, 38, 0.1);
-  border-radius: var(--normal-radius);
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  background-color: hsl(var(--destructive) / 0.1);
+  border-radius: calc(var(--radius) - 2px);
+  border: 1px solid hsl(var(--destructive) / 0.3);
 }
 
 .danger-message {
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0;
   font-size: 0.875rem;
 }

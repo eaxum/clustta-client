@@ -87,9 +87,8 @@ onMounted(() => {
 	justify-content: center;
 	overflow: hidden;
 	min-width: 550px;
-	background-color: firebrick;
-	background-color: var(--shadow-steel);
-	/* background-color: forestgreen; */
+	background-color: hsl(var(--background));
+	border-radius: var(--radius);
 }
 
 .center-stage.web-mode {

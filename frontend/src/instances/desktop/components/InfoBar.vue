@@ -275,9 +275,10 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  background-color: var(--shadow-steel);
+  background-color: hsl(var(--background));
   box-sizing: border-box;
   z-index: 99999;
+  border-top: 1px solid hsl(var(--border));
 }
 
 .debug-console-container {
@@ -294,11 +295,11 @@ onBeforeUnmount(() => {
     box-sizing: border-box;
     align-items: center;
     justify-content: space-between;
-    color: var(--white);
+    color: hsl(var(--foreground));
     padding: 0 .8rem;
     font-size: 13px;
     font-weight: 300;
-    /* background-color: var(--dark-steel);uy7 */
+    /* background-color: hsl(var(--muted));uy7 */
   }
 
 .version-info {
@@ -314,7 +315,7 @@ onBeforeUnmount(() => {
 }
 
 .oudated:hover{
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
 }
 
 .outdated-icon-button {
@@ -342,7 +343,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   height: 70%;
   justify-content: flex-end;
-  background-color: crimson;
+  background-color: hsl(var(--destructive));
   padding: .3rem .3rem;
   z-index: 99999;
 }
@@ -355,23 +356,23 @@ onBeforeUnmount(() => {
 }
 
 .text-container{
-  color: white;
+  color: hsl(var(--foreground));
     text-overflow: ellipsis;
     overflow: hidden;
 }
 
 .error {
-  outline: solid 1px #FF3333;
-  background-color:  #FF3333;
+  outline: solid 1px hsl(var(--destructive));
+  background-color:  hsl(var(--destructive));
 }
 
 .warning {
-  outline: solid 1px #F5A623;
-  background-color: #F5A623;
+  outline: solid 1px hsl(var(--warning));
+  background-color: hsl(var(--warning));
 }
 
 .success {
-  background-color:  #20A41C;
+  background-color:  hsl(var(--success));
 }
 
 .spacer {
@@ -384,7 +385,7 @@ onBeforeUnmount(() => {
   /* flex-direction: column; */
   gap: .5rem;
   padding: .2rem .6rem;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   /* background-color: rgba(44, 117, 226, 0.15); */
   cursor: pointer;
   transition: all 0.2s ease;
@@ -397,19 +398,18 @@ onBeforeUnmount(() => {
 }
 
 .mini-progress:hover {
-  background-color: rgba(44, 117, 226, 0.25);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--accent));
 }
 
 .mini-progress.write-operation:hover {
-  background-color: rgba(238, 92, 8, 0.25);
+  background-color: hsl(var(--destructive) / 0.15);
 }
 
 .mini-progress-content {
   display: flex;
   align-items: center;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .mini-progress-icon {
@@ -438,19 +438,18 @@ onBeforeUnmount(() => {
   background-color: rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   overflow: hidden;
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .mini-progress-fill {
   height: 100%;
-  background-color: rgb(44, 117, 226);
-  background-color: rgb(67, 210, 67);
+  background-color: hsl(var(--primary));
   border-radius: 999px;
   transition: width 0.3s ease;
 }
 
 .write-operation .mini-progress-fill {
-  background-color: rgb(238, 92, 8);
+  background-color: hsl(var(--destructive));
 }
 
 .prompt-message {
@@ -464,7 +463,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   height: 70%;
   justify-content: flex-start;
-  /* background-color: var(--dark-steel); */
+  /* background-color: hsl(var(--muted)); */
   padding: .3rem .5rem;
   z-index: 99999;
 }
@@ -476,18 +475,18 @@ onBeforeUnmount(() => {
 }
 
 .prompt-message.warning {
-  background-color: #F5A623;
-  outline: solid 1px #F5A623;
+  background-color: hsl(var(--warning));
+  outline: solid 1px hsl(var(--warning));
 }
 
 .prompt-message.error {
-  background-color: #FF3333;
-  outline: solid 1px #FF3333;
+  background-color: hsl(var(--destructive));
+  outline: solid 1px hsl(var(--destructive));
 }
 
 .prompt-message.success {
-  background-color: #20A41C;
-  outline: solid 1px #20A41C;
+  background-color: hsl(var(--success));
+  outline: solid 1px hsl(var(--success));
 }
 
 </style>

@@ -249,7 +249,7 @@ const props = defineProps({
 @import "@/assets/desktop.css";
 
 .profile-picture {
-  background-color: red;
+  background-color: hsl(var(--destructive));
   height: 24px;
   min-width: 24px;
   overflow: hidden;
@@ -284,7 +284,7 @@ const props = defineProps({
   height: min-content;
   height: 80px;
   overflow: hidden;
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .scroll-list-root::-webkit-scrollbar {
@@ -292,21 +292,20 @@ const props = defineProps({
 }
 
 .scroll-list-root::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--dark-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--muted));
 }
 
 .scroll-list-root::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .scroll-list-item-meta {
-  color: var(--white);
-  background-color: rgba(0, 0, 0, 0.216);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
   padding: .3rem;
   border-radius: 5px;
   white-space: nowrap;
-  /* background-color: hotpink; */
   font-size: 12px;
 }
 
@@ -326,7 +325,7 @@ const props = defineProps({
   min-height: max-content;
   /* overflow: hidden; */
   width: 100%;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   padding: 1%;
   height: 100px;
   height: max-content;
@@ -346,31 +345,31 @@ const props = defineProps({
 }
 
 .scroll-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
   /* background-color: rgb(236, 0, 0); */
 }
 
 .scroll-list-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 
 .scroll-list-item {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .3rem 1rem;
   box-sizing: border-box;
   width: 100%;
-  background-color: var(--dark-steel);
-  border-radius: 10px;
+  background-color: hsl(var(--muted));
+  border-radius: var(--large-radius);
   overflow: hidden;
   height: 60px;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  /* background-color: crimson; */
+  border: 1px solid hsl(var(--border));
+  
+  /* background-color: hsl(var(--destructive)); */
   justify-content: space-between;
   border-radius: var(--large-radius);
   transition: all .2s ease-out;
@@ -382,14 +381,14 @@ const props = defineProps({
 
 
 .scroll-list-item:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
 }
 
 .asset-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .4rem;
   box-sizing: border-box;
@@ -404,23 +403,23 @@ const props = defineProps({
 }
 
 .asset-item-container-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1px;
+  outline: 1px solid hsl(var(--primary));
+  
 }
 
 .asset-item-container-selected:hover {
-  outline: 1px solid rgb(255, 255, 255);
-  outline-offset: -1px;
+  outline: 1px solid hsl(var(--primary));
+  
 }
 
 .selected-item {
-  outline: 1px solid var(--white);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .selected-item:hover {
-  outline: 1px solid var(--white);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .asset-spacer {
@@ -437,13 +436,12 @@ const props = defineProps({
 }
 
 .asset-spacer-empty {
-  background-color: moccasin;
 }
 
 .checkboxes {
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   border: 2px solid yellow;
   background: #FFF;
   padding: 10px;
@@ -465,7 +463,6 @@ const props = defineProps({
   overflow: hidden;
   min-width: min-content;
   height: 100%;
-  /* background-color: royalblue; */
 }
 
 
@@ -478,7 +475,7 @@ const props = defineProps({
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .asset-item-content {
@@ -512,7 +509,7 @@ const props = defineProps({
   white-space: nowrap;
   text-overflow: ellipsis;
 
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
 }
 
 .asset-item-meta {
@@ -524,7 +521,6 @@ const props = defineProps({
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* background-color: rosybrown; */
 }
 
 .asset-item-tag {
@@ -533,7 +529,7 @@ const props = defineProps({
   overflow: hidden;
   padding: .1rem .4rem;
   font-size: 12px;
-  background-color: black;
+  background-color: hsl(var(--background));
   border-radius: 20px;
 }
 
@@ -546,12 +542,10 @@ const props = defineProps({
   width: min-content;
   padding: .2rem;
   height: 100%;
-  /* background-color: darkorange; */
   /* flex: 1; */
 }
 
 .asset-item-container-footer {
-  /* background-color: royalblue; */
   align-items: center;
   display: none;
   width: min-content;
@@ -579,11 +573,11 @@ const props = defineProps({
   width: 80px;
   padding: .4rem .4rem;
   height: max-content;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
 }
 
 .asset-item-actions {
@@ -615,7 +609,7 @@ const props = defineProps({
 }
 
 .scroll-list-item:hover>*::nth-last-child(2) {
-  background-color: var(--white);
+  background-color: hsl(var(--foreground));
   display: none;
   opacity: 0;
   transition: opacity 0.2s ease-in-out;

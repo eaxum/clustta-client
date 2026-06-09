@@ -47,8 +47,8 @@ padding:.5rem;
 opacity: 0;
 gap: .5rem;
 animation: fadeInFadeOut infinite  4s ease-in-out;
-outline: var(--transparent-line);
-border-radius: 12px;
+border: 1px solid hsl(var(--border));
+border-radius: var(--very-large-radius);
 border-radius: var(--large-radius);
 }
 
@@ -60,7 +60,7 @@ aspect-ratio: 1/1;
 overflow: hidden;
 transition: all 0.2s ease-in;
 border-radius: 50%;
-background-color: var(--steel);
+background-color: hsl(var(--accent));
 }
 
 .checkpoint-item-content-skeleton{
@@ -72,8 +72,8 @@ flex-direction: column;
 align-items: center;
 flex: 1;
 gap: .2rem;
-background-color: var(--steel);
-border-radius: 10px;
+background-color: hsl(var(--accent));
+border-radius: var(--large-radius);
 }
 
 .checkpoint-skeleton-container{

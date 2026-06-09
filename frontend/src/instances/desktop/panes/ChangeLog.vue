@@ -302,7 +302,7 @@ onUnmounted(() => {
   overflow-y: auto;
   padding: 0 .5rem;
   width: 100%;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .changelog-scroll-container::-webkit-scrollbar {
@@ -311,7 +311,7 @@ onUnmounted(() => {
 
 .changelog-scroll-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .changelog-scroll-container::-webkit-scrollbar-track {

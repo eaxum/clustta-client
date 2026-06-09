@@ -282,7 +282,7 @@ onMounted(() => {
 
 .input-label {
   font-family: Inter, sans-serif;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px;
   white-space: nowrap;
   flex: 1;

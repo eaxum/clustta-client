@@ -195,14 +195,14 @@ onMounted(() => {
 .share-result {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.75rem;
   width: 100%;
 }
 
 .success-message {
-  font-size: 14px;
-  font-weight: 300;
-  color: var(--white);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: hsl(var(--foreground));
 }
 
 .share-link-container {
@@ -219,31 +219,32 @@ onMounted(() => {
 }
 
 .share-info-label {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
-  color: var(--white);
-  opacity: 0.7;
+  color: hsl(var(--muted-foreground));
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.05em;
 }
 
 .share-link-input {
   width: 100%;
-  background-color: var(--midnight-steel);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 12px;
+  background-color: transparent;
+  color: hsl(var(--foreground));
+  border: 1px solid hsl(var(--input));
+  border-radius: calc(var(--radius) - 2px);
+  padding: 0.5rem 0.75rem;
   font-family: 'Courier New', monospace;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 500;
   outline: none;
   cursor: pointer;
   box-sizing: border-box;
+  transition: border-color 0.15s ease;
 }
 
 .share-link-input:focus {
-  outline: 1px solid rgba(255, 255, 255, 0.2);
+  border-color: hsl(var(--ring));
+  box-shadow: 0 0 0 1px hsl(var(--ring));
 }
 
 .share-expiry-info {

@@ -81,31 +81,31 @@ const toggleExpand = () => {
 .preview-collection {
   display: flex;
   gap: 0.2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: 0 0.5rem;
   box-sizing: border-box;
   width: 100%;
   height: 100%;
   border-radius: var(--large-radius);
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
   transition: all 0.2s ease-out;
 }
 
 .preview-collection:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  border: 1px solid hsl(var(--border));
 }
 
 .preview-collection-selected {
-  background-color: var(--blue-steel);
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .preview-collection-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .preview-collection-virtual {
@@ -160,7 +160,7 @@ const toggleExpand = () => {
   align-items: center;
   justify-content: center;
   padding: 0.1rem 0.4rem;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
   border-radius: var(--tiny-radius);
   margin-right: 0.25rem;
 }

@@ -508,9 +508,9 @@ const chipChange = () => {
   z-index: 1;
   width: 100%;
   height: 100%;
-  background-color: red;
+  background-color: hsl(var(--destructive));
   /* opacity: .2; */
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 
 }
 
@@ -543,7 +543,6 @@ const chipChange = () => {
 
 .autoComp-main {
   background-color: #f9fafb;
-  background-color: cornflowerblue;
   /* min-width: 100vw;
     min-height: 100vh; */
   /* height: 100%;
@@ -594,15 +593,15 @@ const chipChange = () => {
   /* margin-bottom: 0.5rem; */
   width: 100%;
   height: 100%;
-  border: 1px solid #e0e0e0;
-  background-color: red;
+  border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--destructive));
 }
 
 .tag-parent {
   z-index: 1000;
   box-sizing: border-box;
   position: absolute;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   min-height: 32px;
   line-height: 1.4 !important;
   background-color: #e7e7e7;
@@ -616,7 +615,7 @@ const chipChange = () => {
   gap: .2rem;
   padding: .3rem .3rem;
   outline: 1px solid white;
-  outline-offset: -1px;
+  
   /* right: 50%;
   transform: translateX(50%); */
 }
@@ -625,7 +624,7 @@ const chipChange = () => {
   z-index: 1000;
   box-sizing: border-box;
   position: absolute;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   min-height: 32px;
   line-height: 1.4 !important;
   background-color: #e7e7e7;
@@ -638,46 +637,46 @@ const chipChange = () => {
   gap: .2rem;
   padding: .3rem .3rem;
   outline: 1px solid white;
-  outline-offset: -1px;
+  
   right: 50%;
   transform: translateX(50%);
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 
 .tag-parent::-webkit-scrollbar {
 
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: 8px;
 }
 
 .tag-parent::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: hsl(var(--border));
 }
 
 .tag-parent::-webkit-scrollbar-track {
-  border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: transparent;
 }
 
 .tag-item {
   /* transition: background-color 0.2s ease-in-out;
   padding: 0.3rem .4rem;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: max-content;
-  color: black;
+  color: hsl(var(--background));
   box-sizing: border-box; */
 
   background-color: rgb(65, 65, 65);
-  color: white;
+  color: hsl(var(--foreground));
   outline: solid 1px #2e2e2e;
 }
 
 .tag-item:hover,
 .tag-item-highlighted {
 
-  background-color: red;
+  background-color: hsl(var(--destructive));
   background-color: rgb(110, 163, 241);
   background-color: #5f5f5f;
 
@@ -688,8 +687,8 @@ const chipChange = () => {
 .combo-list-item {
   font-family: 'Inter', sans-serif;
   font-size: 18px;
-  font-weight: 200;
-  color: white;
+  font-weight: 300;
+  color: hsl(var(--foreground));
   box-sizing: border-box;
   list-style: none;
   cursor: pointer;
@@ -697,7 +696,7 @@ const chipChange = () => {
   transition: background-color 0.2s ease-in-out;
   padding: 0.2rem .4rem;
   /* background-color: #858585; */
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: max-content;
   width: 100%;
   overflow: hidden;
@@ -720,7 +719,7 @@ const chipChange = () => {
   /* border-radius: 8px; */
   min-height: 40px;
   /* line-height: 1.4 !important; */
-  /* background-color: #fff; */
+  /* background-color: hsl(var(--foreground)); */
   /* overflow: unset; */
   overflow: hidden;
   overflow-x: hidden;
@@ -755,7 +754,7 @@ const chipChange = () => {
   /* border-radius: 8px; */
   min-height: 32px;
   line-height: 1.4 !important;
-  /* background-color: #fff; */
+  /* background-color: hsl(var(--foreground)); */
   /* overflow: unset; */
   overflow-x: scroll;
   text-align: left;
@@ -778,14 +777,14 @@ const chipChange = () => {
 }
 
 .outer-chip:hover {
-  background-color: red;
+  background-color: hsl(var(--destructive));
   background-color: rgb(110, 163, 241);
   background-color: #ffffff17;
 }
 
 .arrow-buttons {
   position: relative;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   box-sizing: border-box;
   cursor: pointer;
   display: flex;
@@ -799,7 +798,7 @@ const chipChange = () => {
 }
 
 .arrow-buttons-disabled {
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   opacity: .2;
   cursor: not-allowed;
 }
@@ -834,7 +833,7 @@ const chipChange = () => {
   min-height: 32px; */
   width: 100%;
   line-height: 1.4 !important;
-  /* background-color: #fff; */
+  /* background-color: hsl(var(--foreground)); */
   overflow: hidden;
   /* overflow-y: auto; */
   /* max-height: 100px; */
@@ -850,18 +849,18 @@ const chipChange = () => {
 }
 
 /* .combo::-webkit-scrollbar {
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: 8px;
 }
 
 .combo::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: hsl(var(--border));
 }
 
 .combo::-webkit-scrollbar-track {
-  border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: transparent;
 } */
 
 .combo--focus {
@@ -869,7 +868,7 @@ const chipChange = () => {
   border-color: #000000;
   box-shadow: 0 0 0 1px #000000; */
   outline: solid 1px white;
-  outline-offset: -1px;
+  
 }
 
 .combo--error {
@@ -879,7 +878,7 @@ const chipChange = () => {
 
 
 .search-container {
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   min-height: 32px;
   background-color: #f56c6c;
   background-color: rgba(0, 0, 0, 0.103);
@@ -899,15 +898,15 @@ const chipChange = () => {
   text-align: left;
   display: flex;
   flex-wrap: wrap;
-  /* color: white; */
-  background-color: var(--transparent-black);
+  /* color: hsl(var(--foreground)); */
+  background-color: hsl(var(--background) / 0.4);
 
 }
 
 .search-container:hover {
 
   outline: solid 1px white;
-  outline-offset: -1px;
+  
 }
 
 .combo-linear {
@@ -917,18 +916,18 @@ const chipChange = () => {
 }
 
 .combo-content::-webkit-scrollbar {
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: 8px;
 }
 
 .combo-content::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: hsl(var(--border));
 }
 
 .combo-content::-webkit-scrollbar-track {
-  border-radius: 8px;
-  background-color: rgba(0, 0, 0, 0.295);
+  border-radius: var(--normal-radius);
+  background-color: transparent;
 }
 
 .combo-actions {
@@ -976,7 +975,7 @@ const chipChange = () => {
   flex: 1;
   min-width: 60px;
   height: 27px;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 

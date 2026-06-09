@@ -1129,28 +1129,28 @@ onBeforeUnmount(() => {
   z-index: 100000;
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
   width: 100%;
   justify-content: flex-end;
   align-items: center;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
 
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  
   border-radius: var(--large-radius);
   transition: all .2s ease-out;
 }
 
 .asset-item-main:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  border: 1px solid hsl(var(--border));
 }
 
 .asset-item-main:hover  .main-asset-item-grid-thumb-container{
@@ -1158,13 +1158,13 @@ onBeforeUnmount(() => {
 }
 
 .asset-item-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .asset-item-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .asset-item-cut{
@@ -1175,19 +1175,18 @@ onBeforeUnmount(() => {
   align-items: flex-end;
   padding-left: 0px;
   padding: .5rem;
-  background-color: var(--dark-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1.5px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
 }
 
 .asset-item-grid-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .asset-item-grid-selected:hover {
-  background-color: var(--solid-blue-steel);
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .asset-item-grid-cut {
@@ -1195,21 +1194,21 @@ onBeforeUnmount(() => {
 }
 
 .asset-item-grid-last-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .asset-item-grid-only-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .asset-item-grid-only-selected:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .main-asset-item-grid {
@@ -1323,7 +1322,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   height: 100%;
   width: 100%;
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: hsl(var(--muted));
   border-radius: var(--normal-radius);
   align-items: center;
   justify-content: center;
@@ -1358,22 +1357,22 @@ onBeforeUnmount(() => {
 }
 
 .asset-item-last-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  outline: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .asset-item-only-selected {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .asset-item-only-selected:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--solid-blue-steel);
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.3);
 }
 
 .asset-item-child {
@@ -1384,14 +1383,14 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .1rem;
   box-sizing: border-box;
   width: 100%;
   height: min-content;
   justify-content: flex-end;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
 
@@ -1400,7 +1399,7 @@ onBeforeUnmount(() => {
 .asset-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .2rem .4rem;
   box-sizing: border-box;
@@ -1423,13 +1422,12 @@ onBeforeUnmount(() => {
 }
 
 .asset-spacer-empty {
-  background-color: moccasin;
 }
 
 .checkboxes {
   width: 18px;
   height: 18px;
-  border-radius: 4px;
+  border-radius: var(--tiny-radius);
   border: 2px solid yellow;
   background: #FFF;
   padding: 10px;
@@ -1517,7 +1515,7 @@ onBeforeUnmount(() => {
   left: 0;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: var(--small-radius);
   min-width: unset;
   z-index: 1;
 }
@@ -1559,8 +1557,7 @@ onBeforeUnmount(() => {
   gap: .4rem;
   height: 100%;
   overflow: hidden;
-  background-color: rosybrown;
-  font-weight: 100;
+  font-weight: 300;
 }
 
 .asset-item-details-old {
@@ -1587,7 +1584,7 @@ onBeforeUnmount(() => {
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-  color: var(--white);
+  color: hsl(var(--foreground));
   justify-content: flex-end;
   /* direction: rtl; */
   text-align: left;
@@ -1600,7 +1597,7 @@ onBeforeUnmount(() => {
   text-wrap: nowrap;
   justify-content: flex-end;
   flex: 1;
-  color: var(--white);
+  color: hsl(var(--foreground));
   padding: .2rem .2rem;
   border-radius: var(--tiny-radius);
   font-size: 12px;
@@ -1654,7 +1651,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   padding: .1rem .4rem;
   font-size: 12px;
-  background-color: black;
+  background-color: hsl(var(--background));
   border-radius: 20px;
 }
 
@@ -1679,16 +1676,16 @@ onBeforeUnmount(() => {
   width: 60px;
   padding: .4rem .4rem;
   height: max-content;
-  background-color: firebrick;
+  background-color: hsl(var(--destructive));
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
   transition: all 0.2s ease-out;
 }
 
 .asset-item-status:hover {
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .asset-item-actions {
@@ -1777,12 +1774,12 @@ onBeforeUnmount(() => {
   font-size: 12px;
   text-transform: uppercase;
   font-weight: 700;
-  color: black;
+  color: hsl(var(--background));
   transition: all 0.2s ease-out;
 }
 
 .asset-item-status-grid:hover {
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .asset-item-grid-untracked-label {
@@ -1796,7 +1793,7 @@ onBeforeUnmount(() => {
 .asset-item-grid-untracked-label span {
   font-style: italic;
   font-size: 14px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.7;
 }
 
@@ -1858,7 +1855,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border: 1px solid rgba(255, 255, 255, 0.6);
+  border: 1px solid hsl(var(--border));
 }
 
 .profile-img-grid-small {
@@ -1881,9 +1878,9 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 0;
   font-size: 14px;
-  border-radius: 12px;
+  border-radius: var(--very-large-radius);
   height: 100%;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 @keyframes loadingRotate {

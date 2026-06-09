@@ -533,12 +533,12 @@ onUnmounted(() => {
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--white);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--foreground));
 }
 
 .sidebar::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .action-bar {
@@ -561,7 +561,7 @@ onUnmounted(() => {
   margin-bottom: .5rem;
   padding-bottom: .5rem;
   border-bottom: 1px solid var(--border-color);
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .section-header {

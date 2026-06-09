@@ -91,7 +91,7 @@ onMounted(async () => {
 
 <style scoped>
 .file-hierarchy {
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -107,12 +107,12 @@ onMounted(async () => {
 }
 
 .file-hierarchy::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .file-hierarchy::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 </style>
 

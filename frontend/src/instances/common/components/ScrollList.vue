@@ -79,54 +79,52 @@ const props = defineProps({
 
 <style scoped>
 
-.profile-picture{
-    background-color: red;
-    height: 24px;
-    min-width: 24px;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    border-radius: 24px;
-    /* padding: 5px; */
+.profile-picture {
+  height: 24px;
+  min-width: 24px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  border-radius: 24px;
 }
-.profile-img{
-    width: 100%;
-    height: 100%;
+
+.profile-img {
+  width: 100%;
+  height: 100%;
 }
-.scroll-list-item-name{
-    font-family: 'Inter', sans-serif;
-    font-weight: 200;
-    color: white;
-    font-size: 16px;
-    display: flex;
-    flex: 1;
-    height: 100%;
-    align-items: center;
-    justify-content: flex-start;
+
+.scroll-list-item-name {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  display: flex;
+  flex: 1;
+  height: 100%;
+  align-items: center;
+  justify-content: flex-start;
 }
 
 .scroll-list-item-meta {
-    color: rgb(219, 219, 219);
-    color: white;
-    background-color: rgba(0, 0, 0, 0.216);
-    padding: .3rem;
-    border-radius: 5px;
-    font-size: 12px;
+  color: hsl(var(--muted-foreground));
+  background-color: hsl(var(--muted));
+  padding: 0.25rem 0.5rem;
+  border-radius: calc(var(--radius) - 4px);
+  font-size: 0.75rem;
 }
+
 .scroll-list-container {
   box-sizing: border-box;
-  padding: .5rem;
+  padding: 0.5rem;
   align-items: center;
   flex-direction: column;
-  gap: .2rem;
-  background-color: rgba(0, 0, 0, 0.144);
-  /* flex: 1; */
-  /* min-height: max-content; */
+  gap: 0.125rem;
+  background-color: hsl(var(--muted) / 0.5);
   overflow: hidden;
   overflow-y: scroll;
   width: 100%;
-  border-radius: 10px;
-  border-radius: var(--large-radius);
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
 }
 
 .scroll-list-container::-webkit-scrollbar {
@@ -134,32 +132,32 @@ const props = defineProps({
 }
 
 .scroll-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: white;
-  /* background-color: rgb(236, 0, 0); */
+  border-radius: var(--radius);
+  background-color: hsl(var(--border));
 }
 
 .scroll-list-container::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--radius);
 }
 
 .scroll-list-item {
-  color: white;
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: .5rem;
+  gap: 0.5rem;
   width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+  border-bottom: 1px solid hsl(var(--border));
   height: 40px;
   overflow: hidden;
-  padding: .2rem;
-  border-radius: var(--large-radius);
+  padding: 0.25rem;
+  border-radius: calc(var(--radius) - 4px);
 }
-.scroll-list-item:last-child{
+
+.scroll-list-item:last-child {
   border-bottom: 0px;
-  /* background-color: firebrick; */
 }
+
 .scroll-list-item:hover>*:last-child {
   opacity: 1;
   visibility: visible;

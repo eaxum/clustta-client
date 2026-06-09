@@ -298,7 +298,7 @@ onBeforeUnmount(() => {
   gap: 0;
   overflow: hidden;
   overflow-y: scroll;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   padding-right: 5px;
   padding-bottom: 1rem;
 }
@@ -308,13 +308,13 @@ onBeforeUnmount(() => {
 }
 
 .checkpoint-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .checkpoint-list-container::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
+  border-radius: var(--large-radius);
+  /* background-color: transparent; */
 }
 </style>
 

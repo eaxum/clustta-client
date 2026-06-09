@@ -313,8 +313,8 @@ const selectCollectionType = (collectionTypeName) => {
 
 .hierarchy-item-meta {
   color: rgb(219, 219, 219);
-  color: white;
-  background-color: var(--black-steel);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--background));
   padding: .3rem;
   border-radius: 5px;
   font-size: 13px;
@@ -330,7 +330,7 @@ const selectCollectionType = (collectionTypeName) => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .hierarchy-item-title {
@@ -343,7 +343,7 @@ const selectCollectionType = (collectionTypeName) => {
   width: 100%;
   /* width: 50%; */
   height: 100%;
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
 }
 
 .hierarchy-item-name {
@@ -356,7 +356,7 @@ const selectCollectionType = (collectionTypeName) => {
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .hierarchy-item-config {
@@ -366,7 +366,7 @@ const selectCollectionType = (collectionTypeName) => {
   gap: .5rem;
   flex: 1;
   min-width: min-content;
-  /* background-color: forestgreen; */
+  /* background-color: hsl(var(--success)); */
 }
 
 .meta-config {
@@ -374,7 +374,7 @@ const selectCollectionType = (collectionTypeName) => {
 }
 
 .hierarchy-item-type-options {
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   /* min-width: 400px; */
   display: flex;
   gap: .5rem;
@@ -389,7 +389,7 @@ const selectCollectionType = (collectionTypeName) => {
   padding: .1rem;
   overflow: hidden;
   height: 100%;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .file-hierarchy {
@@ -398,7 +398,7 @@ const selectCollectionType = (collectionTypeName) => {
 }
 
 .item-children {
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -429,26 +429,26 @@ const selectCollectionType = (collectionTypeName) => {
   padding-left: .5rem;
   gap: .5rem;
   border-radius: var(--small-radius);
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   min-height: 40px;
 }
 
 .item-header-selected {
-  outline: 1px solid rgb(255, 255, 255);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  background-color: var(--blue-steel);
+  outline: 1px solid hsl(var(--primary));
+  border: 1px solid hsl(var(--border));
+  
+  background-color: hsl(var(--primary) / 0.15);
 }
 
 .no-expand {
   cursor: pointer;
-  /* background-color: white; */
+  /* background-color: hsl(var(--foreground)); */
   pointer-events: none;
 }
 
 .item-header:hover.no-expand {
   /* background-color: #f0f0f0; */
-  outline: var(--transparent-line);
+  border: 1px solid hsl(var(--border));
 }
 
 .hierarchy-item-spacer {
@@ -460,7 +460,6 @@ const selectCollectionType = (collectionTypeName) => {
   box-sizing: border-box;
   align-items: center;
   transition: 0s;
-  /* background-color: salmon; */
 }
 
 .hierarchy-collection-collapsed {

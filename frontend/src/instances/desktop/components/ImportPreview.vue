@@ -545,7 +545,7 @@ onMounted(async () => {
 
 <style scoped>
 .file-hierarchy {
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -561,12 +561,12 @@ onMounted(async () => {
 }
 
 .file-hierarchy::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--light-steel);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .file-hierarchy::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .config-bar {
@@ -580,7 +580,6 @@ onMounted(async () => {
   align-items: center;
   gap: .5rem;
   height: 60px;
-  /* background-color: cornflowerblue; */
 }
 
 .hierarchy-item-config {
@@ -590,11 +589,10 @@ onMounted(async () => {
   gap: .5rem;
   flex: 1;
   min-width: min-content;
-  /* background-color: hotpink; */
 }
 
 .selected-items-meta {
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -608,7 +606,7 @@ onMounted(async () => {
 }
 
 .hierarchy-item-type-options {
-  /* background-color: crimson; */
+  /* background-color: hsl(var(--destructive)); */
   /* min-width: 400px; */
   display: flex;
   gap: .5rem;

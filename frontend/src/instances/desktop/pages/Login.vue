@@ -460,7 +460,7 @@ onMounted(async () => {
 }
 
 .back-link {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -483,7 +483,7 @@ onMounted(async () => {
   display: flex;
   justify-content: flex-end;
   font-size: 0.875rem;
-  color: var(--white);
+  color: hsl(var(--muted-foreground));
   opacity: 0.6;
   cursor: pointer;
   transition: opacity 0.2s;
@@ -497,7 +497,7 @@ onMounted(async () => {
 .loading-status {
   text-align: center;
   font-size: 0.85rem;
-  color: var(--white);
+  color: hsl(var(--muted-foreground));
   opacity: 0.7;
   margin-top: 0.5rem;
   animation: pulse 1.5s ease-in-out infinite;
@@ -509,16 +509,15 @@ onMounted(async () => {
   justify-content: space-between;
   padding: 0.6rem 1rem;
   margin-bottom: 0.5rem;
-  border-radius: var(--large-radius);
-  background-color: var(--midnight-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border-radius: var(--radius);
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   gap: 1rem;
   transition: border-radius 0.2s;
 }
 
 .server-badge:hover {
-  border-radius: var(--normal-radius);
+  border-color: hsl(var(--ring));
 }
 
 .server-badge-info {
@@ -536,21 +535,18 @@ onMounted(async () => {
 .server-badge-name {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--white);
-  opacity: 0.9;
+  color: hsl(var(--foreground));
 }
 
 .server-badge-url {
   font-size: 0.7rem;
-  color: var(--white);
-  opacity: 0.4;
+  color: hsl(var(--muted-foreground));
   font-weight: 300;
 }
 
 .server-change-link {
   font-size: 0.75rem;
-  color: var(--white);
-  opacity: 0.5;
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition: opacity 0.2s;
 }
@@ -560,7 +556,7 @@ onMounted(async () => {
 }
 
 .signup-toggle {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -579,7 +575,7 @@ onMounted(async () => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #22c55e;
+  background-color: hsl(var(--success));
   animation: dot-entrance 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
@@ -589,7 +585,7 @@ onMounted(async () => {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background-color: #22c55e;
+  background-color: hsl(var(--success));
   animation: ripple 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
@@ -599,8 +595,7 @@ onMounted(async () => {
 
 .studio-reveal-link {
   font-size: 0.8rem;
-  color: var(--white);
-  opacity: 0.5;
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition: opacity 0.2s;
   text-decoration: underline;

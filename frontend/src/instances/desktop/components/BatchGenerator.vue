@@ -156,7 +156,7 @@ label {
   display: block;
   font-size: 14px;
   color: #374151;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin-bottom: 8px;
 }
 
@@ -170,12 +170,12 @@ label {
 }
 
 .input-short::-webkit-scrollbar-thumb {
-	border-radius: 10px;
-	background-color: var(--dark-steel);
+	border-radius: var(--large-radius);
+	background-color: hsl(var(--muted));
 }
 
 .input-short::-webkit-scrollbar-track {
-	border-radius: 10px;
+	border-radius: var(--large-radius);
 }
 
 .result-display{
@@ -183,7 +183,7 @@ label {
     display: flex;
     padding: .5rem;
     box-sizing: border-box;
-    color: var(--white);
+    color: hsl(var(--foreground));
 }
 
 .no-results{
@@ -202,8 +202,8 @@ label {
 .sequence-item {
   background: white;
   padding: 8px 12px;
-  border-radius: 4px;
-  border: 1px solid #e5e7eb;
+  border-radius: var(--tiny-radius);
+  border: 1px solid hsl(var(--border));
   font-size: 14px;
   font-family: 'Courier New', monospace;
 }
@@ -212,7 +212,7 @@ label {
   margin-top: 16px;
   padding: 12px;
   background: #dbeafe;
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .pattern-info p {
@@ -225,12 +225,12 @@ label {
   margin-top: 16px;
   padding: 12px;
   background: #fef2f2;
-  border-radius: 6px;
+  border-radius: var(--small-radius);
 }
 
 .error-message p {
   font-size: 14px;
-  color: #dc2626;
+  color: hsl(var(--destructive));
   margin: 0;
 }
 

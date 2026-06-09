@@ -201,13 +201,13 @@ onMounted(() => {
 
     display: flex;
     gap: .2rem;
-    color: var(--white);
+    color: hsl(var(--foreground));
     align-items: center;
     padding: .3rem;
     box-sizing: border-box;
     width: 100%;
-    background-color: var(--dark-steel);
-    border-radius: 10px;
+    background-color: hsl(var(--muted));
+    border-radius: var(--large-radius);
     overflow: hidden;
     height: 60px;
     height: max-content;
@@ -234,8 +234,7 @@ onMounted(() => {
 }
 
 .trash-item-container:hover {
-    outline: var(--transparent-line);
-    outline-offset: -1.5px;
+    border: 1px solid hsl(var(--border));
 
 }
 
@@ -274,7 +273,7 @@ onMounted(() => {
     flex-direction: row;
     align-items: center;
     gap: .5rem;
-    border-radius: 10px;
+    border-radius: var(--large-radius);
     width: 100%;
     flex: 1;
 }
@@ -285,18 +284,18 @@ onMounted(() => {
     left: 19.6px;
     width: 1px;
     height: 100%;
-    background-color: var(--white);
+    background-color: hsl(var(--foreground));
 
 }
 
 /* .trash-item-meta:hover {
 
-    background-color: #ffffff15;
+    background-color: hsl(var(--accent));
 }
 
 .trash-item-meta:active {
 
-    background-color: #00000013;
+    background-color: hsl(var(--accent));
 } */
 
 .status-pill {
@@ -330,7 +329,7 @@ onMounted(() => {
     font-size: 12px;
     /* font-weight: 200; */
     color: rgb(15, 15, 15);
-    /* background-color: red; */
+    /* background-color: hsl(var(--destructive)); */
 
 
 }
@@ -349,7 +348,7 @@ onMounted(() => {
 }
 
 .trash-item-name {
-    color: var(--white);
+    color: hsl(var(--foreground));
     white-space: nowrap;
     overflow: hidden;
 
@@ -357,7 +356,7 @@ onMounted(() => {
 
 .trash-item-collection {
     color: rgb(219, 219, 219);
-    background-color: rgba(0, 0, 0, 0.216);
+    background-color: hsl(var(--muted));
     padding: .3rem;
     border-radius: 5px;
     font-size: 12px;
@@ -367,7 +366,7 @@ onMounted(() => {
 .trash-item-label-text {
     font-family: 'Inter', sans-serif;
     font-size: 16px;
-    color: var(--white);
+    color: hsl(var(--foreground));
 }
 
 </style>

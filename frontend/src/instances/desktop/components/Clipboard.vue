@@ -78,10 +78,10 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   z-index: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   height: 200px;
   box-sizing: border-box;
   max-height: 250px;
@@ -104,7 +104,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   border-radius: var(--normal-radius);
 }
 
@@ -118,13 +118,13 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 .clipboard-title {
   font-size: 14px;
   font-weight: 400;
-  color: var(--white);
+  color: hsl(var(--foreground));
   margin: 0;
 }
 
 .clipboard-description {
   font-size: 12px;
-  color: var(--silver);
+  color: hsl(var(--muted-foreground));
   opacity: 0.9;
 }
 
@@ -142,7 +142,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 .clipboard-list-container::-webkit-scrollbar-thumb {
   border-radius: var(--small-radius);
-  background-color: var(--light-steel);
+  background-color: hsl(var(--border));
 }
 
 .clipboard-list-container::-webkit-scrollbar-track {

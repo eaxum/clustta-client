@@ -218,11 +218,11 @@ const toggleExpanded = async () => {
     justify-content: center;
     width: 100%;
     gap: .2rem;
-    color: var(--white);
+    color: hsl(var(--foreground));
     border-radius: var(--large-radius);
-    outline: var(--transparent-line);
-    outline-offset: -1px;
-    background-color: var(--dark-steel);
+    border: 1px solid hsl(var(--border));
+    
+    background-color: hsl(var(--muted));
     transition: all .2s ease-in-out;
     min-height: 50px;
     min-height: max-content;
@@ -230,7 +230,7 @@ const toggleExpanded = async () => {
 
 .preset-item-container:hover {
     border-radius: var(--normal-radius);
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
 }
 
 .preset-item {
@@ -278,7 +278,7 @@ const toggleExpanded = async () => {
 }
 
 .preset-item-label-text {
-    color: var(--white);
+    color: hsl(var(--foreground));
     font-size: 14px;
     height: min-content;
     overflow: hidden;
@@ -316,7 +316,7 @@ const toggleExpanded = async () => {
 
 .preset-dependencies {
     border-radius: var(--normal-radius);
-    background-color: var(--light-steel);
+    background-color: hsl(var(--border));
     padding: .5rem 0;
     max-height: 180px;
     overflow-y: auto;
@@ -332,7 +332,7 @@ const toggleExpanded = async () => {
 
 .preset-dependencies::-webkit-scrollbar-thumb {
     border-radius: var(--small-radius);
-    background-color: var(--light-steel);
+    background-color: hsl(var(--border));
 }
 
 .preset-dependencies::-webkit-scrollbar-track {
@@ -383,7 +383,7 @@ const toggleExpanded = async () => {
 .dependency-item-label-text {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    color: var(--white);
+    color: hsl(var(--foreground));
     text-overflow: ellipsis;
     cursor: pointer;
 }

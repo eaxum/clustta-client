@@ -91,7 +91,7 @@ onMounted(() => {
 .data-container{
   z-index: 20;
   display: flex;
- /* background-color: red; */
+ /* background-color: hsl(var(--destructive)); */
  width: 100%;
  overflow: hidden;
 
@@ -103,14 +103,14 @@ onMounted(() => {
   /* flex: 1; */
 }
 .data-item {
-  color: white;
+  color: hsl(var(--foreground));
   /* margin-top: 1rem; */
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
   width: 100%;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.096);
+  border-bottom: 1px solid hsl(var(--border));
   height: max-content;
   height: 35px;
   padding: .2rem;
@@ -120,7 +120,7 @@ onMounted(() => {
 
 .data-item-actions {
 
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
   display: flex;
   flex: 1;
 
@@ -132,7 +132,7 @@ onMounted(() => {
   font-family: 'Inter', sans-serif;
   font-style: italic;
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   font-size: 16px;
   outline: none;
   /* box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05000000074505806); */
@@ -143,15 +143,12 @@ onMounted(() => {
   /* flex: 1; */
   width: 100%;
   /* border-style: solid; */
-  /* background-color: rgba(255, 255, 255, 1); */
-  background-color: transparent;
-  /* background-color: rgba(255, 255, 255, 0.094); */
-  background-color: #3c3c3c;
+  background-color: hsl(var(--muted));
 
   color: rgb(255, 255, 255);
   outline: none;
   outline: solid 1px white;
-  outline-offset: -1px;
+  
 
 }
 </style>

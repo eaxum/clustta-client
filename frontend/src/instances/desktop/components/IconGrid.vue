@@ -74,12 +74,12 @@ onMounted(async () => {
   align-items: center;
   /* max-width: 300px; */
   max-height: 260px;
-  background-color: crimson;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--destructive));
+  background-color: hsl(var(--background));
   border-radius: var(--large-radius);
   padding: .5rem;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .apps-container {
@@ -105,13 +105,13 @@ onMounted(async () => {
 }
 
 .apps-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.295);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--border));
 }
 
 .apps-container::-webkit-scrollbar-track {
-  border-radius: 10px;
-  /* background-color: rgba(0, 0, 0, 0.295); */
+  border-radius: var(--large-radius);
+  /* background-color: transparent; */
 }
 
 .apps-grid {
@@ -138,32 +138,32 @@ onMounted(async () => {
 
 
 .apps-grid-item{
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   padding: .2rem;
   
 }
 .apps-grid-item:hover {
   background-color: rgb(121, 121, 121);
-  background-color: #ffffff15;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  background-color: hsl(var(--accent));
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .apps-grid-item:active {
   background-color: rgb(70, 70, 70);
-  background-color: #00000013;
+  background-color: hsl(var(--accent));
 }
 
 .apps-grid-item-selected {
   box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
   outline: solid 1px white;
-  outline-offset: -1px;
+  
 
 }
 
 .apps-grid-item-selected:hover {
-  background-color: rgba(0, 0, 0, 0.216);
+  background-color: hsl(var(--muted));
 
 }
 </style>

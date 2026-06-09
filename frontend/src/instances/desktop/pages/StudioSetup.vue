@@ -748,7 +748,7 @@ const validateStudioUrl = () => {
   align-items: center;
   height: 100%;
   flex-direction: column;
-  background-color: var(--black);
+  background-color: hsl(var(--background));
   overflow: hidden;
   overflow-y: auto;
 }
@@ -764,7 +764,7 @@ const validateStudioUrl = () => {
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 300;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
   transition: opacity 0.2s;
   z-index: 10;
@@ -801,7 +801,7 @@ const validateStudioUrl = () => {
 }
 
 .back-link {
-  color: var(--white);
+  color: hsl(var(--foreground));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -822,7 +822,7 @@ const validateStudioUrl = () => {
   text-align: center;
   padding: 1rem 0.5rem;
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-weight: 300;
   gap: 0.25rem;
 }
@@ -832,7 +832,7 @@ const validateStudioUrl = () => {
 }
 
 .legal-link {
-  color: var(--white);
+  color: hsl(var(--foreground));
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -867,8 +867,8 @@ const validateStudioUrl = () => {
   justify-content: center;
   width: 64px;
   height: 64px;
-  border-radius: var(--large-radius);
-  background-color: var(--light-steel);
+  border-radius: var(--radius);
+  background-color: hsl(var(--muted));
 }
 
 .managed-icon {
@@ -880,13 +880,12 @@ const validateStudioUrl = () => {
 .managed-title {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .managed-description {
   font-size: 0.9rem;
-  color: var(--white);
-  opacity: 0.6;
+  color: hsl(var(--muted-foreground));
   font-weight: 300;
   line-height: 150%;
   max-width: 380px;
@@ -907,8 +906,8 @@ const validateStudioUrl = () => {
 
 .desktop-input-long {
   margin-top: 0px;
-  font-weight: 200;
-  color: var(--white);
+  font-weight: 300;
+  color: hsl(var(--foreground));
   margin-bottom: .8rem;
 }
 
@@ -931,16 +930,15 @@ const validateStudioUrl = () => {
   justify-content: space-between;
   padding: 0.6rem 1rem;
   margin-bottom: 0.5rem;
-  border-radius: var(--large-radius);
-  background-color: var(--midnight-steel);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border-radius: var(--radius);
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
   gap: 1rem;
-  transition: border-radius .2s;
+  transition: border-color .2s;
 }
 
 .server-badge:hover {
-  border-radius: var(--normal-radius);
+  border-color: hsl(var(--ring));
 }
 
 .server-badge-info {
@@ -954,7 +952,7 @@ const validateStudioUrl = () => {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background-color: #22c55e;
+  background-color: hsl(var(--success));
   animation: dot-entrance 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
@@ -964,7 +962,7 @@ const validateStudioUrl = () => {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background-color: #22c55e;
+  background-color: hsl(var(--success));
   animation: ripple 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
@@ -993,21 +991,18 @@ const validateStudioUrl = () => {
 .server-badge-name {
   font-size: 0.85rem;
   font-weight: 500;
-  color: var(--white);
-  opacity: 0.9;
+  color: hsl(var(--foreground));
 }
 
 .server-badge-url {
   font-size: 0.7rem;
-  color: var(--white);
-  opacity: 0.4;
+  color: hsl(var(--muted-foreground));
   font-weight: 300;
 }
 
 .server-change-link {
   font-size: 0.75rem;
-  color: var(--white);
-  opacity: 0.5;
+  color: hsl(var(--muted-foreground));
   cursor: pointer;
   transition: opacity 0.2s;
 }
@@ -1026,7 +1021,7 @@ const validateStudioUrl = () => {
 .plan-loading {
   text-align: center;
   padding: 1rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.6;
 }
 
@@ -1040,7 +1035,7 @@ const validateStudioUrl = () => {
 
 .plan-select-label {
   font-size: 0.85rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.6;
   font-weight: 300;
 }

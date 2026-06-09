@@ -686,7 +686,7 @@ onUnmounted(() => {
   width: 6px;
   height: 50%;
   background: #ffffff;
-  border: 1px solid #fff;
+  border: 1px solid hsl(var(--border));
   border-radius: 3px;
   cursor: pointer;
 } */
@@ -694,7 +694,7 @@ onUnmounted(() => {
 /* :deep(.vue-flow__controls-button) {
   background: #fefefe;
   border: none;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid hsl(var(--border));
   box-sizing: content-box;
   display: flex;
   justify-content: center;
@@ -713,7 +713,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   /* background-color: darkcyan; */
-  color: var(--white);
+  color: hsl(var(--foreground));
   padding: 0px;
   /* padding: 1rem; */
   justify-content: flex-start;
@@ -732,15 +732,15 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--white);
+  color: hsl(var(--foreground));
   padding: 1rem;
   padding-right: 0px;
   padding-top: 0px;
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .asset-graph-container {
-  background-color: var(--black-steel);
+  background-color: hsl(var(--background));
   border-radius: var(--large-radius);
   display: flex;
   width: 100%;
@@ -762,7 +762,7 @@ onUnmounted(() => {
   height: 60px;
   box-sizing: border-box;
   align-items: center;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .dependency-listbox-container {
@@ -790,7 +790,7 @@ onUnmounted(() => {
 }
 
 .node-filters {
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   display: flex;
   box-sizing: border-box;
   height: 100%;
@@ -801,8 +801,8 @@ onUnmounted(() => {
 
 .sidebar-outer {
   padding: 1rem;
-  color: var(--white);
-  /* border-left: var(--transparent-line); */
+  color: hsl(var(--foreground));
+  /* border-left: 1px solid hsl(var(--border)); */
   position: relative;
   height: 100%;
   max-width: 600px;
@@ -814,9 +814,9 @@ onUnmounted(() => {
   overflow: hidden;
   flex: 1 1 50%;
   /* transition: all .2s ease-out; */
-  background-color: var(--black);
+  background-color: hsl(var(--background));
   background-color: transparent;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .sidebar {
@@ -827,7 +827,7 @@ onUnmounted(() => {
   box-sizing: border-box;
   gap: .4rem;
   padding: .5rem;
-  /* border-left: var(--transparent-line); */
+  /* border-left: 1px solid hsl(var(--border)); */
   position: relative;
   height: 100%;
   max-width: 600px;
@@ -836,8 +836,8 @@ onUnmounted(() => {
   justify-content: flex-start;
   padding: 10px;
   flex: 1 1 50%;
-  background-color: tomato;
-  background-color: var(--black-steel);
+  background-color: hsl(var(--destructive));
+  background-color: hsl(var(--background));
   border-radius: var(--large-radius);
   border-radius: var(--very-large-radius);
 }
@@ -862,12 +862,12 @@ onUnmounted(() => {
 }
 
 .sidebar-scroll::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--white);
+  border-radius: var(--large-radius);
+  background-color: hsl(var(--foreground));
 }
 
 .sidebar::-webkit-scrollbar-track {
-  border-radius: 10px;
+  border-radius: var(--large-radius);
 }
 
 .filter-alert {
@@ -882,10 +882,10 @@ onUnmounted(() => {
   justify-content: center;
   top: 2px;
   right: 2px;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   padding: 3px;
   font-size: 12px;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 
@@ -893,7 +893,7 @@ onUnmounted(() => {
   display: flex;
   width: max-content;
   white-space: nowrap;
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
   height: 100%;
   align-items: center;
   gap: .5rem;
@@ -904,16 +904,16 @@ onUnmounted(() => {
 
 .desktop-search-bar {
   font-family: 'Inter', sans-serif;
-  font-weight: 200;
+  font-weight: 300;
   box-sizing: border-box;
   font-size: 16px;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   padding: 10px;
   border: 0px;
   border-style: solid;
   outline: none;
-  background-color: var(--steel);
-  color: var(--white);
+  background-color: hsl(var(--accent));
+  color: hsl(var(--foreground));
   transition: width 0.2s ease-out;
   width: 100%;
   max-width: 400px;
@@ -922,17 +922,17 @@ onUnmounted(() => {
 
 .desktop-search-bar::-ms-reveal {
   filter: invert(100%);
-  /* color: white; */
+  /* color: hsl(var(--foreground)); */
 }
 
 .desktop-search-bar:hover {
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
 }
 
 .desktop-search-bar:focus {
   outline: var(--solid-line);
-  outline-offset: -1px;
+  
 }
 
 
@@ -944,7 +944,7 @@ onUnmounted(() => {
   height: max-content;
   gap: 1rem;
   justify-content: space-between;
-  /* background-color: firebrick; */
+  /* background-color: hsl(var(--destructive)); */
   padding: .5rem;
   box-sizing: border-box;
   border-radius: var(--normal-radius);
@@ -967,8 +967,8 @@ onUnmounted(() => {
 .filter-root {
   width: 100%;
   display: flex;
-  /* background-color: firebrick; */
-  background-color: var(--black-steel);
+  /* background-color: hsl(var(--destructive)); */
+  background-color: hsl(var(--background));
   border-radius: var(--normal-radius);
   align-items: center;
   box-sizing: border-box;
@@ -979,7 +979,7 @@ onUnmounted(() => {
 .filter-header {
   width: 100%;
   display: flex;
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
   /* background-color: green; */
   align-items: center;
@@ -1015,7 +1015,6 @@ onUnmounted(() => {
   height: max-content;
   height: 55px;
   /* min-height: 30px; */
-  /* background-color: royalblue; */
   display: flex;
   flex-wrap: wrap;
   box-sizing: border-box;
@@ -1028,7 +1027,7 @@ onUnmounted(() => {
   width: max-content;
   font-style: italic;
   opacity: .4;
-  /* background-color: red; */
+  /* background-color: hsl(var(--destructive)); */
 }
 
 .no-active-filters {
@@ -1036,9 +1035,9 @@ onUnmounted(() => {
   width: max-content;
   font-style: italic;
   opacity: .4;
-  color: var(--white);
+  color: hsl(var(--foreground));
   font-size: 14px
-    /* background-color: red; */
+    /* background-color: hsl(var(--destructive)); */
 }
 
 .relayout {
@@ -1047,8 +1046,8 @@ onUnmounted(() => {
   margin: 10px 0;
   padding: 10px;
   background-color: #e0e0e0;
-  color: black;
-  border: 1px solid #ccc;
+  color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
   border-radius: 5px;
   cursor: pointer;
 
@@ -1075,8 +1074,8 @@ onUnmounted(() => {
   padding: 10px;
   background-color: #e0e0e0;
   background: goldenrod;
-  color: black;
-  border: 1px solid #ccc;
+  color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
   border-radius: 5px;
   /* cursor: move; */
   cursor: pointer;

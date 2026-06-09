@@ -147,8 +147,8 @@ watch(() => projectStore.selectedStudio, (studio) => {
   border-radius: var(--large-radius);
   cursor: pointer;
   font-size: 11px;
-  color: var(--white);
-  background-color: var(--steel);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--accent));
   transition: background-color 0.15s ease;
   white-space: nowrap;
   height: 22px;
@@ -160,7 +160,7 @@ watch(() => projectStore.selectedStudio, (studio) => {
 }
 
 .plan-free {
-  background-color: var(--grape);
+  background-color: hsl(var(--primary));
 }
 
 .plan-free:hover {
@@ -168,7 +168,7 @@ watch(() => projectStore.selectedStudio, (studio) => {
 }
 
 .plan-free-content{
- color: white;
+ color: hsl(var(--foreground));
  display: flex;
  align-items: center;
  gap: .3rem;
@@ -201,16 +201,16 @@ watch(() => projectStore.selectedStudio, (studio) => {
 
 .storage-donut-track {
   fill: none;
-  stroke: var(--bright-grape);
-  stroke: var(--grape);
-  background-color: var(--dark-steel);
+  stroke: hsl(var(--primary) / 0.3);
+  stroke: hsl(var(--primary));
+  background-color: hsl(var(--muted));
   stroke-width: 4;
 }
 
 .storage-donut-fill {
   fill: none;
-  stroke: var(--grape);
-  stroke: var(--bright-steel);
+  stroke: hsl(var(--primary));
+  stroke: hsl(var(--muted-foreground));
   stroke-width: 4;
   stroke-dasharray: 37.7;
   stroke-linecap: round;
@@ -218,12 +218,12 @@ watch(() => projectStore.selectedStudio, (studio) => {
 }
 
 [data-theme="dark"] .storage-donut-fill  {
-  stroke: var(--bright-steel);
-  stroke: var(--steel);
+  stroke: hsl(var(--muted-foreground));
+  stroke: hsl(var(--accent));
 }
 
 .storage-donut-fill.storage-warning {
-  stroke: var(--attention);
+  stroke: hsl(var(--destructive));
 }
 
 .storage-donut-fill.storage-danger {

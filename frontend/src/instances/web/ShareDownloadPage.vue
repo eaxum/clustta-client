@@ -236,13 +236,13 @@ onMounted(() => {
   width: 100%;
   min-height: 100vh;
   max-height: 100vh;
-  background-color: var(--midnight-steel);
+  background-color: hsl(var(--card));
   display: flex;
   flex-direction: column;
   align-items: center;
   overflow: hidden;
   overflow-y: auto;
-  color: var(--white);
+  color: hsl(var(--foreground));
   box-sizing: border-box;
 }
 
@@ -250,7 +250,7 @@ onMounted(() => {
   width: 100%;
   display: flex;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.05);
+  background-color: hsl(var(--accent));
   position: sticky;
   top: 0;
   z-index: 99999;
@@ -283,7 +283,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
 }
 
 .state-icon {
@@ -293,7 +293,7 @@ onMounted(() => {
 }
 
 .state-message {
-  color: var(--steel);
+  color: hsl(var(--muted-foreground));
   max-width: 400px;
   text-align: center;
 }
@@ -301,8 +301,8 @@ onMounted(() => {
 .loading-spinner {
   width: 32px;
   height: 32px;
-  border: 3px solid var(--steel);
-  border-top-color: var(--grape);
+  border: 3px solid hsl(var(--border));
+  border-top-color: hsl(var(--primary));
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -334,13 +334,13 @@ onMounted(() => {
 }
 
 .share-meta {
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
   font-size: 0.9rem;
   margin: 0;
 }
 
 .share-expiry {
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
   font-size: 0.85rem;
   margin: 0;
 }
@@ -361,7 +361,7 @@ onMounted(() => {
 .files-title {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
 }
 
 .download-all-btn {
@@ -369,10 +369,10 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 16px;
-  background-color: var(--grape);
+  background-color: hsl(var(--primary));
   border: none;
   border-radius: var(--small-radius);
-  color: var(--white);
+  color: hsl(var(--foreground));
   cursor: pointer;
   font-size: 0.85rem;
   font-weight: 500;
@@ -391,7 +391,7 @@ onMounted(() => {
   width: 16px;
   height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: var(--white);
+  border-top-color: hsl(var(--foreground));
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -411,7 +411,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: hsl(var(--muted));
   border-radius: var(--small-radius);
   overflow: hidden;
 }
@@ -421,11 +421,11 @@ onMounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background-color: rgba(255, 255, 255, 0.03);
+  background-color: hsl(var(--muted));
 }
 
 .file-item:hover {
-  background-color: rgba(255, 255, 255, 0.06);
+  background-color: hsl(var(--muted));
 }
 
 .file-info {
@@ -451,7 +451,7 @@ onMounted(() => {
 }
 
 .file-size {
-  color: var(--bright-steel);
+  color: hsl(var(--muted-foreground));
   font-size: 0.8rem;
   flex-shrink: 0;
   margin-left: auto;
@@ -459,7 +459,7 @@ onMounted(() => {
 }
 
 .file-size.progress {
-  color: var(--grape);
+  color: hsl(var(--primary));
 }
 
 .file-download-btn {
@@ -469,14 +469,14 @@ onMounted(() => {
   width: 32px;
   height: 32px;
   background: none;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid hsl(var(--border));
   border-radius: var(--small-radius);
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .file-download-btn:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: hsl(var(--accent));
 }
 
 .file-download-btn .btn-icon {
@@ -490,12 +490,12 @@ onMounted(() => {
 }
 
 .share-download-root::-webkit-scrollbar-track {
-  background: var(--midnight-steel);
+  background: hsl(var(--card));
   border-radius: 5px;
 }
 
 .share-download-root::-webkit-scrollbar-thumb {
-  background: var(--steel);
+  background: hsl(var(--accent));
   border-radius: 5px;
 }
 

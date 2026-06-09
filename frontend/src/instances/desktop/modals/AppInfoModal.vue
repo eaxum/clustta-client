@@ -65,7 +65,7 @@ onMounted(async () => {
 
 .close:hover {
   opacity: 1;
-  background-color: crimson;
+  background-color: hsl(var(--destructive));
   transform: scale(1.02);
 }
 
@@ -76,7 +76,7 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   padding: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
 }
 
 .general-container {

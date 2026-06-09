@@ -296,10 +296,10 @@ onBeforeUnmount(() => {
     flex-wrap: wrap;
     opacity: 0;
     animation: fadeIn .4s ease-in-out forwards;
-    border-radius: 12px;
-    outline: var(--transparent-line);
-    outline-offset: -1px;
-    background-color: var(--dark-steel);
+    border-radius: var(--very-large-radius);
+    border: 1px solid hsl(var(--border));
+    
+    background-color: hsl(var(--muted));
     border-radius: var(--large-radius);
     transition: all .2s ease-in-out;
 }
@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
 
 .checkpoint-item-attachment{
     display: flex;
-    /* background-color: crimson; */
+    /* background-color: hsl(var(--destructive)); */
 }
 
 .checkpoint-item:hover .checkpoint-item-attachment {
@@ -330,7 +330,7 @@ onBeforeUnmount(() => {
 
 .checkpoint-item-recent {
     background-color: rgba(0, 0, 0, 0.185);
-    border-radius: 10px;
+    border-radius: var(--large-radius);
     outline: var(--solid-line);
 }
 
@@ -352,7 +352,7 @@ onBeforeUnmount(() => {
     width: 30%;
     width: 100%;
     aspect-ratio: 16/9;
-    border-radius: 8px;
+    border-radius: var(--normal-radius);
 }
 
 
@@ -373,7 +373,6 @@ onBeforeUnmount(() => {
 }
 
 .checkpoint-item:focus-within .checkpoint-item-thumb:hover {
-    background-color: darkorange;
     width: 100%;
     height: 200px;
 }
@@ -447,7 +446,6 @@ onBeforeUnmount(() => {
     justify-content: center;
     width: 100%;
     height: 100%;
-    /* background-color: royalblue; */
 }
 
 .checkpoint-item-meta {
@@ -468,7 +466,7 @@ onBeforeUnmount(() => {
     white-space: pre-wrap;
     height: min-content;
     /* margin-bottom: 10px; */
-    /* border-bottom: var(--transparent-line); */
+    /* border-bottom: 1px solid hsl(var(--border)); */
     transition: all 0.2s linear;
 
 }
@@ -477,7 +475,7 @@ onBeforeUnmount(() => {
     /* background-color: indianred; */
     font-family: 'Inter', sans-serif;
     font-size: 12px;
-    color: var(--silver);
+    color: hsl(var(--muted-foreground));
     width: 100%;
     max-width: 100%;
     /* display: flex; */
@@ -511,7 +509,7 @@ onBeforeUnmount(() => {
 .checkpoint-item:hover {
     /* outline: var(--solid-line); */
     border-radius: var(--normal-radius);
-    background-color: var(--steel);
+    background-color: hsl(var(--accent));
 }
 
 .checkpoint-item:hover .checkpoint-item-actions {
@@ -538,15 +536,15 @@ onBeforeUnmount(() => {
 }
 
 .checkpoint-active {
-    background-color: var(--solid-blue-steel);
+    background-color: hsl(var(--primary) / 0.3);
 }
 
 .checkpoint-active:hover {
-    background-color: var(--solid-blue-steel);
+    background-color: hsl(var(--primary) / 0.3);
 }
 
 .profile-picture {
-    background-color: red;
+    background-color: hsl(var(--destructive));
     height: 24px;
     min-width: 24px;
     overflow: hidden;

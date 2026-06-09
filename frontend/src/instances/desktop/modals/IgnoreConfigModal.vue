@@ -167,7 +167,7 @@ watchEffect(() => {
 .config-group {
   display: flex;
   flex-direction: column;
-  color: white;
+  color: hsl(var(--foreground));
   align-items: center;
   gap: .3rem;
   padding: .6rem;
@@ -175,7 +175,7 @@ watchEffect(() => {
   width: 100%;
   height: min-content;
   border-radius: var(--normal-radius);
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
 }
 
 .config-item {
@@ -184,7 +184,7 @@ watchEffect(() => {
   text-align: center;
   font-size: 14px;
   line-height: 14px;
-  color: white;
+  color: hsl(var(--foreground));
   position: relative;
   border-radius: var(--small-radius);
   box-sizing: border-box;

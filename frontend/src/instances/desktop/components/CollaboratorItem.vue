@@ -230,7 +230,7 @@ onBeforeUnmount(() => {
 .collaborator-item-main {
   display: flex;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding-left: .5rem;
   box-sizing: border-box;
@@ -238,33 +238,33 @@ onBeforeUnmount(() => {
   height: min-content;
   justify-content: flex-end;
   align-items: flex-start;
-  background-color: var(--dark-steel);
+  background-color: hsl(var(--muted));
   border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
+  border: 1px solid hsl(var(--border));
+  
   transition: all .2s ease-out;
 }
 
 .collaborator-item-main:hover {
-  background-color: var(--steel);
+  background-color: hsl(var(--accent));
   border-radius: var(--small-radius);
-  outline: 1px solid var(--light-steel);
+  border: 1px solid hsl(var(--border));
 }
 
 .collaborator-item-root {
   display: flex;
   flex-direction: column;
   gap: .2rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .3rem;
   box-sizing: border-box;
   width: 100%;
   height: min-content;
   justify-content: flex-end;
-  border-radius: 10px;
+  border-radius: var(--large-radius);
   overflow: hidden;
   padding-right: 0px;
 }
@@ -272,7 +272,7 @@ onBeforeUnmount(() => {
 .collaborator-item-container {
   display: flex;
   gap: .5rem;
-  color: var(--white);
+  color: hsl(var(--foreground));
   align-items: center;
   padding: .2rem .4rem;
   box-sizing: border-box;
@@ -328,7 +328,7 @@ onBeforeUnmount(() => {
 .collaborator-item-email {
   font-size: 12px;
   font-weight: 300;
-  color: var(--white);
+  color: hsl(var(--foreground));
   opacity: 0.5;
 }
 
@@ -379,8 +379,8 @@ onBeforeUnmount(() => {
 }
 
 .compact-role-meta {
-  color: var(--white);
-  background-color: rgba(0, 0, 0, 0.216);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--muted));
   padding: .3rem .5rem;
   border-radius: 5px;
   white-space: nowrap;

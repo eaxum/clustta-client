@@ -24,10 +24,10 @@ const props = defineProps({
   height: min-content;
   width: min-content;
   /* padding: .2rem; */
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   /* background: #fff; */
-  color: black;
-  border: 1px solid #1a192b;
+  color: hsl(var(--background));
+  border: 1px solid hsl(var(--border));
   text-align: center;
 }
 
@@ -36,7 +36,7 @@ const props = defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background-color: tomato; */
+  /* background-color: hsl(var(--destructive)); */
   font-size: 12px;
   overflow: hidden;
   text-align: center;
@@ -44,7 +44,7 @@ const props = defineProps({
   width: 150px;
   height: 70px;
   padding: 10px;
-  color: black;
+  color: hsl(var(--background));
 }
 </style>
 

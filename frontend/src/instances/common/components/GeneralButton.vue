@@ -1,103 +1,29 @@
 <template>
-  <button class="general-button" :class="{ 'item-inactive' : !isActive, 'colored' : colored, 'full-width' : fullWidth, 'loading' : loading }"
+  <Button :variant="colored ? 'default' : 'outline'" :disabled="!isActive || loading" :class="['general-button', { 'w-full': fullWidth, 'rounded-full aspect-square p-0': loading }]"
     @click="buttonFunction" v-stop-propagation>
-    <div v-if="!loading" class="general-button-text">
-      <div v-if="label">{{ label }}</div>
-    </div>
-    <div v-else class="general-button-loading-icon" :class="{ 'inverted-icon' : !colored }" >
-      <img src="/icons/loading.svg"/>
-    </div>
-  </button>
+    <template v-if="!loading">{{ label }}</template>
+    <img v-else class="h-5 w-5 animate-spin" :class="{ 'invert': !colored }" src="/icons/loading.svg" />
+  </Button>
 </template>
-  
+
 <script setup>
+import { Button } from '@/components/ui/button';
+
 const props = defineProps({
   icon: String,
-  buttonFunction: { type:Function, default: () => {  } },
-  label: { type: String, default: 'Button'},
-  colored: { type: Boolean, default: true},
-  loading: { type: Boolean, default: false},
-  isActive: { type: Boolean, default: true},
-  showLabel: { type: Boolean, default: false},
-  fullWidth: { type: Boolean, default: true},
+  buttonFunction: { type: Function, default: () => {} },
+  label: { type: String, default: 'Button' },
+  colored: { type: Boolean, default: true },
+  loading: { type: Boolean, default: false },
+  isActive: { type: Boolean, default: true },
+  showLabel: { type: Boolean, default: false },
+  fullWidth: { type: Boolean, default: true },
 });
- 
 </script>
-  
+
 <style scoped>
-
-/* @import "@/assets/desktop.css"; */
 .general-button {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  border-radius: 16px;
-  padding: 10px 18px;
-  border: 0px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  height: 35px;
-  overflow: hidden;
-  width: max-content;
   min-width: 100px;
-  outline-offset: -1px;
-  outline: var(--transparent-line);
-}
-
-.full-width{
-  min-width: 30%;
-}
-
-.default{
-  background-color: var(--white);
-  color: var(--white);
-}
-
-.colored{
-  background-color: rgb(44, 117, 226);
-  color: var(--white);
-}
-
-.loading{
-  width: 35px;
-  min-width: 35px;
-  padding: 0;
-  border-radius: 50%;
-}
-
-.general-button:hover{
-  /* transform: scale(1.02); */
-  border-radius: 10px ;
-}
-
-.general-button.loading:hover{
-  border-radius: 50%;
-}
-
-.general-button:active{
-  
-  transform: scale(.98);
-}
-
-.general-button-loading-icon{
-  height: 100%;
-  aspect-ratio: 1/1;
-  animation: loadingRotate .5s linear infinite;
-}
-
-.general-button-text{
-  font-size: 16px;
-}
-
-@keyframes loadingRotate {
-  from {
-      transform: rotate(0deg);
-  }
-  to {
-      transform: rotate(360deg);
-  }
 }
 </style>
   

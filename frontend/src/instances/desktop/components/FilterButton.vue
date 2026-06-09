@@ -37,11 +37,11 @@ defineProps({
 
 .filter-button {
 	overflow: hidden;
-	background-color: var(--black-steel);
+	background-color: hsl(var(--background));
 	text-align: center;
 	font-size: 14px;
 	line-height: 14px;
-	color: var(--white);
+	color: hsl(var(--foreground));
 	position: relative;
 	border-radius: var(--large-radius);
 	box-sizing: border-box;
@@ -55,15 +55,15 @@ defineProps({
 	width: max-content;
 	min-width: max-content;
 	min-height: max-content;
-	outline-offset: -1px;
+	
 }
 
 .filter-button:hover {
-	outline: var(--transparent-line);
+	border: 1px solid hsl(var(--border));
 }
 
 .filter-button:active {
-	background-color: #00000013;
+	background-color: hsl(var(--accent));
 }
 
 .full-width {
@@ -83,8 +83,8 @@ defineProps({
 }
 
 .button-background {
-	background-color: var(--white);
-	color: var(--black);
+	background-color: hsl(var(--foreground));
+	color: hsl(var(--foreground));
 }
 
 .label-text {

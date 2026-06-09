@@ -337,7 +337,7 @@ onBeforeUnmount(() => {
 }
 
 .uneditable {
-    /* background-color: crimson; */
+    /* background-color: hsl(var(--destructive)); */
     /* pointer-events: none; */
     cursor: not-allowed;
     opacity: .5;
@@ -346,10 +346,10 @@ onBeforeUnmount(() => {
 
 .workflow-item {
     box-sizing: border-box;
-    background-color: var(--dark-steel);
+    background-color: hsl(var(--muted));
     border-radius: var(--normal-radius);
     padding: .5rem;
-    outline: var(--transparent-line);
-    outline-offset: -1px;
+    border: 1px solid hsl(var(--border));
+    
 }
 </style>
