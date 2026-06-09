@@ -613,7 +613,8 @@ const unassignCollections = async () => {
   width: 100%;
   padding: .2rem .4rem;
   box-sizing: border-box;
-  font-size: .8rem;
+  font-size: 1rem;
   opacity: .7;
+  color: var(--text);
 }
 </style>
