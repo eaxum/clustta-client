@@ -22,7 +22,7 @@
 				</div>
 
 				<TabButton :icon="getAppIcon('cog')" v-tooltip="$t('components.sidePane.settings')"
-					@click="stage.setStageVisibility('settings', true)" :isActive="stage.activeStage === 'settings'"
+					@click="openSettings" :isActive="stage.activeStage === 'settings'"
 					:showLabel="sidePaneActive" :fullWidth="sidePaneActive" :label="$t('components.sidePane.settings')" />
 				<TabButton v-if="!userStore.getUserAuthentication" :icon="getAppIcon('login')" v-tooltip="$t('components.sidePane.login')"
 					:showLabel="sidePaneIsOpen" :fullWidth="sidePaneIsOpen" :buttonFunction="logUserIn" />
@@ -119,6 +119,11 @@ const userFullName = computed(() => {
 
 const doNothing = () => {
 	// console.log('nothing');
+};
+
+const openSettings = () => {
+	menu.disableAllMenus();
+	stage.setStageVisibility('settings', true);
 };
 
 const goToProjects = () => {

@@ -146,6 +146,7 @@ import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
 import { useAccountStore } from '@/stores/accounts';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { useMenu } from '@/stores/menu';
 import { refreshEntitlements } from '@/lib/sync';
 
 const stage = useStageStore();
@@ -162,6 +163,7 @@ const settingsStore = useSettingsStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
 const entitlementStore = useEntitlementStore();
+const menu = useMenu();
 const route = useRoute();
 const router = useRouter();
 
@@ -263,6 +265,7 @@ const displayAppInfo = () => {
 };
 
 const studioSettings = () => {
+  menu.disableAllMenus();
   stage.setStageVisibility('studioSettings', true)
 };
 
