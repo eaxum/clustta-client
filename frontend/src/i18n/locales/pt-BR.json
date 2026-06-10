@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "Erro ao atualizar fluxo de trabalho",
     "errorCreatingWorkflow": "Erro ao criar fluxo de trabalho",
     "errorAddingWorkflow": "Erro ao adicionar fluxo de trabalho",
+    "noAssetTemplates": "Você não tem modelos de ativo",
+    "noAssetTemplatesLong": "Este projeto não possui modelos de ativo. Crie um nas configurações do projeto antes de adicionar um item de ativo.",
     "assetNameCantBeEmpty": "O nome da tarefa não pode estar vazio",
     "invalidEmail": "Insira um endereço de e-mail válido",
     "invalidUrl": "Insira uma URL válida",

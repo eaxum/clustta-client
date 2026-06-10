@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "Error al actualizar el flujo de trabajo",
     "errorCreatingWorkflow": "Error al crear el flujo de trabajo",
     "errorAddingWorkflow": "Error al agregar el flujo de trabajo",
+    "noAssetTemplates": "No tienes plantillas de recursos",
+    "noAssetTemplatesLong": "Este proyecto no tiene plantillas de recursos. Cree una en la configuración del proyecto antes de añadir un elemento de recurso.",
     "assetNameCantBeEmpty": "El nombre de la tarea no puede estar vacío",
     "invalidEmail": "Ingrese una dirección de correo electrónico válida",
     "invalidUrl": "Ingrese una URL válida",

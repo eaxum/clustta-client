@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "Fehler beim Aktualisieren des Workflows",
     "errorCreatingWorkflow": "Fehler beim Erstellen des Workflows",
     "errorAddingWorkflow": "Fehler beim Hinzufügen des Workflows",
+    "noAssetTemplates": "Sie haben keine Asset-Vorlagen",
+    "noAssetTemplatesLong": "Dieses Projekt enthält keine Asset-Vorlagen. Erstellen Sie eine in den Projekteinstellungen, bevor Sie ein Asset-Element hinzufügen.",
     "assetNameCantBeEmpty": "Aufgabenname darf nicht leer sein",
     "invalidEmail": "Geben Sie eine gültige E-Mail-Adresse ein",
     "invalidUrl": "Geben Sie eine gültige URL ein",

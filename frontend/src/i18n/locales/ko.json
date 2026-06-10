@@ -294,6 +294,8 @@
     "errorUpdatingWorkflow": "워크플로 업데이트 오류",
     "errorCreatingWorkflow": "워크플로 생성 오류",
     "errorAddingWorkflow": "워크플로 추가 오류",
+    "noAssetTemplates": "에셋 템플릿이 없습니다",
+    "noAssetTemplatesLong": "이 프로젝트에는 에셋 템플릿이 없습니다. 에셋 항목을 추가하기 전에 프로젝트 설정에서 하나를 만드세요.",
     "assetNameCantBeEmpty": "작업 이름은 비워둘 수 없습니다",
     "invalidEmail": "유효한 이메일 주소를 입력해 주세요",
     "invalidUrl": "유효한 URL을 입력해 주세요",

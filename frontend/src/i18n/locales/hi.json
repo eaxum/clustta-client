@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "वर्कफ़्लो अपडेट करने में त्रुटि",
     "errorCreatingWorkflow": "वर्कफ़्लो बनाने में त्रुटि",
     "errorAddingWorkflow": "वर्कफ़्लो जोड़ने में त्रुटि",
+    "noAssetTemplates": "आपके पास कोई एसेट टेम्पलेट नहीं है",
+    "noAssetTemplatesLong": "इस प्रोजेक्ट में कोई एसेट टेम्पलेट नहीं है। एसेट आइटम जोड़ने से पहले प्रोजेक्ट सेटिंग्स में एक बनाएँ।",
     "assetNameCantBeEmpty": "टास्क का नाम खाली नहीं हो सकता",
     "invalidEmail": "कृपया एक मान्य ईमेल पता दर्ज करें",
     "invalidUrl": "कृपया एक मान्य URL दर्ज करें",

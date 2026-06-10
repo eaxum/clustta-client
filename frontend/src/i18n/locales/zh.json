@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "更新工作流时出错",
     "errorCreatingWorkflow": "创建工作流时出错",
     "errorAddingWorkflow": "添加工作流时出错",
+    "noAssetTemplates": "您没有资产模板",
+    "noAssetTemplatesLong": "此项目没有资产模板。在添加资产项之前，请在项目设置中创建一个。",
     "assetNameCantBeEmpty": "任务名称不能为空",
     "invalidEmail": "请输入有效的电子邮箱地址",
     "invalidUrl": "请输入有效的 URL",

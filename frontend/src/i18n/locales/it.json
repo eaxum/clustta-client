@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "Errore nell'aggiornamento del flusso di lavoro",
     "errorCreatingWorkflow": "Errore nella creazione del flusso di lavoro",
     "errorAddingWorkflow": "Errore nell'aggiunta del flusso di lavoro",
+    "noAssetTemplates": "Non hai modelli di asset",
+    "noAssetTemplatesLong": "Questo progetto non ha modelli di asset. Creane uno nelle impostazioni del progetto prima di aggiungere un elemento asset.",
     "assetNameCantBeEmpty": "Il nome dell'attività non può essere vuoto",
     "invalidEmail": "Inserisci un indirizzo email valido",
     "invalidUrl": "Inserisci un URL valido",

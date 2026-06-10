@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "ワークフローの更新エラー",
     "errorCreatingWorkflow": "ワークフローの作成エラー",
     "errorAddingWorkflow": "ワークフローの追加エラー",
+    "noAssetTemplates": "アセットテンプレートがありません",
+    "noAssetTemplatesLong": "このプロジェクトにはアセットテンプレートがありません。アセット項目を追加する前に、プロジェクト設定で作成してください。",
     "assetNameCantBeEmpty": "タスク名は空にできません",
     "invalidEmail": "有効なメールアドレスを入力してください",
     "invalidUrl": "有効なURLを入力してください",

@@ -10,7 +10,7 @@
                 <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.cancel')" @click="cancel()" />
             </div>
             <div class="input-section drop-down-box-section">
-                <DropDownBox :items="itemTypes" :selectedItem="itemType" :onSelect="changeItemType" />
+                <DropDownBox :items="itemTypes" :selectedItem="itemTypeLabel" :onSelect="changeItemType" />
                 <DropDownBox v-if="itemType === 'Asset'" :items="assetTypeOptions" :selectedItem="assetType"
                     :onSelect="selectAssetType" />
                 <DropDownBox v-else-if="itemType === 'Collection'" :items="collectionTypeOptions" :selectedItem="collectionType"
@@ -42,6 +42,7 @@ import { useI18n } from 'vue-i18n';
 // store imports
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
+import { useNotificationStore } from '@/stores/notifications';
 import { useTemplateStore } from '@/stores/template';
 import { useWorkflowStore } from '@/stores/workflow';
 import { useIconStore } from '@/stores/icons';
@@ -49,6 +50,7 @@ import { useIconStore } from '@/stores/icons';
 // states imports
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
+const notificationStore = useNotificationStore();
 const templateStore = useTemplateStore();
 const workflowStore = useWorkflowStore();
 const iconStore = useIconStore();
@@ -71,7 +73,7 @@ const props = defineProps({
 });
 
 // refs
-const itemType = ref(t('blocks.selectType'));
+const itemType = ref('selectType');
 
 const workflowId = ref('');
 const workflowName = ref('');
@@ -151,14 +153,20 @@ const collectionTypeOptions = computed(() => {
     }));
 });
 
+const itemTypeLabels = computed(() => ({
+    selectType: t('blocks.selectType'),
+    Asset: t('blocks.asset'),
+    Collection: t('blocks.collection'),
+    Workflow: t('blocks.workflow'),
+}));
+
+const itemTypeLabel = computed(() => itemTypeLabels.value[itemType.value] || itemTypeLabels.value.selectType);
+
 const itemTypes = computed(() => {
-    let allItemTypes;
-    if (projectWorkflows.value.length) {
-        allItemTypes = [t('blocks.asset'), t('blocks.collection'), t('blocks.workflow')];
-    } else {
-        allItemTypes = [t('blocks.asset'), t('blocks.collection')];
-    }
-    return allItemTypes.filter((item) => item !== itemType.value?.toLowerCase());
+    const keys = projectWorkflows.value.length
+        ? ['Asset', 'Collection', 'Workflow']
+        : ['Asset', 'Collection'];
+    return keys.map((key) => itemTypeLabels.value[key]);
 });
 
 const newWorkflowItemData = computed(() => {
@@ -234,7 +242,7 @@ const isDataUnmodified = computed(() => {
 });
 
 const isWorkflowItemModified = computed(() => {
-    if (itemType.value === t('blocks.selectType')) {
+    if (itemType.value === 'selectType') {
         return true
     }
 
@@ -291,11 +299,21 @@ const selectWorkflow = (workflowName) => {
     workflowTemplateId.value = selectedWorkflow.id;
 };
 
-const changeItemType = (newItemTypeName) => {
-    itemType.value = newItemTypeName;
-    if (newItemTypeName === 'Asset') {
+const changeItemType = (newItemTypeLabel) => {
+    const entry = Object.entries(itemTypeLabels.value).find(([, label]) => label === newItemTypeLabel);
+    const newItemTypeKey = entry ? entry[0] : newItemTypeLabel;
+    if (newItemTypeKey === 'Asset') {
+        if (!assetTemplates.value.length) {
+            notificationStore.addNotification(
+                t('notifications.noAssetTemplates'),
+                t('notifications.noAssetTemplatesLong'),
+                'warning',
+            );
+            return;
+        }
         assetTemplateId.value = assetTemplates.value[0]?.id;
     }
+    itemType.value = newItemTypeKey;
 };
 
 onMounted(() => {

@@ -301,6 +301,8 @@
     "errorUpdatingWorkflow": "Error updating workflow",
     "errorCreatingWorkflow": "Error creating workflow",
     "errorAddingWorkflow": "Error adding workflow",
+    "noAssetTemplates": "You have no asset templates",
+    "noAssetTemplatesLong": "This project has no asset templates. Create one in the project settings before adding an asset item.",
     "assetNameCantBeEmpty": "Asset name can't be empty",
     "invalidEmail": "Please enter a valid email address",
     "invalidUrl": "Please enter a valid URL",

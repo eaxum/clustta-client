@@ -293,6 +293,8 @@
     "errorUpdatingWorkflow": "Erreur lors de la mise à jour du flux de travail",
     "errorCreatingWorkflow": "Erreur lors de la création du flux de travail",
     "errorAddingWorkflow": "Erreur lors de l'ajout du flux de travail",
+    "noAssetTemplates": "Vous n'avez aucun modèle d'asset",
+    "noAssetTemplatesLong": "Ce projet ne contient aucun modèle d'asset. Créez-en un dans les paramètres du projet avant d'ajouter un élément d'asset.",
     "assetNameCantBeEmpty": "Le nom de la tâche ne peut pas être vide",
     "invalidEmail": "Veuillez entrer une adresse e-mail valide",
     "invalidUrl": "Veuillez entrer une URL valide",
