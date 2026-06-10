@@ -13,7 +13,7 @@
             @click="selectPhoto"
             v-tooltip="$t('components.profileAvatar.changePhoto')"
           >
-            <img class="action-icon" :src="getAppIcon('camera')" alt="Change">
+            <img class="action-icon small-icons" :src="getAppIcon('camera')" alt="Change">
           </button>
           <button 
             v-if="photoPreview || userPhoto" 
@@ -21,7 +21,7 @@
             @click="removePhoto"
             v-tooltip="$t('components.profileAvatar.removePhoto')"
           >
-            <img class="action-icon" :src="getAppIcon('close')" alt="Remove">
+            <img class="action-icon small-icons" :src="getAppIcon('close')" alt="Remove">
           </button>
         </div>
       </div>
@@ -168,7 +168,7 @@ const getAppIcon = (iconName) => {
 }
 
 .avatar-action-button {
-  background-color: var(--surface-inverse);
+  background-color: var(--surface-1);
   border: none;
   border-radius: 50%;
   width: 40px;
@@ -188,7 +188,7 @@ const getAppIcon = (iconName) => {
 .action-icon {
   width: 20px;
   height: 20px;
-  filter: brightness(0);
+  /* filter: brightness(0); */
 }
 
 /* Size variants */
