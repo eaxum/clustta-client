@@ -122,6 +122,18 @@ func (t *AssetService) CreateAsset(projectPath, name, description, assetTypeId, 
 		return models.Asset{}, err
 	}
 
+	userData, err := repository.GetUser(tx, user.Id)
+	if err != nil {
+		return models.Asset{}, err
+	}
+	userRole, err := repository.GetRole(tx, userData.RoleId)
+	if err != nil {
+		return models.Asset{}, err
+	}
+	if !userRole.CreateAsset {
+		return models.Asset{}, error_service.ErrNotUnauthorized
+	}
+
 	previewId := ""
 	if previewPath != "" {
 		preview, err := repository.CreatePreview(tx, previewPath)

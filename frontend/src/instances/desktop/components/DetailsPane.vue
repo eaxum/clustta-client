@@ -94,7 +94,7 @@
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="userStore.canDo('create_asset') && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
+          <ActionButton v-if="canCreateFromUntrackedHere && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
           <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :label="$t('components.detailsPane.squashAssets')" :buttonFunction="prepSquashModal" v-tooltip="$t('components.detailsPane.squashAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('file-watch')" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedAssets" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
@@ -125,6 +125,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
+import { canCreateAssetHere } from '@/lib/permissions';
 import { canSquash } from '@/utils/squash';
 import utils from "@/services/utils";
 
@@ -349,9 +350,13 @@ const showCollectionAssetActions = computed(() => {
 
 // Determines whether the squash button should be shown.
 const squashEnabled = computed(() => {
-  if (!userStore.canDo('create_asset')) return false;
+  if (!canCreateFromUntrackedHere.value) return false;
   return canSquash(stage.selectedItems).valid;
 });
+
+// Whether the user can create assets from untracked items in the navigated
+// collection. Requires the create_asset role plus collection scope.
+const canCreateFromUntrackedHere = computed(() => canCreateAssetHere());
 
 const showAssetCollectionActions = computed(() => {
   const hasAssetsOrCollections = stage.selectedItems.some(item => item.type === 'asset' || item.type === 'collection');

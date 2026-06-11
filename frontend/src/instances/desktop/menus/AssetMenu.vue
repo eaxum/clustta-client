@@ -6,22 +6,22 @@
 
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" class="menu-divider"></span>
 
-    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameAsset" />
 
-    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('switches')" :showLabel="true"
+    <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
       :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="userStore.canDo('create_asset')" :icon="getAppIcon('duplicate')" :showLabel="true"
+    <ActionButton v-if="canCreateAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
-    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('create_asset') && canCopyToOtherProject" 
+    <ActionButton v-if="!platformStore.isWeb && canCreateAsset && canCopyToOtherProject" 
       :icon="getAppIcon('briefcase')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
-    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_asset')" 
+    <ActionButton v-if="!platformStore.isWeb && canUpdateAsset" 
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
@@ -59,7 +59,7 @@
     <ActionButton v-if="isRemoteProject && !asset.synced" :icon="getAppIcon('cloud-up')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.syncAsset')" :buttonFunction="syncAsset" />
 
-    <span v-if="userStore.canDo('delete_asset') || !isNotOnDisk" class="menu-divider"></span>
+    <span v-if="canDeleteAsset || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
     <ActionButton :icon="getAppIcon('broom')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
@@ -67,7 +67,7 @@
 
     <!-- Delete Asset -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
-      v-if="userStore.canDo('delete_asset')" :buttonFunction="deleteAsset" />
+      v-if="canDeleteAsset" :buttonFunction="deleteAsset" />
 
   </div>
 
@@ -78,6 +78,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
+import { canActOnAsset } from '@/lib/permissions';
 import { isValidWeblink } from '@/lib/pointer';
 import { useI18n } from 'vue-i18n';
 
@@ -138,6 +139,11 @@ const emit = defineEmits(['clicked']);
 const asset = computed(() => {
   return assetStore.selectedAsset;
 });
+
+// Permission gates that honor recursive collection-collaborator override.
+const canUpdateAsset = computed(() => canActOnAsset('update_asset', asset.value));
+const canCreateAsset = computed(() => canActOnAsset('create_asset', asset.value));
+const canDeleteAsset = computed(() => canActOnAsset('delete_asset', asset.value));
 
 // Checks if the asset can be copied to other projects.
 const canCopyToOtherProject = computed(() => {

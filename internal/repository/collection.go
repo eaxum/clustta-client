@@ -1154,6 +1154,27 @@ func UnAssignCollection(tx *sqlx.Tx, collectionId, userId string) error {
 	return nil
 }
 
+// GetUserCanModifyCollectionIds returns the set of collection ids the user has
+// modify access to via direct assignment or recursive descendants.
+func GetUserCanModifyCollectionIds(tx *sqlx.Tx, userId string) (map[string]struct{}, error) {
+	assigned := []string{}
+	if err := tx.Select(&assigned, "SELECT collection_id FROM collection_assignee WHERE assignee_id = ?", userId); err != nil {
+		return nil, err
+	}
+	all := []models.Collection{}
+	if err := tx.Select(&all, "SELECT id, parent_id FROM collection WHERE trashed = 0"); err != nil {
+		return nil, err
+	}
+	set := map[string]struct{}{}
+	for _, id := range assigned {
+		set[id] = struct{}{}
+		for _, child := range getAllCollectionChildren(id, all) {
+			set[child] = struct{}{}
+		}
+	}
+	return set, nil
+}
+
 // IsUserAssignedToCollectionOrAncestor checks if a user is assigned to the given collection
 // or any of its parent collections recursively up to the root.
 func IsUserAssignedToCollectionOrAncestor(tx *sqlx.Tx, collectionId, userId string) (bool, error) {

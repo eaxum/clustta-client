@@ -1,3 +1,61 @@
+import { useCollectionStore } from '@/stores/collections';
+import { useUserStore } from '@/stores/users';
+
+// True when the user can modify the given collection.
+// Reads navigatedCollection.can_modify, which the backend stamps on every fetch.
+export const canModifyCollection = (collectionId) => {
+  if (!collectionId) return false;
+  const collectionStore = useCollectionStore();
+  const navigated = collectionStore.navigatedCollection;
+  if (navigated?.id === collectionId) return !!navigated.can_modify;
+  return false;
+};
+
+// Gate for actions on a tracked asset. Unrestricted users (view_asset role) are
+// bound only by role permissions; scoped users must be in collaborator scope.
+export const canActOnAsset = (action, asset) => {
+  const userStore = useUserStore();
+  if (userStore.canDo('view_asset')) return userStore.canDo(action);
+  return canModifyCollection(asset?.collection_id);
+};
+
+// Gate for bulk/contextual actions in the currently navigated collection.
+// At project root, only unrestricted users with the role permission pass.
+export const canActInNavigatedCollection = (action) => {
+  const collectionStore = useCollectionStore();
+  const userStore = useUserStore();
+  if (userStore.canDo('view_asset')) return userStore.canDo(action);
+  return !!collectionStore.navigatedCollection?.can_modify;
+};
+
+// Gate for actions scoped to a specific collection object.
+// Unrestricted users (view_asset) pass on role; scoped users need can_modify.
+export const canActInCollection = (action, collection) => {
+  const userStore = useUserStore();
+  if (userStore.canDo('view_asset')) return userStore.canDo(action);
+  return !!collection?.can_modify;
+};
+
+// Gate for creating a new tracked asset (new asset, untracked → asset, web link).
+// Requires the create_asset role regardless of collaborator scope.
+export const canCreateAssetHere = () => {
+  const userStore = useUserStore();
+  return userStore.canDo('create_asset') && canActInNavigatedCollection('create_asset');
+};
+
+// Same as canCreateAssetHere but scoped to a specific collection object.
+export const canCreateAssetInCollection = (collection) => {
+  const userStore = useUserStore();
+  return userStore.canDo('create_asset') && canActInCollection('create_asset', collection);
+};
+
+// Gate for creating a new collection in the navigated collection.
+// Requires the create_collection role regardless of collaborator scope.
+export const canCreateCollectionHere = () => {
+  const userStore = useUserStore();
+  return userStore.canDo('create_collection') && canActInNavigatedCollection('create_collection');
+};
+
 export const permissionGroups = {
   assets: ['view_asset', 'create_asset', 'update_asset', 'delete_asset', 'manage_dependencies'],
   assignation: ['assign_asset', 'unassign_asset'],

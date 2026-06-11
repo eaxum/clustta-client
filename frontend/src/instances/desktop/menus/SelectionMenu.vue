@@ -78,7 +78,7 @@
     <template v-else-if="onlyUntracked">
       <span class="menu-divider"></span>
 
-      <ActionButton v-if="userStore.canDo('create_asset') && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true"
+      <ActionButton v-if="canCreateFromUntrackedHere && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true"
         :noFilter="true" :showLabel="true" :fullWidth="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" />
 
       <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :showLabel="true" :fullWidth="true"
@@ -109,6 +109,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
+import { canCreateAssetHere } from '@/lib/permissions';
 import { canSquash } from '@/utils/squash';
 
 // components
@@ -202,9 +203,13 @@ const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.ty
 
 // Returns whether the selected items can be squashed.
 const squashEnabled = computed(() => {
-  if (!userStore.canDo('create_asset')) return false;
+  if (!canCreateFromUntrackedHere.value) return false;
   return canSquash(stage.selectedItems).valid;
 });
+
+// Whether the user can create assets from untracked items in the navigated
+// collection. Requires the create_asset role plus collection scope.
+const canCreateFromUntrackedHere = computed(() => canCreateAssetHere());
 
 // methods
 // Returns the app icon path for the given icon name.

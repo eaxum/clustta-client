@@ -2,6 +2,7 @@ package services
 
 import (
 	"clustta/internal/auth_service"
+	"clustta/internal/error_service"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/repository/sync_service"
@@ -355,6 +356,22 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 	}
 	defer tx.Rollback()
 
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return []models.Asset{}, err
+	}
+	userData, err := repository.GetUser(tx, user.Id)
+	if err != nil {
+		return []models.Asset{}, err
+	}
+	userRole, err := repository.GetRole(tx, userData.RoleId)
+	if err != nil {
+		return []models.Asset{}, err
+	}
+	if !userRole.CreateAsset {
+		return []models.Asset{}, error_service.ErrNotUnauthorized
+	}
+
 	collections := []models.Collection{}
 	err = tx.Select(&collections, "SELECT id, collection_path FROM full_collection")
 	if err != nil {
@@ -378,11 +395,6 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 	collectionPathsIndex := map[string]string{}
 	for _, collection := range collections {
 		collectionPathsIndex[collection.CollectionPath] = collection.Id
-	}
-
-	user, err := auth_service.GetActiveUser()
-	if err != nil {
-		return []models.Asset{}, err
 	}
 
 	previewId := ""
@@ -1191,6 +1203,20 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 	tx, err := dbConn.Beginx()
 	if err != nil {
 		return models.Asset{}, err
+	}
+	userData, err := repository.GetUser(tx, user.Id)
+	if err != nil {
+		tx.Rollback()
+		return models.Asset{}, err
+	}
+	userRole, err := repository.GetRole(tx, userData.RoleId)
+	if err != nil {
+		tx.Rollback()
+		return models.Asset{}, err
+	}
+	if !userRole.CreateAsset {
+		tx.Rollback()
+		return models.Asset{}, error_service.ErrNotUnauthorized
 	}
 	assetType, err := repository.GetAssetTypeByName(tx, "generic")
 	if err != nil {

@@ -57,6 +57,52 @@ type ItemsForUpdate struct {
 type CollectionService struct {
 }
 
+// stampCollectionsCanModify sets CanModify on each collection based on the
+// active user's role (view_asset grants all) or collaborator scope.
+func (e *CollectionService) stampCollectionsCanModify(tx *sqlx.Tx, collections []models.Collection) error {
+	if len(collections) == 0 {
+		return nil
+	}
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	userData, err := repository.GetUser(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	role, err := repository.GetRole(tx, userData.RoleId)
+	if err != nil {
+		return err
+	}
+	if role.ViewAsset {
+		for i := range collections {
+			collections[i].CanModify = true
+		}
+		return nil
+	}
+	canModify, err := repository.GetUserCanModifyCollectionIds(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	for i := range collections {
+		if _, ok := canModify[collections[i].Id]; ok {
+			collections[i].CanModify = true
+		}
+	}
+	return nil
+}
+
+// stampCollectionCanModify sets CanModify on a single collection.
+func (e *CollectionService) stampCollectionCanModify(tx *sqlx.Tx, c *models.Collection) error {
+	list := []models.Collection{*c}
+	if err := e.stampCollectionsCanModify(tx, list); err != nil {
+		return err
+	}
+	c.CanModify = list[0].CanModify
+	return nil
+}
+
 // GetCollectionCount returns the total number of collections in the project.
 // Returns the count or an error if the operation fails.
 func (t *CollectionService) GetCollectionCount(projectPath string) (int, error) {
@@ -227,7 +273,10 @@ func (e *CollectionService) GetCollections(projectPath string) ([]models.Collect
 		if err != nil {
 			return []models.Collection{}, err
 		}
-		return collections, err
+		if err := e.stampCollectionsCanModify(tx, collections); err != nil {
+			return []models.Collection{}, err
+		}
+		return collections, nil
 	} else {
 		userAssetInfo, err := repository.GetUserAssetsMinimal(tx, user.Id)
 		if err != nil {
@@ -275,6 +324,9 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 
 		collections, err := repository.GetCollectionChildren(tx, collectionId)
 		if err != nil {
+			return children, err
+		}
+		if err := e.stampCollectionsCanModify(tx, collections); err != nil {
 			return children, err
 		}
 		children.Collections = collections
@@ -397,7 +449,14 @@ func (e *CollectionService) GetCollectionByID(projectPath, collectionId string) 
 		return models.Collection{}, err
 	}
 	defer tx.Rollback()
-	return repository.GetCollection(tx, collectionId)
+	collection, err := repository.GetCollection(tx, collectionId)
+	if err != nil {
+		return collection, err
+	}
+	if err := e.stampCollectionCanModify(tx, &collection); err != nil {
+		return collection, err
+	}
+	return collection, nil
 }
 
 // GetCollectionByPath retrieves a collection by its filesystem path.
@@ -416,7 +475,14 @@ func (e *CollectionService) GetCollectionByPath(projectPath, collectionPath stri
 		return models.Collection{}, err
 	}
 	defer tx.Rollback()
-	return repository.GetCollectionByPath(tx, collectionPath)
+	collection, err := repository.GetCollectionByPath(tx, collectionPath)
+	if err != nil {
+		return collection, err
+	}
+	if err := e.stampCollectionCanModify(tx, &collection); err != nil {
+		return collection, err
+	}
+	return collection, nil
 }
 
 // GetCollectionStateFlags checks if a collection has any recursive children with specific states.

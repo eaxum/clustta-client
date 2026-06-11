@@ -10,7 +10,7 @@
     <!-- <span v-if="userStore.canDo('pull_chunk')" class="menu-divider"></span> -->
 
     <!-- Rename -->
-    <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="canRenameUntracked" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameItem" />
 
     <!-- Ignore -->
@@ -48,6 +48,7 @@ import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
 import { addIgnoredItem } from '@/lib/untracked';
+import { canActInNavigatedCollection } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -104,6 +105,9 @@ const emit = defineEmits(['clicked']);
 const isUntrackedAsset = computed(() => {
   return untrackedItemStore.selectedUntrackedItem?.type === 'untracked_asset';
 });
+
+// Whether the user can rename the selected untracked item.
+const canRenameUntracked = computed(() => canActInNavigatedCollection('update_asset'));
 
 // Checks if the selected untracked item is an archive.
 const isArchive = computed(() => {

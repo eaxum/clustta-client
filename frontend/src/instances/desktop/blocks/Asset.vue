@@ -152,7 +152,7 @@
                 v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
               <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.modifiedClickCheckpoint')" 
-                v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
+                v-else-if="asset.file_status == 'modified' && canCreateCheckpoint"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
                 v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
@@ -161,7 +161,7 @@
             </div>
 
             <div v-else-if="isUntracked">
-              <ActionButton v-if="userStore.canDo('create_asset') || canImport" 
+              <ActionButton v-if="canCreateFromUntracked" 
                 @click="prepCreateCheckpoint(index, asset, $event)" :icon="getAppIcon('plus-stone')" :useDanger="true" 
                 :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
               <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" 
@@ -306,7 +306,7 @@
               <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
                 v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
               <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
-                v-else-if="asset.file_status == 'modified' && userStore.canDo('create_checkpoint')"
+                v-else-if="asset.file_status == 'modified' && canCreateCheckpoint"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
                 v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
@@ -321,7 +321,7 @@
         </div>
 
         <div v-else-if="isUntracked" class="asset-item-actions">
-          <ActionButton v-if="userStore.canDo('create_asset') || canImport" @click="prepCreateCheckpoint(index, asset, $event)"
+          <ActionButton v-if="canCreateFromUntracked" @click="prepCreateCheckpoint(index, asset, $event)"
             :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntrackedClickAdd')" />
           <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.fileUntracked')" />
         </div>
@@ -340,6 +340,7 @@ import { useI18n } from 'vue-i18n';
 import { Browser, Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
+import { canActOnAsset, canCreateAssetHere } from '@/lib/permissions';
 import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
@@ -435,6 +436,12 @@ const canImport = computed(() => {
   return trackedParent && trackedParent.can_modify;
 });
 
+// Permission gates that honor recursive collection-collaborator override.
+const canCreateCheckpoint = computed(() => canActOnAsset('create_checkpoint', props.asset));
+const canUpdateAsset = computed(() => canActOnAsset('update_asset', props.asset));
+const canDeleteAsset = computed(() => canActOnAsset('delete_asset', props.asset));
+const canCreateFromUntracked = computed(() => canCreateAssetHere());
+
 // Checks if the current user can modify this asset.
 const canModify = computed(() => {
   let assigneeId = props.asset.assignee_id;
@@ -525,21 +532,21 @@ const userPhoto = computed(() => {
 // events
 Events.On('rename-item', async () => {
   if (operationsActive.value) return;
-  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
+  if (isAssetInFocus.value && canUpdateAsset.value) {
     startRename();
   }
 });
 
 Events.On('edit-item', async () => {
   if (operationsActive.value) return;
-  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
+  if (isAssetInFocus.value && canUpdateAsset.value) {
     modals.setModalVisibility('editAssetModal', true);
   }
 });
 
 Events.On('add-checkpoint', async () => {
   if (operationsActive.value) return;
-  if (isAssetInFocus.value && userStore.canDo('create_checkpoint')) {
+  if (isAssetInFocus.value && canCreateCheckpoint.value) {
     prepCreateCheckpoint();
   }
 });
@@ -557,7 +564,7 @@ Events.On('free-item-space', async () => {
 
 Events.On('delete-item', async () => {
   if (operationsActive.value) return;
-  if (isAssetInFocus.value && userStore.canDo('delete_asset')) {
+  if (isAssetInFocus.value && canDeleteAsset.value) {
     panes.setPaneVisibility('projectDetails', true);
     deleteAsset();
   }

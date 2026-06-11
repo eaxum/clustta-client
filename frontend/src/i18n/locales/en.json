@@ -1087,6 +1087,8 @@
     "outdatedClickToUpdate": "Outdated Items. Click to update",
     "untrackedModifiedClickCheckpoint": "Untracked/Modified Items. Click to add checkpoints",
     "untrackedClickCheckpoint": "Untracked Items. Click to add checkpoints",
+    "modifiedItems": "Modified Items",
+    "untrackedItems": "Untracked Items",
     "addCheckpoints": "Add checkpoints",
     "untrackedCollection": "Untracked Collection",
     "itemsMissingClickRebuild": "Items missing. Click to rebuild",

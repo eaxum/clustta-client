@@ -7,11 +7,11 @@
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" 
 			v-tooltip="$t('components.stateBar.rebuildAll')" :buttonFunction="rebuildAll" />
 
-		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && userStore.canDo('create_checkpoint')"
+		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && canCreateFromUntrackedHere"
 			:icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
-		<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && userStore.canDo('create_checkpoint')"
+		<ActionButton v-else-if="collectionStore.collectionStateFlags.has_modified && canCreateCheckpointHere"
 			:icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 
@@ -28,6 +28,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { canActInNavigatedCollection, canCreateAssetHere } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -68,6 +69,20 @@ const props = defineProps({
 const isLoading = computed(() => 
 	(collectionStore.loadingCollectionStates || assetStore.loadingAssetStates) && props.hasData
 );
+
+// Whether the user can create checkpoints on existing modified assets in the
+// navigated collection.
+const canCreateCheckpointHere = computed(() => {
+	collectionStore.navigatedCollection;
+	return canActInNavigatedCollection('create_checkpoint');
+});
+
+// Whether the user can materialize untracked items as new assets. Requires the
+// create_asset role on top of collection scope.
+const canCreateFromUntrackedHere = computed(() => {
+	collectionStore.navigatedCollection;
+	return canCreateAssetHere();
+});
 
 // methods
 
