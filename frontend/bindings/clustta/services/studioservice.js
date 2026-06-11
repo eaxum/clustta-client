@@ -131,6 +131,22 @@ export function UpdateStudio(studioName, url, altUrl, port, key) {
 }
 
 /**
+ * Updates a private (self-hosted) studio's local config via PUT /studio-info on the
+ * studio server itself. Pass "" for any field that should be left unchanged.
+ * @param {string} studioUrl
+ * @param {string} name
+ * @param {string} url
+ * @param {string} altUrl
+ * @param {string} port
+ * @returns {$CancellablePromise<studio_service$0.StudioInfo>}
+ */
+export function UpdateStudioInfo(studioUrl, name, url, altUrl, port) {
+    return $Call.ByID(879178662, studioUrl, name, url, altUrl, port).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * Verifies a deployment code for studio access
  * @param {string} code
  * @returns {$CancellablePromise<[boolean, string]>}

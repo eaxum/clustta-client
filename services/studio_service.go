@@ -86,6 +86,12 @@ func (s *StudioService) UpdateStudio(studioName, url, altUrl, port, key string) 
 	return result, nil
 }
 
+// Updates a private (self-hosted) studio's local config via PUT /studio-info on the
+// studio server itself. Pass "" for any field that should be left unchanged.
+func (s *StudioService) UpdateStudioInfo(studioUrl, name, url, altUrl, port string) (studio_service.StudioInfo, error) {
+	return studio_service.UpdateStudioInfo(studioUrl, name, url, altUrl, port)
+}
+
 // Verifies a deployment code for studio access
 func (s *StudioService) VerifyDeploymentCode(code string) (bool, string, error) {
 	valid, message, err := studio_service.VerifyDeploymentCode(code)

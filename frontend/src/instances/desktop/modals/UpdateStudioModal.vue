@@ -10,7 +10,7 @@
           <label class="input-label">{{ $t('modals.studioNameLabel') }}</label>
         </div>
         <div class="horizontal-flex">
-          <input v-model="studioName" class="input-short" type="text" :placeholder="$t('placeholders.studioName')" disabled />
+          <input v-model="studioName" class="input-short" type="text" :placeholder="$t('placeholders.studioName')" :disabled="!isPrivateStudio" />
         </div>
       </div>
 
@@ -41,7 +41,7 @@
         </div>
       </div> -->
 
-      <div class="input-section">
+      <div v-if="!isPrivateStudio" class="input-section">
         <div class="input-label-row">
           <label class="input-label">{{ $t('modals.studioKeyLabel') }}</label>
         </div>
@@ -100,9 +100,15 @@ const studioPort = ref('');
 const studioUrl = ref('');
 
 // computed (dependencies first)
+const isPrivateStudio = computed(() => {
+  const s = originalStudio.value;
+  return !!s && s.name !== 'Personal' && s.hosting_mode && s.hosting_mode !== 'cloud';
+});
+
 const hasChanges = computed(() => {
   if (!originalStudio.value) return false;
   return (
+    (isPrivateStudio.value && studioName.value.trim() !== originalStudio.value.name) ||
     studioUrl.value !== originalStudio.value.url ||
     studioAltUrl.value !== (originalStudio.value.alt_url || '') ||
     studioPort.value !== (originalStudio.value.port || '')
@@ -114,7 +120,11 @@ const keyProvided = computed(() => {
 });
 
 const isValueChanged = computed(() => {
-  return keyProvided.value && hasChanges.value;
+  if (!hasChanges.value) return false;
+  if (isPrivateStudio.value) {
+    return studioName.value.trim() !== '';
+  }
+  return keyProvided.value;
 });
 
 // methods
@@ -155,18 +165,40 @@ const updateStudio = async () => {
   isAwaitingResponse.value = true;
 
   try {
-    await StudioService.UpdateStudio(
-      studioName.value,
-      studioUrl.value,
-      studioAltUrl.value,
-      studioPort.value,
-      studioKey.value
-    );
+    const originalId = originalStudio.value.id;
+    const originalName = originalStudio.value.name;
+    const trimmedName = studioName.value.trim();
+
+    if (isPrivateStudio.value) {
+      const targetUrl = originalStudio.value.url;
+      await StudioService.UpdateStudioInfo(
+        targetUrl,
+        trimmedName !== originalName ? trimmedName : '',
+        studioUrl.value,
+        studioAltUrl.value,
+        studioPort.value
+      );
+    } else {
+      await StudioService.UpdateStudio(
+        originalName,
+        studioUrl.value,
+        studioAltUrl.value,
+        studioPort.value,
+        studioKey.value
+      );
+    }
 
     notificationStore.addNotification(t('notifications.studioUpdated'), "", "success");
     
     await projectStore.loadStudios();
-    let studio = projectStore.studios.find((item) => item.name === studioName.value);
+    let studio = null;
+    if (originalId) {
+      studio = projectStore.studios.find((item) => item.id === originalId);
+    }
+    if (!studio) {
+      const resolvedName = isPrivateStudio.value ? trimmedName : originalName;
+      studio = projectStore.studios.find((item) => item.name === resolvedName);
+    }
     if (studio) {
       projectStore.selectedStudio = studio;
     }

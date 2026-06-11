@@ -179,7 +179,11 @@ export const useAccountStore = defineStore('accounts', {
 
         // Switch in backend
         await AccountService.SwitchAccount(userId);
-        
+
+        // Refresh auth mode/host — different accounts can use different auth modes
+        // (global vs studio vs offline), and downstream gates like isStudioAuth depend on it.
+        await this.loadAuthContext();
+
         // Update local state immediately for better UX
         this.accounts.forEach(account => {
           account.is_active = account.id === userId;

@@ -67,6 +67,71 @@ func GetStudioInfo(studioUrl string) (StudioInfo, error) {
 	return StudioInfo{}, fmt.Errorf("failed to get studio info: status code %d", response.StatusCode)
 }
 
+// UpdateStudioInfo writes new metadata (name, URL, alt URL, port) directly to a
+// private studio server via PUT /studio-info. Used for renaming a self-hosted
+// studio — the global Clustta server is not contacted.
+// Pass "" for any field that should be left unchanged.
+func UpdateStudioInfo(studioUrl, name, url, altUrl, port string) (StudioInfo, error) {
+	if studioUrl == "" {
+		return StudioInfo{}, fmt.Errorf("no studio URL provided")
+	}
+
+	payload := map[string]string{}
+	if name != "" {
+		payload["name"] = name
+	}
+	if url != "" {
+		payload["url"] = url
+	}
+	payload["alt_url"] = altUrl
+	if port != "" {
+		payload["port"] = port
+	}
+
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return StudioInfo{}, err
+	}
+
+	req, err := http.NewRequest("PUT", studioUrl+"/studio-info", bytes.NewBuffer(body))
+	if err != nil {
+		return StudioInfo{}, err
+	}
+
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return StudioInfo{}, fmt.Errorf("no active user: %v", err)
+	}
+	userJson, err := json.Marshal(user)
+	if err != nil {
+		return StudioInfo{}, err
+	}
+
+	auth_service.AttachBearerToken(req)
+	req.Header.Set("UserData", string(userJson))
+	req.Header.Set("UserId", user.Id)
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	response, err := client.Do(req)
+	if err != nil {
+		return StudioInfo{}, fmt.Errorf("failed to reach studio server: %v", err)
+	}
+	defer response.Body.Close()
+
+	respBody, _ := io.ReadAll(response.Body)
+	if response.StatusCode != http.StatusOK {
+		return StudioInfo{}, fmt.Errorf("studio info update failed: code %d: %s", response.StatusCode, string(respBody))
+	}
+
+	var info StudioInfo
+	if err := json.Unmarshal(respBody, &info); err != nil {
+		return StudioInfo{}, fmt.Errorf("failed to parse response: %v", err)
+	}
+	return info, nil
+}
+
 // getEffectiveHost returns the appropriate API host based on auth mode.
 // Returns empty string for offline mode (caller should handle this).
 // Returns the auth host (private server URL) for studio mode.
