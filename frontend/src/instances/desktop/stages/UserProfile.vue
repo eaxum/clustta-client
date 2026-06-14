@@ -5,7 +5,7 @@
           
           <!-- Edit Controls -->
           <div class="edit-controls">
-            <div class="profile-visibility-toggle">
+            <div v-if="!accountStore.isStudioAuth" class="profile-visibility-toggle">
               <span class="visibility-label">{{ $t('stages.profileVisibility') }}</span>
               <ToggleSwitch 
                 :switchValueProp="profileVisibility" 
@@ -45,21 +45,20 @@
                     <FormInput
                       v-model="formData.first_name"
                       :label="$t('stages.firstName')"
-                      :disabled="!isEditing"
+                      :disabled="!editingSections.header"
                     />
                     <FormInput
                       v-model="formData.last_name"
                       :label="$t('stages.lastName')"
-                      :disabled="!isEditing"
+                      :disabled="!editingSections.header"
                     />
                   </div>
                   
-                  <!-- :disabled="!editingSections.header" -->
                   <FormInput
                     v-model="formData.username"
                     @input="checkUsername"
                     :label="$t('stages.username')"
-                    :disabled="!isEditing"
+                    :disabled="!editingSections.header"
                     :showValidation="!!formData.username"
                     :error="errors.username"
                     :loading="checkingUsernameAvailability"
@@ -68,59 +67,58 @@
                   
                   <FormInput
                     v-model="formData.email"
-                    @input="checkEmail"
                     :label="$t('stages.email')"
                     type="email"
-                    :disabled="!isEditing"
-                    :showValidation="!!formData.email"
-                    :error="errors.email"
-                    :loading="checkingEmailAvailability"
-                    :valid="emailValid && !isEmailTaken"
+                    :disabled="true"
                   />
                   
                   <!-- Professional Info in Edit Mode -->
-                  <FormInput 
-                    v-model="formData.bio"
-                    :label="$t('stages.bio')"
-                    :placeholder="$t('stages.bioPlaceholder')"
-                    :error="bioError"
-                  />
-                  <FormInput
-                    v-model="formData.country"
-                    :label="$t('stages.location')"
-                    :placeholder="$t('stages.locationPlaceholder')"
-                  />
-                  <div class="availability-field">
-                    <label class="form-label">{{ $t('stages.availability') }}</label>
-                    <ActionButton
-                      @click="toggleAvailability"
-                      :icon="getAppIcon('check-circle')"
-                      :label="utils.capitalizeStr(formData.availability)"
-                      :iconAfter="false"
-                      :useBackground="true"
+                  <template v-if="!accountStore.isStudioAuth">
+                    <FormInput 
+                      v-model="formData.bio"
+                      :label="$t('stages.bio')"
+                      :placeholder="$t('stages.bioPlaceholder')"
+                      :error="bioError"
                     />
-                  </div>
-                  
-                  <!-- Professional Links in Edit Mode -->
-                  <div class="links-section">
-                    <LinksManager
-                      :links="formData.links"
-                      :isEditing="editingSections.header"
-                      @update:links="updateLinks"
-                      @update:linksValid="handleLinksValidUpdate"
+                    <FormInput
+                      v-model="formData.country"
+                      :label="$t('stages.location')"
+                      :placeholder="$t('stages.locationPlaceholder')"
                     />
-                  </div>
+                    <div class="availability-field">
+                      <label class="form-label">{{ $t('stages.availability') }}</label>
+                      <ActionButton
+                        @click="toggleAvailability"
+                        :icon="getAppIcon('check-circle')"
+                        :label="utils.capitalizeStr(formData.availability)"
+                        :iconAfter="false"
+                        :useBackground="true"
+                      />
+                    </div>
+                    
+                    <!-- Professional Links in Edit Mode -->
+                    <div class="links-section">
+                      <LinksManager
+                        :links="formData.links"
+                        :isEditing="editingSections.header"
+                        @update:links="updateLinks"
+                        @update:linksValid="handleLinksValidUpdate"
+                      />
+                    </div>
+                  </template>
                 </div>
                 
                 <div v-else class="display-mode-fields">
                   <div class="profile-name-row">
                     <div class="profile-name">{{ fullName }}</div>
-                    <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('stages.copyProfileLink')" @click="copyProfileLink" />
-                    <ActionButton v-if="!isWebMode" :icon="getAppIcon('person-search')" v-tooltip="$t('stages.openProfileInBrowser')" @click="openProfileInBrowser" />
+                    <template v-if="!accountStore.isStudioAuth">
+                      <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('stages.copyProfileLink')" @click="copyProfileLink" />
+                      <ActionButton v-if="!isWebMode" :icon="getAppIcon('person-search')" v-tooltip="$t('stages.openProfileInBrowser')" @click="openProfileInBrowser" />
+                    </template>
                   </div>
                   <div v-if="formData.bio" class="profile-title">{{ formData.bio }}</div>
                   
-                  <div class="meta-info">
+                  <div v-if="!accountStore.isStudioAuth" class="meta-info">
                     <div v-if="formData.country" class="info-item">
                       <img class="info-icon small-icons" :src="getAppIcon('map-pin')" alt="">
                       <span>{{ formData.country }}</span>
@@ -137,7 +135,7 @@
                   </div>
                   
                   <!-- Professional Links in Display Mode -->
-                  <div class="social-links">
+                  <div v-if="!accountStore.isStudioAuth" class="social-links">
                     <LinksManager
                       :links="formData.links"
                       :isEditing="editingSections.header"
@@ -178,6 +176,7 @@
 
           <!-- Skills Card -->
           <ProfileCard 
+            v-if="!accountStore.isStudioAuth"
             :title="$t('stages.skills')"
             :showEditButton="true"
             :isEditing="editingSections.skills"
@@ -192,6 +191,7 @@
 
           <!-- Tools & Software Card -->
           <ProfileCard 
+            v-if="!accountStore.isStudioAuth"
             :title="$t('stages.toolsAndSoftware')"
             :showEditButton="true"
             :isEditing="editingSections.tools"
@@ -251,7 +251,7 @@
           </ProfileCard>
 
           <!-- Danger Zone -->
-          <ProfileCard :title="$t('stages.dangerZone')">
+          <ProfileCard v-if="!accountStore.isStudioAuth" :title="$t('stages.dangerZone')">
             <div class="danger-zone">
               <p class="danger-message">
                 {{ $t('stages.deleteAccountWarning') }}
@@ -324,6 +324,7 @@ import { useProfileStore } from '@/stores/profile';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useStageStore } from '@/stores/stages';
+import { useAccountStore } from '@/stores/accounts';
 
 // Components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -338,6 +339,7 @@ import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import utils from '@/services/utils';
 
 // Stores
+const accountStore = useAccountStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
@@ -358,14 +360,12 @@ const photoPreview = ref(null);
 const currentPhoto = ref(null);
 const passwordCard = ref(null);
 const userProfileBody = ref(null);
-const checkingEmailAvailability = ref(false);
 const checkingUsernameAvailability = ref(false);
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const userNameRegex = /^[a-zA-Z0-9_]{3,}$/;
-const isEmailTaken = ref(false);
 const isUsernameTaken = ref(false);
 const isSavingChanges = ref(false);
 const areLinksValid = ref(true);
+const profileSnapshot = ref(null);
 
 // Section-specific edit states
 const editingSections = reactive({
@@ -429,16 +429,12 @@ const usernameValid = computed(() => {
   return userNameRegex.test(formData.value.username);
 });
 
-const emailValid = computed(() => {
-  return emailRegex.test(formData.value.email);
-});
-
 const detailsInputed = computed(() => {
-  return formData.value.first_name && formData.value.last_name && formData.value.username && formData.value.email;
+  return !!(formData.value.first_name && formData.value.last_name && formData.value.username);
 });
 
 const credentialsValid = computed(() => {
-  return emailValid.value && !isEmailTaken.value && usernameValid.value && !isUsernameTaken.value;
+  return usernameValid.value && !isUsernameTaken.value;
 });
 
 // Profile visibility as computed property
@@ -487,10 +483,14 @@ const bioValid = computed(() => {
 });
 
 const isDataChanged = computed(() => {
-  const basicFieldsChanged = ['first_name', 'last_name', 'username', 'email', 'title', 'country', 'availability']
-    .some(key => formData.value[key] !== (userData.value?.[key] || ''));
+  if (!profileSnapshot.value) return false;
   
-  return basicFieldsChanged || photoPreview.value;
+  const basicFieldsChanged = ['first_name', 'last_name', 'username', 'bio', 'country', 'availability']
+    .some(key => (formData.value[key] || '') !== (profileSnapshot.value.profile[key] || ''));
+  
+  const linksChanged = JSON.stringify(formData.value.links || {}) !== JSON.stringify(profileSnapshot.value.profile.links || {});
+  
+  return basicFieldsChanged || linksChanged || !!photoPreview.value;
 });
 
 const isDataValid = computed(() => {
@@ -538,9 +538,38 @@ const cancelEditing = async () => {
   success.value = '';
 };
 
+// Take a deep copy of the current profile so edits can be diffed and reverted
+const takeProfileSnapshot = () => {
+  profileSnapshot.value = {
+    profile: JSON.parse(JSON.stringify(profileStore.profile)),
+    userPhoto: userStore.user?.photo || null,
+  };
+};
+
+// Restore profile data from the snapshot taken when editing started
+const restoreProfileSnapshot = () => {
+  if (!profileSnapshot.value) return;
+  profileStore.updateProfileFields(profileSnapshot.value.profile);
+  if (userStore.user) {
+    userStore.user.photo = profileSnapshot.value.userPhoto;
+  }
+  profileSnapshot.value = null;
+};
+
 // Toggle section-specific editing
 const toggleSectionEdit = async (section) => {
   editingSections[section] = !editingSections[section];
+  
+  // Snapshot the profile when entering header edit, revert when closing without saving
+  if (section === 'header') {
+    if (editingSections.header) {
+      takeProfileSnapshot();
+    } else {
+      restoreProfileSnapshot();
+      photoPreview.value = null;
+      editableUserPhoto.photo = null;
+    }
+  }
   
   // If opening password section, scroll to it after Vue updates the DOM
   if (section === 'password' && editingSections[section]) {
@@ -557,17 +586,18 @@ const toggleSectionEdit = async (section) => {
 // Save all changes from all edited sections
 const saveAllChanges = async () => {
   await handleUpdate();
+  profileSnapshot.value = null;
   // Reset all section edit states
   Object.keys(editingSections).forEach(key => {
     editingSections[key] = false;
   });
 };
 
-// Cancel all edits and reset
+// Cancel all edits and reset data to what it was before editing started
 const cancelAllEdits = async () => {
-  // Reload profile from server to discard changes
-  await loadUserProfile();
+  restoreProfileSnapshot();
   photoPreview.value = null;
+  editableUserPhoto.photo = null;
   error.value = '';
   success.value = '';
   // Reset all section edit states
@@ -696,7 +726,7 @@ const checkUsername = async () => {
     return;
   }
   
-  if (!formData.value.username) return;
+  if (!formData.value.username || !userNameRegex.test(formData.value.username)) return;
   checkingUsernameAvailability.value = true;
   
   try {
@@ -713,34 +743,6 @@ const checkUsername = async () => {
     errors.username = '';
     console.error('Error checking username:', error);
     checkingUsernameAvailability.value = false;
-  }
-};
-
-const checkEmail = async () => {
-  const sameEmail = formData.value.email === userData.value?.email;
-  
-  if (sameEmail) {
-    isEmailTaken.value = false;
-    return;
-  }
-  
-  if (!formData.value.email || !emailValid.value) return;
-  checkingEmailAvailability.value = true;
-  
-  try {
-    const emailExist = await AuthService.CheckEmailExists(formData.value.email);
-    if (emailExist) {
-      isEmailTaken.value = true;
-      errors.email = t('stages.emailAlreadyRegistered');
-    } else {
-      isEmailTaken.value = false;
-      errors.email = '';
-    }
-    checkingEmailAvailability.value = false;
-  } catch (error) {
-    errors.email = '';
-    console.error('Error checking email:', error);
-    checkingEmailAvailability.value = false;
   }
 };
 
@@ -921,11 +923,12 @@ const loadReferenceData = async () => {
 
 onBeforeMount(async () => {
   if (userStore.user) {
-    // Load profile and reference data in parallel
-    await Promise.all([
-      loadUserProfile(),
-      loadReferenceData()
-    ]);
+    // Studio servers have no skills/tools catalog, so skip reference data there
+    const loaders = [loadUserProfile()];
+    if (!accountStore.isStudioAuth) {
+      loaders.push(loadReferenceData());
+    }
+    await Promise.all(loaders);
   } else {
     loading.value = false;
   }

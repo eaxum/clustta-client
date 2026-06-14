@@ -13,6 +13,7 @@ import (
 	"mime/multipart"
 	"net"
 	"net/http"
+	"net/url"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -631,8 +632,8 @@ func CheckUsernameExists(username string) (bool, error) {
 		return false, fmt.Errorf("cannot check username in offline mode")
 	}
 
-	url := authHost + "/auth/username-exists/" + username
-	req, err := http.NewRequest("GET", url, nil)
+	requestUrl := authHost + "/auth/username-exists/" + url.PathEscape(username)
+	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		return false, err
 	}
@@ -666,8 +667,8 @@ func CheckEmailExists(email string) (bool, error) {
 		return false, fmt.Errorf("cannot check email in offline mode")
 	}
 
-	url := authHost + "/auth/email-exists/" + email
-	req, err := http.NewRequest("GET", url, nil)
+	requestUrl := authHost + "/auth/email-exists/" + url.PathEscape(email)
+	req, err := http.NewRequest("GET", requestUrl, nil)
 	if err != nil {
 		return false, err
 	}

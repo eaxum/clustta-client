@@ -154,6 +154,12 @@ func (p *ProfileService) getProfileHost() (string, error) {
 	return auth_service.GetAuthHost(), nil
 }
 
+// isStudioAuth reports whether the active account authenticates against a
+// private studio server, which only supports basic profile fields.
+func (p *ProfileService) isStudioAuth() bool {
+	return auth_service.GetActiveAuthMode() == auth_service.AuthModeStudio
+}
+
 // makeRequest executes authenticated HTTP requests to the profile API.
 // Handles request construction, authentication headers, and response validation.
 func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]byte, error) {
@@ -196,11 +202,17 @@ func (p *ProfileService) makeRequest(method, url string, body interface{}) ([]by
 }
 
 // GetUserProfile fetches the complete user profile including bio, location, and professional info.
+// In studio mode only basic fields are available, built from the studio's current-user endpoint.
 func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
 	host, err := p.getProfileHost()
 	if err != nil {
 		return UserProfile{}, err
 	}
+
+	if p.isStudioAuth() {
+		return p.getStudioUserProfile(host)
+	}
+
 	url := host + "/api/users/" + userId + "/profile"
 
 	responseBody, err := p.makeRequest("GET", url, nil)
@@ -217,12 +229,55 @@ func (p *ProfileService) GetUserProfile(userId string) (UserProfile, error) {
 	return profile, nil
 }
 
+// getStudioUserProfile builds a basic profile from the studio server's current-user endpoint.
+func (p *ProfileService) getStudioUserProfile(host string) (UserProfile, error) {
+	responseBody, err := p.makeRequest("GET", host+"/auth/user", nil)
+	if err != nil {
+		return UserProfile{}, err
+	}
+
+	var userInfo struct {
+		Id        string `json:"id"`
+		FirstName string `json:"first_name"`
+		LastName  string `json:"last_name"`
+		Username  string `json:"username"`
+		Email     string `json:"email"`
+	}
+	if err := json.Unmarshal(responseBody, &userInfo); err != nil {
+		return UserProfile{}, fmt.Errorf("error unmarshaling user: %w", err)
+	}
+
+	return UserProfile{
+		Id:        userInfo.Id,
+		FirstName: userInfo.FirstName,
+		LastName:  userInfo.LastName,
+		Username:  userInfo.Username,
+		Email:     userInfo.Email,
+		Tools:     []UserTool{},
+		Skills:    []UserSkill{},
+		Studios:   []UserStudio{},
+	}, nil
+}
+
 // UpdateUserProfile updates user profile fields with the provided data.
+// In studio mode only the basic fields (name, username, email) are sent.
 func (p *ProfileService) UpdateUserProfile(userId string, updateData ProfileUpdateData) error {
 	host, err := p.getProfileHost()
 	if err != nil {
 		return err
 	}
+
+	if p.isStudioAuth() {
+		body := map[string]string{
+			"first_name": updateData.FirstName,
+			"last_name":  updateData.LastName,
+			"username":   updateData.Username,
+			"email":      updateData.Email,
+		}
+		_, err = p.makeRequest("PUT", host+"/auth/user/profile", body)
+		return err
+	}
+
 	url := host + "/api/users/" + userId + "/profile"
 
 	_, err = p.makeRequest("PUT", url, updateData)
@@ -382,10 +437,14 @@ func (p *ProfileService) RemoveUserSkill(userId, skillId string) error {
 }
 
 // GetAllTools fetches all available tools from the system.
+// Returns an empty list in studio mode, which has no tools catalog.
 func (p *ProfileService) GetAllTools() ([]Tool, error) {
 	host, err := p.getProfileHost()
 	if err != nil {
 		return nil, err
+	}
+	if p.isStudioAuth() {
+		return []Tool{}, nil
 	}
 	url := host + "/api/tools"
 
@@ -426,10 +485,14 @@ func (p *ProfileService) GetToolsByCategory(category string) ([]Tool, error) {
 }
 
 // GetAllSkills fetches all available skills from the system.
+// Returns an empty list in studio mode, which has no skills catalog.
 func (p *ProfileService) GetAllSkills() ([]Skill, error) {
 	host, err := p.getProfileHost()
 	if err != nil {
 		return nil, err
+	}
+	if p.isStudioAuth() {
+		return []Skill{}, nil
 	}
 	url := host + "/api/skills"
 
@@ -520,6 +583,9 @@ func (p *ProfileService) UpdateUserPhoto(photoPath string) error {
 		return err
 	}
 	url := host + "/person/photo"
+	if p.isStudioAuth() {
+		url = host + "/auth/user/photo"
+	}
 
 	// Read the file
 	fileData, err := os.ReadFile(photoPath)
@@ -560,6 +626,7 @@ func (p *ProfileService) UpdateUserPhoto(photoPath string) error {
 		return fmt.Errorf("error getting auth token: %w", err)
 	}
 	req.Header.Set("Cookie", fmt.Sprintf("session=%s", token.SessionId))
+	auth_service.AttachBearerToken(req)
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 

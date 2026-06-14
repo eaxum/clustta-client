@@ -52,6 +52,7 @@ export function GetAllGenders() {
 
 /**
  * GetAllSkills fetches all available skills from the system.
+ * Returns an empty list in studio mode, which has no skills catalog.
  * @returns {$CancellablePromise<$models.Skill[]>}
  */
 export function GetAllSkills() {
@@ -62,6 +63,7 @@ export function GetAllSkills() {
 
 /**
  * GetAllTools fetches all available tools from the system.
+ * Returns an empty list in studio mode, which has no tools catalog.
  * @returns {$CancellablePromise<$models.Tool[]>}
  */
 export function GetAllTools() {
@@ -94,6 +96,7 @@ export function GetToolsByCategory(category) {
 
 /**
  * GetUserProfile fetches the complete user profile including bio, location, and professional info.
+ * In studio mode only basic fields are available, built from the studio's current-user endpoint.
  * @param {string} userId
  * @returns {$CancellablePromise<$models.UserProfile>}
  */
@@ -156,6 +159,7 @@ export function UpdateUserPhoto(photoPath) {
 
 /**
  * UpdateUserProfile updates user profile fields with the provided data.
+ * In studio mode only the basic fields (name, username, email) are sent.
  * @param {string} userId
  * @param {$models.ProfileUpdateData} updateData
  * @returns {$CancellablePromise<void>}
