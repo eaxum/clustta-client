@@ -56,7 +56,7 @@
     <!-- Actions -->
     <div class="pop-up-actions">
       <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="true" :loading="isSaving" />
+      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="isDirty" :loading="isSaving" />
     </div>
   </div>
 </template>
@@ -88,6 +88,7 @@ const notificationStore = useNotificationStore();
 const isLoading = ref(false);
 const isSaving = ref(false);
 const mappings = ref({});
+const originalMappings = ref({});
 
 // computed
 // Returns the display name of the linked integration.
@@ -112,6 +113,16 @@ const externalStatusOptions = computed(() => {
 // Returns the count of unmapped statuses.
 const unmappedCount = computed(() => {
   return localStatuses.value.filter(s => !mappings.value[s.id]).length;
+});
+
+// Returns whether the mappings differ from the originally loaded state.
+const isDirty = computed(() => {
+  const current = mappings.value;
+  const original = originalMappings.value;
+  const currentKeys = Object.keys(current);
+  const originalKeys = Object.keys(original);
+  if (currentKeys.length !== originalKeys.length) return true;
+  return currentKeys.some(key => current[key] !== original[key]);
 });
 
 // methods
@@ -163,6 +174,7 @@ const saveMapping = async () => {
   isSaving.value = true;
   try {
     await integrationStore.saveStatusMappings(mappings.value);
+    originalMappings.value = { ...mappings.value };
     closeModal();
   } catch (error) {
     notificationStore.addNotification(error.message || 'Failed to save', '', 'error');
@@ -187,6 +199,7 @@ onMounted(async () => {
     // Load existing mappings from sync options
     const existing = integrationStore.typeMappings?.status_mappings || {};
     mappings.value = { ...existing };
+    originalMappings.value = { ...existing };
   } catch (error) {
     console.error('Failed to load status mappings:', error);
     notificationStore.addNotification(error.message || 'Failed to load statuses', '', 'error');
@@ -276,7 +289,7 @@ onMounted(async () => {
 
 .section-description {
   font-size: 0.875rem;
-  color: var(--surface-5);
+  color: var(--text);
   margin: 0;
 }
 
@@ -295,7 +308,7 @@ onMounted(async () => {
   background-color: var(--bg);
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--surface-5);
+  color: var(--text);
   text-transform: uppercase;
 }
 

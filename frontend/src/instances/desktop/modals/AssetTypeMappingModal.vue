@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container large-modal" v-esc="closeModal">
-    <HeaderArea :title="'Asset Type Templates'" :icon="'extension'" />
+    <HeaderArea :title="'Asset Type Mapping'" :icon="'extension'" />
 
     <div class="general-container">
       <!-- Loading State -->
@@ -55,7 +55,7 @@
     <!-- Actions -->
     <div class="pop-up-actions">
       <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="unmappedCount === 0 && templates.length > 0" :loading="isSaving" />
+      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="isDirty && templates.length > 0" :loading="isSaving" />
     </div>
   </div>
 </template>
@@ -90,6 +90,7 @@ const templateStore = useTemplateStore();
 const isLoading = ref(false);
 const isSaving = ref(false);
 const mappings = ref({});
+const originalMappings = ref({});
 
 // computed
 const externalAssetTypes = computed(() => {
@@ -105,6 +106,15 @@ const templateOptions = computed(() => {
     id: t.id,
     name: `${t.name} (${t.extension})`,
   }));
+});
+
+const isDirty = computed(() => {
+  const current = mappings.value;
+  const original = originalMappings.value;
+  const currentKeys = Object.keys(current);
+  const originalKeys = Object.keys(original);
+  if (currentKeys.length !== originalKeys.length) return true;
+  return currentKeys.some(key => current[key] !== original[key]);
 });
 
 const unmappedCount = computed(() => {
@@ -212,6 +222,7 @@ const saveMapping = async () => {
   isSaving.value = true;
   try {
     await integrationStore.saveAssetTypeTemplates(mappings.value);
+    originalMappings.value = { ...mappings.value };
     notificationStore.addNotification('Asset type templates saved','', 'success');
     closeModal();
   } catch (error) {
@@ -242,6 +253,7 @@ onMounted(async () => {
     await integrationStore.loadTypeMappings();
     const existing = integrationStore.typeMappings?.asset_type_templates || {};
     mappings.value = { ...existing };
+    originalMappings.value = { ...existing };
   } catch (error) {
     console.error('Failed to load asset type mappings:', error);
     notificationStore.addNotification(error.message || 'Failed to load asset types', 'error');

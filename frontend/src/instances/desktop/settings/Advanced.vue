@@ -38,7 +38,7 @@
           <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openAssetTypeMapping">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('extension')"></div>
             <div class="settings-content">
-              <div class="settings-header">Asset Type Templates</div>
+              <div class="settings-header">Asset Type Mapping</div>
               <div class="settings-body">Map asset types to file templates</div>
             </div>
             <div class="settings-action" v-stop-propagation>

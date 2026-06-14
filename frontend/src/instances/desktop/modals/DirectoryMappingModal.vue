@@ -63,7 +63,7 @@
     <!-- Actions (outside scrollable container) -->
     <div class="pop-up-actions">
       <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="true" :loading="isSaving" />
+      <GeneralButton :label="'Save'" :fullWidth="true" :buttonFunction="saveMapping" :isActive="isDirty" :loading="isSaving" />
     </div>
   </div>
 </template>
@@ -101,10 +101,30 @@ const customTemplates = ref([
 const isLoading = ref(false);
 const isSaving = ref(false);
 const namingStyle = ref('lowercase');
+const originalSnapshot = ref('');
 const selectedPreset = ref('3d-animation');
 const templateInputRefs = ref({});
 
 // computed
+
+// Serializes the editable state so it can be compared for changes.
+const serializeState = () => {
+  return JSON.stringify({
+    preset: selectedPreset.value,
+    style: namingStyle.value,
+    templates: customTemplates.value.map(t => ({
+      id: t.id,
+      name: t.name,
+      icon: t.icon,
+      template: t.template,
+    })),
+  });
+};
+
+// Returns whether the editable state differs from the originally loaded state.
+const isDirty = computed(() => {
+  return serializeState() !== originalSnapshot.value;
+});
 
 const placeholders = computed(() => [
   { key: '<Episode>', label: 'Episode', icon: 'film-reel' },
@@ -243,6 +263,7 @@ const saveMapping = async () => {
       style: namingStyle.value,
       paths,
     });
+    originalSnapshot.value = serializeState();
     notificationStore.addNotification('Directory mapping saved','', 'success');
     closeModal();
   } catch (error) {
@@ -272,6 +293,7 @@ onMounted(async () => {
         }));
       }
     }
+    originalSnapshot.value = serializeState();
   } catch (error) {
     console.error('Failed to load directory structure:', error);
   } finally {
