@@ -1796,30 +1796,39 @@ func UpdateAsset(tx *sqlx.Tx, assetId string, name, assetTypeId string, isResour
 		return models.Asset{}, err
 	}
 
-	err = RemoveAllTagsFromAsset(tx, assetId)
+	// Reconcile tags by diffing current against desired instead of wiping all rows.
+	// This keeps stable asset_tag ids and avoids (asset_id, tag_id) sync collisions.
+	existingTags, err := GetAssetTags(tx, assetId)
 	if err != nil {
 		return models.Asset{}, err
 	}
-	// if asset.IsLink {
-	// 	if !utils.NonCaseSensitiveContains(tags, "link") {
-	// 		tags = append(tags, "link")
-	// 	}
-	// }
-	// if !asset.IsLink && asset.Pointer != "" {
-	// 	if !utils.NonCaseSensitiveContains(tags, "tracked") {
-	// 		tags = append(tags, "tracked")
-	// 	}
-	// }
+
+	desiredTags := make(map[string]bool, len(tags))
+	for _, tag := range tags {
+		desiredTags[tag] = true
+	}
+
+	existingTagNames := make(map[string]bool, len(existingTags))
+	for _, existingTag := range existingTags {
+		existingTagNames[existingTag.Name] = true
+		if !desiredTags[existingTag.Name] {
+			err = RemoveTagFromAsset(tx, assetId, existingTag.Id)
+			if err != nil {
+				return models.Asset{}, err
+			}
+		}
+	}
 
 	asset.Tags = []string{}
-	if len(tags) > 0 {
-		for _, tag := range tags {
+	for _, tag := range tags {
+		if !existingTagNames[tag] {
 			err = AddTagToAsset(tx, asset.Id, tag)
 			if err != nil {
 				return models.Asset{}, err
 			}
-			asset.Tags = append(asset.Tags, tag)
+			existingTagNames[tag] = true
 		}
+		asset.Tags = append(asset.Tags, tag)
 	}
 
 	if oldAsset.FilePath != asset.FilePath && utils.FileExists(oldAsset.FilePath) {
