@@ -26,6 +26,7 @@ export const useIntegrationStore = defineStore('integrations', {
 
     // Studio-scoped integration config (server-managed, e.g. Kitsu listener)
     studioConfig: {},              // { kitsu: { ...view } }
+    studioConfigError: {},         // { kitsu: 'message' } inline save/test error per integration
     isSavingStudioConfig: false,
     isTestingStudioConfig: false,
     activeStudioIntegrationId: null, // Integration currently being edited in the studio config modal
@@ -618,12 +619,22 @@ export const useIntegrationStore = defineStore('integrations', {
       this.activeStudioIntegrationId = integrationId;
     },
 
+    // Clear the inline error for a studio integration (e.g. when the user edits a field).
+    clearStudioIntegrationError(integrationId) {
+      if (this.studioConfigError[integrationId]) {
+        const next = { ...this.studioConfigError };
+        delete next[integrationId];
+        this.studioConfigError = next;
+      }
+    },
+
     // Load the studio-scoped configuration for an integration (e.g. Kitsu service account).
     async loadStudioIntegrationConfig(studioId, integrationId) {
       const notificationStore = useNotificationStore();
       try {
         const view = await StudioIntegrationService.GetStudioIntegration(studioId, integrationId);
         this.studioConfig = { ...this.studioConfig, [integrationId]: view };
+        this.clearStudioIntegrationError(integrationId);
         return view;
       } catch (error) {
         notificationStore.addNotification('Failed to load integration config', error.message || String(error), 'error');
@@ -636,6 +647,7 @@ export const useIntegrationStore = defineStore('integrations', {
     async saveStudioIntegrationConfig(studioId, integrationId, payload) {
       const notificationStore = useNotificationStore();
       this.isSavingStudioConfig = true;
+      this.clearStudioIntegrationError(integrationId);
       try {
         const view = await StudioIntegrationService.SaveStudioIntegration(studioId, integrationId, payload);
         this.studioConfig = { ...this.studioConfig, [integrationId]: view };
@@ -645,7 +657,8 @@ export const useIntegrationStore = defineStore('integrations', {
         }
         return view;
       } catch (error) {
-        notificationStore.addNotification('Failed to save integration', error.message || String(error), 'error');
+        const message = error?.message || String(error);
+        this.studioConfigError = { ...this.studioConfigError, [integrationId]: message };
         return null;
       } finally {
         this.isSavingStudioConfig = false;

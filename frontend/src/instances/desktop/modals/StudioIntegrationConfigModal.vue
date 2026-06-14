@@ -4,20 +4,20 @@
 
     <div class="general-container">
 
-      <div v-if="view?.last_error" class="error-banner">{{ view.last_error }}</div>
+      <div v-if="bannerError" class="error-banner">{{ bannerError }}</div>
 
       <p class="card-help">{{ $t('settings.kitsuIntegrationHelp') }}</p>
 
       <div class="input-section">
-        <FormInput v-model="form.api_url" @input="validateApiUrl" placeholder="https://your-studio.cg-wire.com/api" :error="errors.api_url" :needsValidation="true" :showValidation="!!form.api_url" :valid="!errors.api_url && !!form.api_url" :labelTop="true" />
+        <FormInput v-model="form.api_url" @input="onApiUrlInput" placeholder="https://your-studio.cg-wire.com/api" :error="errors.api_url" :needsValidation="true" :showValidation="!!form.api_url" :valid="!errors.api_url && !!form.api_url" :labelTop="true" />
       </div>
 
       <div class="input-section">
-        <FormInput v-model="form.email" @input="validateEmail" placeholder="bots@studio.com" type="email" :error="errors.email" :needsValidation="true" :showValidation="!!form.email" :valid="!errors.email && !!form.email" :labelTop="true" />
+        <FormInput v-model="form.email" @input="onEmailInput" placeholder="bots@studio.com" type="email" :error="errors.email" :needsValidation="true" :showValidation="!!form.email" :valid="!errors.email && !!form.email" :labelTop="true" />
       </div>
 
       <div class="input-section">
-        <FormInput v-model="form.password"  :placeholder="passwordPlaceholder" :isSecret="true" :labelTop="true" />
+        <FormInput v-model="form.password" @input="clearSaveError" :placeholder="passwordPlaceholder" :isSecret="true" :labelTop="true" />
       </div>
 
       <div class="pop-up-actions">
@@ -69,6 +69,10 @@ const studioId = computed(() => projectStore.selectedStudio?.id || '');
 
 const view = computed(() => integrationStore.studioConfig[integrationId.value] || null);
 
+const saveError = computed(() => integrationStore.studioConfigError[integrationId.value] || '');
+
+const bannerError = computed(() => saveError.value || view.value?.last_error || '');
+
 const modalTitle = computed(() => t('settings.kitsuIntegration'));
 
 const isBusy = computed(() => integrationStore.isSavingStudioConfig);
@@ -82,6 +86,11 @@ const passwordPlaceholder = computed(() => view.value?.configured ? t('settings.
 // methods
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+// Clears any inline save error so a stale failure doesn't linger while editing.
+const clearSaveError = () => {
+  integrationStore.clearStudioIntegrationError(integrationId.value);
+};
 
 // Validates api_url with a URL parser; sets errors.api_url.
 const validateApiUrl = () => {
@@ -107,6 +116,18 @@ const validateEmail = () => {
   errors.email = emailRe.test(form.email) ? '' : t('settings.errorInvalidEmail');
 };
 
+// Validates the api_url and clears any stale save error on input.
+const onApiUrlInput = () => {
+  clearSaveError();
+  validateApiUrl();
+};
+
+// Validates the email and clears any stale save error on input.
+const onEmailInput = () => {
+  clearSaveError();
+  validateEmail();
+};
+
 // Seeds the form with existing values if the integration is configured.
 const seedForm = () => {
   if (view.value?.configured) {
@@ -126,6 +147,7 @@ const seedForm = () => {
 
 // Closes the modal and clears the active integration id.
 const closeModal = () => {
+  clearSaveError();
   modals.setModalVisibility('studioIntegrationConfigModal', false);
   integrationStore.setActiveStudioIntegration(null);
 };
