@@ -107,13 +107,13 @@ const templateInputRefs = ref({});
 // computed
 
 const placeholders = computed(() => [
-  { key: '<Episode>', label: 'Episode', icon: 'tv' },
-  { key: '<Sequence>', label: 'Sequence', icon: 'checkpoint-stone' },
-  { key: '<Shot>', label: 'Shot', icon: 'frame' },
+  { key: '<Episode>', label: 'Episode', icon: 'film-reel' },
+  { key: '<Sequence>', label: 'Sequence', icon: 'film-strip' },
+  { key: '<Shot>', label: 'Shot', icon: 'clapboard' },
   { key: '<Asset>', label: 'Asset', icon: 'cube' },
   { key: '<CollectionType>', label: 'CollectionType', icon: 'folder' },
-  { key: '<AssetType>', label: 'AssetType', icon: 'tag' },
-  { key: '<TemplateExtension>', label: 'TemplateExtension', icon: 'file' },
+  { key: '<AssetType>', label: 'AssetType', icon: 'file' },
+  { key: '<TemplateExtension>', label: 'TemplateExtension', icon: 'extension' },
 ]);
 
 const presetOptions = computed(() => ['3d-animation', 'custom']);
@@ -449,10 +449,6 @@ onMounted(async () => {
 
 .placeholders-grid .chip {
   cursor: pointer;
-}
-
-.placeholders-grid .chip:hover {
-  background-color: var(--surface-inverse);
 }
 
 .pop-up-actions {
