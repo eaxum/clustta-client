@@ -21,7 +21,7 @@
 			</div>
 		</div>
 		<div v-if="!kanbanView" ref="assetListContainer" class="browser-root-container" @mousemove="onDrag($event)"
-			:class="{ 'browser-root-container-hover-drop': isHovered }" @mouseup="onDragStop($event)" @scroll="disableMenus">
+			:class="{ 'browser-root-container-hover-drop': isHovered }" @scroll="disableMenus">
 			<GhostItem :data="draggedCard" :index="0" />
 			<div class="browser-root-content">
 				<div class="left-column" data-file-drop-target>
@@ -1151,6 +1151,7 @@ onMounted(async () => {
 	document.addEventListener('click', handleClickOutside);
 	window.addEventListener('keydown', detectModifier);
 	window.addEventListener('keyup', detectModifier);
+	window.addEventListener('mouseup', onDragStop);
 	emitter.on('refresh-browser', softRefresh);
 	emitter.on('update-root-data', handleUpdateRootData);
 	emitter.on('update-untracked-items', handleUpdateUntrackedItems);
@@ -1184,6 +1185,7 @@ onBeforeUnmount(() => {
 	document.removeEventListener('click', handleClickOutside);
 	window.removeEventListener('keydown', detectModifier);
 	window.removeEventListener('keyup', detectModifier);
+	window.removeEventListener('mouseup', onDragStop);
 	window.removeEventListener('resize', updateScreenWidth);
 });
 </script>

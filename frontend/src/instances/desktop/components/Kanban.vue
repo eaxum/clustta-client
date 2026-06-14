@@ -1,6 +1,5 @@
 <template>
   <div class="kanban-root" @mousemove="onDrag" 
-  @mouseup="onDragStop(draggedItemRefs[dndStore.draggedItemId])"
   @mouseleave="stopScrolling" ref="scrollContainerRef">
   
   <div class="kanban-container" >
@@ -448,7 +447,7 @@ const onDragStop = (cardEl) => {
   if (dndStore.draggedItemId === null) return;
   document.documentElement.style.cursor = 'default';
 
-  let cardRect = cardEl.getBoundingClientRect();
+  let cardRect = cardEl?.getBoundingClientRect() ?? { x: dndStore.ghostCardStyle.pos.x, y: dndStore.ghostCardStyle.pos.y };
 
   setStatus();
 
@@ -537,8 +536,15 @@ const findGlobalInsertIndexForEmptyColumn = (targetColumnId) => {
 };
 
 
+// Finalizes the drag from a release anywhere in the window, not just the kanban root.
+const onWindowMouseUp = () => {
+  if (dndStore.draggedItemId === null) return;
+  onDragStop(draggedItemRefs.value[dndStore.draggedItemId]);
+};
+
 onMounted(async () => {
   // emitter.emit('refresh-browser')
+  window.addEventListener('mouseup', onWindowMouseUp);
   if (statusStore.statuses.length === 0) {
     await statusStore.reloadStatuses();
   }
@@ -595,6 +601,7 @@ watch(() => collectionStore.navigatedCollection, async () => {
 });
 
 onUnmounted(() => {
+  window.removeEventListener('mouseup', onWindowMouseUp);
 });
 
 
