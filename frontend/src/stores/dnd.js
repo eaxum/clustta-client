@@ -17,6 +17,7 @@ export const useDndStore = defineStore("dnd", {
     altKeyActive: false,
     itemOverlappedId: null,
     isOverlapping: false,
+    isOverRoot: false,
     targetItemId: null,
     targetItemPath: null,
     targetItem: null,
@@ -158,6 +159,7 @@ export const useDndStore = defineStore("dnd", {
       }
       
       this.setGhostCardStyle(true);
+      this.isOverRoot = false;
       
       for (let target of filteredTargets) {
         let targetEl = this.itemRefs[target.id];
@@ -206,7 +208,17 @@ export const useDndStore = defineStore("dnd", {
       }
 
       if (!this.isOverlapping) {
-        // console.log('not overlapping')
+        // Not over any item drop-zone: detect whether the cursor is over the
+        // empty root list area so it can be highlighted/dropped to root.
+        const rootEl = document.querySelector(".left-column");
+        if (rootEl) {
+          const r = rootEl.getBoundingClientRect();
+          this.isOverRoot =
+            dragX >= r.x && dragX <= r.x + r.width &&
+            dragY >= r.y && dragY <= r.y + r.height;
+        } else {
+          this.isOverRoot = false;
+        }
         return requestAnimationFrame(this.updateUI);
       }
 
@@ -247,6 +259,7 @@ export const useDndStore = defineStore("dnd", {
 
       this.altKeyActive = false;
       this.isOverlapping = false;
+      this.isOverRoot = false;
       this.dropType = null;
 
       this.draggedItem = null;

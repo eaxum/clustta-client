@@ -21,10 +21,10 @@
 			</div>
 		</div>
 		<div v-if="!kanbanView" ref="assetListContainer" class="browser-root-container" @mousemove="onDrag($event)"
-			:class="{ 'browser-root-container-hover-drop': isHovered }" @scroll="disableMenus">
+			@scroll="disableMenus">
 			<GhostItem :data="draggedCard" :index="0" />
 			<div class="browser-root-content">
-				<div class="left-column" data-file-drop-target>
+				<div class="left-column" :class="{ 'file-drop-target-active': isHovered }" data-file-drop-target>
 					<VirtuaScroll v-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
 					<GridView v-else-if="!assetStore.assetsLoaded || rootData.length" :rootItems="rootData" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
@@ -142,7 +142,10 @@ const canCreateInWorkspace = computed(() => {
 	return !!(workspace && workspace.collection);
 });
 
-const isHovered = computed(() => dndStore.isDropHovering && dndStore.targetItemId === null);
+const isHovered = computed(() =>
+	(dndStore.isDropHovering && dndStore.targetItemId === null) ||
+	(dndStore.draggedItemId !== null && dndStore.isOverRoot && dndStore.targetItemId === null)
+);
 
 const kanbanView = computed(() => commonStore.viewMode === 'kanban');
 
@@ -639,16 +642,26 @@ const onDragStop = async (event) => {
 	const dependencyUpdates = { assetId: null, dependencies: [], collectionDependencies: [] };
 	let needsRefresh = false;
 
+	// A move-to-root happens with the Alt override or when released over empty root space.
+	// In navigator mode, "root" is the collection currently being viewed.
+	const moveToRoot = event.altKey || (!dndStore.isOverlapping && dndStore.isOverRoot);
+	const rootParentId = commonStore.navigatorMode ? (collectionStore.navigatedCollection?.id ?? '') : '';
+	const rootDir = (commonStore.navigatorMode && collectionStore.navigatedCollection?.file_path)
+		? collectionStore.navigatedCollection.file_path
+		: projectStore.activeProject.working_directory;
+
 	for (const draggedCollection of draggedItems) {
-		if (event.altKey) {
+		if (moveToRoot) {
 			if (draggedItem) cardRect = draggedItem.getBoundingClientRect();
-			if (draggedCollection.collection_type_id) collectionIdsToMove.push(draggedCollection.id);
-			else if (draggedCollection.asset_type_id) assetIdsToMove.push(draggedCollection.id);
-			else {
+			if (draggedCollection.collection_type_id) {
+				if ((draggedCollection.parent_id ?? '') !== rootParentId) collectionIdsToMove.push(draggedCollection.id);
+			} else if (draggedCollection.asset_type_id) {
+				if ((draggedCollection.collection_id ?? '') !== rootParentId) assetIdsToMove.push(draggedCollection.id);
+			} else {
 				let extension = draggedCollection.type === 'untracked_asset' ? draggedCollection.extension : '';
 				let fullName = draggedCollection.name + extension;
-				await FSService.MakeDirs(projectStore.activeProject.working_directory);
-				let newPath = await FSService.JoinPath(projectStore.activeProject.working_directory, fullName);
+				await FSService.MakeDirs(rootDir);
+				let newPath = await FSService.JoinPath(rootDir, fullName);
 				renameOperations.push({ oldPath: draggedCollection.file_path, newPath });
 			}
 		} else if (dndStore.isOverlapping && dropTarget) {
@@ -691,7 +704,7 @@ const onDragStop = async (event) => {
 	}
 
 	// Execute batch operations for file moves (requires refresh)
-	const targetParentId = event.altKey ? '' : dndStore.targetItemId;
+	const targetParentId = moveToRoot ? rootParentId : dndStore.targetItemId;
 	if (collectionIdsToMove.length) {
 		const success = await changeCollectionParent(collectionIdsToMove, targetParentId);
 		if (success) needsRefresh = true;
@@ -1252,12 +1265,6 @@ onBeforeUnmount(() => {
 	width: 100%;
 	min-width: 550px;
 	box-sizing: border-box;
-}
-
-.browser-root-container-hover-drop {
-	background-color: #1e7fee6c;
-	outline: 1px solid rgb(255, 255, 255);
-	outline-offset: -1px;
 }
 
 .dash-board-header {

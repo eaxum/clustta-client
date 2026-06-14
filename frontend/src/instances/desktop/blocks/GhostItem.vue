@@ -100,11 +100,12 @@ const dropMessage = computed(() => {
   }
 
   if (!dndStore.targetItem) {
-    if (!dndStore.altKeyActive) {
+    if (dndStore.altKeyActive || dndStore.isOverRoot) {
+      isErrMsg.value = false;
+      return t('blocks.releaseToMoveToRootShort');
+    } else {
       isErrMsg.value = false;
       return t('blocks.altKeyMoveToRoot');
-    } else {
-      return t('blocks.releaseToMoveToRootShort');
     }
   }
 
@@ -133,21 +134,20 @@ const ghostCardStyles = computed(() => {
 });
 
 // watchers
-watch(dropMessage, (newMessage, oldMessage) => {
-  if (newMessage && newMessage !== oldMessage) {
+// Only surface the drag hint in the info bar while an item is actively being dragged.
+watch([() => dndStore.draggedItemId, dropMessage], ([draggedId, newMessage]) => {
+  if (draggedId === null) {
     if (currentPromptId.value) {
       promptStore.clearPrompt(currentPromptId.value);
+      currentPromptId.value = null;
     }
-    const promptType = isErrMsg.value ? 'error' : 'info';
-    currentPromptId.value = promptStore.addPrompt(newMessage, promptType);
+    return;
   }
-}, { immediate: true });
-
-watch(() => dndStore.draggedItemId, (newValue) => {
-  if (!newValue && currentPromptId.value) {
+  if (currentPromptId.value) {
     promptStore.clearPrompt(currentPromptId.value);
-    currentPromptId.value = null;
   }
+  const promptType = isErrMsg.value ? 'error' : 'info';
+  currentPromptId.value = promptStore.addPrompt(newMessage, promptType);
 });
 
 // lifecycle hooks

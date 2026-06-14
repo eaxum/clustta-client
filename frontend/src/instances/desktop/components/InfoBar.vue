@@ -6,9 +6,9 @@
         
         <div class="info-bar-root" :style="{ backgroundColor : bgColor }">
 
-        <!-- <div v-if="currentPrompt" ref="promptItem" :class="['prompt-message', currentPrompt.type]">
+        <div v-if="currentPrompt" ref="promptItem" :class="['prompt-message', currentPrompt.type]">
             <span class="text-container" >{{ currentPrompt.message }}</span>
-        </div> -->
+        </div>
 
         <div v-if="progressRunning && progressMinimized" 
              @click="restoreProgress" 
@@ -372,6 +372,25 @@ onBeforeUnmount(() => {
 
 .success {
   background-color:  #20A41C;
+}
+
+.prompt-message {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  overflow: hidden;
+  gap: .3rem;
+  border-radius: 3px;
+  box-sizing: border-box;
+  height: 70%;
+  padding: .3rem .5rem;
+  margin-right: .5rem;
+  background-color: #2C75E2;
+  z-index: 99999;
+}
+
+.prompt-message.error {
+  background-color: #FF3333;
 }
 
 .spacer {
