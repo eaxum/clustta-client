@@ -669,6 +669,12 @@
     "saveDependencyPreset": "保存依赖项预设",
     "saveIgnoreListPreset": "保存忽略列表预设",
     "clusttaApp": "Clustta",
+    "clusttaForWindows": "Clustta for Windows（64 位）",
+    "clusttaForMac": "Clustta for macOS",
+    "clusttaForLinux": "Clustta for Linux（64 位）",
+    "checkForUpdate": "检查更新",
+    "upToDate": "您使用的是最新版本。",
+    "updateAvailable": "有可用更新：{version}",
     "clusttaDirectory": "选择 Clustta 目录",
     "versionLabel": "版本",
     "copyrightNotice": "版权所有 © 2024 Clustta",
@@ -1277,6 +1283,7 @@
       "resource": "资源"
     },
     "infoBar": {
+      "updateAvailable": "有可用更新",
       "clickToUpdate": "点击更新",
       "closeConsole": "关闭控制台",
       "openConsole": "打开控制台",

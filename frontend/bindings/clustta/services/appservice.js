@@ -11,6 +11,15 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as $models from "./models.js";
 
 /**
+ * GetChannel returns the distribution channel, honoring a build-time override
+ * before falling back to runtime detection.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetChannel() {
+    return $Call.ByID(291854359);
+}
+
+/**
  * GetOS returns the operating system name.
  * Detects the current OS and returns "windows", "darwin", "linux", or "unknown".
  * @returns {$CancellablePromise<string>}
@@ -45,6 +54,14 @@ export function GetSystemInfo() {
     return $Call.ByID(3227745773).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
+}
+
+/**
+ * GetVersion returns the application version (build-time injected or fallback).
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetVersion() {
+    return $Call.ByID(3775533560);
 }
 
 /**

@@ -39,11 +39,8 @@
 
         <ActionButton :icon="getAppIcon('console')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
 
-        <div class="version-info" :class="{ 'oudated' : isOutdated}" v-tooltip="isOutdated ? $t('components.infoBar.clickToUpdate') : ''">
-            <div v-if="isOutdated" class="outdated-icon-button">
-                <img :src="getAppIcon('info-triangle')" alt="Maximize">
-            </div>
-            <div>{{ clusttaVersion }}</div>
+        <div class="version-info" :class="{ 'outdated': isOutdated, 'outdated-required': isUpdateRequired }" v-tooltip="isOutdated ? $t('components.infoBar.clickToUpdateTo', { version: latestVersion }) : ''" @click="isOutdated && handleUpdateClick()">
+            <div>{{ isOutdated ? $t('components.infoBar.updateAvailable') : clusttaVersion }}</div>
         </div>
 
         </div>
@@ -70,11 +67,13 @@ import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
 import { useSettingsStore } from '@/stores/settings';
+import { useUpdateStore } from '@/stores/updates';
 
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
 const settingsStore = useSettingsStore();
+const updateStore = useUpdateStore();
 
 // props
 const props = defineProps({
@@ -100,7 +99,15 @@ const restrictedMessages = [
 const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 
 const isOutdated = computed(() => {
-  return false;
+  return updateStore.isUpdateAvailable;
+});
+
+const isUpdateRequired = computed(() => {
+  return updateStore.isUpdateRequired;
+});
+
+const latestVersion = computed(() => {
+  return updateStore.latestVersion;
 });
 
 const notificationIcon = computed(() => {
@@ -205,6 +212,11 @@ const detectModifier = (event) => {
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
+// Opens the appropriate update destination for the current channel.
+const handleUpdateClick = () => {
+  updateStore.handleUpdateClick();
+};
+
 // Restores the progress indicator from minimized state.
 const restoreProgress = () => {
   notificationStore.restoreProgress();
@@ -254,13 +266,16 @@ const toggleDebugConsole = () => {
 
 // lifecycle hooks
 onMounted(async () => {
-  clusttaVersion.value = await utils.getRawClusttaVersion();
+  await updateStore.initialize();
+  clusttaVersion.value = updateStore.currentVersion || await utils.getRawClusttaVersion();
+  updateStore.startAutoCheck();
   await settingsStore.initializeBridge();
   window.addEventListener('keydown', detectModifier);
   window.addEventListener('keyup', detectModifier);
 });
 
 onBeforeUnmount(() => {
+  updateStore.stopAutoCheck();
   window.removeEventListener('keydown', detectModifier);
   window.removeEventListener('keyup', detectModifier);
 });
@@ -298,7 +313,6 @@ onBeforeUnmount(() => {
     padding: 0 .8rem;
     font-size: 13px;
     font-weight: 300;
-    /* background-color: var(--surface-2);uy7 */
   }
 
 .version-info {
@@ -311,10 +325,26 @@ onBeforeUnmount(() => {
   padding: .3rem .5rem;
   align-items: center;
   border-radius: var(--small-radius);
+  transition: background-color 0.2s ease, border-radius 0.2s ease;
+  height: 70%;
+  box-sizing: border-box;
 }
 
-.oudated:hover{
-  background-color: var(--surface-2);
+.version-info.outdated {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: .3rem .3rem;
+  background-color: var(--warning);
+  color: var(--text-inverse);
+  font-weight: 500;
+}
+
+.version-info.outdated-required {
+  background-color: var(--alert);
+}
+
+.version-info.outdated:hover {
+  background-color: var(--alert);
 }
 
 .outdated-icon-button {
@@ -338,7 +368,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: .3rem;
-  border-radius: 3px;
+  border-radius: 6px;
   box-sizing: border-box;
   height: 70%;
   justify-content: flex-end;
@@ -380,7 +410,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   overflow: hidden;
   gap: .3rem;
-  border-radius: 3px;
+  border-radius: 6px;
   box-sizing: border-box;
   height: 70%;
   padding: .3rem .5rem;
@@ -479,7 +509,7 @@ onBeforeUnmount(() => {
   white-space: nowrap;
   overflow: hidden;
   gap: 1rem;
-  border-radius: 3px;
+  border-radius: 6px;
   box-sizing: border-box;
   height: 70%;
   justify-content: flex-start;

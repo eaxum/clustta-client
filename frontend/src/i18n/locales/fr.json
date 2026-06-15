@@ -670,6 +670,12 @@
     "saveDependencyPreset": "Enregistrer le préréglage de dépendance",
     "saveIgnoreListPreset": "Enregistrer le préréglage de liste d'ignorés",
     "clusttaApp": "Clustta",
+    "clusttaForWindows": "Clustta pour Windows (64 bits)",
+    "clusttaForMac": "Clustta pour macOS",
+    "clusttaForLinux": "Clustta pour Linux (64 bits)",
+    "checkForUpdate": "Rechercher des mises à jour",
+    "upToDate": "Vous utilisez la dernière version.",
+    "updateAvailable": "Mise à jour disponible : {version}",
     "clusttaDirectory": "Sélectionner le répertoire Clustta",
     "versionLabel": "Version",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -1278,6 +1284,7 @@
       "resource": "Ressource"
     },
     "infoBar": {
+      "updateAvailable": "Mise à jour disponible",
       "clickToUpdate": "Cliquez pour mettre à jour",
       "closeConsole": "Fermer la console",
       "openConsole": "Ouvrir la console",

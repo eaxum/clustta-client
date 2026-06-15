@@ -669,6 +669,12 @@
     "saveDependencyPreset": "डिपेंडेंसी प्रीसेट सहेजें",
     "saveIgnoreListPreset": "अनदेखा सूची प्रीसेट सहेजें",
     "clusttaApp": "Clustta",
+    "clusttaForWindows": "Windows के लिए Clustta (64-बिट)",
+    "clusttaForMac": "macOS के लिए Clustta",
+    "clusttaForLinux": "Linux के लिए Clustta (64-बिट)",
+    "checkForUpdate": "अपडेट जांचें",
+    "upToDate": "आप नवीनतम संस्करण पर हैं।",
+    "updateAvailable": "अपडेट उपलब्ध: {version}",
     "clusttaDirectory": "Clustta डायरेक्टरी चुनें",
     "versionLabel": "संस्करण",
     "copyrightNotice": "कॉपीराइट © 2024 Clustta",
@@ -1277,6 +1283,7 @@
       "resource": "संसाधन"
     },
     "infoBar": {
+      "updateAvailable": "अपडेट उपलब्ध",
       "clickToUpdate": "अपडेट के लिए क्लिक करें",
       "closeConsole": "कंसोल बंद करें",
       "openConsole": "कंसोल खोलें",

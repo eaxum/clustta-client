@@ -688,6 +688,12 @@
     "saveDependencyPreset": "의존성 프리셋 저장",
     "saveIgnoreListPreset": "무시 목록 프리셋 저장",
     "clusttaApp": "Clustta",
+    "clusttaForWindows": "Windows용 Clustta (64비트)",
+    "clusttaForMac": "macOS용 Clustta",
+    "clusttaForLinux": "Linux용 Clustta (64비트)",
+    "checkForUpdate": "업데이트 확인",
+    "upToDate": "최신 버전을 사용 중입니다.",
+    "updateAvailable": "업데이트 사용 가능: {version}",
     "clusttaDirectory": "Clustta 디렉터리 선택",
     "versionLabel": "버전",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -1310,6 +1316,7 @@
       "resource": "리소스"
     },
     "infoBar": {
+      "updateAvailable": "업데이트 있음",
       "clickToUpdate": "클릭하여 업데이트",
       "closeConsole": "콘솔 닫기",
       "openConsole": "콘솔 열기",

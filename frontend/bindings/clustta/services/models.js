@@ -2078,6 +2078,88 @@ export class UntrackedItems {
 }
 
 /**
+ * UpdateInfo is returned to the frontend after an update check.
+ */
+export class UpdateInfo {
+    /**
+     * Creates a new UpdateInfo instance.
+     * @param {Partial<UpdateInfo>} [$$source = {}] - The source object to create the UpdateInfo.
+     */
+    constructor($$source = {}) {
+        if (!("available" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["available"] = false;
+        }
+        if (!("current_version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["current_version"] = "";
+        }
+        if (!("latest_version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["latest_version"] = "";
+        }
+        if (!("notes_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["notes_url"] = "";
+        }
+        if (!("required" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["required"] = false;
+        }
+        if (!("channel" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["channel"] = "";
+        }
+        if (!("action" in $$source)) {
+            /**
+             * Action: "store" or "manual".
+             * @member
+             * @type {string}
+             */
+            this["action"] = "";
+        }
+        if (!("target_url" in $$source)) {
+            /**
+             * TargetUrl is the URL to open.
+             * @member
+             * @type {string}
+             */
+            this["target_url"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new UpdateInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {UpdateInfo}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new UpdateInfo(/** @type {Partial<UpdateInfo>} */($$parsedSource));
+    }
+}
+
+/**
  * Profile response types
  */
 export class UserProfile {

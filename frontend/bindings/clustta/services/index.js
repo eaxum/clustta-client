@@ -30,6 +30,7 @@ import * as SyncService from "./syncservice.js";
 import * as TagService from "./tagservice.js";
 import * as TemplateService from "./templateservice.js";
 import * as TrashService from "./trashservice.js";
+import * as UpdateService from "./updateservice.js";
 import * as UserService from "./userservice.js";
 import * as WorkflowService from "./workflowservice.js";
 export {
@@ -61,6 +62,7 @@ export {
     TagService,
     TemplateService,
     TrashService,
+    UpdateService,
     UserService,
     WorkflowService
 };
@@ -100,6 +102,7 @@ export {
     Tool,
     ToolData,
     UntrackedItems,
+    UpdateInfo,
     UserProfile,
     UserSkill,
     UserStudio,

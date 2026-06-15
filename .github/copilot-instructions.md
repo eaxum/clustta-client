@@ -89,12 +89,17 @@ pbjs -t static-module -w es6 --keep-case -o .\frontend\src\lib\repositorypb.js .
 
 ## Code Style Conventions
 
+### Comments & Docstrings
+- Keep docstrings/comments to **one line (max two)**. State what the function does, not how or why in detail.
+- Do not over-explain: avoid restating the implementation, edge cases, or background rationale in comments.
+- No inline comments except at major blocks.
+- Applies to all languages (Go, JS/Vue, YAML, shell, etc.).
+
 ### Go Services
-- One or two line comments preceding functions (no inline comments except at major blocks)
+- One line comment preceding functions (two only when truly necessary)
 - See `services/collection_service.go` for reference pattern:
 ```go
 // GetCollectionCount returns the total number of collections in the project.
-// Returns the count or an error if the operation fails.
 func (t *CollectionService) GetCollectionCount(projectPath string) (int, error) {
 ```
 

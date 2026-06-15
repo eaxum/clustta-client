@@ -669,6 +669,12 @@
     "saveDependencyPreset": "Salva Preset Dipendenze",
     "saveIgnoreListPreset": "Salva Preset Elenco Ignorati",
     "clusttaApp": "Clustta",
+    "clusttaForWindows": "Clustta per Windows (64 bit)",
+    "clusttaForMac": "Clustta per macOS",
+    "clusttaForLinux": "Clustta per Linux (64 bit)",
+    "checkForUpdate": "Controlla aggiornamenti",
+    "upToDate": "Stai usando l'ultima versione.",
+    "updateAvailable": "Aggiornamento disponibile: {version}",
     "clusttaDirectory": "Seleziona directory Clustta",
     "versionLabel": "Versione",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -1277,6 +1283,7 @@
       "resource": "Risorsa"
     },
     "infoBar": {
+      "updateAvailable": "Aggiornamento disponibile",
       "clickToUpdate": "Clicca per aggiornare",
       "closeConsole": "Chiudi console",
       "openConsole": "Apri console",

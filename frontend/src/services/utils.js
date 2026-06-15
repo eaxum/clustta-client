@@ -1,8 +1,12 @@
 import { Buffer } from "buffer";
-import { FSService } from "@/services";
+import { AppService, FSService } from "@/services";
 import { nextTick } from "vue";
 import { useCollectionStore } from "@/stores/collections";
 import { md5 } from "./crypto.js";
+
+// Fallback version used when the Go layer is unavailable (e.g. web mode).
+// Keep in sync with build/config.yml and internal/constants fallbackVersion.
+const FALLBACK_VERSION = "0.4.35";
 
 const utils = {
   async getIcon(ext) {
@@ -14,10 +18,17 @@ const utils = {
     return hash;
   },
   async getClusttaVersion() {
-    return `v0.4.35-beta`;
+    const raw = await this.getRawClusttaVersion();
+    return `v${raw}-beta`;
   },
    async getRawClusttaVersion() {
-    return `0.4.35`;
+    try {
+      const version = await AppService.GetVersion();
+      if (version) return version;
+    } catch (error) {
+      // Go layer unavailable; fall back to the bundled version string.
+    }
+    return FALLBACK_VERSION;
   },
   base64ToUint8Array(base64) {
     const binary = atob(base64);

@@ -8,6 +8,8 @@ import (
 	"strings"
 	"sync"
 
+	"clustta/internal/constants"
+
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
@@ -133,6 +135,20 @@ func getLinuxVersion() string {
 // Currently a no-op placeholder for initialization logic.
 func (s *AppService) ServiceStartup(ctx context.Context, options application.ServiceOptions) error {
 	return nil
+}
+
+// GetVersion returns the application version (build-time injected or fallback).
+func (s *AppService) GetVersion() string {
+	return constants.VERSION
+}
+
+// GetChannel returns the distribution channel, honoring a build-time override
+// before falling back to runtime detection.
+func (s *AppService) GetChannel() string {
+	if constants.CHANNEL != "" {
+		return constants.CHANNEL
+	}
+	return detectPackaging()
 }
 
 // Quit terminates the application.

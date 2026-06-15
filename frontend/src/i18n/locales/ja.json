@@ -670,6 +670,12 @@
     "saveDependencyPreset": "依存関係プリセットを保存",
     "saveIgnoreListPreset": "無視リストプリセットを保存",
     "clusttaApp": "Clustta",
+    "clusttaForWindows": "Clustta for Windows (64ビット)",
+    "clusttaForMac": "Clustta for macOS",
+    "clusttaForLinux": "Clustta for Linux (64ビット)",
+    "checkForUpdate": "アップデートを確認",
+    "upToDate": "最新バージョンを使用しています。",
+    "updateAvailable": "アップデートが利用可能: {version}",
     "clusttaDirectory": "Clusttaディレクトリを選択",
     "versionLabel": "バージョン",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -1278,6 +1284,7 @@
       "resource": "リソース"
     },
     "infoBar": {
+      "updateAvailable": "アップデートあり",
       "clickToUpdate": "クリックして更新",
       "closeConsole": "コンソールを閉じる",
       "openConsole": "コンソールを開く",

@@ -212,6 +212,7 @@ func main() {
 			application.NewService(&services.TagService{}),
 			application.NewService(&services.TemplateService{}),
 			application.NewService(&services.TrashService{}),
+			application.NewService(&services.UpdateService{}),
 			application.NewService(&services.UserService{}),
 			application.NewService(&services.WorkflowService{}),
 		},

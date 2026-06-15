@@ -3,6 +3,10 @@ version: '3'
 includes:
   common: ../Taskfile.yml
 
+vars:
+  APP_VERSION:
+    sh: grep '^\s\+version:' ./build/config.yml | grep -oP '"\K[^"]+' | head -1
+
 tasks:
   build:
     summary: Creates a production build of the application
@@ -14,7 +18,7 @@ tasks:
       - go build {{.BUILD_FLAGS}} -o {{.OUTPUT}}
     vars:
       # BUILD_FLAGS: '{{if eq .PRODUCTION "true"}}-tags production -trimpath -buildvcs=false -ldflags="-w -s"{{else}}-buildvcs=false -ldflags="-X clustta/internal/constants.host=http://127.0.0.1:5000" -gcflags=all="-l"{{end}}'
-      BUILD_FLAGS: '{{if eq .PRODUCTION "true"}}-tags production -trimpath -buildvcs=false -ldflags="-w -s"{{else}}-buildvcs=false -gcflags=all="-l"{{end}}'
+      BUILD_FLAGS: '{{if eq .PRODUCTION "true"}}-tags production -trimpath -buildvcs=false -ldflags="-w -s -X clustta/internal/constants.version={{.APP_VERSION}}"{{else}}-buildvcs=false -gcflags=all="-l"{{end}}'
       DEFAULT_OUTPUT: '{{.BIN_DIR}}/{{.APP_NAME}}'
       OUTPUT: '{{ .OUTPUT | default .DEFAULT_OUTPUT }}'
     env:

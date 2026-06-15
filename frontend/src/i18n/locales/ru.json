@@ -669,6 +669,12 @@
     "saveDependencyPreset": "Сохранить пресет зависимостей",
     "saveIgnoreListPreset": "Сохранить пресет списка игнорирования",
     "clusttaApp": "Clustta",
+    "clusttaForWindows": "Clustta для Windows (64-бит)",
+    "clusttaForMac": "Clustta для macOS",
+    "clusttaForLinux": "Clustta для Linux (64-бит)",
+    "checkForUpdate": "Проверить обновления",
+    "upToDate": "У вас установлена последняя версия.",
+    "updateAvailable": "Доступно обновление: {version}",
     "clusttaDirectory": "Выбрать каталог Clustta",
     "versionLabel": "Версия",
     "copyrightNotice": "Copyright © 2024 Clustta",
@@ -1277,6 +1283,7 @@
       "resource": "Ресурс"
     },
     "infoBar": {
+      "updateAvailable": "Доступно обновление",
       "clickToUpdate": "Нажмите для обновления",
       "closeConsole": "Закрыть консоль",
       "openConsole": "Открыть консоль",

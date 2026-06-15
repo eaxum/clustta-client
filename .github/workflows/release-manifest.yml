@@ -1,0 +1,127 @@
+name: Publish Update Manifest
+
+# Computes SHA-256 from the assets actually uploaded to a GitHub Release and
+# publishes latest.json to GitHub Pages. This solves the multi-machine build
+# problem: each OS uploads its artifact to the same release tag, then this job
+# hashes the real published bytes (not local build output) after the fact.
+#
+# Trigger it manually after all platform artifacts are uploaded, or let it run
+# automatically when a release is published.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build the manifest for (e.g. v0.4.36)"
+        required: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Required setup:
+#   Enable GitHub Pages on this repo (Settings > Pages > Source: "GitHub Actions").
+#   The manifest is served at https://eaxum.github.io/clustta-client/latest.json
+# Optional repo Variables (Settings > Secrets and variables > Actions):
+#   MINIMUM_VERSION  (lowest version allowed before update is forced)
+# Assets are classified by extension, so exact filenames don't matter:
+#   *.exe -> windows, *.pkg/*.dmg -> darwin, *.AppImage -> linux
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve tag and version
+        id: meta
+        run: |
+          TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
+          VERSION="${TAG#v}"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate latest.json
+        id: gen
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.meta.outputs.tag }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          MINIMUM_VERSION: ${{ vars.MINIMUM_VERSION }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p site
+
+          # Read each release asset's name, URL and (when available) the sha256
+          # digest GitHub computes for the uploaded bytes — no need to download
+          # the multi-hundred-MB artifacts just to hash them.
+          gh api "repos/${REPO}/releases/tags/${TAG}" \
+            --jq '.assets[] | [.name, .browser_download_url, (.digest // "")] | @tsv' > assets.tsv
+
+          declare -A URL
+          declare -A SHA
+
+          # Classify by extension into OS-level keys. macOS ships one universal
+          # bundle and Linux one AppImage, so per-arch keys aren't needed.
+          while IFS=$'\t' read -r name url digest; do
+            case "$name" in
+              *.exe)       key="windows" ;;
+              *.pkg|*.dmg) key="darwin" ;;
+              *.AppImage)  key="linux" ;;
+              *)           continue ;;
+            esac
+
+            sha=""
+            case "$digest" in
+              sha256:*) sha="${digest#sha256:}" ;;
+            esac
+
+            if [ -z "$sha" ]; then
+              echo "::warning::No sha256 digest for $name; downloading to hash"
+              curl -fsSL -o "/tmp/$name" "$url"
+              sha=$(sha256sum "/tmp/$name" | awk '{print $1}')
+            fi
+
+            URL[$key]="$url"
+            SHA[$key]="$sha"
+          done < assets.tsv
+
+          {
+            echo "{"
+            echo "  \"version\": \"${VERSION}\","
+            echo "  \"minimum_version\": \"${MINIMUM_VERSION:-}\","
+            echo "  \"notes_url\": \"https://github.com/${REPO}/releases/tag/${TAG}\","
+            echo "  \"platforms\": {"
+            sep=""
+            for key in windows darwin linux; do
+              if [ -n "${URL[$key]:-}" ]; then
+                printf '%s    "%s": {"url":"%s","sha256":"%s"}' "$sep" "$key" "${URL[$key]}" "${SHA[$key]}"
+                sep=$',\n'
+              fi
+            done
+            echo ""
+            echo "  }"
+            echo "}"
+          } > site/latest.json
+
+          # Validate JSON and echo for the run log.
+          jq . site/latest.json
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: manifest
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
