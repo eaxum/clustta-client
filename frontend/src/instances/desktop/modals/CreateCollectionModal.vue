@@ -371,6 +371,8 @@ onMounted(() => {
   if (stage.groupItems) {
     itemsToGroup.value = stage.markedItems;
   }
+  const genericCollectionType = collectionStore.getCollectionTypes.find(type => type.name.toLowerCase() === 'generic');
+  collectionType.value = genericCollectionType?.name || collectionStore.getCollectionTypesNames[0] || '';
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
 });

@@ -283,6 +283,8 @@ watchEffect(() => {
 // lifecycle hooks
 onMounted(() => {
   menu.clickOutsideMask = null;
+  const genericAssetType = assetStore.getAssetTypes.find(type => type.name.toLowerCase() === 'generic');
+  assetType.value = genericAssetType?.name || assetStore.getAssetTypesNames[0] || '';
   assetName.value = utils.capitalizeStr(assetStore.getAssetTypesNames[0]);
   trayStates.listItemsBoundary = modalContainer.value;
   trayStates.tagSearchQuery = '';
