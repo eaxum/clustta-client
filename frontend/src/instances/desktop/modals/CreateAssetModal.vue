@@ -166,10 +166,10 @@ const createAsset = async (launch = false, comment = 'Asset created') => {
   const isNested = commonStore.navigatorMode && !!collectionStore.navigatedCollection;
   if (collections.length <= 1) {
     let collectionId = '';
-    if (isNested) {
-      collectionId = collectionStore.navigatedCollection.id;
-    } else if (collections.length > 0) {
+    if (collections.length > 0) {
       collectionId = collections[0];
+    } else if (isNested) {
+      collectionId = collectionStore.navigatedCollection.id;
     }
     await AssetService.CreateAsset(
       projectStore.activeProject.uri,
