@@ -42,7 +42,7 @@
 
         <!-- Disconnect Option -->
         <div v-if="isAuthenticated(selectedIntegration.id)" class="disconnect-section">
-          <ActionButton :icon="getAppIcon('disconnect')" :label="'Disconnect'" :buttonFunction="disconnect" />
+          <ActionButton :icon="getAppIcon('plug-cancel')" :label="'Disconnect'" :buttonFunction="disconnect" />
         </div>
       </div>
 

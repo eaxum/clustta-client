@@ -259,11 +259,23 @@ const addUser = (user) => {
   }
 };
 
-const parentName = computed(() => {
-  const parentId = collectionStore.selectedCollection.parent_id
-  const parent = collectionStore.getCollections.find((item) => item.id === parentId)
-  return parent ? parent.collection_path.replace(/\//g, ' / ') : t('common.none')
-});
+const parentName = ref(t('common.none'));
+
+const resolveParentName = async () => {
+  const collection = collectionStore.selectedCollection;
+  const parentId = collection?.parent_id;
+  if (!parentId) {
+    parentName.value = t('common.none');
+    return;
+  }
+  try {
+    const parent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentId);
+    parentName.value = parent ? parent.collection_path.replace(/\//g, '') : t('common.none');
+  } catch (error) {
+    parentName.value = t('common.none');
+    console.error('Error resolving parent collection:', error);
+  }
+};
 
 const changeCollectionType = async (collectionTypeName) => {
   stage.operationActive = true;
@@ -369,6 +381,7 @@ watch(() => collectionStore.selectedCollection, () => {
   assetsOnDiskCount.value = 0;
   collectionsOnDiskCount.value = 0;
   getProjectData();
+  resolveParentName();
 });
 
 
@@ -378,6 +391,7 @@ onMounted(() => {
     collectionStore.selectedCollection = collectionStore.getCollections[0];
   }
   getProjectData();
+  resolveParentName();
 	emitter.on('get-project-data', getProjectData);
 });
 
