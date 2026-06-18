@@ -155,8 +155,7 @@ const addRole = async () => {
   await UserService.AddRole(projectStore.activeProject.uri, parameters.name, parameters)
     .then((response) => {
       notificationStore.addNotification(t('notifications.roleCreated'), "", "success");
-      const index = userStore.roles.findIndex(role => role.id === parameters.id);
-      userStore.roles[index] = response;
+      userStore.roles.push(response);
       closeModal();
     })
     .catch((error) => {
