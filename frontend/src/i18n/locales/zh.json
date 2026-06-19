@@ -966,6 +966,7 @@
     "studioMembers": "工作室成员",
     "comingSoon": "[即将推出]",
     "sendMessage": "发送消息",
+    "retry": "重试",
     "attachmentTypeNotSupported": "\"{name}\" 不是受支持的附件类型",
     "attachmentMustBeFile": "\"{name}\" 是一个文件夹。只能附加文件。",
     "attachmentTooLarge": "\"{name}\" 超过了 5 MB 的附件大小限制",

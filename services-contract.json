@@ -75,6 +75,25 @@
     "file": "services/agent_service.go",
     "methods": [
       {
+        "name": "ApproveToolCall",
+        "params": [
+          "toolCallID:string",
+          "approved:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "CancelRun",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "ClearChatSession",
         "params": [
           "projectPath:string"
@@ -91,6 +110,22 @@
         ]
       },
       {
+        "name": "GetAutoApproveDestructive",
+        "params": null,
+        "returns": [
+          "bool"
+        ]
+      },
+      {
+        "name": "GetAvailableModels",
+        "params": [
+          "provider:string"
+        ],
+        "returns": [
+          "[]string"
+        ]
+      },
+      {
         "name": "GetChatHistory",
         "params": [
           "projectPath:string"
@@ -100,8 +135,26 @@
         ]
       },
       {
+        "name": "GetSelectedModel",
+        "params": [
+          "provider:string"
+        ],
+        "returns": [
+          "string"
+        ]
+      },
+      {
         "name": "RemoveAPIKey",
         "params": null,
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RetryLastTurn",
+        "params": [
+          "projectPath:string"
+        ],
         "returns": [
           "error"
         ]
@@ -126,6 +179,25 @@
         "returns": [
           "error"
         ]
+      },
+      {
+        "name": "SetAutoApproveDestructive",
+        "params": [
+          "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetSelectedModel",
+        "params": [
+          "provider:string",
+          "model:string"
+        ],
+        "returns": [
+          "error"
+        ]
       }
     ]
   },
@@ -133,7 +205,21 @@
     "file": "services/app_service.go",
     "methods": [
       {
+        "name": "GetChannel",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
         "name": "GetOS",
+        "params": null,
+        "returns": [
+          "string"
+        ]
+      },
+      {
+        "name": "GetPendingDeepLink",
         "params": null,
         "returns": [
           "string"
@@ -151,6 +237,13 @@
         "params": null,
         "returns": [
           "SystemInfo"
+        ]
+      },
+      {
+        "name": "GetVersion",
+        "params": null,
+        "returns": [
+          "string"
         ]
       },
       {
@@ -398,7 +491,8 @@
         "name": "GetAssetByPath",
         "params": [
           "projectPath:string",
-          "assetPath:string"
+          "assetPath:string",
+          "extension:string"
         ],
         "returns": [
           "models.Asset",
@@ -491,6 +585,17 @@
         ]
       },
       {
+        "name": "GetCollectionDescendantAssets",
+        "params": [
+          "projectPath:string",
+          "collectionId:string"
+        ],
+        "returns": [
+          "[]models.Asset",
+          "error"
+        ]
+      },
+      {
         "name": "GetRecursiveDependencies",
         "params": [
           "projectPath:string",
@@ -568,6 +673,17 @@
         ],
         "returns": [
           "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "ResolveBuildDependencies",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "[]string",
           "error"
         ]
       },
@@ -923,6 +1039,7 @@
         "params": [
           "projectPath:string",
           "assetPaths:[]string",
+          "extensions:[]string",
           "message:string",
           "previewPath:string",
           "groupId:string",
@@ -1846,6 +1963,16 @@
         ],
         "returns": [
           "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetImageResolution",
+        "params": [
+          "path:string"
+        ],
+        "returns": [
+          "ImageResolution",
           "error"
         ]
       },
@@ -2915,6 +3042,16 @@
         ]
       },
       {
+        "name": "AddIgnoreListPreset",
+        "params": [
+          "name:string",
+          "entries:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "AddProjectLocation",
         "params": [
           "name:string",
@@ -2981,6 +3118,14 @@
         ],
         "returns": [
           "settings.LocationHealth",
+          "error"
+        ]
+      },
+      {
+        "name": "CheckSystemBookmarksHealth",
+        "params": null,
+        "returns": [
+          "settings.SystemBookmarksHealth",
           "error"
         ]
       },
@@ -3055,6 +3200,14 @@
         "params": null,
         "returns": [
           "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetIgnoreListPresets",
+        "params": null,
+        "returns": [
+          "map[string][]string",
           "error"
         ]
       },
@@ -3221,7 +3374,23 @@
         ]
       },
       {
+        "name": "GetThemeTint",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
         "name": "GetUseGrid",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetUseUpdateSync",
         "params": null,
         "returns": [
           "bool",
@@ -3284,6 +3453,15 @@
         "params": [
           "projectId:string",
           "presetName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveIgnoreListPreset",
+        "params": [
+          "name:string"
         ],
         "returns": [
           "error"
@@ -3444,9 +3622,27 @@
         ]
       },
       {
+        "name": "SetThemeTint",
+        "params": [
+          "tint:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "SetUseGrid",
         "params": [
           "useGrid:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetUseUpdateSync",
+        "params": [
+          "enabled:bool"
         ],
         "returns": [
           "error"
@@ -3559,6 +3755,68 @@
         ],
         "returns": [
           "[]models.Status",
+          "error"
+        ]
+      }
+    ]
+  },
+  "StudioIntegrationService": {
+    "file": "services/studio_integration_service.go",
+    "methods": [
+      {
+        "name": "DeleteStudioIntegration",
+        "params": [
+          "studioId:string",
+          "integrationId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudioIntegration",
+        "params": [
+          "studioId:string",
+          "integrationId:string"
+        ],
+        "returns": [
+          "studio_integration_service.Config",
+          "error"
+        ]
+      },
+      {
+        "name": "SaveStudioIntegration",
+        "params": [
+          "studioId:string",
+          "integrationId:string",
+          "payload:studio_integration_service.CredentialsPayload"
+        ],
+        "returns": [
+          "studio_integration_service.Config",
+          "error"
+        ]
+      },
+      {
+        "name": "SetStudioIntegrationEnabled",
+        "params": [
+          "studioId:string",
+          "integrationId:string",
+          "enabled:bool"
+        ],
+        "returns": [
+          "studio_integration_service.Config",
+          "error"
+        ]
+      },
+      {
+        "name": "TestStudioIntegration",
+        "params": [
+          "studioId:string",
+          "integrationId:string",
+          "payload:studio_integration_service.CredentialsPayload"
+        ],
+        "returns": [
+          "string",
           "error"
         ]
       }
@@ -3686,6 +3944,20 @@
         ],
         "returns": [
           "interface{}",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateStudioInfo",
+        "params": [
+          "studioUrl:string",
+          "name:string",
+          "url:string",
+          "altUrl:string",
+          "port:string"
+        ],
+        "returns": [
+          "studio_service.StudioInfo",
           "error"
         ]
       },
@@ -3841,6 +4113,16 @@
         "returns": [
           "error"
         ]
+      },
+      {
+        "name": "UpdateProject",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string"
+        ],
+        "returns": [
+          "error"
+        ]
       }
     ]
   },
@@ -3856,6 +4138,17 @@
         ],
         "returns": [
           "[]models.Tag",
+          "error"
+        ]
+      },
+      {
+        "name": "AddTagToAssets",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "tagName:string"
+        ],
+        "returns": [
           "error"
         ]
       },
@@ -3889,6 +4182,17 @@
         ],
         "returns": [
           "[]models.Tag",
+          "error"
+        ]
+      },
+      {
+        "name": "RemoveTagFromAssets",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "tagId:string"
+        ],
+        "returns": [
           "error"
         ]
       }
@@ -3985,6 +4289,19 @@
           "itemType:string"
         ],
         "returns": [
+          "error"
+        ]
+      }
+    ]
+  },
+  "UpdateService": {
+    "file": "services/update_service.go",
+    "methods": [
+      {
+        "name": "CheckForUpdate",
+        "params": null,
+        "returns": [
+          "UpdateInfo",
           "error"
         ]
       }

@@ -431,6 +431,38 @@ func (a *AgentService) ClearChatSession(projectPath string) error {
 	return saveChatSessions(a.history)
 }
 
+// RetryLastTurn cancels any running agent execution, deletes the last user message and subsequent assistant messages/errors, and restarts the run.
+func (a *AgentService) RetryLastTurn(projectPath string) error {
+	a.mu.Lock()
+	history := a.getHistory(projectPath)
+
+	// Find the last user message
+	lastUserIdx := -1
+	for i := len(history) - 1; i >= 0; i-- {
+		if history[i].Role == "user" {
+			lastUserIdx = i
+			break
+		}
+	}
+
+	if lastUserIdx == -1 {
+		a.mu.Unlock()
+		return fmt.Errorf("no user message to retry")
+	}
+
+	// Extract the user message content
+	userMsgContent := fmt.Sprintf("%v", history[lastUserIdx].Content)
+
+	// Remove the last user message and everything after it
+	history = history[:lastUserIdx]
+	a.history[projectPath] = history
+	_ = saveChatSessions(a.history)
+	a.mu.Unlock()
+
+	// SendMessage will cancel any in-flight run and start a new one
+	return a.SendMessage(projectPath, userMsgContent, "")
+}
+
 // GetChatHistory returns the persisted conversation history mapped to UI message types.
 // Tool-calling assistant messages are grouped by tool name.
 func (a *AgentService) GetChatHistory(projectPath string) []ChatUIMessage {

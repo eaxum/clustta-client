@@ -967,6 +967,7 @@
     "studioMembers": "Miembros del estudio",
     "comingSoon": "[Próximamente]",
     "sendMessage": "Enviar mensaje",
+    "retry": "Reintentar",
     "attachmentTypeNotSupported": "\"{name}\" no es un tipo de adjunto admitido",
     "attachmentMustBeFile": "\"{name}\" es una carpeta. Solo se pueden adjuntar archivos.",
     "attachmentTooLarge": "\"{name}\" supera el límite de 5 MB para adjuntos",

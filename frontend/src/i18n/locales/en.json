@@ -1004,6 +1004,7 @@
     "studioMembers": "Studio Members",
     "comingSoon": "[Coming Soon]",
     "sendMessage": "Send message",
+    "retry": "Retry",
     "stopAgent": "Stop",
     "attachFile": "Attach file",
     "attachmentTypeNotSupported": "\"{name}\" is not a supported attachment type",

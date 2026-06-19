@@ -7,6 +7,7 @@ import { ignoreTemplates } from '@/lib/ignoreTemplates';
 // help text shown by /help, also used by the autocomplete menu.
 const shortcuts = [
   { command: '/setup', args: '(attach a script)', description: 'Scaffold an animation project from the attached script.' },
+  { command: '/production', args: '(attach a file)', description: 'Set up an animation production with the attached file as reference.' },
   { command: '/add', args: '<email>', description: 'Add a collaborator to this project.' },
   { command: '/mine', args: '', description: 'Filter the browser to everything assigned to me.' },
   { command: '/assign', args: '@user [filter]', description: 'Bulk-assign matching assets to a user.' },
@@ -92,6 +93,14 @@ export function expandShortcut(rawInput) {
         prompt: rest
           ? `Set up this animation project from the attached script. Additional context: ${rest}`
           : 'Set up this animation project from the attached script.',
+      };
+
+    case '/production':
+    case '/produce':
+      return {
+        prompt: rest
+          ? `Set up an animation production with the attached file as reference. Additional context: ${rest}`
+          : 'Set up an animation production with the attached file as reference.',
       };
 
     case '/add':

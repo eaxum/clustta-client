@@ -40,6 +40,16 @@
           </div>
         </template>
 
+        <div v-if="shouldShowRetry" class="console-retry-row">
+          <ActionButton
+            :icon="getAppIcon('refresh')"
+            :showLabel="true"
+            :label="$t('panes.retry')"
+            :useOutline="true"
+            :buttonFunction="retryLastMessage"
+          />
+        </div>
+
         <div v-if="!messages.length && isApiKeyConfigured" class="console-empty">
           <div class="empty-text">{{ emptyStateTitle }}</div>
           <div class="empty-subtext">{{ emptyStateSubtext }}</div>
@@ -165,6 +175,10 @@ const inputPlaceholder = computed(() => {
 });
 
 const isConsoleModalOpen = computed(() => modals.modalStates.consoleModal);
+
+const shouldShowRetry = computed(() => {
+  return messages.value.length > 0 && !isProcessing.value;
+});
 
 const itemType = computed(() => {
   if (assetStore.selectedAsset) return 'asset';
@@ -569,6 +583,29 @@ const sendMessage = async () => {
   }
 };
 
+const retryLastMessage = async () => {
+  if (isProcessing.value) return;
+  const projectPath = projectStore.activeProject?.uri;
+  if (!projectPath) return;
+
+  const lastUserIdx = messages.value.map(m => m.type).lastIndexOf('user');
+  if (lastUserIdx === -1) return;
+
+  const lastUserMsg = messages.value[lastUserIdx];
+  const content = lastUserMsg.content;
+
+  messages.value = messages.value.slice(0, lastUserIdx);
+  addMessage('user', content);
+  isProcessing.value = true;
+
+  try {
+    await AgentService.RetryLastTurn(projectPath);
+  } catch (err) {
+    addMessage('error', `${err}`);
+    isProcessing.value = false;
+  }
+};
+
 const addMessage = (type, content) => {
   messages.value.push({ id: messages.value.length + 1, type, content });
   scrollToBottom();
@@ -926,6 +963,12 @@ onUnmounted(() => {
 .general-pane-root {
   /* padding: .5rem 0; */
   box-sizing: border-box;
+}
+
+.console-retry-row {
+  display: flex;
+  justify-content: flex-start;
+  padding: 0.25rem 0.25rem 0.5rem;
 }
 
 /* User message — compact right-aligned bubble */

@@ -992,6 +992,7 @@
     "studioMembers": "스튜디오 멤버",
     "comingSoon": "[곧 출시]",
     "sendMessage": "메시지 보내기",
+    "retry": "재시도",
     "attachFile": "파일 첨부",
     "attachmentTypeNotSupported": "\"{name}\"은(는) 지원되지 않는 첨부 파일 형식입니다",
     "attachmentMustBeFile": "\"{name}\"은(는) 폴더입니다. 파일만 첨부할 수 있습니다.",

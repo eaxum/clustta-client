@@ -966,6 +966,7 @@
     "studioMembers": "Участники студии",
     "comingSoon": "[Скоро]",
     "sendMessage": "Отправить сообщение",
+    "retry": "Повторить",
     "attachmentTypeNotSupported": "\"{name}\" — неподдерживаемый тип вложения",
     "attachmentMustBeFile": "\"{name}\" — это папка. Прикреплять можно только файлы.",
     "attachmentTooLarge": "\"{name}\" превышает лимит вложений в 5 МБ",

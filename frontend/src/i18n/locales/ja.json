@@ -967,6 +967,7 @@
     "studioMembers": "スタジオメンバー",
     "comingSoon": "[近日公開]",
     "sendMessage": "メッセージを送信",
+    "retry": "再試行",
     "attachmentTypeNotSupported": "「{name}」はサポートされていない添付タイプです",
     "attachmentMustBeFile": "「{name}」はフォルダです。ファイルのみ添付できます。",
     "attachmentTooLarge": "「{name}」は5 MBの添付上限を超えています",

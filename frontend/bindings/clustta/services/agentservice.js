@@ -108,6 +108,15 @@ export function RemoveAPIKey() {
 }
 
 /**
+ * RetryLastTurn cancels any running agent execution, deletes the last user message and subsequent assistant messages/errors, and restarts the run.
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<void>}
+ */
+export function RetryLastTurn(projectPath) {
+    return $Call.ByID(3928494511, projectPath);
+}
+
+/**
  * SendMessage sends a user message to the agent, which calls the LLM and executes tools.
  * Results are streamed back via Wails events: agent-status, agent-tool-start, agent-tool-result, agent-response, agent-error.
  * @param {string} projectPath
