@@ -1,8 +1,6 @@
 <template>
   <div class="modal-container" ref="modalContainer" v-stop-propagation v-esc="closeModal">
-    <div class="general-pane-header">
       <HeaderArea :title="title" :icon="typeIcon" />
-    </div>
 
     <div class="general-container">
       <AssetTypeForm ref="typeFormRef" mode="edit" :initialName="initialName" :initialIcon="initialIcon" :typeId="typeId" @updated="handleUpdated" @cancel="closeModal" @iconChange="handleIconChange" />
@@ -31,7 +29,7 @@ const { t } = useI18n();
 // refs
 const modalContainer = ref(null);
 const typeFormRef = ref(null);
-const typeIcon = ref('generic');
+const selectedIcon = ref('');
 
 // constants
 const title = t('modals.editAssetType');
@@ -40,6 +38,11 @@ const title = t('modals.editAssetType');
 // Returns the initial icon from the selected asset type.
 const initialIcon = computed(() => {
   return assetStore.selectedAssetType?.icon || 'generic';
+});
+
+// Returns the currently displayed icon, using the saved icon until a new one is selected.
+const typeIcon = computed(() => {
+  return selectedIcon.value || initialIcon.value;
 });
 
 // Returns the initial name from the selected asset type.
@@ -60,7 +63,7 @@ const closeModal = () => {
 
 // Handles icon change from form.
 const handleIconChange = (icon) => {
-  typeIcon.value = icon;
+  selectedIcon.value = icon;
 };
 
 // Handles successful type update.
@@ -77,5 +80,4 @@ const handleUpdated = () => {
   width: 100%;
 }
 </style>
-
 

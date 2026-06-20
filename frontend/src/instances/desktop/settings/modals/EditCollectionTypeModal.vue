@@ -29,7 +29,7 @@ const { t } = useI18n();
 // refs
 const modalContainer = ref(null);
 const typeFormRef = ref(null);
-const typeIcon = ref('generic');
+const selectedIcon = ref('');
 
 // constants
 const title = t('modals.editCollectionType');
@@ -38,6 +38,11 @@ const title = t('modals.editCollectionType');
 // Returns the initial icon from the selected collection type.
 const initialIcon = computed(() => {
   return collectionStore.selectedCollectionType?.icon || 'generic';
+});
+
+// Returns the currently displayed icon, using the saved icon until a new one is selected.
+const typeIcon = computed(() => {
+  return selectedIcon.value || initialIcon.value;
 });
 
 // Returns the initial name from the selected collection type.
@@ -58,7 +63,7 @@ const closeModal = () => {
 
 // Handles icon change from form.
 const handleIconChange = (icon) => {
-  typeIcon.value = icon;
+  selectedIcon.value = icon;
 };
 
 // Handles successful type update.
