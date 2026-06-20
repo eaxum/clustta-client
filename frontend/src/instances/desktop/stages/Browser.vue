@@ -117,7 +117,7 @@ const rootData = ref([]);
 const screenWidth = ref(window.innerWidth);
 const searchBar = ref(null);
 const showFilters = ref(false);
-const assetListContainer = ref(null);
+const scrollTop = ref(0);
 
 // computed properties
 const draggedCard = computed(() => dndStore.allViewItems?.find(card => card.id === dndStore.draggedItemId));
@@ -862,6 +862,7 @@ const refresh = async () => {
 
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
 const softRefresh = async () => {
+	scrollTop.value = scrollStore.scrollTop
 	assetStore.assetsLoaded = false;
 	let children = {};
 	let project = projectStore.activeProject;
@@ -1120,9 +1121,9 @@ Events.On('toggle-agent-console', async () => {
 
 watch(() => assetStore.assetsLoaded, async () => {
 	if (assetStore.assetsLoaded) {
-		const scrollTop = scrollStore.scrollTop;
+		const currentScroll = scrollTop.value;
 		await nextTick();
-		scrollStore.requestScroll(scrollTop);
+		scrollStore.requestScroll(currentScroll);
 	}
 });
 
