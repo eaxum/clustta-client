@@ -781,6 +781,7 @@ const launchAssetCommand = async () => {
         .then(async (response) => {
           let fileStatus = await assetStore.getAssetFileStatus(asset);
           props.asset.file_status = fileStatus;
+          emitter.emit('asset-file-restored', { assetId: asset.id });
           FSService.LaunchFile(file_path);
         })
         .catch((error) => {
@@ -873,6 +874,7 @@ const revertAsset = async (index, asset, event) => {
       emitAssetUpdates(assetId, [
         { property: 'file_status', value: 'normal' }
       ]);
+      emitter.emit('asset-file-restored', { assetId });
     })
     .catch((error) => {
       console.log(error);

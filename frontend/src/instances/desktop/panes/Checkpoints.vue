@@ -237,6 +237,16 @@ const updateAssetHash = async () => {
   }
 };
 
+const updateRestoredAssetHash = async (payload = {}) => {
+  const selectedAssetId = assetStore.selectedAsset?.id;
+  if (!selectedAssetId) return;
+
+  const restoredAssetIds = payload.assetIds || (payload.assetId ? [payload.assetId] : []);
+  if (restoredAssetIds.length && !restoredAssetIds.includes(selectedAssetId)) return;
+
+  await updateAssetHash();
+};
+
 const updateCheckpoints = async () => {
   await refreshCheckpoints();
   await updateAssetHash();
@@ -274,10 +284,14 @@ const handleKeyDown = (event) => {
 onMounted(async () => {
   await updateCheckpoints();
   emitter.on('update-checkpoints', updateCheckpoints);
+  emitter.on('refresh-browser', updateCheckpoints);
+  emitter.on('asset-file-restored', updateRestoredAssetHash);
 });
 
 onBeforeUnmount(() => {
   emitter.off('update-checkpoints', updateCheckpoints);
+  emitter.off('refresh-browser', updateCheckpoints);
+  emitter.off('asset-file-restored', updateRestoredAssetHash);
 });
 
 </script>
@@ -317,6 +331,5 @@ onBeforeUnmount(() => {
   /* background-color: rgba(0, 0, 0, 0.295); */
 }
 </style>
-
 
 
