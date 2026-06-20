@@ -76,7 +76,7 @@
           {{ $t('panes.assets') }}
           </div>
           <div class="simple-text-value">
-           {{  assetsOnDiskCount }}
+           {{  assetCount }}
           </div>
         </div>
 
@@ -350,7 +350,7 @@ const editCollection = () => {
 };
 
 const collectionSize = ref(0);
-const assetsOnDiskCount = ref(0);
+const assetCount = ref(0);
 const collectionsOnDiskCount = ref(0);
 
 const collectionPath = computed(() => {
@@ -365,7 +365,8 @@ const getCollectionSize = async() => {
 
 const getItemsCount = async() => {
   let collection = collectionStore.selectedCollection;
-  assetsOnDiskCount.value = await FSService.FileCount(collection?.file_path);
+  const assets = await CollectionService.GetCollectionAssets(projectStore.activeProject.uri, collection?.id);
+  assetCount.value = assets.length;
   collectionsOnDiskCount.value = await FSService.FolderCount(collection?.file_path);
 }
 
@@ -378,7 +379,7 @@ const getProjectData = async () => {
 
 watch(() => collectionStore.selectedCollection, () => {
   collectionSize.value = 0;
-  assetsOnDiskCount.value = 0;
+  assetCount.value = 0;
   collectionsOnDiskCount.value = 0;
   getProjectData();
   resolveParentName();
