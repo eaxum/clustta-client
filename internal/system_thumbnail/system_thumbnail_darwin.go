@@ -3,13 +3,15 @@
 package system_thumbnail
 
 /*
-#cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework Foundation -framework QuickLook -framework CoreGraphics -framework ImageIO -framework AppKit
+#cgo CFLAGS: -x objective-c -fblocks
+#cgo LDFLAGS: -framework Foundation -framework QuickLookThumbnailing -framework CoreGraphics -framework ImageIO -framework AppKit -framework UniformTypeIdentifiers
 #import <Foundation/Foundation.h>
-#import <QuickLook/QuickLook.h>
+#import <QuickLookThumbnailing/QuickLookThumbnailing.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <ImageIO/ImageIO.h>
 #import <AppKit/AppKit.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
+#import <dispatch/dispatch.h>
 
 // GenerateThumbnail generates a thumbnail using Quick Look
 // Returns PNG data and the actual dimensions of the thumbnail
@@ -22,20 +24,33 @@ CGImageRef generateThumbnail(const char* path, int size, int* outWidth, int* out
             return NULL;
         }
 
-        // Create thumbnail request options
-        NSDictionary *options = @{
-            (id)kQLThumbnailOptionIconModeKey: @NO
-        };
-
         CGSize thumbnailSize = CGSizeMake(size, size);
+        QLThumbnailGenerationRequest *request = [[QLThumbnailGenerationRequest alloc]
+            initWithFileAtURL:fileURL
+            size:thumbnailSize
+            scale:1.0
+            representationTypes:QLThumbnailGenerationRequestRepresentationTypeThumbnail];
+        request.iconMode = NO;
 
-        // Generate thumbnail using Quick Look
-        CGImageRef thumbnail = QLThumbnailImageCreate(
-            kCFAllocatorDefault,
-            (__bridge CFURLRef)fileURL,
-            thumbnailSize,
-            (__bridge CFDictionaryRef)options
-        );
+        dispatch_semaphore_t semaphore = dispatch_semaphore_create(0);
+        __block CGImageRef thumbnail = NULL;
+
+        [[QLThumbnailGenerator sharedGenerator] generateBestRepresentationForRequest:request
+            completionHandler:^(QLThumbnailRepresentation * _Nullable representation, NSError * _Nullable error) {
+                if (representation.CGImage) {
+                    thumbnail = CGImageRetain(representation.CGImage);
+                }
+                dispatch_semaphore_signal(semaphore);
+            }];
+
+        dispatch_time_t timeout = dispatch_time(DISPATCH_TIME_NOW, 30 * NSEC_PER_SEC);
+        if (dispatch_semaphore_wait(semaphore, timeout) != 0) {
+            [[QLThumbnailGenerator sharedGenerator] cancelRequest:request];
+            [request release];
+            return NULL;
+        }
+
+        [request release];
 
         if (thumbnail) {
             *outWidth = (int)CGImageGetWidth(thumbnail);
@@ -60,7 +75,7 @@ unsigned char* cgImageToPNG(CGImageRef image, size_t* outLength) {
         // Create image destination
         CGImageDestinationRef destination = CGImageDestinationCreateWithData(
             (__bridge CFMutableDataRef)pngData,
-            kUTTypePNG,
+            (__bridge CFStringRef)UTTypePNG.identifier,
             1,
             NULL
         );

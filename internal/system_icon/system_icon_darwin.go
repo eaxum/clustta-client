@@ -2,13 +2,22 @@ package system_icon
 
 /*
 #cgo CFLAGS: -x objective-c
-#cgo LDFLAGS: -framework Cocoa -framework CoreServices
+#cgo LDFLAGS: -framework Cocoa -framework UniformTypeIdentifiers
 #import <Cocoa/Cocoa.h>
-#import <CoreServices/CoreServices.h>
+#import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
 void* getIconForExtension(const char* extension) {
     NSString* ext = [NSString stringWithUTF8String:extension];
-    NSImage* icon = [[NSWorkspace sharedWorkspace] iconForFileType:ext];
+    if ([ext hasPrefix:@"."]) {
+        ext = [ext substringFromIndex:1];
+    }
+
+    UTType* contentType = [UTType typeWithFilenameExtension:ext];
+    if (!contentType) {
+        contentType = UTTypeData;
+    }
+
+    NSImage* icon = [[NSWorkspace sharedWorkspace] iconForContentType:contentType];
     [icon retain];
     return (void*)icon;
 }
