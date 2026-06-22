@@ -4,13 +4,22 @@ includes:
   common: ../Taskfile.yml
 
 vars:
+  MACOS_DEPLOYMENT_TARGET: '{{.MACOS_DEPLOYMENT_TARGET | default "15.0"}}'
+  MAX_MACOS_SDK_VERSION: '{{.MAX_MACOS_SDK_VERSION | default "15.4"}}'
+  MACOS_SDK_PATH: '{{.MACOS_SDK_PATH | default "/Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk"}}'
   APP_VERSION:
-    sh: grep '^\s\+version:' ./build/config.yml | grep -oP '"\K[^"]+' | head -1
+    sh: sed -n 's/^[[:space:]]*version:[[:space:]]*"\([^"]*\)".*/\1/p' ./build/config.yml | head -n 1
 
 tasks:
+  verify:sdk:
+    summary: Verifies the selected Xcode macOS SDK is compatible with supported macOS releases
+    cmds:
+      - build/darwin/verify-sdk.sh "{{.MAX_MACOS_SDK_VERSION}}" "{{.MACOS_SDK_PATH}}"
+
   build:
     summary: Creates a production build of the application
     deps:
+      - task: verify:sdk
       - task: common:go:mod:tidy
       - task: common:build:frontend
       - task: common:generate:icons
@@ -25,9 +34,10 @@ tasks:
       GOOS: darwin
       CGO_ENABLED: 1
       GOARCH: '{{.ARCH | default ARCH}}'
-      CGO_CFLAGS: "-mmacosx-version-min=10.15"
-      CGO_LDFLAGS: "-mmacosx-version-min=10.15"
-      MACOSX_DEPLOYMENT_TARGET: "10.15"
+      CGO_CFLAGS: "-mmacosx-version-min={{.MACOS_DEPLOYMENT_TARGET}}"
+      CGO_LDFLAGS: "-mmacosx-version-min={{.MACOS_DEPLOYMENT_TARGET}}"
+      MACOSX_DEPLOYMENT_TARGET: "{{.MACOS_DEPLOYMENT_TARGET}}"
+      SDKROOT: "{{.MACOS_SDK_PATH}}"
       PRODUCTION: '{{.PRODUCTION | default "false"}}'
 
   build:universal:
@@ -65,11 +75,13 @@ tasks:
   create:app:bundle:
     summary: Creates an `.app` bundle
     cmds:
+      - rm -rf {{.BIN_DIR}}/{{.APP_NAME}}.app
       - mkdir -p {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/{MacOS,Resources}
       - cp build/darwin/icons.icns {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Resources
       - cp build/darwin/appicon.icns {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/Resources
       - cp {{.BIN_DIR}}/{{.APP_NAME}} {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS
       - cp build/darwin/Info.plist {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents
+      - vtool -show-build {{.BIN_DIR}}/{{.APP_NAME}}.app/Contents/MacOS/{{.APP_NAME}}
 
   run:
     cmds:

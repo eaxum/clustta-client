@@ -5,7 +5,7 @@ includes:
 
 vars:
   APP_VERSION:
-    sh: grep '^\s\+version:' ./build/config.yml | grep -oP '"\K[^"]+' | head -1
+    sh: sed -n 's/^[[:space:]]*version:[[:space:]]*"\([^"]*\)".*/\1/p' ./build/config.yml | head -n 1
 
 tasks:
   build:
