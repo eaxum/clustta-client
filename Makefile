@@ -75,8 +75,9 @@ ifeq ($(DETECTED_OS),Windows)
 	powershell -Command "Start-Process 'MsixPackagingTool.exe' -ArgumentList 'create-package','--template','../clustta-deployment/windows/Clustta_template.xml','-v' -Verb RunAs"
 else ifeq ($(DETECTED_OS),Darwin)
 	wails3 package
-	bash ../clustta-deployment/darwin/macappstore-build.sh
 	bash ../clustta-deployment/darwin/website-build.sh
+	wails3 package
+	bash ../clustta-deployment/darwin/macappstore-build.sh
 else ifeq ($(DETECTED_OS),Linux)
 	wails3 package
 	wails3 task linux:create:flatpak
