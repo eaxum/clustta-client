@@ -278,8 +278,10 @@ const addTag = async () => {
   const name = tagInputValue.value.trim();
   if (!name || !assetStore.selectedAsset) return;
   try {
-    const updatedNames = await tagStore.addTagToAsset(assetStore.selectedAsset.id, name);
+    const assetId = assetStore.selectedAsset.id;
+    const updatedNames = await tagStore.addTagToAsset(assetId, name);
     assetStore.selectedAsset.tags = updatedNames;
+    emitAssetUpdates(assetId, [{ property: 'tags', value: updatedNames }]);
     await loadAssetTags();
     tagInputValue.value = '';
     showTagInput.value = false;
@@ -367,8 +369,10 @@ const openImageViewer = () => {
 const removeTag = async (tag) => {
   if (!assetStore.selectedAsset) return;
   try {
-    const updatedNames = await tagStore.removeTagFromAsset(assetStore.selectedAsset.id, tag.id);
+    const assetId = assetStore.selectedAsset.id;
+    const updatedNames = await tagStore.removeTagFromAsset(assetId, tag.id);
     assetStore.selectedAsset.tags = updatedNames;
+    emitAssetUpdates(assetId, [{ property: 'tags', value: updatedNames }]);
     await loadAssetTags();
   } catch (error) {
     notificationStore.addNotification(t('notifications.failedToRemoveTag'), 'error');
