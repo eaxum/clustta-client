@@ -58,7 +58,7 @@
                             <span><img class="small-icons" :src="getAppIcon('generic')"></span>
                             <div ref="trash_name" class="trash-item-label" @mouseenter="handleHover($event)"
                                 @mouseleave="resetScroll($event)">
-                                <div @click="selectItem(assetPath, timelineItem.extensions[index])" class="trash-item-label-text">{{ assetPath }}</div>
+                                <div @click="selectItem(assetPath, getAssetExtension(index))" class="trash-item-label-text">{{ assetPath }}</div>
                             </div>
                         </div>
 
@@ -180,6 +180,8 @@ const selectedAssetId = ref('');
 const selectItem = async (assetPath, extension) => {
     await findItem(assetPath, extension);
 }
+
+const getAssetExtension = (index) => props.timelineItem.extensions?.[index] ?? '';
 
 const findItem = async (assetPath, extension) => {
     const asset = await AssetService.GetAssetByPath(projectStore.activeProject.uri, assetPath, extension);

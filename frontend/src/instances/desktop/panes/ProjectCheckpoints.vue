@@ -150,7 +150,8 @@ onMounted(async () => {
 
         let timelineItem = {
           created_at: item.created_at,
-          asset_paths: item.asset_paths,
+          asset_paths: item.asset_paths ?? [],
+          extensions: item.extensions ?? [],
           comment: item.comment,
           author_id: item.author_id,
           preview: item.preview,
@@ -209,6 +210,5 @@ onUnmounted(() => {
   /* background-color: rgba(0, 0, 0, 0.295); */
 }
 </style>
-
 
 
