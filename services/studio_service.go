@@ -68,6 +68,15 @@ func (s *StudioService) GetServerVersion(studioUrl string) (string, error) {
 	return version, nil
 }
 
+// Gets VM-local project and storage usage from a private studio server.
+func (s *StudioService) GetStudioUsage(studioUrl string) (studio_service.StudioUsage, error) {
+	usage, err := studio_service.GetStudioUsage(studioUrl)
+	if err != nil {
+		return studio_service.StudioUsage{}, err
+	}
+	return usage, nil
+}
+
 // Registers a new studio with name, URL, and hosting mode.
 func (s *StudioService) RegisterStudio(name, studioUrl, hostingMode string) (interface{}, error) {
 	result, err := studio_service.RegisterStudio(name, studioUrl, hostingMode)

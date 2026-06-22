@@ -1,13 +1,35 @@
 import { defineStore } from "pinia";
-import { EntitlementService } from "@/services";
+import { EntitlementService, StudioService } from "@/services";
 import { useProjectStore } from "@/stores/projects";
 import utils from "@/services/utils";
 
-// Synthetic bundle for self-hosted (private) studios. 
+// Builds a synthetic bundle for self-hosted (private) studios.
+function createPrivateStudioBundle(usage = {}, usageUnavailable = false) {
+  return {
+    plan: 'private',
+    plan_type: 'studio',
+    status: 'active',
+    limits: {
+      storage_bytes: usage.storage_total_bytes || -1,
+      max_remote_projects: -1,
+      max_collaborators: -1,
+      ai_credits_monthly: 0,
+    },
+    usage: {
+      storage_bytes: usage.storage_bytes || 0,
+      project_count: usage.project_count || 0,
+      ai_credits_used: 0,
+      storage_available_bytes: usage.storage_available_bytes || 0,
+      storage_total_bytes: usage.storage_total_bytes || 0,
+    },
+    usage_unavailable: usageUnavailable,
+    features: ['sync', 'collaboration', 'custom_roles', 'integrations'],
+  };
+}
+
+// Synthetic fallback for self-hosted (private) studios.
 const PRIVATE_STUDIO_BUNDLE = Object.freeze({
-  plan: 'private',
-  plan_type: 'studio',
-  status: 'active',
+  ...createPrivateStudioBundle(),
   limits: Object.freeze({
     storage_bytes: -1,
     max_remote_projects: -1,
@@ -52,7 +74,7 @@ export const useEntitlementStore = defineStore("entitlements", {
     activeBundle() {
       const projectStore = useProjectStore();
       const studio = projectStore.selectedStudio;
-      if (isPrivateStudio(studio)) return PRIVATE_STUDIO_BUNDLE;
+      if (isPrivateStudio(studio)) return this.studioEntitlements[studio.id] || PRIVATE_STUDIO_BUNDLE;
       if (studio && studio.name !== 'Personal' && studio.id) {
         return this.studioEntitlements[studio.id] || { features: [], limits: this.limits, usage: this.usage };
       }
@@ -130,6 +152,22 @@ export const useEntitlementStore = defineStore("entitlements", {
       } catch (error) {
         console.error('Failed to fetch studio entitlements:', error);
         return null;
+      }
+    },
+
+    // Fetches VM-local usage for a private/self-hosted studio.
+    async fetchPrivateStudioUsage(studio) {
+      if (!studio?.id) return null;
+      try {
+        const usage = await StudioService.GetStudioUsage(studio.url);
+        const bundle = createPrivateStudioBundle(usage, false);
+        this.studioEntitlements[studio.id] = bundle;
+        return bundle;
+      } catch (error) {
+        console.error('Failed to fetch private studio usage:', error);
+        const bundle = createPrivateStudioBundle({}, true);
+        this.studioEntitlements[studio.id] = bundle;
+        return bundle;
       }
     },
 

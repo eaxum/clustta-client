@@ -57,3 +57,55 @@ export class StudioInfo {
         return new StudioInfo(/** @type {Partial<StudioInfo>} */($$parsedSource));
     }
 }
+
+/**
+ * StudioUsage represents VM-local usage metrics returned by a private studio server.
+ */
+export class StudioUsage {
+    /**
+     * Creates a new StudioUsage instance.
+     * @param {Partial<StudioUsage>} [$$source = {}] - The source object to create the StudioUsage.
+     */
+    constructor($$source = {}) {
+        if (!("project_count" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["project_count"] = 0;
+        }
+        if (!("storage_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_bytes"] = 0;
+        }
+        if (!("storage_available_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_available_bytes"] = 0;
+        }
+        if (!("storage_total_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["storage_total_bytes"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new StudioUsage instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {StudioUsage}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new StudioUsage(/** @type {Partial<StudioUsage>} */($$parsedSource));
+    }
+}

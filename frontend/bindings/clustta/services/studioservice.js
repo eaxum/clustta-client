@@ -75,13 +75,24 @@ export function GetStudioStatus(studioUrl) {
 }
 
 /**
+ * Gets VM-local project and storage usage from a private studio server.
+ * @param {string} studioUrl
+ * @returns {$CancellablePromise<studio_service$0.StudioUsage>}
+ */
+export function GetStudioUsage(studioUrl) {
+    return $Call.ByID(2079244172, studioUrl).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * Fetches all users associated with a studio by studio ID
  * @param {string} studioId
  * @returns {$CancellablePromise<models$0.StudioUserInfo[]>}
  */
 export function GetStudioUsers(studioId) {
     return $Call.ByID(3707174447, studioId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
@@ -157,5 +168,6 @@ export function VerifyDeploymentCode(code) {
 
 // Private type creation functions
 const $$createType0 = studio_service$0.StudioInfo.createFrom;
-const $$createType1 = models$0.StudioUserInfo.createFrom;
-const $$createType2 = $Create.Array($$createType1);
+const $$createType1 = studio_service$0.StudioUsage.createFrom;
+const $$createType2 = models$0.StudioUserInfo.createFrom;
+const $$createType3 = $Create.Array($$createType2);

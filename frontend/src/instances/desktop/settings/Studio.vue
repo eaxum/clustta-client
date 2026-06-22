@@ -160,6 +160,7 @@ const isCloudHosted = computed(() => {
 // Returns the project count.
 const projectsValue = computed(() => {
   if (!studioEntitlements.value) return '0';
+  if (studioEntitlements.value.usage_unavailable) return t('settings.unavailable');
   return String(studioEntitlements.value.usage?.project_count || 0);
 });
 
@@ -180,6 +181,7 @@ const planLabel = computed(() => {
 // Returns the storage usage as a percentage (0–100).
 const storagePercent = computed(() => {
   if (!studioEntitlements.value) return -1;
+  if (studioEntitlements.value.usage_unavailable) return -1;
   const limit = studioEntitlements.value.limits?.storage_bytes;
   if (!limit || limit <= 0) return -1;
   const used = studioEntitlements.value.usage?.storage_bytes || 0;
@@ -189,15 +191,19 @@ const storagePercent = computed(() => {
 // Returns the formatted storage usage value.
 const storageValue = computed(() => {
   if (!studioEntitlements.value) return '0 B';
+  if (studioEntitlements.value.usage_unavailable) return t('settings.unavailable');
   return utils.formatBytes(studioEntitlements.value.usage?.storage_bytes || 0, 2);
 });
 
 // Returns a formatted storage usage label.
 const storageLabel = computed(() => {
   if (!studioEntitlements.value) return '';
+  if (studioEntitlements.value.usage_unavailable) return '';
   const limit = studioEntitlements.value.limits?.storage_bytes;
   if (!limit || limit <= 0) return '';
-  return t('settings.storageOf', { used: storageValue.value, limit: utils.formatBytes(limit, 0) });
+  const used = studioEntitlements.value.usage?.storage_bytes || 0;
+  const available = studioEntitlements.value.usage?.storage_available_bytes || Math.max(limit - used, 0);
+  return `${utils.formatBytes(available, 0)} available`;
 });
 
 // Returns the cached entitlement bundle for the selected studio.
@@ -268,7 +274,11 @@ onMounted(async () => {
   }
   const studioId = studioInfo.value?.id;
   if (studioId) {
-    await entitlementStore.fetchStudioEntitlements(studioId);
+    if (isCloudHosted.value) {
+      await entitlementStore.fetchStudioEntitlements(studioId);
+    } else {
+      await entitlementStore.fetchPrivateStudioUsage(studioInfo.value);
+    }
   }
 });
 </script>
@@ -515,4 +525,3 @@ onMounted(async () => {
 }
 
 </style>
-

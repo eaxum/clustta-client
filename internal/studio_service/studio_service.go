@@ -21,6 +21,14 @@ type StudioInfo struct {
 	AltUrl string `json:"alt_url"`
 }
 
+// StudioUsage represents VM-local usage metrics returned by a private studio server.
+type StudioUsage struct {
+	ProjectCount          int   `json:"project_count"`
+	StorageBytes          int64 `json:"storage_bytes"`
+	StorageAvailableBytes int64 `json:"storage_available_bytes"`
+	StorageTotalBytes     int64 `json:"storage_total_bytes"`
+}
+
 // GetStudioInfo fetches studio metadata from a private studio server.
 // Used when authenticated against a private server to discover its details.
 func GetStudioInfo(studioUrl string) (StudioInfo, error) {
@@ -540,6 +548,41 @@ func GetServerVersion(studioUrl string) (string, error) {
 	}
 
 	return "", fmt.Errorf("failed to get server version: status code %d", response.StatusCode)
+}
+
+func GetStudioUsage(studioUrl string) (StudioUsage, error) {
+	if studioUrl == "" {
+		return StudioUsage{}, fmt.Errorf("no studio URL provided")
+	}
+
+	url := studioUrl + "/usage"
+
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return StudioUsage{}, err
+	}
+
+	auth_service.AttachBearerToken(req)
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	client := &http.Client{Timeout: 15 * time.Second}
+	response, err := client.Do(req)
+	if err != nil {
+		return StudioUsage{}, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(response.Body)
+		return StudioUsage{}, fmt.Errorf("failed to get studio usage: status code %d: %s", response.StatusCode, string(body))
+	}
+
+	var usage StudioUsage
+	if err := json.NewDecoder(response.Body).Decode(&usage); err != nil {
+		return StudioUsage{}, fmt.Errorf("failed to decode studio usage: %w", err)
+	}
+
+	return usage, nil
 }
 
 func GetStudioStatus(studioUrl string) (string, error) {
