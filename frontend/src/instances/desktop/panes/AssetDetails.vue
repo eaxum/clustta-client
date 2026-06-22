@@ -510,13 +510,16 @@ const loadLatestCheckpoint = async () => {
     return;
   }
 
+  const assetId = assetStore.selectedAsset.id;
   try {
     const checkpoint = await CheckpointService.GetLatestCheckpoint(
       projectStore.activeProject.uri,
-      assetStore.selectedAsset.id
+      assetId
     );
+    if (assetStore.selectedAsset?.id !== assetId) return;
     latestCheckpoint.value = checkpoint;
   } catch (error) {
+    if (assetStore.selectedAsset?.id !== assetId) return;
     console.log('No checkpoint found or error:', error);
     latestCheckpoint.value = null;
   }
@@ -543,9 +546,13 @@ const loadAssetTags = async () => {
     assetTags.value = [];
     return;
   }
+  const assetId = assetStore.selectedAsset.id;
   try {
-    assetTags.value = await TagService.GetAssetTags(projectStore.activeProject.uri, assetStore.selectedAsset.id);
+    const tags = await TagService.GetAssetTags(projectStore.activeProject.uri, assetId);
+    if (assetStore.selectedAsset?.id !== assetId) return;
+    assetTags.value = tags;
   } catch (error) {
+    if (assetStore.selectedAsset?.id !== assetId) return;
     assetTags.value = [];
   }
 };
@@ -577,22 +584,30 @@ const loadImageResolution = async () => {
 }
 
 const getProjectData = async () => {
-  if (!await FSService.Exists(assetPath.value)){
+  if (!assetStore.selectedAsset) {
+    assetSize.value = 0;
+    imageResolution.value = '';
+    assetTags.value = [];
+    latestCheckpoint.value = null;
+    return;
+  }
+
+  loadAssetTags();
+  loadLatestCheckpoint();
+
+  if (!assetPath.value || !await FSService.Exists(assetPath.value)){
     assetSize.value = t('panes.notOnDisk')
+    imageResolution.value = '';
     return
   }
   getAssetSize();
   loadImageResolution();
-  loadAssetTags();
-  loadLatestCheckpoint();
 }
 
 watch(() => assetStore.selectedAsset, () => {
   assetSize.value = 0;
   imageResolution.value = '';
   getProjectData();
-  loadAssetTags();
-  loadLatestCheckpoint();
 });
 
 
@@ -601,7 +616,6 @@ onMounted(() => {
   stage.markedAssets = [];
   
   getProjectData();
-  loadLatestCheckpoint();
 	emitter.on('get-project-data', getProjectData);
 });
 
