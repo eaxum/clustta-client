@@ -134,7 +134,7 @@ func CheckMissingChunks(tx *sqlx.Tx, chunkHashes []string) ([]string, error) {
 	return missingHashes, nil
 }
 
-func RebuildFile(tx *sqlx.Tx, chunks string, filePath string, timeModified int64, callback func(int, int, string, string)) error {
+func RestoreFileFromChunks(tx *sqlx.Tx, chunks string, filePath string, timeModified int64, callback func(int, int, string, string)) error {
 	chunkHashes := strings.Split(chunks, ",")
 	missingChunks, err := CheckMissingChunks(tx, chunkHashes)
 	if err != nil {

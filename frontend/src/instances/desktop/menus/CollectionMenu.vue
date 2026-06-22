@@ -38,13 +38,13 @@
 
     
     <!-- Collection State Actions -->
-    <span v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified || collectionStateFlags.has_outdated || collectionStateFlags.has_rebuildable" class="menu-divider"></span>
+    <span v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified || collectionStateFlags.has_outdated || collectionStateFlags.has_fetchable" class="menu-divider"></span>
 
     <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="getAppIcon('plus-stone')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" :label="$t('modals.createCheckpoints')"
       :buttonFunction="prepCreateCheckpointsModal" />
 
-    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildContents')"
-      :buttonFunction="rebuildCollection" />
+    <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_fetchable" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('menus.fetchContents')"
+      :buttonFunction="fetchCollection" />
 
     <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" :showLabel="true" :fullWidth="true" :label="$t('menus.updateContents')"
       :buttonFunction="updateContents" />
@@ -147,14 +147,14 @@ const collectionStateFlags = computed(() => {
     has_untracked: false,
     has_modified: false,
     has_outdated: false,
-    has_rebuildable: false
+    has_fetchable: false
   };
   
   return collection.collectionStateFlags || {
     has_untracked: false,
     has_modified: false,
     has_outdated: false,
-    has_rebuildable: false
+    has_fetchable: false
   };
 });
 
@@ -407,13 +407,13 @@ const prepRevertContentsPopUpModal = () => {
   menu.hideContextMenu();
 };
 
-// Rebuilds the collection contents.
-const rebuildCollection = () => {
+// Fetches the collection contents.
+const fetchCollection = () => {
   menu.hideContextMenu();
   let collection = collectionStore.selectedCollection;
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
-  CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collection.id)
+  CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collection.id)
     .then(() => {
       assetStore.refreshCollectionFilesStatus(collection.id);
       emitter.emit('refresh-browser');

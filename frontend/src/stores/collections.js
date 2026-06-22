@@ -22,7 +22,7 @@ export const useCollectionStore = defineStore("collection", {
       has_untracked: false,
       has_modified: false,
       has_outdated: false,
-      has_rebuildable: false
+      has_fetchable: false
     },
     loadingCollectionStates: false,
   }),
@@ -349,7 +349,7 @@ export const useCollectionStore = defineStore("collection", {
     },
 
     /**
-     * Loads optimized state flags (untracked/modified/outdated/rebuildable) for current collection context.
+     * Loads optimized state flags (untracked/modified/outdated/fetchable) for current collection context.
      * Updates collectionStateFlags with boolean flags indicating presence of items in each state.
      */
     async loadCollectionStateFlags() {
@@ -387,7 +387,7 @@ export const useCollectionStore = defineStore("collection", {
           has_untracked: false,
           has_modified: false,
           has_outdated: false,
-          has_rebuildable: false
+          has_fetchable: false
         };
       } finally {
         this.loadingCollectionStates = false;

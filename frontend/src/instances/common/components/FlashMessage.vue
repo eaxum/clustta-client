@@ -108,8 +108,8 @@ const progressIcon = computed(() => {
     return 'download';
   } else if (message.includes('revert')) {
     return 'revert';
-  } else if (message.includes('rebuild')) {
-    return 'jigsaw';
+  } else if (message.includes('fetch') || message.includes('restore')) {
+    return 'fetch';
   } else if (message.includes('upload') || message.includes('sending')) {
     return 'cloud-up';
   } else if (message.includes('sync')) {
@@ -496,5 +496,4 @@ onBeforeUnmount(() => {
   outline: solid 1px #20A41C;
 }
 </style>
-
 

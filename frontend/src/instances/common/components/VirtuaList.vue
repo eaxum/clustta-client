@@ -361,7 +361,7 @@ const parseCollectionState = (state) => {
     modified: state.modified_assets?.map(t => t.id).sort() || [],
     normal: state.normal_assets?.map(t => t.id).sort() || [],
     outdated: state.outdated_assets?.map(t => t.id).sort() || [],
-    rebuildable: state.rebuildable_assets?.map(t => t.id).sort() || [],
+    fetchable: state.fetchable_assets?.map(t => t.id).sort() || [],
     untracked_files: state.untracked_files?.map(f => f.id).sort() || [],
     untracked_folders: state.untracked_folders?.map(f => f.id).sort() || []
   };
@@ -417,7 +417,7 @@ const refreshView = async () => {
       ...(state.normal_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'normal' }] })),
       ...(state.modified_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'modified' }] })),
       ...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
-      ...(state.rebuildable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
+      ...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] }))
     ];
     if (statusUpdates.length) emitItemUpdates(statusUpdates);
 

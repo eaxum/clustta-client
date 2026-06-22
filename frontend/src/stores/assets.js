@@ -30,11 +30,11 @@ export const useAssetStore = defineStore("asset", {
     projectExtensionsFlat: [],
     modifiedAssetsPath: [],
     outdatedAssetsPath: [],
-    rebuildableAssetsPath: [],
+    fetchableAssetsPath: [],
     untrackedAssetsPath: [],
     modifiedAssetsState: [],
     outdatedAssetsState: [],
-    rebuildableAssetsState: [],
+    fetchableAssetsState: [],
     // New combined modified assets data
     modifiedAssets: {
       modified: [],
@@ -332,8 +332,8 @@ export const useAssetStore = defineStore("asset", {
     getOutdatedDisplayPaths: (state) => {
       return state.outdatedAssetsState;
     },
-    getRebuildableDisplayPaths: (state) => {
-      return state.rebuildableAssetsState;
+    getFetchableDisplayPaths: (state) => {
+      return state.fetchableAssetsState;
     },
   },
   actions: {
@@ -667,7 +667,7 @@ export const useAssetStore = defineStore("asset", {
       if (isMissing && (!checkpoints || checkpoints.length == 0)) {
         return "missing";
       } else if (isMissing && checkpoints.length != 0) {
-        return "rebuildable";
+        return "fetchable";
       }
       // let fileStat = await FSService.FileStat(filePath);
       let hash = await FSService.FileHash(filePath);

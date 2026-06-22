@@ -166,7 +166,7 @@ const loadAssetState = async () => {
     props.child.file_status = fileStatus;
   } catch (error) {
     console.error(`Error loading asset state for ${asset.id}:`, error);
-    asset.file_status = 'rebuildable';
+    asset.file_status = 'fetchable';
   } finally {
     clearTimeout(loadingTimer);
     loadingAssetState.value = false;
@@ -198,7 +198,7 @@ const loadCollectionState = async () => {
       has_untracked: false,
       has_modified: false,
       has_outdated: false,
-      has_rebuildable: false
+      has_fetchable: false
     };
   } finally {
     clearTimeout(loadingTimer);

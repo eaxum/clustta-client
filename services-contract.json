@@ -1395,6 +1395,18 @@
         ]
       },
       {
+        "name": "Fetch",
+        "params": [
+          "projectPath:string",
+          "remoteUrl:string",
+          "collectionIds:string",
+          "userId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "GetCollectionAssets",
         "params": [
           "projectPath:string",
@@ -1534,18 +1546,6 @@
         ],
         "returns": [
           "bool",
-          "error"
-        ]
-      },
-      {
-        "name": "Rebuild",
-        "params": [
-          "projectPath:string",
-          "remoteUrl:string",
-          "collectionIds:string",
-          "userId:string"
-        ],
-        "returns": [
           "error"
         ]
       },
@@ -3886,6 +3886,16 @@
         ],
         "returns": [
           "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetStudioUsage",
+        "params": [
+          "studioUrl:string"
+        ],
+        "returns": [
+          "studio_service.StudioUsage",
           "error"
         ]
       },

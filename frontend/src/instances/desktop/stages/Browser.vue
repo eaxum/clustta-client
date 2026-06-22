@@ -323,7 +323,7 @@ const duplicateAsset = async () => {
 		await AssetService.DuplicateAsset(projectStore.activeProject.uri, selectedItemId, '')
 			.then(async (duplicatedAsset) => {
 				try { await FSService.DuplicateFile(selectedItem.file_path, duplicatedAsset.file_path); }
-				catch (fileError) { console.warn('Physical file duplication failed (asset may be rebuildable):', fileError); }
+				catch (fileError) { console.warn('Physical file duplication failed (asset may be fetchable):', fileError); }
 				await refresh();
 				assetStore.selectAsset(duplicatedAsset);
 				stage.selectedItem = duplicatedAsset;
@@ -381,14 +381,14 @@ const freeUpMultipleCollectionSpace = async (collections) => {
 
 // Deletes physical files for assets to free up disk space.
 const freeUpMultipleAssetSpace = async (selectedAssets) => {
-	const fileStatus = ['missing', 'rebuildable'];
+	const fileStatus = ['missing', 'fetchable'];
 	let assetIds = [];
 	for (let asset of selectedAssets) { if (!fileStatus.includes(asset.file_status)) assetIds.push(asset.id); }
 	for (const assetId of assetIds) {
 		let asset = assetStore.getAssets.find((item) => item.id === assetId);
 		let assetPath = asset.file_path.replace(/\\/g, '/');
 		await FSService.DeleteFile(assetPath)
-			.then(() => { asset.file_status = 'rebuildable'; })
+			.then(() => { asset.file_status = 'fetchable'; })
 			.catch((error) => console.error(error));
 	}
 };
@@ -516,7 +516,7 @@ const handleRootFsChange = async () => {
 			modified: (state.modified_assets || []).map(a => a.id).sort(),
 			normal: (state.normal_assets || []).map(a => a.id).sort(),
 			outdated: (state.outdated_assets || []).map(a => a.id).sort(),
-			rebuildable: (state.rebuildable_assets || []).map(a => a.id).sort(),
+			fetchable: (state.fetchable_assets || []).map(a => a.id).sort(),
 			untracked_files: (state.untracked_files || []).map(f => f.id).sort(),
 			untracked_folders: (state.untracked_folders || []).map(f => f.id).sort()
 		};
@@ -527,7 +527,7 @@ const handleRootFsChange = async () => {
 			...(state.normal_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'normal' }] })),
 			...(state.modified_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'modified' }] })),
 			...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
-			...(state.rebuildable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'rebuildable' }] }))
+			...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] }))
 		];
 		if (statusUpdates.length) emitter.emit('update-root-data', statusUpdates);
 

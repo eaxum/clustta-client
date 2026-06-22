@@ -196,12 +196,12 @@ export class AssetsStates {
              */
             this["modified"] = [];
         }
-        if (!("rebuildable" in $$source)) {
+        if (!("fetchable" in $$source)) {
             /**
              * @member
              * @type {AssetStateItem[]}
              */
-            this["rebuildable"] = [];
+            this["fetchable"] = [];
         }
         if (!("outdated" in $$source)) {
             /**
@@ -227,8 +227,8 @@ export class AssetsStates {
         if ("modified" in $$parsedSource) {
             $$parsedSource["modified"] = $$createField0_0($$parsedSource["modified"]);
         }
-        if ("rebuildable" in $$parsedSource) {
-            $$parsedSource["rebuildable"] = $$createField1_0($$parsedSource["rebuildable"]);
+        if ("fetchable" in $$parsedSource) {
+            $$parsedSource["fetchable"] = $$createField1_0($$parsedSource["fetchable"]);
         }
         if ("outdated" in $$parsedSource) {
             $$parsedSource["outdated"] = $$createField2_0($$parsedSource["outdated"]);
@@ -466,12 +466,12 @@ export class CollectionChildrenState {
              */
             this["outdated_assets"] = [];
         }
-        if (!("rebuildable_assets" in $$source)) {
+        if (!("fetchable_assets" in $$source)) {
             /**
              * @member
              * @type {models$0.Asset[]}
              */
-            this["rebuildable_assets"] = [];
+            this["fetchable_assets"] = [];
         }
         if (!("normal_assets" in $$source)) {
             /**
@@ -517,8 +517,8 @@ export class CollectionChildrenState {
         if ("outdated_assets" in $$parsedSource) {
             $$parsedSource["outdated_assets"] = $$createField1_0($$parsedSource["outdated_assets"]);
         }
-        if ("rebuildable_assets" in $$parsedSource) {
-            $$parsedSource["rebuildable_assets"] = $$createField2_0($$parsedSource["rebuildable_assets"]);
+        if ("fetchable_assets" in $$parsedSource) {
+            $$parsedSource["fetchable_assets"] = $$createField2_0($$parsedSource["fetchable_assets"]);
         }
         if ("normal_assets" in $$parsedSource) {
             $$parsedSource["normal_assets"] = $$createField3_0($$parsedSource["normal_assets"]);
@@ -625,12 +625,12 @@ export class CollectionStateFlags {
              */
             this["has_outdated"] = false;
         }
-        if (!("has_rebuildable" in $$source)) {
+        if (!("has_fetchable" in $$source)) {
             /**
              * @member
              * @type {boolean}
              */
-            this["has_rebuildable"] = false;
+            this["has_fetchable"] = false;
         }
 
         Object.assign(this, $$source);

@@ -154,8 +154,8 @@
                 v-tooltip="$t('blocks.modifiedClickCheckpoint')" 
                 v-else-if="asset.file_status == 'modified' && canCreateCheckpoint"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
-                v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
+              <ActionButton :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.fileMissingClickFetch')"
+                v-else-if="asset.file_status == 'fetchable'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
                 v-tooltip="$t('blocks.assetMissingResync')" v-else-if="asset.file_status == 'missing'" />
             </div>
@@ -308,8 +308,8 @@
               <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
                 v-else-if="asset.file_status == 'modified' && canCreateCheckpoint"
                 @click="prepCreateCheckpoint(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.fileMissingClickBuild')"
-                v-else-if="asset.file_status == 'rebuildable'" @click="revertAsset(index, asset, $event)" />
+              <ActionButton :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.fileMissingClickFetch')"
+                v-else-if="asset.file_status == 'fetchable'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="$t('blocks.assetMissingResync')"
                 v-else-if="asset.file_status == 'missing'" />
             </div>
@@ -694,8 +694,8 @@ const freeUpSpace = async () => {
   let assetDir = asset.file_path.replace(/\\/g, '/');
   await FSService.DeleteFile(assetDir)
     .then((response) => {
-      asset.file_status = 'rebuildable';
-      assetStore.rebuildableAssetsPath.push(asset.asset_path + asset.extension);
+      asset.file_status = 'fetchable';
+      assetStore.fetchableAssetsPath.push(asset.asset_path + asset.extension);
       assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
       assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
       emitter.emit('refresh-browser');
@@ -786,7 +786,7 @@ const launchAssetCommand = async () => {
         })
         .catch((error) => {
           console.log(error);
-          notificationStore.errorNotification(t('notifications.errorRebuildingAsset'), error);
+          notificationStore.errorNotification(t('notifications.errorFetchingAsset'), error);
         });
     }
   }

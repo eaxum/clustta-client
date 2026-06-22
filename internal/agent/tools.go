@@ -1,4 +1,4 @@
-﻿package agent
+package agent
 
 import (
 	"clustta/internal/auth_service"
@@ -1357,7 +1357,7 @@ func GetToolDefinitions() []ToolDefinition {
 					"collection_types": map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Collection type names or ids."},
 					"tags":             map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "Tag names or ids."},
 					"assignees":        map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "User ids, usernames, emails, names, or '@me'."},
-					"states":           map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "File states: normal, modified, outdated, rebuildable, missing."},
+					"states":           map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "File states: normal, modified, outdated, fetchable, missing."},
 					"extensions":       map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string"}, "description": "File extensions, with or without leading dot (e.g. 'blend' or '.blend')."},
 					"has_assignees":    map[string]interface{}{"type": "boolean", "description": "Show only items that have any assignee."},
 					"no_assignees":     map[string]interface{}{"type": "boolean", "description": "Show only items with no assignee (unassigned)."},
@@ -1443,10 +1443,10 @@ var toolPermissions = map[string]toolPermission{
 
 	"apply_workflow": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
 
-	"setup_project_types":   {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"setup_project_types":        {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"setup_animation_production": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
-	"add_ignore_pattern":    {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
-	"remove_ignore_pattern": {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"add_ignore_pattern":         {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"remove_ignore_pattern":      {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 
 	"blender_render":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"blender_export":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},

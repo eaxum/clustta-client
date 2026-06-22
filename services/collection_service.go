@@ -30,19 +30,19 @@ type CollectionItems struct {
 }
 
 type CollectionStateFlags struct {
-	HasUntracked   bool `json:"has_untracked"`
-	HasModified    bool `json:"has_modified"`
-	HasOutdated    bool `json:"has_outdated"`
-	HasRebuildable bool `json:"has_rebuildable"`
+	HasUntracked bool `json:"has_untracked"`
+	HasModified  bool `json:"has_modified"`
+	HasOutdated  bool `json:"has_outdated"`
+	HasFetchable bool `json:"has_fetchable"`
 }
 
 type CollectionChildrenState struct {
-	ModifiedAssets    []models.Asset               `json:"modified_assets"`
-	OutdatedAssets    []models.Asset               `json:"outdated_assets"`
-	RebuildableAssets []models.Asset               `json:"rebuildable_assets"`
-	NormalAssets      []models.Asset               `json:"normal_assets"`
-	UntrackedFiles    []models.UntrackedAsset      `json:"untracked_files"`
-	UntrackedFolders  []models.UntrackedCollection `json:"untracked_folders"`
+	ModifiedAssets   []models.Asset               `json:"modified_assets"`
+	OutdatedAssets   []models.Asset               `json:"outdated_assets"`
+	FetchableAssets  []models.Asset               `json:"fetchable_assets"`
+	NormalAssets     []models.Asset               `json:"normal_assets"`
+	UntrackedFiles   []models.UntrackedAsset      `json:"untracked_files"`
+	UntrackedFolders []models.UntrackedCollection `json:"untracked_folders"`
 }
 
 type ItemsForCheckpoint struct {
@@ -486,13 +486,13 @@ func (e *CollectionService) GetCollectionByPath(projectPath, collectionPath stri
 }
 
 // GetCollectionStateFlags checks if a collection has any recursive children with specific states.
-// Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
+// Returns flags indicating presence of untracked, modified, outdated, or fetchable items.
 func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, projectWorkingDir string, ignoreList []string) (CollectionStateFlags, error) {
 	flags := CollectionStateFlags{
-		HasUntracked:   false,
-		HasModified:    false,
-		HasOutdated:    false,
-		HasRebuildable: false,
+		HasUntracked: false,
+		HasModified:  false,
+		HasOutdated:  false,
+		HasFetchable: false,
 	}
 
 	if collectionId == "root" {
@@ -547,7 +547,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 	var candidatesNeedingHashCheck []modifiedCandidate
 
 	for {
-		if flags.HasRebuildable && flags.HasModified && flags.HasOutdated {
+		if flags.HasFetchable && flags.HasModified && flags.HasOutdated {
 			break
 		}
 
@@ -621,8 +621,8 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 
 			fileInfo, err := os.Stat(assetFilePath)
 			if os.IsNotExist(err) {
-				if !flags.HasRebuildable {
-					flags.HasRebuildable = true
+				if !flags.HasFetchable {
+					flags.HasFetchable = true
 				}
 				continue
 			}
@@ -657,7 +657,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 				}
 			}
 
-			if flags.HasRebuildable && flags.HasModified && flags.HasOutdated {
+			if flags.HasFetchable && flags.HasModified && flags.HasOutdated {
 				break
 			}
 		}
@@ -789,15 +789,15 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 }
 
 // GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
-// Returns state containing modified, outdated, rebuildable assets and untracked items.
+// Returns state containing modified, outdated, fetchable assets and untracked items.
 func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId, projectWorkingDir string, ignoreList []string) (CollectionChildrenState, error) {
 	state := CollectionChildrenState{
-		ModifiedAssets:    make([]models.Asset, 0),
-		OutdatedAssets:    make([]models.Asset, 0),
-		RebuildableAssets: make([]models.Asset, 0),
-		NormalAssets:      make([]models.Asset, 0),
-		UntrackedFiles:    make([]models.UntrackedAsset, 0),
-		UntrackedFolders:  make([]models.UntrackedCollection, 0),
+		ModifiedAssets:   make([]models.Asset, 0),
+		OutdatedAssets:   make([]models.Asset, 0),
+		FetchableAssets:  make([]models.Asset, 0),
+		NormalAssets:     make([]models.Asset, 0),
+		UntrackedFiles:   make([]models.UntrackedAsset, 0),
+		UntrackedFolders: make([]models.UntrackedCollection, 0),
 	}
 
 	if collectionId == "root" {
@@ -875,23 +875,23 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 			quotedIds[i] = fmt.Sprintf("'%s'", id)
 		}
 
-		rebuildableQuery := fmt.Sprintf(`
+		fetchableQuery := fmt.Sprintf(`
 			SELECT DISTINCT asset_id
 			FROM asset_checkpoint 
 			WHERE asset_id IN (%s) AND trashed = 0
 		`, strings.Join(quotedIds, ","))
 
-		var rebuildableAssetIds []struct {
+		var fetchableAssetIds []struct {
 			AssetId string `db:"asset_id"`
 		}
-		err = tx.Select(&rebuildableAssetIds, rebuildableQuery)
+		err = tx.Select(&fetchableAssetIds, fetchableQuery)
 		if err != nil {
 			return state, err
 		}
 
-		for _, row := range rebuildableAssetIds {
+		for _, row := range fetchableAssetIds {
 			if asset, exists := assetMap[row.AssetId]; exists {
-				state.RebuildableAssets = append(state.RebuildableAssets, asset)
+				state.FetchableAssets = append(state.FetchableAssets, asset)
 			}
 		}
 	}
@@ -1389,9 +1389,10 @@ func (e *CollectionService) processTrackedCollectionForOutdated(tx *sqlx.Tx, col
 	return processCollection(collectionId)
 }
 
-// Rebuild downloads missing checkpoints and rebuilds files for specified collections.
+// Fetch restores missing working files for specified collections, downloading
+// checkpoint chunks first when they are not available locally.
 // Supports cancellation and sends progress updates via application events.
-func (e *CollectionService) Rebuild(projectPath, remoteUrl, collectionIds, userId string) error {
+func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId string) error {
 	defer reset()
 
 	ctx := getContext()
@@ -1437,8 +1438,8 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, collectionIds, userI
 	case <-ctx.Done():
 		return errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
-		Title:      "Rebuilding",
-		Message:    "Preparing to Rebuild",
+		Title:      "Fetching",
+		Message:    "Preparing to fetch files",
 		Percentage: 0,
 		Current:    1,
 		Total:      2,
@@ -1552,7 +1553,7 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, collectionIds, userI
 		}
 	}
 
-	assetsToRebuild := []models.Asset{}
+	assetsToFetch := []models.Asset{}
 	for _, asset := range allAssets {
 		assetFilePath, err := utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
 		if err != nil {
@@ -1563,12 +1564,12 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, collectionIds, userI
 			continue
 		}
 		if _, err := os.Stat(asset.GetFilePath()); os.IsNotExist(err) {
-			assetsToRebuild = append(assetsToRebuild, asset)
+			assetsToFetch = append(assetsToFetch, asset)
 		}
 	}
 
 	checkpointIdsToDownload := []string{}
-	for _, asset := range assetsToRebuild {
+	for _, asset := range assetsToFetch {
 		latestCheckpoint := asset.Checkpoints[0]
 		isMisssingChunks, err := latestCheckpoint.HasMissingChunks(tx)
 		if err != nil {
@@ -1635,15 +1636,15 @@ func (e *CollectionService) Rebuild(projectPath, remoteUrl, collectionIds, userI
 	}
 	defer tx.Rollback()
 
-	totalItems := len(assetsToRebuild)
-	for i, asset := range assetsToRebuild {
+	totalItems := len(assetsToFetch)
+	for i, asset := range assetsToFetch {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
 
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
-				Title:      "Rebuilding Files",
+				Title:      "Restoring files",
 				Message:    asset.Name,
 				Percentage: float64(current) / float64(total) * 100,
 				Current:    i + 1,

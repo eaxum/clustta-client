@@ -53,7 +53,7 @@ export const useCommonStore = defineStore("common", {
       { name: "normal", type: "state", icon: "circle-check" },
       { name: "modified", type: "state", icon: "layers-plus-alert" },
       { name: "outdated", type: "state", icon: "circle-check-alert" },
-      { name: "rebuildable", type: "state", icon: "jigsaw" },
+      { name: "fetchable", type: "state", icon: "fetch" },
       { name: "missing", type: "state", icon: "alert" },
     ],
     syncOptions: [

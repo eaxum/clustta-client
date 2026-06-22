@@ -121,7 +121,7 @@ How dependencies work:
 - An asset can depend on other assets (e.g., a character rig depends on the character model)
 - Dependencies can be at the asset level or collection level
 - Dependency types categorize the relationship (defined per project)
-- When an asset's dependency is updated, Clustta can flag the dependent asset as "outdated" or "rebuildable"
+- When an asset's dependency is updated, Clustta can flag the dependent asset as "outdated" or "fetchable"
 
 Use cases:
 - A texture asset depends on a UV layout

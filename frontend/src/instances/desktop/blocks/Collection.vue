@@ -170,9 +170,9 @@
             <ActionButton v-if="collectionStateFlags.has_outdated && !(collection.id in stage.expandedCollections)" 
               @click="updateCollectionAssets" 
               :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
-            <ActionButton v-if="collectionStateFlags.has_rebuildable && !(collection.id in stage.expandedCollections)" 
-              @click="rebuildCollection" 
-              :icon="getAppIcon('jigsaw')" v-tooltip="$t('blocks.itemsMissingClickRebuild')" />
+            <ActionButton v-if="collectionStateFlags.has_fetchable && !(collection.id in stage.expandedCollections)" 
+              @click="fetchCollection" 
+              :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.itemsMissingClickFetch')" />
               <ActionButton v-if="collection.is_shared" :icon="getAppIcon('shared')" v-tooltip="$t('blocks.thisIsShared')" />
           </template>
         </div>
@@ -348,7 +348,7 @@ const collectionStateFlags = computed(() => {
     has_untracked: false,
     has_modified: false,
     has_outdated: false,
-    has_rebuildable: false
+    has_fetchable: false
   };
 });
 
@@ -562,16 +562,16 @@ const prepFreeUpSpacePopUpModal = () => {
   modals.setModalVisibility('popUpModal', true);
 };
 
-// Rebuilds all rebuildable items in the collection.
-const rebuildCollection = async () => {
+// Fetches all fetchable items in the collection.
+const fetchCollection = async () => {
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
-  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.collection.id)
+  await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.collection.id)
     .then((data) => {
-      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => !assetPath.startsWith(props.collection.collection_path));
+      assetStore.fetchableAssetsPath = assetStore.fetchableAssetsPath.filter(assetPath => !assetPath.startsWith(props.collection.collection_path));
       emitter.emit('refresh-browser');
     }).catch(async (error) => {
-      notificationStore.errorNotification(t('notifications.errorRebuildingAll'), error);
+      notificationStore.errorNotification(t('notifications.errorFetchingAll'), error);
     });
 };
 

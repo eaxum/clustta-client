@@ -54,10 +54,10 @@
         <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('unarchive')" :showLabel="true"
           :fullWidth="true" :label="$t('panes.unarchiveProject')" :buttonFunction="toggleCloseProject" v-tooltip="$t('panes.unarchiveProjectTooltip')" />
 
-        <!-- Rebuild -->
+        <!-- Fetch -->
         <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject.is_downloaded && !projectStore.getActiveProject.is_closed"
-          :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('panes.rebuildProject')"
-          :buttonFunction="rebuildAll" v-tooltip="$t('panes.rebuildProjectTooltip')" />
+          :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('panes.fetchProject')"
+          :buttonFunction="fetchAll" v-tooltip="$t('panes.fetchProjectTooltip')" />
 
         <span v-if="!platformStore.isWeb" class="menu-divider"></span>
 
@@ -340,12 +340,12 @@ const deleteProject = async () => {
   modals.setModalVisibility('popUpModal', false);
 };
 
-const rebuildAll = async () => {
+const fetchAll = async () => {
   // let collection = collectionStore.selectedCollection;
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync
   notificationStore.canCancel = true
-  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
+  await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then((data) => {
       assetStore.refreshCollectionFilesStatus("")
       getProjectData()

@@ -25,7 +25,7 @@
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
-    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('jigsaw')" :showLabel="true"
+    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('fetch')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
     <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
@@ -186,7 +186,7 @@ const isAssetModified = computed(() => {
 
 // Checks if the asset is not on disk.
 const isNotOnDisk = computed(() => {
-  return asset.value?.file_status === 'rebuildable';
+  return asset.value?.file_status === 'fetchable';
 });
 
 // Checks if the active project is remote.
@@ -338,7 +338,7 @@ const extractArchive = async () => {
   try {
     const selectedAsset = assetStore.selectedAsset;
     
-    if (selectedAsset.file_status === 'rebuildable') {
+    if (selectedAsset.file_status === 'fetchable') {
       notificationStore.errorNotification(t('notifications.cannotExtract'), t('notifications.fileMustBeDownloaded'));
       return;
     }
@@ -370,8 +370,8 @@ const freeUpSpace = async () => {
   let assetDir = asset.file_path.replace(/\\/g, '/');
   await FSService.DeleteFile(assetDir)
     .then(() => {
-      asset.file_status = 'rebuildable';
-      assetStore.rebuildableAssetsPath.push(asset.asset_path + asset.extension);
+      asset.file_status = 'fetchable';
+      assetStore.fetchableAssetsPath.push(asset.asset_path + asset.extension);
       assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
       assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
       emitter.emit('refresh-browser');
@@ -452,7 +452,7 @@ const launchAssetWithCommand = async () => {
         })
         .catch((error) => {
           console.error(error);
-          notificationStore.errorNotification("Error Rebuilding Asset", error);
+          notificationStore.errorNotification("Error Fetching Asset", error);
         });
     }
   }
@@ -522,11 +522,11 @@ const revealInExplorer = async () => {
   menu.hideContextMenu();
   const assetId = assetStore.selectedAsset.id;
 
-  if (assetStore.selectedAsset.file_status == "rebuildable") {
+  if (assetStore.selectedAsset.file_status == "fetchable") {
     await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
       .then(async () => {
         const selectedAsset = assetStore.selectedAsset;
-        assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension);
+        assetStore.fetchableAssetsPath = assetStore.fetchableAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension);
         assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension);
         emitter.emit('get-project-data');
       })

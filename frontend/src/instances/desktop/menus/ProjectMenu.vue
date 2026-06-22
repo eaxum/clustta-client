@@ -34,9 +34,9 @@
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true" :label="$t('menus.relocate')"
       :buttonFunction="relocateWorkingDirectory" />
 
-    <!-- Rebuild -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.buildProject')"
-      :buttonFunction="rebuildAll" />
+    <!-- Fetch -->
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('menus.fetchProject')"
+      :buttonFunction="fetchAll" />
 
     <!-- Free space -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
@@ -188,7 +188,7 @@ const freeUpProjectSpace = async () => {
       AssetService.GetAssetsStates(project.uri, project.working_directory, project.ignore_list).then((assetsStates) => {
         assetStore.modifiedAssetsPath = assetsStates.modified.map(item => item.display_path);
         assetStore.outdatedAssetsPath = assetsStates.outdated.map(item => item.display_path);
-        assetStore.rebuildableAssetsPath = assetsStates.rebuildable.map(item => item.display_path);
+        assetStore.fetchableAssetsPath = assetsStates.fetchable.map(item => item.display_path);
       });
 
       if (projectStore.activeProject.id == project.id) {
@@ -343,27 +343,27 @@ const pasteItems = async () => {
   }
 };
 
-// Rebuilds all assets in the current context.
-const rebuildAll = async () => { 
+// Fetches all assets in the current context.
+const fetchAll = async () => { 
   menu.hideContextMenu();
   const path = collectionStore.navigatedCollection?.collection_path;
   const navigatedCollectionId = collectionStore.navigatedCollection?.id;
-  const rebuildableAssetsPath = assetStore.rebuildableAssetsPath;
+  const fetchableAssetsPath = assetStore.fetchableAssetsPath;
 
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
 
-  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
+  await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
     .then(() => {
       if (path) {
-        assetStore.rebuildableAssetsPath = rebuildableAssetsPath.filter(item => !item.startsWith(path));
+        assetStore.fetchableAssetsPath = fetchableAssetsPath.filter(item => !item.startsWith(path));
       } else {
-        assetStore.rebuildableAssetsPath = [];
+        assetStore.fetchableAssetsPath = [];
       }
       emitter.emit('refresh-browser');
     })
     .catch(async (error) => {
-      notificationStore.errorNotification(t('notifications.errorRebuildingAll'), error);
+      notificationStore.errorNotification(t('notifications.errorFetchingAll'), error);
     });
 };
 
@@ -458,4 +458,3 @@ onBeforeUnmount(() => {
   padding: 0;
 }
 </style>
-

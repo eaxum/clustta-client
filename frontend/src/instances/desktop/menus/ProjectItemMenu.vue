@@ -52,10 +52,10 @@
     <ActionButton v-else-if="studioStore.canManageProject" :icon="getAppIcon('unarchive')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.unarchiveProject')" :buttonFunction="toggleCloseProject" />
 
-    <!-- Rebuild -->
+    <!-- Fetch -->
     <!-- <ActionButton v-if="!platformStore.isWeb && projectStore.getActiveProject?.is_downloaded && !projectStore.getActiveProject?.is_closed"
-      :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true" :label="$t('menus.rebuildProject')"
-      :buttonFunction="rebuildAll" /> -->
+      :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('menus.fetchProject')"
+      :buttonFunction="fetchAll" /> -->
 
     <!-- Leave project (collaborator removes themselves) -->
     <ActionButton v-if="isPersonalCollaborator" :icon="getAppIcon('logout')" :showLabel="true" :fullWidth="true" :label="$t('menus.leaveProject')"
@@ -316,12 +316,12 @@ const prepTrimProjectPopUpModal = () => {
   modals.setModalVisibility('popUpModal', true);
 };
 
-// Rebuilds all assets in the project.
-const rebuildAll = async () => {
+// Fetches all assets in the project.
+const fetchAll = async () => {
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
-  await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
+  await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, "")
     .then(() => {
       assetStore.refreshCollectionFilesStatus("");
     })

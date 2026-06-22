@@ -27,7 +27,7 @@ func GetAssetFileStatus(asset *models.Asset, checkpoints []models.Checkpoint) (s
 	if isMissing && len(checkpoints) == 0 {
 		return "missing", nil
 	} else if isMissing && len(checkpoints) != 0 {
-		return "rebuildable", nil
+		return "fetchable", nil
 	}
 
 	fileHash, err := utils.GenerateXXHashChecksum(filePath)

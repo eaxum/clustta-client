@@ -146,14 +146,14 @@ func CreateCollectionFast(
 	// }
 
 	params := map[string]any{
-		"id":             id,
-		"created_at":     utils.GetCurrentTime(),
-		"name":           name,
-		"description":    description,
+		"id":                 id,
+		"created_at":         utils.GetCurrentTime(),
+		"name":               name,
+		"description":        description,
 		"collection_type_id": collection_type_id,
-		"parent_id":      parent_id,
-		"preview_id":     previewId,
-		"is_shared":     isShared,
+		"parent_id":          parent_id,
+		"preview_id":         previewId,
+		"is_shared":          isShared,
 	}
 	err := base_service.Create(tx, "collection", params)
 	if err != nil {
@@ -199,14 +199,14 @@ func CreateCollection(
 	}
 
 	params := map[string]any{
-		"id":             id,
-		"created_at":     utils.GetCurrentTime(),
-		"name":           name,
-		"description":    description,
+		"id":                 id,
+		"created_at":         utils.GetCurrentTime(),
+		"name":               name,
+		"description":        description,
 		"collection_type_id": collection_type_id,
-		"parent_id":      parent_id,
-		"preview_id":     previewId,
-		"is_shared":     isShared,
+		"parent_id":          parent_id,
+		"preview_id":         previewId,
+		"is_shared":          isShared,
 	}
 	err = base_service.Create(tx, "collection", params)
 	if err != nil {
@@ -242,14 +242,14 @@ func AddCollection(
 	// }
 
 	params := map[string]any{
-		"id":             id,
-		"created_at":     utils.GetCurrentTime(),
-		"name":           name,
-		"description":    description,
+		"id":                 id,
+		"created_at":         utils.GetCurrentTime(),
+		"name":               name,
+		"description":        description,
 		"collection_type_id": collection_type_id,
-		"parent_id":      parent_id,
-		"preview_id":     previewId,
-		"is_shared":     isShared,
+		"parent_id":          parent_id,
+		"preview_id":         previewId,
+		"is_shared":          isShared,
 	}
 	err := base_service.Create(tx, "collection", params)
 	if err != nil {
@@ -454,7 +454,7 @@ func GetCollectionAssets(tx *sqlx.Tx, id string) ([]models.Asset, error) {
 		// if err != nil {
 		// 	return assets, err
 		// }
-		assets[i].FileStatus = "rebuildable"
+		assets[i].FileStatus = "fetchable"
 	}
 
 	return assets, nil
@@ -1110,9 +1110,9 @@ func UpdateCollectionPreview(tx *sqlx.Tx, collectionId string, previewPath strin
 
 func AddAssignee(tx *sqlx.Tx, id, collectionId, userId string) error {
 	params := map[string]any{
-		"id":          id,
-		"collection_id":   collectionId,
-		"assignee_id": userId,
+		"id":            id,
+		"collection_id": collectionId,
+		"assignee_id":   userId,
 	}
 	err := base_service.Create(tx, "collection_assignee", params)
 	if err != nil {
@@ -1132,8 +1132,8 @@ func GetAssignee(tx *sqlx.Tx, id string) (models.CollectionAssignee, error) {
 
 func AssignCollection(tx *sqlx.Tx, collectionId, userId string) error {
 	params := map[string]any{
-		"collection_id":   collectionId,
-		"assignee_id": userId,
+		"collection_id": collectionId,
+		"assignee_id":   userId,
 	}
 	err := base_service.Create(tx, "collection_assignee", params)
 	if err != nil {
@@ -1144,8 +1144,8 @@ func AssignCollection(tx *sqlx.Tx, collectionId, userId string) error {
 
 func UnAssignCollection(tx *sqlx.Tx, collectionId, userId string) error {
 	conditions := map[string]any{
-		"collection_id":   collectionId,
-		"assignee_id": userId,
+		"collection_id": collectionId,
+		"assignee_id":   userId,
 	}
 	err := base_service.DeleteBy(tx, "collection_assignee", conditions)
 	if err != nil {

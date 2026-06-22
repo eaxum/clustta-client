@@ -377,11 +377,11 @@ const removeTag = async (tag) => {
 
 const revealInExplorer = async () => {
   const assetId = assetStore.selectedAsset.id;
-  if(assetStore.selectedAsset.file_status == "rebuildable"){
+  if(assetStore.selectedAsset.file_status == "fetchable"){
     await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
     .then( async (response) => {
       const selectedAsset = assetStore.selectedAsset;
-      assetStore.rebuildableAssetsPath = assetStore.rebuildableAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension)
+      assetStore.fetchableAssetsPath = assetStore.fetchableAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension)
       assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== selectedAsset.asset_path + selectedAsset.extension);
       emitter.emit('get-project-data')
     })

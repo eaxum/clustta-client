@@ -4,8 +4,8 @@
 	</div>
 
 	<div v-else-if="hasData" class="state-bar">
-		<ActionButton v-if="collectionStore.collectionStateFlags.has_rebuildable" :icon="getAppIcon('jigsaw')" 
-			v-tooltip="$t('components.stateBar.rebuildAll')" :buttonFunction="rebuildAll" />
+		<ActionButton v-if="collectionStore.collectionStateFlags.has_fetchable" :icon="getAppIcon('fetch')" 
+			v-tooltip="$t('components.stateBar.fetchAll')" :buttonFunction="fetchAll" />
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && canCreateFromUntrackedHere"
 			:icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
@@ -118,8 +118,8 @@ const prepResetPopUpModal = () => {
 	modals.setModalVisibility('popUpModal', true);
 };
 
-// Rebuilds all rebuildable assets in the current view.
-const rebuildAll = async () => {
+// Fetches all fetchable assets in the current view.
+const fetchAll = async () => {
 	const path = collectionStore.navigatedCollection?.collection_path;
 	const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 	notificationStore.cancleFunction = SyncService.CancelSync;
@@ -129,12 +129,12 @@ const rebuildAll = async () => {
 		if (userAssetIds.length) {
 			await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userAssetIds)
 				.then(() => emitter.emit('refresh-browser'))
-				.catch((error) => console.error(`Error rebuilding assets:`, error));
+				.catch((error) => console.error(`Error fetching assets:`, error));
 		}
 	} else {
-		await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
-			.then(() => { if (!path) assetStore.rebuildableAssetsPath = []; emitter.emit('refresh-browser'); })
-			.catch((error) => notificationStore.errorNotification(t('components.stateBar.errorRebuildingAll'), error));
+		await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
+			.then(() => { if (!path) assetStore.fetchableAssetsPath = []; emitter.emit('refresh-browser'); })
+			.catch((error) => notificationStore.errorNotification(t('components.stateBar.errorFetchingAll'), error));
 	}
 };
 

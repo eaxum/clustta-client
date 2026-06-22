@@ -28,8 +28,8 @@
       <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_asset')" :icon="getAppIcon('folder-arrow-in')"
         :showLabel="true" :fullWidth="true" :label="$t('components.detailsPane.moveToCollection')" :buttonFunction="prepMoveToCollection" />
 
-      <ActionButton v-if="!platformStore.isWeb && assetsCanRebuild" :icon="getAppIcon('jigsaw')" :showLabel="true"
-        :fullWidth="true" :label="$t('components.detailsPane.rebuildAssets')" :buttonFunction="revertAllChanges" />
+      <ActionButton v-if="!platformStore.isWeb && assetsCanFetch" :icon="getAppIcon('fetch')" :showLabel="true"
+        :fullWidth="true" :label="$t('components.detailsPane.fetchAssets')" :buttonFunction="revertAllChanges" />
 
       <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :showLabel="true"
         :fullWidth="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" />
@@ -62,8 +62,8 @@
       <ActionButton :icon="getAppIcon('person-minus')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.unassignCollections')" :buttonFunction="unassignCollections" />
 
-      <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.rebuildCollections')" :buttonFunction="rebuildCollections" />
+      <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true"
+        :label="$t('components.detailsPane.fetchCollections')" :buttonFunction="fetchCollections" />
 
       <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.freeUpSpace')" :buttonFunction="freeUpCollectionSpacePopUpModal" />
@@ -189,8 +189,8 @@ const onlyUntrackedCollections = computed(() => stage.selectedItems.every((item)
 // Returns whether all selected items are untracked (assets or collections).
 const onlyUntracked = computed(() => onlyUntrackedAssets.value || onlyUntrackedCollections.value);
 
-// Returns whether any selected asset can be rebuilt.
-const assetsCanRebuild = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status === 'rebuildable'));
+// Returns whether any selected asset can be fetched.
+const assetsCanFetch = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status === 'fetchable'));
 
 // Returns whether any selected asset has been modified.
 const assetsModified = computed(() => {
@@ -199,7 +199,7 @@ const assetsModified = computed(() => {
 });
 
 // Returns whether any selected asset is present on disk.
-const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'rebuildable'));
+const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'fetchable'));
 
 // Returns whether the selected items can be squashed.
 const squashEnabled = computed(() => {
@@ -363,17 +363,17 @@ const freeUpCollectionSpacePopUpModal = () => {
 // Frees up asset space by deleting working files.
 const freeUpSpace = async () => {
   const selectedAssets = stage.selectedItems.filter(item => item.type === 'asset');
-  const fileStatus = ['missing', 'rebuildable'];
+  const fileStatus = ['missing', 'fetchable'];
   const assetsToProcess = selectedAssets.filter(asset => !fileStatus.includes(asset.file_status));
   for (const asset of assetsToProcess) {
     let assetPath = asset.file_path.replace(/\\/g, '/');
     await FSService.DeleteFile(assetPath)
       .then(() => {
-        asset.file_status = 'rebuildable';
-        assetStore.rebuildableAssetsPath.push(asset.asset_path + asset.extension);
+        asset.file_status = 'fetchable';
+        assetStore.fetchableAssetsPath.push(asset.asset_path + asset.extension);
         assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
         assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
-        emitItemUpdates(asset.id, [{ property: 'file_status', value: 'rebuildable' }]);
+        emitItemUpdates(asset.id, [{ property: 'file_status', value: 'fetchable' }]);
       })
       .catch((error) => console.error(error));
   }
@@ -537,22 +537,22 @@ const prepSquashModal = () => {
   modals.setModalVisibility('squashModal', true);
 };
 
-// Rebuilds multiple collections.
-const rebuildCollections = async () => {
+// Fetches multiple collections.
+const fetchCollections = async () => {
   menu.hideContextMenu();
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
   try {
     const collectionIdsString = stage.markedItems.join(',');
-    await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collectionIdsString)
+    await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collectionIdsString)
       .then(() => {
         assetStore.refreshCollectionFilesStatus();
-        notificationStore.addNotification(t('components.detailsPane.collectionsRebuiltSuccessfully', { count: stage.markedItems.length }), '', "success", false);
+        notificationStore.addNotification(t('components.detailsPane.collectionsFetchedSuccessfully', { count: stage.markedItems.length }), '', "success", false);
       })
-      .catch((error) => { console.error('Error rebuilding collections:', error); notificationStore.errorNotification(t('components.detailsPane.errorRebuildingCollections'), error); });
+      .catch((error) => { console.error('Error fetching collections:', error); notificationStore.errorNotification(t('components.detailsPane.errorFetchingCollections'), error); });
   } catch (error) {
-    console.error('Error rebuilding collections:', error);
-    notificationStore.errorNotification(t('components.detailsPane.errorRebuildingCollections'), error);
+    console.error('Error fetching collections:', error);
+    notificationStore.errorNotification(t('components.detailsPane.errorFetchingCollections'), error);
   } finally {
     emitter.emit('refresh-browser');
     notificationStore.canCancel = false;

@@ -46,9 +46,9 @@ type AssetStateItem struct {
 }
 
 type AssetsStates struct {
-	Modifieds   []AssetStateItem `json:"modified"`
-	Rebuildable []AssetStateItem `json:"rebuildable"`
-	Outdated    []AssetStateItem `json:"outdated"`
+	Modifieds []AssetStateItem `json:"modified"`
+	Fetchable []AssetStateItem `json:"fetchable"`
+	Outdated  []AssetStateItem `json:"outdated"`
 }
 
 type ModifiedAssets struct {
@@ -1963,9 +1963,9 @@ func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (mode
 
 func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ignoreList []string) (AssetsStates, error) {
 	assetsStates := AssetsStates{
-		Modifieds:   []AssetStateItem{},
-		Rebuildable: []AssetStateItem{},
-		Outdated:    []AssetStateItem{},
+		Modifieds: []AssetStateItem{},
+		Fetchable: []AssetStateItem{},
+		Outdated:  []AssetStateItem{},
 	}
 
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
@@ -1991,7 +1991,7 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 			if asset.Extension != "" {
 				displayPath = asset.AssetPath + asset.Extension
 			}
-			assetsStates.Rebuildable = append(assetsStates.Rebuildable, AssetStateItem{
+			assetsStates.Fetchable = append(assetsStates.Fetchable, AssetStateItem{
 				AssetId:     asset.Id,
 				AssetPath:   asset.AssetPath,
 				DisplayPath: displayPath,
@@ -2054,12 +2054,12 @@ func (t *AssetService) GetAssetsStates(projectPath, projectWorkingDir string, ig
 				AssetPath:   asset.AssetPath,
 				DisplayPath: displayPath,
 			})
-		} else if fileStatus == "rebuildable" {
+		} else if fileStatus == "fetchable" {
 			displayPath := asset.AssetPath
 			if asset.Extension != "" {
 				displayPath = asset.AssetPath + asset.Extension
 			}
-			assetsStates.Rebuildable = append(assetsStates.Rebuildable, AssetStateItem{
+			assetsStates.Fetchable = append(assetsStates.Fetchable, AssetStateItem{
 				AssetId:     asset.Id,
 				AssetPath:   asset.AssetPath,
 				DisplayPath: displayPath,

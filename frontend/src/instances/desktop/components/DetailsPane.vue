@@ -47,8 +47,8 @@
           
           <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="$t('components.detailsPane.moveToCollection')"
             @click="prepMoveToCollection($event)" v-tooltip="$t('components.detailsPane.moveToCollectionTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb && assetsCanRebuild" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildAssets')"
-            :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.rebuildAssetsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb && assetsCanFetch" :icon="getAppIcon('fetch')" :label="$t('components.detailsPane.fetchAssets')"
+            :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.fetchAssetsTooltip')" />
           <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
             :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="$t('components.detailsPane.revertAssets')"
@@ -85,7 +85,7 @@
           
           <ActionButton :icon="getAppIcon('person-minus')" :label="$t('components.detailsPane.unassignCollections')"
             :buttonFunction="unassignCollections" v-tooltip="$t('components.detailsPane.unassignCollectionsTooltip')" />
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('jigsaw')" :label="$t('components.detailsPane.rebuildCollections')" :buttonFunction="rebuildCollections" v-tooltip="$t('components.detailsPane.rebuildCollectionsTooltip')" />
+          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('fetch')" :label="$t('components.detailsPane.fetchCollections')" :buttonFunction="fetchCollections" v-tooltip="$t('components.detailsPane.fetchCollectionsTooltip')" />
           <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
             :buttonFunction="freeUpCollectionSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceCollectionTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteCollections')"
@@ -363,14 +363,14 @@ const showAssetCollectionActions = computed(() => {
   return hasAssetsOrCollections && activeIsAsset.value;
 });
 
-const assetsCanRebuild = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status === 'rebuildable'));
+const assetsCanFetch = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status === 'fetchable'));
 
 const assetsModified = computed(() => {
   const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
   return modifiedAssetsState.some((assetState) => stage.markedItems.includes(assetState.asset_id));
 });
 
-const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'rebuildable'));
+const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'fetchable'));
 
 const visiblePanes = computed(() => {
   if (stage.activeStage === 'browser') {
@@ -598,17 +598,17 @@ const freeUpCollectionSpacePopUpModal = () => {
 // Frees up asset space by deleting working files.
 const freeUpSpace = async () => {
   const selectedAssets = stage.selectedItems.filter(item => item.type === 'asset');
-  const fileStatus = ['missing', 'rebuildable'];
+  const fileStatus = ['missing', 'fetchable'];
   const assetsToProcess = selectedAssets.filter(asset => !fileStatus.includes(asset.file_status));
   for (const asset of assetsToProcess) {
     let assetPath = asset.file_path.replace(/\\/g, '/');
     await FSService.DeleteFile(assetPath)
       .then(() => {
-        asset.file_status = 'rebuildable';
-        assetStore.rebuildableAssetsPath.push(asset.asset_path + asset.extension);
+        asset.file_status = 'fetchable';
+        assetStore.fetchableAssetsPath.push(asset.asset_path + asset.extension);
         assetStore.outdatedAssetsPath = assetStore.outdatedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
         assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(assetPath => assetPath !== asset.asset_path + asset.extension);
-        emitItemUpdates(asset.id, [{ property: 'file_status', value: 'rebuildable' }]);
+        emitItemUpdates(asset.id, [{ property: 'file_status', value: 'fetchable' }]);
       })
       .catch((error) => console.error(error));
   }
@@ -761,21 +761,21 @@ const prepResetPopUpModal = () => {
   modals.setModalVisibility('popUpModal', true);
 };
 
-// Rebuilds multiple collections.
-const rebuildCollections = async () => {
+// Fetches multiple collections.
+const fetchCollections = async () => {
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
   try {
     const collectionIdsString = stage.markedItems.join(',');
-    await CollectionService.Rebuild(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collectionIdsString)
+    await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, collectionIdsString)
       .then(() => {
         assetStore.refreshCollectionFilesStatus();
-        notificationStore.addNotification(t('components.detailsPane.collectionsRebuiltSuccessfully', { count: stage.markedItems.length }), '', "success", false);
+        notificationStore.addNotification(t('components.detailsPane.collectionsFetchedSuccessfully', { count: stage.markedItems.length }), '', "success", false);
       })
-      .catch((error) => { console.error('Error rebuilding collections:', error); notificationStore.errorNotification(t('components.detailsPane.errorRebuildingCollections'), error); });
+      .catch((error) => { console.error('Error fetching collections:', error); notificationStore.errorNotification(t('components.detailsPane.errorFetchingCollections'), error); });
   } catch (error) {
-    console.error('Error rebuilding collections:', error);
-    notificationStore.errorNotification(t('components.detailsPane.errorRebuildingCollections'), error);
+    console.error('Error fetching collections:', error);
+    notificationStore.errorNotification(t('components.detailsPane.errorFetchingCollections'), error);
   } finally {
     emitter.emit('refresh-browser');
     notificationStore.canCancel = false;

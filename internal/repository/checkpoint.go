@@ -18,22 +18,22 @@ import (
 
 type Timeline struct {
 	CreatedAt string `db:"created_at" json:"created_at"`
-	AssetId    string `db:"asset_id" json:"asset_id"`
-	AssetPath  string `db:"asset_path" json:"asset_path"`
-	Extension  string `db:"extension" json:"extension"`
+	AssetId   string `db:"asset_id" json:"asset_id"`
+	AssetPath string `db:"asset_path" json:"asset_path"`
+	Extension string `db:"extension" json:"extension"`
 	Comment   string `db:"comment" json:"comment"`
 	AuthorUID string `db:"author_id" json:"author_id"`
 	GroupId   string `db:"group_id" json:"group_id"`
 	Preview   []byte `db:"preview" json:"preview"`
 }
 type CompatTimeline struct {
-	CreatedAt string   `db:"created_at" json:"created_at"`
+	CreatedAt  string   `db:"created_at" json:"created_at"`
 	AssetPaths []string `db:"asset_paths" json:"asset_paths"`
 	Extensions []string `db:"extensions" json:"extensions"`
-	GroupId   string   `db:"group_id" json:"group_id"`
-	Comment   string   `db:"comment" json:"comment"`
-	AuthorUID string   `db:"author_id" json:"author_id"`
-	Preview   []byte   `db:"preview" json:"preview"`
+	GroupId    string   `db:"group_id" json:"group_id"`
+	Comment    string   `db:"comment" json:"comment"`
+	AuthorUID  string   `db:"author_id" json:"author_id"`
+	Preview    []byte   `db:"preview" json:"preview"`
 }
 
 func CreateNewAssetCheckpoint(
@@ -75,9 +75,9 @@ func CreateNewAssetCheckpoint(
 		//check if file exist in the file system
 		if checksum == "" {
 			if _, err := os.Stat(filePath); os.IsNotExist(err) {
-				err = RebuildFile(tx, chunkSequence, filePath, int64(0), func(i1, i2 int, s1, s2 string) {})
+				err = RestoreFileFromChunks(tx, chunkSequence, filePath, int64(0), func(i1, i2 int, s1, s2 string) {})
 				if err != nil {
-					fmt.Printf("Error rebuilding file %s: %v\n", filePath, err)
+					fmt.Printf("Error restoring file %s: %v\n", filePath, err)
 					return err
 				}
 			}
@@ -104,7 +104,7 @@ func CreateNewAssetCheckpoint(
 
 	params := map[string]interface{}{
 		"created_at":      utils.GetEpochTime(),
-		"asset_id":         assetId,
+		"asset_id":        assetId,
 		"xxhash_checksum": checkpointChecksum,
 		"time_modified":   timeModified,
 		"file_size":       fileSize,
@@ -168,7 +168,7 @@ func CreateCheckpoint(
 		//check if file exist in the file system
 		if checksum == "" {
 			if _, err := os.Stat(filePath); os.IsNotExist(err) {
-				err = RebuildFile(tx, chunkSequence, filePath, int64(0), func(i1, i2 int, s1, s2 string) {})
+				err = RestoreFileFromChunks(tx, chunkSequence, filePath, int64(0), func(i1, i2 int, s1, s2 string) {})
 				if err != nil {
 					return models.Checkpoint{}, err
 				}
@@ -198,7 +198,7 @@ func CreateCheckpoint(
 
 	params := map[string]interface{}{
 		"created_at":      utils.GetEpochTime(),
-		"asset_id":         assetId,
+		"asset_id":        assetId,
 		"xxhash_checksum": checkpointChecksum,
 		"time_modified":   timeModified,
 		"file_size":       fileSize,
@@ -215,7 +215,7 @@ func CreateCheckpoint(
 
 	checkpoint := models.Checkpoint{}
 	conditions := map[string]interface{}{
-		"asset_id":         assetId,
+		"asset_id":        assetId,
 		"xxhash_checksum": checkpointChecksum,
 	}
 	err = base_service.GetBy(tx, "asset_checkpoint", conditions, &checkpoint)
@@ -240,7 +240,7 @@ func AddCheckpoint(
 	params := map[string]interface{}{
 		"id":              id,
 		"created_at":      created_at,
-		"asset_id":         assetId,
+		"asset_id":        assetId,
 		"xxhash_checksum": xxHashChecksum,
 		"time_modified":   timeModified,
 		"file_size":       fileSize,
@@ -383,13 +383,13 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 	for i, checkpoint := range checkpoints {
 		if previousCheckpoint.GroupId == "" {
 			previousCheckpoint = CompatTimeline{
-				CreatedAt: checkpoint.CreatedAt,
+				CreatedAt:  checkpoint.CreatedAt,
 				AssetPaths: []string{checkpoint.AssetPath},
 				Extensions: []string{checkpoint.Extension},
-				GroupId:   checkpoint.GroupId,
-				Comment:   checkpoint.Comment,
-				AuthorUID: checkpoint.AuthorUID,
-				Preview:   checkpoint.Preview,
+				GroupId:    checkpoint.GroupId,
+				Comment:    checkpoint.Comment,
+				AuthorUID:  checkpoint.AuthorUID,
+				Preview:    checkpoint.Preview,
 			}
 			if i == len(checkpoints)-1 {
 				timeline = append(timeline, previousCheckpoint)
@@ -403,12 +403,12 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 		} else {
 			timeline = append(timeline, previousCheckpoint)
 			previousCheckpoint = CompatTimeline{
-				CreatedAt: checkpoint.CreatedAt,
+				CreatedAt:  checkpoint.CreatedAt,
 				AssetPaths: []string{checkpoint.AssetPath},
 				Extensions: []string{checkpoint.Extension},
-				Comment:   checkpoint.Comment,
-				AuthorUID: checkpoint.AuthorUID,
-				Preview:   checkpoint.Preview,
+				Comment:    checkpoint.Comment,
+				AuthorUID:  checkpoint.AuthorUID,
+				Preview:    checkpoint.Preview,
 			}
 		}
 		if i == len(checkpoints)-1 {
@@ -526,7 +526,7 @@ func RevertToCheckpoint(tx *sqlx.Tx, checkpointId string, filePath string, callb
 	}
 	filePathParent := filepath.Dir(filePath)
 	os.MkdirAll(filePathParent, os.ModePerm)
-	err = RebuildFile(tx, checkpoint.Chunks, filePath, int64(checkpoint.TimeModified), callback)
+	err = RestoreFileFromChunks(tx, checkpoint.Chunks, filePath, int64(checkpoint.TimeModified), callback)
 	if err != nil {
 		return err
 	}

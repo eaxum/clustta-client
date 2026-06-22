@@ -133,6 +133,20 @@ export function DeleteCollectionType(projectPath, id) {
 }
 
 /**
+ * Fetch restores missing working files for specified collections, downloading
+ * checkpoint chunks first when they are not available locally.
+ * Supports cancellation and sends progress updates via application events.
+ * @param {string} projectPath
+ * @param {string} remoteUrl
+ * @param {string} collectionIds
+ * @param {string} userId
+ * @returns {$CancellablePromise<void>}
+ */
+export function Fetch(projectPath, remoteUrl, collectionIds, userId) {
+    return $Call.ByID(1374674309, projectPath, remoteUrl, collectionIds, userId);
+}
+
+/**
  * GetCollectionAssets retrieves all assets belonging to a specific collection.
  * Returns the list of assets or an error if the operation fails.
  * @param {string} projectPath
@@ -186,7 +200,7 @@ export function GetCollectionChildren(projectPath, collectionId, projectWorkingD
 
 /**
  * GetCollectionChildrenState analyzes the immediate children of a collection to determine their state.
- * Returns state containing modified, outdated, rebuildable assets and untracked items.
+ * Returns state containing modified, outdated, fetchable assets and untracked items.
  * @param {string} projectPath
  * @param {string} collectionId
  * @param {string} projectWorkingDir
@@ -211,7 +225,7 @@ export function GetCollectionCount(projectPath) {
 
 /**
  * GetCollectionStateFlags checks if a collection has any recursive children with specific states.
- * Returns flags indicating presence of untracked, modified, outdated, or rebuildable items.
+ * Returns flags indicating presence of untracked, modified, outdated, or fetchable items.
  * @param {string} projectPath
  * @param {string} collectionId
  * @param {string} projectWorkingDir
@@ -289,19 +303,6 @@ export function GetOutdatedItemsInCollection(projectPath, collectionId, projectW
  */
 export function IsUserAssignedToCollectionOrAncestor(projectPath, collectionId, userId) {
     return $Call.ByID(3770501513, projectPath, collectionId, userId);
-}
-
-/**
- * Rebuild downloads missing checkpoints and rebuilds files for specified collections.
- * Supports cancellation and sends progress updates via application events.
- * @param {string} projectPath
- * @param {string} remoteUrl
- * @param {string} collectionIds
- * @param {string} userId
- * @returns {$CancellablePromise<void>}
- */
-export function Rebuild(projectPath, remoteUrl, collectionIds, userId) {
-    return $Call.ByID(1269618418, projectPath, remoteUrl, collectionIds, userId);
 }
 
 /**

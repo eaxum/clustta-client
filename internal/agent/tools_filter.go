@@ -1,4 +1,4 @@
-﻿package agent
+package agent
 
 import (
 	"clustta/internal/auth_service"
@@ -62,7 +62,7 @@ func loadFilterDimensions(projectPath string) (*filterDimensions, error) {
 	}
 
 	dim := &filterDimensions{
-		States: []string{"normal", "modified", "outdated", "rebuildable", "missing"},
+		States: []string{"normal", "modified", "outdated", "fetchable", "missing"},
 	}
 	for _, s := range statuses {
 		dim.Statuses = append(dim.Statuses, map[string]string{
