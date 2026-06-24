@@ -31,12 +31,12 @@
 
     <div v-if="showCheckpointItems" class="modified-items">
 
-      <div v-for="assetState in currentModifiedDisplayPaths" class="modified-item" :key="assetState.asset_path">
+      <div v-for="assetState in currentModifiedDisplayPaths" class="modified-item" :key="getModifiedAssetKey(assetState)">
         <ActionButton :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('modals.modifiedAsset')" />
         <div class="modified-item-name">
           {{ assetState.display_path }}
         </div>
-        <span class="single-action-button" @click="removeItem(assetState.asset_path)" v-tooltip="$t('common.remove')">
+        <span class="single-action-button" @click="removeItem(getModifiedAssetKey(assetState))" v-tooltip="$t('common.remove')">
           <img class="small-icons" src="/icons/close.svg">
         </span>
       </div>
@@ -111,11 +111,13 @@ const useImageAsCover = ref(true);
 // constants
 const forbiddenComments = ['wip', 'wfa', 'retake', 'retook', 'todo', 'fmf'];
 
+const getModifiedAssetKey = (assetState) => `${assetState.asset_path}${assetState.extension || ''}`;
+
 // computed
 // Returns modified asset display paths after filtering.
 const currentModifiedDisplayPaths = computed(() => {
   let filteredAssets = assetStore.modifiedAssets.modified || [];
-  filteredAssets = filteredAssets.filter((assetState) => !removedPaths.value.includes(assetState.asset_path));
+  filteredAssets = filteredAssets.filter((assetState) => !removedPaths.value.includes(getModifiedAssetKey(assetState)));
   if (trayStates.createMultipleCheckpointsCollectionPath) {
     filteredAssets = filteredAssets.filter((assetState) => assetState.asset_path.startsWith(trayStates.createMultipleCheckpointsCollectionPath));
   }
@@ -183,10 +185,11 @@ const createCheckPoints = async () => {
   const groupId = uuidv4();
   const assetPathsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.asset_path);
   const extensionsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.extension);
+  const modifiedAssetKeysForCheckpoints = currentModifiedDisplayPaths.value.map(getModifiedAssetKey);
   await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, extensionsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value, false)
     .then(() => {
       assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
-        (item) => !assetPathsForCheckpoints.includes(item.asset_path)
+        (item) => !modifiedAssetKeysForCheckpoints.includes(getModifiedAssetKey(item))
       );
     })
     .catch((error) => {
@@ -242,9 +245,38 @@ const toggleShowCheckpointItems = () => {
   showCheckpointItems.value = !showCheckpointItems.value;
 };
 
+// Loads checkpoint candidates directly from the current selection.
+const loadSelectedItemsForCheckpoint = () => {
+  assetStore.loadingAssetStates = true;
+  try {
+    const modifiedAssets = stage.selectedItems
+      .filter((item) => item.type === 'asset' && item.file_status === 'modified')
+      .map((asset) => ({
+        asset_id: asset.id,
+        asset_path: asset.asset_path,
+        extension: asset.extension,
+        display_path: asset.asset_path + asset.extension
+      }));
+
+    const untrackedPaths = stage.selectedItems
+      .filter((item) => item.type === 'untracked_asset')
+      .map((asset) => asset.asset_path)
+      .filter(Boolean);
+
+    assetStore.modifiedAssets = {
+      modified: modifiedAssets,
+      untracked: untrackedPaths
+    };
+  } finally {
+    assetStore.loadingAssetStates = false;
+  }
+};
+
 // lifecycle hooks
 onMounted(async () => {
-  if (trayStates.createMultipleCheckpoints) {
+  if (!trayStates.createMultipleCheckpoints) {
+    loadSelectedItemsForCheckpoint();
+  } else {
     let collectionId = null;
     let targetPath = null;
     const selectedItem = stage.selectedItem;

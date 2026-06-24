@@ -101,6 +101,7 @@
         </div>
 
         <div v-else class="action-bar">
+          <ActionButton v-if="selectedItemsCanCreateCheckpoints" :icon="getAppIcon('plus-stone')" :useAlert="hasModifiedAssetsSelected" :useDanger="hasUntrackedAssetsSelected" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleItems" v-tooltip="$t('components.detailsPane.deleteAllItemsTooltip')" />
         </div>
 
@@ -365,9 +366,21 @@ const showAssetCollectionActions = computed(() => {
 
 const assetsCanFetch = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status === 'fetchable'));
 
-const assetsModified = computed(() => {
-  const modifiedAssetsState = assetStore.getModifiedDisplayPaths;
-  return modifiedAssetsState.some((assetState) => stage.markedItems.includes(assetState.asset_id));
+const isModifiedAsset = (item) => item.type === 'asset' && item.file_status === 'modified';
+
+const assetsModified = computed(() => stage.selectedItems.some(isModifiedAsset));
+
+const hasModifiedAssetsSelected = computed(() => stage.selectedItems.some(isModifiedAsset));
+
+const hasUntrackedAssetsSelected = computed(() => stage.selectedItems.some((item) => item.type === 'untracked_asset'));
+
+const selectedItemsCanCreateCheckpoints = computed(() => {
+  if (!stage.selectedItems.length) return false;
+  return stage.selectedItems.every((item) => {
+    if (item.type === 'asset') return item.file_status === 'modified';
+    if (item.type === 'untracked_asset') return canCreateFromUntrackedHere.value;
+    return false;
+  });
 });
 
 const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'fetchable'));
