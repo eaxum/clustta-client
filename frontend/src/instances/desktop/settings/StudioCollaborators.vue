@@ -9,14 +9,17 @@
 				<ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
 					:buttonFunction="refresh" />
 			</div>
+			<div v-if="studioCollaborators.length || searchQuery" class="search-bar">
+				<SearchBar v-model="searchQuery" :placeholder="$t('panes.searchByNameOrEmail')" @clear="clearSearch" />
+			</div>
 		</div>
 
 
       <AssetListSkeleton v-if="!studioStore.studioUsers.length" />
 
-        <div v-else class="project-list-container" ref="openProjectsContainer">
+        <div v-else-if="filteredStudioCollaborators.length" class="project-list-container" ref="openProjectsContainer">
             <div class="project-list" >
-                <CollaboratorItem v-for="collaborator, index in studioStore.studioUsers" :key="collaborator.id"
+                <CollaboratorItem v-for="collaborator, index in filteredStudioCollaborators" :key="collaborator.id"
                     :collaborator="collaborator"
                     :index="index"
                     :roles="studioRoles"
@@ -25,6 +28,7 @@
                     :style="{ animationDelay: index < 12 ? `${(index - 1) * 0.03}s` : '0s' }" />
             </div>
         </div>
+        <PageState v-else :message="message()" :illustration="illustration()" />
 
 
     </div>
@@ -50,6 +54,8 @@ import { useProjectStore } from '@/stores/projects';
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
 import AssetListSkeleton from '@/instances/desktop/components/AssetListSkeleton.vue'
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
+import PageState from '@/instances/common/components/PageState.vue';
 
 
 // states
@@ -61,6 +67,8 @@ const userStore = useUserStore();
 const modals = useDesktopModalStore();
 
 const { t } = useI18n();
+
+const searchQuery = ref('');
 
 const studioInactive = computed(() => !entitlementStore.isStudioActive);
 
@@ -99,6 +107,49 @@ const getAppIcon = (iconName) => {
 };
 
 // computed props
+const studioCollaborators = computed(() => {
+  return studioStore.studioUsers.map(user => ({
+    ...user,
+    name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+  }));
+});
+
+const filteredStudioCollaborators = computed(() => {
+  return filterCollaborators(studioCollaborators.value, searchQuery.value);
+});
+
+const clearSearch = () => {
+  searchQuery.value = '';
+};
+
+const filterCollaborators = (collaborators, query) => {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return collaborators;
+
+  return collaborators.filter((collaborator) => {
+    const values = [
+      collaborator.name,
+      `${collaborator.first_name || ''} ${collaborator.last_name || ''}`,
+      collaborator.email,
+      collaborator.role_name,
+      collaborator.role?.name,
+    ];
+
+    return values.some((value) => String(value || '').toLowerCase().includes(normalizedQuery));
+  });
+};
+
+const illustration = () => {
+  return '/page-states/resources.png';
+};
+
+const message = () => {
+  if (searchQuery.value) {
+    return t('notifications.noCollaboratorsMatch');
+  }
+  return t('notifications.noCollaboratorsOnProject');
+};
+
 onMounted( async () => {
     await studioStore.getStudioUsers();
 })
@@ -251,12 +302,13 @@ onMounted( async () => {
 	/* background-color: black; */
 }
 
-.action-bar {
+.search-bar {
 	position: relative;
 	display: flex;
 	align-items: center;
-	gap: .4rem;
-	width: max-content;
+	flex: 1;
+	max-width: 40%;
+	min-width: 240px;
 	height: max-content;
 	padding: .2rem;
 	/* background-color: black; */

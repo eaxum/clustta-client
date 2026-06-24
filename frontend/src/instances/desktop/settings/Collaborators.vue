@@ -8,12 +8,15 @@
           <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
             :buttonFunction="refresh" />
         </div>
+        <div v-if="projectCollaborators.length || searchQuery" class="search-bar">
+          <SearchBar v-model="searchQuery" :placeholder="$t('panes.searchByNameOrEmail')" @clear="clearSearch" />
+        </div>
       </div>
 
-      <div v-if="projectCollaborators.length" class="collaborators-list-wrapper">
+      <div v-if="filteredProjectCollaborators.length" class="collaborators-list-wrapper">
         <div class="collaborators-list">
           <CollaboratorItem 
-            v-for="(collaborator, index) in projectCollaborators" 
+            v-for="(collaborator, index) in filteredProjectCollaborators" 
             :key="collaborator.id"
             :collaborator="collaborator"
             :index="index"
@@ -25,6 +28,7 @@
           />
         </div>
       </div>
+      <PageState v-else :message="message()" :illustration="illustration()" />
 
     </div>
   </div>
@@ -33,7 +37,7 @@
 <script setup>
 
 // imports
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CollaboratorService, ProjectService } from "@/services";
 import utils from '@/services/utils';
@@ -48,6 +52,8 @@ import { useTrayStates } from '@/stores/TrayStates';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
+import PageState from '@/instances/common/components/PageState.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useUserStore } from '@/stores/users';
@@ -86,6 +92,7 @@ const refresh = async () => {
 };
 
 // refs
+const searchQuery = ref('');
 
 // Whether the active project is a studio project (cloud or private).
 const isStudioProject = computed(() => {
@@ -145,6 +152,10 @@ const projectCollaborators = computed(() => {
   return utils.sortAlphabetically(users);
 });
 
+const filteredProjectCollaborators = computed(() => {
+  return filterCollaborators(projectCollaborators.value, searchQuery.value);
+});
+
 const changeCollaboratorRole = async (userId, newRole) => {
   await ProjectService.ChangeRole(projectStore.activeProject.uri, userId, newRole)
     .then(async () => {
@@ -176,6 +187,38 @@ const deleteCollaborator = async (userId) => {
   }
 };
 
+const clearSearch = () => {
+  searchQuery.value = '';
+};
+
+const filterCollaborators = (collaborators, query) => {
+  const normalizedQuery = query.trim().toLowerCase();
+  if (!normalizedQuery) return collaborators;
+
+  return collaborators.filter((collaborator) => {
+    const values = [
+      collaborator.name,
+      `${collaborator.first_name || ''} ${collaborator.last_name || ''}`,
+      collaborator.email,
+      collaborator.role_name,
+      collaborator.role?.name,
+    ];
+
+    return values.some((value) => String(value || '').toLowerCase().includes(normalizedQuery));
+  });
+};
+
+const illustration = () => {
+  return '/page-states/resources.png';
+};
+
+const message = () => {
+  if (searchQuery.value) {
+    return t('notifications.noCollaboratorsMatch');
+  }
+  return t('notifications.noCollaboratorsOnProject');
+};
+
 </script>
 
 <style scoped>
@@ -203,6 +246,17 @@ const deleteCollaborator = async (userId) => {
   align-items: center;
   gap: .4rem;
   width: max-content;
+  height: max-content;
+  padding: .2rem;
+}
+
+.search-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 40%;
+  min-width: 240px;
   height: max-content;
   padding: .2rem;
 }
