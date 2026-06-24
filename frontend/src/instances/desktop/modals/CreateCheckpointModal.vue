@@ -509,13 +509,14 @@ onUnmounted(() => {
   font-weight: 200;
   color: var(--text);
   height: 100px;
-  max-height: 100px;
+  max-height: 180px;
 }
 
 .with-checkpoint-history .desktop-input-long {
   flex: 1;
   height: 100%;
   max-height: none;
+  max-height: 180px;
 }
 
 .input-label {

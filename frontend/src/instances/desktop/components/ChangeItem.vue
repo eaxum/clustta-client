@@ -13,9 +13,9 @@
         <ActionButton v-if="hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
         <ActionButton v-if="item.change_type !== 'deleted' && itemType !== 'other'" :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeItem.goToItem')" :buttonFunction="() => $emit('find', item.id)" :isDisabled="isLoading" />
         <ActionButton v-if="hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="!hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
+        <ActionButton v-if="!hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       </div>
-      <ActionButton v-if="!hasChildren && item.change_type === 'deleted'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.restore')" :buttonFunction="() => $emit('restore', item.id)" :isDisabled="isLoading" />
-      <ActionButton v-if="!hasChildren && item.change_type !== 'deleted' && item.change_type !== 'unchanged'" :icon="getAppIcon('undo')" v-tooltip="$t('components.changeItem.discard')" :buttonFunction="() => $emit('discard', item.id)" :isDisabled="isLoading" />
       <ActionButton v-if="hasChildren" :icon="getAppIcon('chevron-right')" :class="{ 'chevron-expanded': isExpanded }" :buttonFunction="toggleChildren" />
 
     </div>
@@ -164,6 +164,7 @@ onMounted(resolveIcon);
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .changelog-child {
@@ -218,12 +219,19 @@ onMounted(resolveIcon);
   width: 100%;
   padding: 0 .5rem;
   background-color: var(--surface-2);
-  border-radius: var(--small-radius);
   overflow: hidden;
 }
 
 .changelog-item-actions {
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(.5rem);
+  transition: max-width .2s ease-in-out, opacity .2s ease-out, transform .2s ease-out;
+  /* background-color: #f87171; */
 }
 
 .changelog-item-container {
@@ -250,7 +258,15 @@ onMounted(resolveIcon);
 }
 
 .changelog-item-container:hover .changelog-item-actions {
-  display: flex;
+  /* max-width: 96px; */
+  min-width: 68px;
+  padding: .2rem;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  opacity: 1;
+  transform: translateX(0);
 }
 
 .changelog-item-icon {
@@ -286,6 +302,7 @@ onMounted(resolveIcon);
   gap: .5rem;
   width: 100%;
   min-height: 40px;
+  min-width: 0;
 }
 
 .chevron-expanded {

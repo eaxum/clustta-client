@@ -7,7 +7,7 @@
       @click="filterList(index, dataType.id || dataType.name)" class="tab-button"
       :class="{ 'selected-tab-button': selectedTab === (dataType.id || dataType.name), 'fullwidth-tab-button': fullWidth }">
       <div class="tab-content">
-        <img class="small-icons" :src="getAppIcon(dataType.icon)">
+        <img class="small-icons" :class="dataType.iconClass" :src="getAppIcon(dataType.icon)">
         <div v-if="!iconsOnly && (selectedTab === (dataType.id || dataType.name) || fullWidth)" class="selected-tab-button-text"> {{
           dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name) }}</div>
       </div>

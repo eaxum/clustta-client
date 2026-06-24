@@ -36,7 +36,9 @@
         </div>
 
         <div v-if="compact && !isProjectMember" class="collaborator-item-actions compact-actions-container">
-          <ActionButton v-if="canEditRole" :icon="getAppIcon(isLoading ? 'loading' : 'person-plus')" :isLoading="isLoading" @click="addToProject" v-tooltip="isLoading ? $t('components.collaboratorItem.adding') : $t('components.collaboratorItem.addToProject')" />
+          <div class="compact-hover-actions">
+            <ActionButton v-if="canEditRole" :icon="getAppIcon(isLoading ? 'loading' : 'person-plus')" :isLoading="isLoading" @click="addToProject" v-tooltip="isLoading ? $t('components.collaboratorItem.adding') : $t('components.collaboratorItem.addToProject')" />
+          </div>
         </div>
 
       </div>
@@ -346,10 +348,27 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   align-items: center;
   justify-content: flex-end;
-  width: min-content;
-  min-width: max-content;
-  gap: .5rem;
+  gap: .25rem;
   height: 100%;
+  max-width: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateX(.5rem);
+  transition: max-width .2s ease-in-out, opacity .2s ease-out, transform .2s ease-out;
+}
+
+.collaborator-item-main:hover .collaborator-item-actions,
+.collaborator-item-main.compact-editing .collaborator-item-actions {
+  max-width: 96px;
+  opacity: 1;
+  transform: translateX(0);
+  min-width: 78px;
+  /* padding: .5rem; */
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  /* background-color: crimson; */
 }
 
 /* Compact mode styles */
@@ -358,12 +377,21 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: .5rem;
   height: 100%;
+  max-width: none;
+  opacity: 1;
+  overflow: visible;
+  transform: none;
 }
 
 .compact-hover-actions {
-  display: none;
+  display: flex;
+  align-items: center;
+  gap: .25rem;
+  max-width: 0;
   opacity: 0;
-  transition: all 0.2s ease-out;
+  overflow: hidden;
+  transform: translateX(.5rem);
+  transition: max-width .2s ease-in-out, opacity .2s ease-out, transform .2s ease-out;
 }
 
 .compact-mode:hover .compact-hover-actions {
@@ -371,11 +399,10 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
-  width: min-content;
-  min-width: max-content;
-  gap: .5rem;
   height: 100%;
+  max-width: 72px;
   opacity: 1;
+  transform: translateX(0);
 }
 
 .compact-role-meta {
@@ -388,14 +415,16 @@ onBeforeUnmount(() => {
   max-width: 100px;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-left: auto;
+  transition: max-width .2s ease-in-out, opacity .2s ease-out, padding .2s ease-out, transform .2s ease-out;
 }
 
 .compact-mode:hover .compact-role-meta {
-  opacity: 0;
-  width: 0;
   max-width: 0;
-  padding: 0;
-  transition: all 0.2s ease-out;
+  opacity: 0;
+  padding-left: 0;
+  padding-right: 0;
+  transform: translateX(-.25rem);
 }
 
 .compact-dropdown {
