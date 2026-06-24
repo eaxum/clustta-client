@@ -331,10 +331,9 @@ const unassignSingleAsset = async () => {
 
 // lifecycle hooks
 onMounted(() => {
-  searchUserInput.value.focus();
+  searchUserInput.value?.focus();
   menu.assetMenuWidth = collectionMenu.value.getBoundingClientRect().width;
   menu.collectionMenu = collectionMenu.value;
-  console.log(collaboratorsList.value)
 });
 
 onBeforeUnmount(() => {
