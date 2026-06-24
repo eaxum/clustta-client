@@ -1,10 +1,10 @@
 <template>
   <div ref="popUpMenu" class="filter-menu-container">
 
-    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
       :label="$t('common.openWith')" :buttonFunction="launchAssetWithCommand" />
 
-    <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk')" class="menu-divider"></span>
+    <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" class="menu-divider"></span>
 
     <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameAsset" />
@@ -12,7 +12,7 @@
     <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
       :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="canCreateAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
+    <ActionButton v-if="canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
@@ -21,14 +21,14 @@
       :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
-    <ActionButton v-if="!platformStore.isWeb && canUpdateAsset" 
+    <ActionButton v-if="!platformStore.isWeb && canUpdateAsset && !isWebLinkAsset"
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
     <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('fetch')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
-    <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies')" :icon="getAppIcon('dependency')" :showLabel="true"
+    <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies') && !isWebLinkAsset" :icon="getAppIcon('dependency')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
@@ -36,7 +36,7 @@
       :label="$t('menus.goToAsset')" :buttonFunction="goToLocation" />
 
     <!-- Reveal in Explorer -->
-    <span v-if="!platformStore.isWeb" class="horizontal-flex">
+    <span v-if="!platformStore.isWeb && !isWebLinkAsset" class="horizontal-flex">
       <ActionButton :icon="getAppIcon('folder-arrow-up-right')" :showLabel="true" :fullWidth="true" :label="showLabel"
         :buttonFunction="revealInExplorer" />
       <ActionButton :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false" @click="copyAssetPath('asset')"
@@ -44,8 +44,12 @@
     </span>
 
     <!-- Copy Clustta deep link (dev/test) -->
-    <ActionButton :icon="getAppIcon('copy')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="!isWebLinkAsset" :icon="getAppIcon('copy')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.copyClusttaLink')" :buttonFunction="copyDeepLink" />
+
+    <!-- Copy link asset URL -->
+    <ActionButton v-if="isWebLinkAsset" :icon="getAppIcon('copy')" :showLabel="true" :fullWidth="true"
+      :label="$t('menus.copyUrl')" :buttonFunction="copyAssetUrl" />
 
     <!-- Extract Archive -->
     <ActionButton v-if="!platformStore.isWeb && isArchive" :icon="getAppIcon('unarchive')" :showLabel="true" :fullWidth="true" 
@@ -189,6 +193,11 @@ const isNotOnDisk = computed(() => {
   return asset.value?.file_status === 'fetchable';
 });
 
+// Checks if the selected asset points to a web URL.
+const isWebLinkAsset = computed(() => {
+  return !!asset.value?.is_link && isValidWeblink(asset.value.pointer);
+});
+
 // Checks if the active project is remote.
 const isRemoteProject = computed(() => {
   return projectStore.activeProject?.has_remote;
@@ -267,6 +276,19 @@ const copyDeepLink = async () => {
   const deepLink = `clustta://open?${params.toString()}`;
   await Clipboard.SetText(deepLink);
   notificationStore.addNotification(t('notifications.pathCopied'), deepLink, 'success');
+  menu.hideContextMenu();
+};
+
+// Copies the selected link asset's URL to clipboard.
+const copyAssetUrl = async () => {
+  const selectedAsset = assetStore.selectedAsset;
+  if (!selectedAsset || !isValidWeblink(selectedAsset.pointer)) {
+    menu.hideContextMenu();
+    return;
+  }
+
+  await Clipboard.SetText(selectedAsset.pointer);
+  notificationStore.addNotification(t('notifications.urlCopied'), selectedAsset.pointer, 'success');
   menu.hideContextMenu();
 };
 
