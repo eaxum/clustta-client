@@ -5,6 +5,21 @@ import { useIconStore } from '@/stores/icons';
 // Module-scoped cache shared across all callers (key = file_path, value = base64 string).
 const thumbnailCache = new Map();
 
+export function invalidateAssetThumbnail(filePath) {
+  if (!filePath) return;
+  thumbnailCache.delete(filePath);
+}
+
+export function invalidateAssetThumbnailsForItems(items = []) {
+  if (!Array.isArray(items)) return;
+
+  for (const item of items) {
+    if ((item?.type === 'asset' || item?.type === 'untracked_asset') && item.file_path) {
+      invalidateAssetThumbnail(item.file_path);
+    }
+  }
+}
+
 // Returns the appropriate file-type icon name for an asset based on extension.
 export const getFileTypeIcon = (asset) => {
   const extension = asset?.extension?.toLowerCase() || '';

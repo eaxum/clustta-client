@@ -47,6 +47,7 @@ import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { useDebounce } from '@/lib/debounce';
 import { useFsWatch } from '@/composables/useFsWatch';
+import { invalidateAssetThumbnailsForItems } from '@/composables/useAssetThumbnail';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -529,7 +530,12 @@ const handleRootFsChange = async () => {
 			...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
 			...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] }))
 		];
-		if (statusUpdates.length) emitter.emit('update-root-data', statusUpdates);
+		if (statusUpdates.length) {
+			const updatedIds = new Set(statusUpdates.map(update => update.itemId));
+			const visibleItems = dndStore.allViewItems?.length ? dndStore.allViewItems : rootData.value;
+			invalidateAssetThumbnailsForItems(visibleItems.filter(item => updatedIds.has(item.id)));
+			emitter.emit('update-root-data', statusUpdates);
+		}
 
 		const untracked = [
 			...(state.untracked_folders || []),
@@ -861,7 +867,12 @@ const refresh = async () => {
 };
 
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
-const softRefresh = async () => {
+const softRefresh = async (options = {}) => {
+	if (options.invalidateVisibleThumbnails) {
+		const visibleItems = dndStore.allViewItems?.length ? dndStore.allViewItems : rootData.value;
+		invalidateAssetThumbnailsForItems(visibleItems);
+	}
+
 	scrollTop.value = scrollStore.scrollTop
 	assetStore.assetsLoaded = false;
 	let children = {};

@@ -373,8 +373,8 @@ const goUpALevel = async () => {
 // Handles clicks outside to close overflow menu.
 const handleClickOutside = () => { if (displayOverflowItems.value) displayOverflowItems.value = false; };
 
-// Emits refresh event to reload the browser view.
-const refresh = () => emitter.emit('refresh-browser');
+// Emits refresh event to reload the browser view and regenerate visible thumbnails.
+const refresh = () => emitter.emit('refresh-browser', { invalidateVisibleThumbnails: true });
 
 // Opens the current directory in the system file explorer.
 const revealInExplorer = async () => {

@@ -16,6 +16,7 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, onUpdated, ref, watch, watchEffect } from 'vue';
 import emitter from '@/lib/mitt';
 import { useFsWatch } from '@/composables/useFsWatch';
+import { invalidateAssetThumbnailsForItems } from '@/composables/useAssetThumbnail';
 
 // components
 import VirtuaItem from '@/instances/common/components/VirtuaItem.vue';
@@ -419,7 +420,12 @@ const refreshView = async () => {
       ...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
       ...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] }))
     ];
-    if (statusUpdates.length) emitItemUpdates(statusUpdates);
+    if (statusUpdates.length) {
+      const updatedIds = new Set(statusUpdates.map(update => update.itemId));
+      const visibleItems = dndStore.allViewItems?.length ? dndStore.allViewItems : props.items;
+      invalidateAssetThumbnailsForItems(visibleItems.filter(item => updatedIds.has(item.id)));
+      emitItemUpdates(statusUpdates);
+    }
 
     const untracked = [
       ...(state.untracked_folders || []),
