@@ -1,56 +1,69 @@
 <template>
   <div ref="modalContainer" class="modal-container" v-stop-propagation>
     <HeaderArea :title="$t('modals.createCheckpoint')" :icon="'plus-stone'" />
-    <div class="general-container">
+    <div class="general-container" :class="{ 'with-checkpoint-history': showExistingCheckpoints }">
 
-      <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.makeAComment')" v-focus
-        @keydown.enter="handleEnterKey" />
+      <div class="checkpoint-create-layout">
+        <div class="checkpoint-create-form">
+          <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.makeAComment')" v-focus
+            @keydown.enter="handleEnterKey" />
 
-      <InputAlert :show="!isValueChanged" :message="validationMessage" />
+          <div class="checkpoint-create-controls">
+            <InputAlert :show="!isValueChanged" :message="validationMessage" />
 
-      <div v-if="!statusMenuDisplayed" class="attachment-area">
-        <div class="asset-item-status-container" v-stop-propagation>
-          <div class="asset-item-status" @click="toggleDisplayStatusMenu()"
-            :style="{ backgroundColor: assetStatus.color }">
-            {{ assetStatus.short_name }}
+            <div v-if="!statusMenuDisplayed" class="attachment-area">
+              <div class="asset-item-status-container" v-stop-propagation>
+                <div class="asset-item-status" @click="toggleDisplayStatusMenu()"
+                  :style="{ backgroundColor: assetStatus.color }">
+                  {{ assetStatus.short_name }}
+                </div>
+              </div>
+              <ActionButton :icon="getAppIcon('paperclip')" v-tooltip="$t('modals.attachSnapshot')" v-stop-propagation
+                :buttonFunction="selectPreviewFile" />
+              <ActionButton :icon="getAppIcon('clipboard')" v-tooltip="$t('modals.pasteSnapshot')" v-stop-propagation
+                :buttonFunction="addImageFromClipBoard" />
+              <ActionButton v-if="trayStates.previewFullPath" :icon="getAppIcon('trash')" v-tooltip="$t('modals.deleteSnapshot')"
+                v-stop-propagation :buttonFunction="removePreveiw" />
+              <ActionButton v-if="canShowExistingCheckpoints" :icon="getAppIcon('checkpoint-stone')"
+                v-tooltip="checkpointPaneVisible ? `${$t('common.hide')} ${$t('panes.checkpointsTab')}` : `${$t('common.show')} ${$t('panes.checkpointsTab')}`"
+                v-stop-propagation :buttonFunction="toggleCheckpointPane" :isActive="checkpointPaneVisible" />
+            </div>
+
+            <div v-else class="status-section">
+              <div class="asset-item-status-container status-displayed">
+                <StatusMenu @statusSelected="closeStatusMenu" />
+              </div>
+            </div>
+
+            <span v-if="trayStates.screenshot" class="screenshot-preview">
+              <img class="screenshot-thumb" :src="trayStates.screenshot">
+            </span>
+
+            <div v-if="trayStates.previewFullPath && !isAttachmentImage" class="attachment-indicator">
+              <img class="attachment-icon" :src="getAppIcon('paperclip')">
+              <span class="attachment-name">{{ trayStates.previewFile }}</span>
+            </div>
+
+            <div v-if="isAttachmentImage" class="horizontal-flex">
+              <div class="input-label"> {{ $t('modals.useImageAsThumbnail') }}</div>
+              <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
+            </div>
+
+            <div v-if="isRemoteProject" class="horizontal-flex">
+              <div class="input-label"> {{ $t('modals.syncAfterCheckpoint') }}</div>
+              <ToggleSwitch :switchValueProp="syncAfterCheckpointEnabled" @click="toggleSyncAfterCheckpoint()" />
+            </div>
+
+            <div v-if="hasLinkedIntegration" class="horizontal-flex">
+              <div class="input-label"> {{ $t('modals.sendToIntegration', { name: integrationName }) }}</div>
+              <ToggleSwitch :switchValueProp="sendToIntegrationEnabled" @click="toggleSendToIntegration()" />
+            </div>
           </div>
         </div>
-        <ActionButton :icon="getAppIcon('paperclip')" v-tooltip="$t('modals.attachSnapshot')" v-stop-propagation
-          :buttonFunction="selectPreviewFile" />
-        <ActionButton :icon="getAppIcon('clipboard')" v-tooltip="$t('modals.pasteSnapshot')" v-stop-propagation
-          :buttonFunction="addImageFromClipBoard" />
-        <ActionButton v-if="trayStates.previewFullPath" :icon="getAppIcon('trash')" v-tooltip="$t('modals.deleteSnapshot')"
-          v-stop-propagation :buttonFunction="removePreveiw" />
-      </div>
 
-      <div v-else class="status-section">
-        <div class="asset-item-status-container status-displayed">
-          <StatusMenu @statusSelected="closeStatusMenu" />
+        <div v-if="showExistingCheckpoints" class="checkpoint-create-history">
+          <Checkpoints />
         </div>
-      </div>
-
-      <span v-if="trayStates.screenshot" class="screenshot-preview">
-        <img class="screenshot-thumb" :src="trayStates.screenshot">
-      </span>
-
-      <div v-if="trayStates.previewFullPath && !isAttachmentImage" class="attachment-indicator">
-        <img class="attachment-icon" :src="getAppIcon('paperclip')">
-        <span class="attachment-name">{{ trayStates.previewFile }}</span>
-      </div>
-
-      <div v-if="isAttachmentImage" class="horizontal-flex">
-        <div class="input-label"> {{ $t('modals.useImageAsThumbnail') }}</div>
-        <ToggleSwitch :switchValueProp="useImageAsCover" @click="useAsCover()" />
-      </div>
-
-      <div v-if="isRemoteProject" class="horizontal-flex">
-        <div class="input-label"> {{ $t('modals.syncAfterCheckpoint') }}</div>
-        <ToggleSwitch :switchValueProp="syncAfterCheckpointEnabled" @click="toggleSyncAfterCheckpoint()" />
-      </div>
-
-      <div v-if="hasLinkedIntegration" class="horizontal-flex">
-        <div class="input-label"> {{ $t('modals.sendToIntegration', { name: integrationName }) }}</div>
-        <ToggleSwitch :switchValueProp="sendToIntegrationEnabled" @click="toggleSendToIntegration()" />
       </div>
 
       <div class="pop-up-actions">
@@ -60,8 +73,6 @@
       </div>
 
     </div>
-
-
   </div>
 </template>
 
@@ -78,6 +89,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
+import Checkpoints from '@/instances/desktop/panes/Checkpoints.vue';
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
@@ -108,6 +120,7 @@ const { t } = useI18n();
 
 // refs
 const displayStatusMenu = ref(false);
+const checkpointPaneVisible = ref(false);
 const isAwaitingResponse = ref(false);
 const message = ref('');
 const modalContainer = ref(null);
@@ -138,6 +151,16 @@ const isValueChanged = computed(() => {
 // Returns whether the status menu should be displayed.
 const isRemoteProject = computed(() => {
   return projectStore.activeProject?.has_remote;
+});
+
+// Returns whether the selected asset can show existing checkpoints.
+const canShowExistingCheckpoints = computed(() => {
+  return assetStore.selectedAsset?.type === 'asset' && !!assetStore.selectedAsset?.id;
+});
+
+// Returns whether the existing checkpoints pane should be mounted.
+const showExistingCheckpoints = computed(() => {
+  return canShowExistingCheckpoints.value && checkpointPaneVisible.value;
 });
 
 // Returns whether the project has a linked integration.
@@ -327,6 +350,11 @@ const toggleDisplayStatusMenu = () => {
   displayStatusMenu.value = true;
 };
 
+// Toggles the existing checkpoints pane.
+const toggleCheckpointPane = () => {
+  checkpointPaneVisible.value = !checkpointPaneVisible.value;
+};
+
 // Toggles whether to use the image as cover.
 const useAsCover = () => {
   useImageAsCover.value = !useImageAsCover.value;
@@ -421,15 +449,73 @@ onUnmounted(() => {
 }
 
 .general-container {
+  max-height: 520px;
   gap: .5rem;
   align-items: center;
   justify-content: flex-start;
 }
 
+.general-container.with-checkpoint-history {
+  width: 860px;
+  max-width: min(860px, 90vw);
+}
+
+.checkpoint-create-layout {
+  display: flex;
+  align-items: stretch;
+  gap: .75rem;
+  width: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.checkpoint-create-form {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: .5rem;
+  min-width: 0;
+}
+
+.checkpoint-create-controls {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: .5rem;
+  width: 100%;
+  min-width: 0;
+  /* background-color: forestgreen; */
+}
+
+.checkpoint-create-history {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 300px;
+  max-width: 390px;
+  /* max-height: 380px; */
+  /* height: 100%; */
+  /* min-height: 320px; */
+  overflow: hidden;
+  border-left: var(--transparent-line);
+  padding-left: .75rem;
+  box-sizing: border-box;
+  /* background-color: crimson; */
+}
+
+
 .desktop-input-long {
   margin-top: 0px;
   font-weight: 200;
   color: var(--text);
+  height: 100px;
+  max-height: 100px;
+}
+
+.with-checkpoint-history .desktop-input-long {
+  flex: 1;
+  height: 100%;
+  max-height: none;
 }
 
 .input-label {
