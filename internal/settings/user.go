@@ -127,10 +127,11 @@ type Settings struct {
 	ProjectLocations  []ProjectLocation `json:"project_locations"`
 	DefaultLocationID string            `json:"default_location_id"`
 
-	SyncAfterCheckpoint bool  `json:"sync_after_checkpoint"`
-	UseUpdateSync       bool  `json:"use_update_sync"`
-	BridgeEnabled       bool  `json:"bridge_enabled"`
-	MinimizeOnClose     *bool `json:"minimize_on_close,omitempty"`
+	SyncAfterCheckpoint   bool  `json:"sync_after_checkpoint"`
+	UseUpdateSync         bool  `json:"use_update_sync"`
+	OverwriteDroppedFiles *bool `json:"overwrite_dropped_files,omitempty"`
+	BridgeEnabled         bool  `json:"bridge_enabled"`
+	MinimizeOnClose       *bool `json:"minimize_on_close,omitempty"`
 
 	AgentAutoApproveDestructive bool `json:"agent_auto_approve_destructive"`
 
@@ -523,6 +524,29 @@ func SetUseUpdateSync(enabled bool) error {
 		return err
 	}
 	settings.UseUpdateSync = enabled
+	return saveSettings(settings)
+}
+
+// GetOverwriteDroppedFiles returns whether OS file drops overwrite matching files.
+// Defaults to true to preserve the current experimental drop behavior.
+func GetOverwriteDroppedFiles() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	if settings.OverwriteDroppedFiles == nil {
+		return false, nil
+	}
+	return *settings.OverwriteDroppedFiles, nil
+}
+
+// SetOverwriteDroppedFiles sets whether OS file drops overwrite matching files.
+func SetOverwriteDroppedFiles(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.OverwriteDroppedFiles = &enabled
 	return saveSettings(settings)
 }
 

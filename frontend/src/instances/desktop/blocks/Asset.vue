@@ -2,6 +2,8 @@
   <!-- Grid View Asset Item -->
   <div v-if="commonStore.useGrid" 
     ref="assetItem" 
+    :data-file-drop-target="!isUntracked ? '' : null"
+    :id="!isUntracked ? 'drop-asset-' + asset.id : undefined"
     class="asset-item-main asset-item-grid" 
     v-return="launchSelectedAsset" 
     v-esc="handleEscKey" 
@@ -177,6 +179,8 @@
   <!-- List View Asset Item -->
   <div v-else 
     ref="assetItem" 
+    :data-file-drop-target="!isUntracked ? '' : null"
+    :id="!isUntracked ? 'drop-asset-' + asset.id : undefined"
     class="asset-item-main" 
     v-return="launchSelectedAsset" 
     v-esc="handleEscKey" 

@@ -479,7 +479,9 @@
     "untrackedItemsPurged": "Untracked items purged",
     "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
     "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
-    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items",
+    "overwriteDroppedFilesToggled": "드롭한 파일 덮어쓰기 {status}",
+    "failedToUpdateOverwriteDroppedFiles": "드롭한 파일 덮어쓰기 설정을 업데이트하지 못했습니다"
   },
   "settings": {
     "title": "설정",
@@ -661,7 +663,9 @@
     "connectIntegrationDescription": "Kitsu, ClickUp 등 외부 서비스에 연결합니다.",
     "connected": "연결됨",
     "clusttaLocalProjectsData": "Clustta 로컬 프로젝트 데이터",
-    "clusttaSharedProjectsData": "Clustta 공유 프로젝트 데이터"
+    "clusttaSharedProjectsData": "Clustta 공유 프로젝트 데이터",
+    "overwriteDroppedFiles": "드롭한 파일 덮어쓰기",
+    "overwriteDroppedFilesDescription": "OS 파일을 Clustta에 드롭하면 번호가 붙은 복사본을 만들지 않고 일치하는 대상 파일을 덮어씁니다. 파일이 추적 중인 에셋에 속하면 체크포인트를 만듭니다."
   },
   "modals": {
     "addAssetType": "에셋 유형 추가",

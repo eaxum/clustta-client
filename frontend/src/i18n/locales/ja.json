@@ -478,7 +478,9 @@
     "untrackedItemsPurged": "未追跡アイテムを削除しました",
     "purgeUntrackedSummary": "{count} 件を削除しました（ファイル {files} 件、フォルダ {folders} 件）。",
     "someUntrackedItemsCouldNotBePurged": "一部の未追跡アイテムを削除できませんでした",
-    "failedToPurgeUntrackedItems": "未追跡アイテムの削除に失敗しました"
+    "failedToPurgeUntrackedItems": "未追跡アイテムの削除に失敗しました",
+    "overwriteDroppedFilesToggled": "ドロップしたファイルの上書きが {status} になりました",
+    "failedToUpdateOverwriteDroppedFiles": "ドロップしたファイルの上書き設定を更新できませんでした"
   },
   "settings": {
     "title": "設定",
@@ -642,7 +644,9 @@
     "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
     "connected": "Connected",
     "clusttaLocalProjectsData": "Clustta Local Projects Data",
-    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data",
+    "overwriteDroppedFiles": "ドロップしたファイルを上書き",
+    "overwriteDroppedFilesDescription": "OS のファイルを Clustta にドロップしたとき、一致する保存先ファイルがあれば番号付きコピーを作成せずに上書きします。追跡中のアセットのファイルであればチェックポイントを作成します。"
   },
   "modals": {
     "addAssetType": "アセットタイプを追加",

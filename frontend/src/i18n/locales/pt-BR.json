@@ -478,7 +478,9 @@
     "untrackedItemsPurged": "Untracked items purged",
     "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
     "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
-    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items",
+    "overwriteDroppedFilesToggled": "Sobrescrever arquivos soltos {status}",
+    "failedToUpdateOverwriteDroppedFiles": "Falha ao atualizar a configuracao de sobrescrever arquivos soltos"
   },
   "settings": {
     "title": "Configurações",
@@ -642,7 +644,9 @@
     "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
     "connected": "Connected",
     "clusttaLocalProjectsData": "Clustta Local Projects Data",
-    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data",
+    "overwriteDroppedFiles": "Sobrescrever arquivos soltos",
+    "overwriteDroppedFilesDescription": "Quando um arquivo do sistema e solto no Clustta, sobrescreve o arquivo de destino correspondente em vez de criar uma copia numerada. Se o arquivo pertencer a um asset rastreado, um checkpoint sera criado."
   },
   "modals": {
     "addAssetType": "Adicionar Tipo de ativo",

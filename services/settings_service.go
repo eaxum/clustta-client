@@ -534,6 +534,16 @@ func (s *SettingsService) SetUseUpdateSync(enabled bool) error {
 	return settings.SetUseUpdateSync(enabled)
 }
 
+// GetOverwriteDroppedFiles returns whether OS file drops overwrite matching files.
+func (s *SettingsService) GetOverwriteDroppedFiles() (bool, error) {
+	return settings.GetOverwriteDroppedFiles()
+}
+
+// SetOverwriteDroppedFiles sets whether OS file drops overwrite matching files.
+func (s *SettingsService) SetOverwriteDroppedFiles(enabled bool) error {
+	return settings.SetOverwriteDroppedFiles(enabled)
+}
+
 // GetMinimizeOnClose returns whether the app minimizes to tray on close.
 func (s *SettingsService) GetMinimizeOnClose() (bool, error) {
 	return settings.GetMinimizeOnClose()

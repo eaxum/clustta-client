@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
     minimizeOnClose: true,
+    overwriteDroppedFiles: true,
     pendingTab: null,
     showTypeIcons: true,
     locationsStale: false,
@@ -120,6 +121,22 @@ export const useSettingsStore = defineStore("settings", {
       const newValue = !this.minimizeOnClose;
       await SettingsService.SetMinimizeOnClose(newValue);
       this.minimizeOnClose = newValue;
+    },
+
+    // Loads the overwrite dropped files state from user settings.
+    async initializeOverwriteDroppedFiles() {
+      try {
+        this.overwriteDroppedFiles = await SettingsService.GetOverwriteDroppedFiles();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles overwrite dropped files and persists the setting.
+    async toggleOverwriteDroppedFiles() {
+      const newValue = !this.overwriteDroppedFiles;
+      await SettingsService.SetOverwriteDroppedFiles(newValue);
+      this.overwriteDroppedFiles = newValue;
     },
 
     // Loads the show type icons state from user settings.

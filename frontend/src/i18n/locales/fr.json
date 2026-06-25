@@ -478,7 +478,9 @@
     "untrackedItemsPurged": "Untracked items purged",
     "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
     "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
-    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items",
+    "overwriteDroppedFilesToggled": "Ecraser les fichiers deposes {status}",
+    "failedToUpdateOverwriteDroppedFiles": "Impossible de mettre a jour le parametre d ecrasement des fichiers deposes"
   },
   "settings": {
     "title": "Paramètres",
@@ -642,7 +644,9 @@
     "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
     "connected": "Connected",
     "clusttaLocalProjectsData": "Clustta Local Projects Data",
-    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data",
+    "overwriteDroppedFiles": "Ecraser les fichiers deposes",
+    "overwriteDroppedFilesDescription": "Lorsqu un fichier du systeme est depose dans Clustta, il ecrase le fichier de destination correspondant au lieu de creer une copie numerotee. Si le fichier appartient a un asset suivi, un checkpoint est cree."
   },
   "modals": {
     "addAssetType": "Ajouter un type d'actif",

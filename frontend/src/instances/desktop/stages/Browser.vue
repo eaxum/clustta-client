@@ -43,6 +43,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
+import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { useDebounce } from '@/lib/debounce';
@@ -65,7 +66,7 @@ import ViewOptions from '@/instances/common/components/ViewOptions.vue';
 import VirtuaScroll from '@/instances/common/components/VirtuaScroll.vue';
 
 // services
-import { AssetService, CollectionService, DialogService, FSService, SyncService, TrashService } from '@/services';
+import { AssetService, CheckpointService, CollectionService, DialogService, FSService, SyncService, TrashService } from '@/services';
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
@@ -81,6 +82,7 @@ import { usePaneStore } from '@/stores/panes';
 import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
 import { useScrollStore } from '@/stores/scroll';
+import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 import { useStudioStore } from '@/stores/studio';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -102,6 +104,7 @@ const panes = usePaneStore();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
 const scrollStore = useScrollStore();
+const settingsStore = useSettingsStore();
 const stage = useStageStore();
 const studioStore = useStudioStore();
 const trayStates = useTrayStates();
@@ -503,6 +506,67 @@ const generateUniqueDestinationPath = async (directory, fileName) => {
 	} while (counter < 100);
 	const timestamp = Date.now();
 	return await FSService.JoinPath(directory, `${baseName}_${timestamp}${extension}`);
+};
+
+const getDroppedAssetTarget = (elementId) => {
+	if (!elementId.startsWith('drop-asset-')) return null;
+	const assetId = elementId.replace('drop-asset-', '');
+	return dndStore.allViewItems?.find(item => item.id === assetId && (item.type === 'asset' || item.asset_type_id)) ?? null;
+};
+
+const getDroppedCollectionDirectory = (elementId) => {
+	if (!elementId.startsWith('drop-')) return null;
+	if (elementId.startsWith('drop-asset-')) return null;
+	const collectionId = elementId.replace('drop-', '');
+	const collection = dndStore.allViewItems?.find(item => item.id === collectionId && (item.type === 'collection' || item.type === 'untracked_collection'));
+	return collection?.file_path ?? null;
+};
+
+const getDroppedFileDestinationPath = async (sourcePath, destinationDir, isFile, targetAsset = null) => {
+	if (targetAsset?.file_path) {
+		if (!isFile) throw new Error('Only files can overwrite an existing asset');
+		return targetAsset.file_path;
+	}
+
+	const itemName = await FSService.BaseName(sourcePath);
+	if (settingsStore.overwriteDroppedFiles && isFile) return await FSService.JoinPath(destinationDir, itemName);
+	return await generateUniqueDestinationPath(destinationDir, itemName);
+};
+
+const getAssetForDroppedDestination = async (destinationPath) => {
+	const extension = await FSService.ExtName(destinationPath);
+	if (!extension) return null;
+
+	const workingDir = projectStore.activeProject?.working_directory?.replace(/\\/g, '/');
+	const normalizedDestination = destinationPath.replace(/\\/g, '/');
+	if (!workingDir) return null;
+
+	let assetPath = getRelativePath(workingDir, normalizedDestination);
+	if (assetPath.endsWith(extension)) assetPath = assetPath.slice(0, -extension.length);
+
+	try {
+		return await AssetService.GetAssetByPath(projectStore.activeProject.uri, assetPath, extension);
+	} catch (_) {
+		return null;
+	}
+};
+
+const checkpointOverwrittenAsset = async (asset) => {
+	if (!asset?.asset_path || !asset?.extension) return;
+
+	await CheckpointService.AddCheckpoint(
+		projectStore.activeProject.uri,
+		[asset.asset_path],
+		[asset.extension],
+		'File overwritten by drop',
+		'',
+		uuidv4(),
+		false,
+		false
+	);
+	emitter.emit('update-checkpoints');
+	asset.file_status = 'normal';
+	projectStore.refreshProjects();
 };
 
 // Returns the app icon path for the given icon name.
@@ -1080,27 +1144,26 @@ const handleFileDrop = async (files, details) => {
 
 	const elementId = details?.id || '';
 	if (elementId === 'agent-console-drop-zone') return;
+	const targetAsset = settingsStore.overwriteDroppedFiles ? getDroppedAssetTarget(elementId) : null;
 	let destinationDir;
-	if (elementId.startsWith('drop-')) {
-		const collectionId = elementId.replace('drop-', '');
-		const collection = dndStore.allViewItems?.find(item => item.id === collectionId && (item.type === 'collection' || item.type === 'untracked_collection'));
-		if (collection?.file_path) destinationDir = collection.file_path;
-	}
+	if (!targetAsset) destinationDir = getDroppedCollectionDirectory(elementId);
 	if (!destinationDir) destinationDir = getCurrentDirectory();
-	if (!destinationDir) { notificationStore.errorNotification(t('stages.couldNotDetermineCurrentDirectory'), ''); return; }
+	if (!targetAsset && !destinationDir) { notificationStore.errorNotification(t('stages.couldNotDetermineCurrentDirectory'), ''); return; }
 
 	stage.operationActive = true;
 	try {
-		await FSService.MakeDirs(destinationDir);
+		if (destinationDir) await FSService.MakeDirs(destinationDir);
 		let successCount = 0, failureCount = 0;
 		const errors = [];
 		for (const sourcePath of files) {
 			try {
 				const isFile = await FSService.IsFile(sourcePath);
-				const itemName = await FSService.BaseName(sourcePath);
-				const destinationPath = await generateUniqueDestinationPath(destinationDir, itemName);
+				const destinationPath = await getDroppedFileDestinationPath(sourcePath, destinationDir, isFile, targetAsset);
+				const overwroteExistingFile = isFile && await FSService.Exists(destinationPath);
 				if (isFile) await FSService.DuplicateFile(sourcePath, destinationPath);
 				else await FSService.DuplicateFolder(sourcePath, destinationPath);
+				const overwrittenAsset = targetAsset ?? (overwroteExistingFile ? await getAssetForDroppedDestination(destinationPath) : null);
+				if (overwrittenAsset) await checkpointOverwrittenAsset(overwrittenAsset);
 				successCount++;
 			} catch (error) {
 				failureCount++;

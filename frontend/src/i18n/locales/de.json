@@ -478,7 +478,9 @@
     "untrackedItemsPurged": "Untracked items purged",
     "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
     "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
-    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items",
+    "overwriteDroppedFilesToggled": "Abgelegte Dateien ueberschreiben {status}",
+    "failedToUpdateOverwriteDroppedFiles": "Einstellung zum Ueberschreiben abgelegter Dateien konnte nicht aktualisiert werden"
   },
   "settings": {
     "title": "Einstellungen",
@@ -642,7 +644,9 @@
     "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
     "connected": "Connected",
     "clusttaLocalProjectsData": "Clustta Local Projects Data",
-    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data",
+    "overwriteDroppedFiles": "Abgelegte Dateien ueberschreiben",
+    "overwriteDroppedFilesDescription": "Wenn eine Betriebssystemdatei in Clustta abgelegt wird, wird eine passende Zieldatei ueberschrieben, statt eine nummerierte Kopie zu erstellen. Wenn die Datei zu einem verfolgten Asset gehoert, wird ein Checkpoint erstellt."
   },
   "modals": {
     "addAssetType": "Asset-Typ hinzufügen",

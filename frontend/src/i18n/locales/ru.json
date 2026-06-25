@@ -478,7 +478,9 @@
     "untrackedItemsPurged": "Untracked items purged",
     "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
     "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
-    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items",
+    "overwriteDroppedFilesToggled": "Перезапись перетащенных файлов {status}",
+    "failedToUpdateOverwriteDroppedFiles": "Не удалось обновить настройку перезаписи перетащенных файлов"
   },
   "settings": {
     "title": "Настройки",
@@ -642,7 +644,9 @@
     "connectIntegrationDescription": "Connect to external services like Kitsu, ClickUp, and more.",
     "connected": "Connected",
     "clusttaLocalProjectsData": "Clustta Local Projects Data",
-    "clusttaSharedProjectsData": "Clustta Shared Projects Data"
+    "clusttaSharedProjectsData": "Clustta Shared Projects Data",
+    "overwriteDroppedFiles": "Перезаписывать перетащенные файлы",
+    "overwriteDroppedFilesDescription": "Когда файл ОС перетаскивается в Clustta, совпадающий файл назначения перезаписывается вместо создания нумерованной копии. Если файл относится к отслеживаемому ассету, создается checkpoint."
   },
   "modals": {
     "addAssetType": "Добавить тип ресурса",

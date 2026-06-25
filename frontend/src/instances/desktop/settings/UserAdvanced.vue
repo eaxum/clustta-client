@@ -130,13 +130,24 @@
           </div>
 
           <div class="settings-item" @click="toggleUseUpdateSync">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('refresh')"></div>
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('cloud-down')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.useUpdateSync') }}</div>
               <div class="settings-body">{{ $t('settings.useUpdateSyncDescription') }}</div>
             </div>
             <div class="settings-action fixed-width">
               <ToggleSwitch :switchValueProp="useUpdateSync" />
+            </div>
+          </div>
+
+          <div class="settings-item" @click="toggleOverwriteDroppedFiles">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('data-download')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.overwriteDroppedFiles') }}</div>
+              <div class="settings-body">{{ $t('settings.overwriteDroppedFilesDescription') }}</div>
+            </div>
+            <div class="settings-action fixed-width">
+              <ToggleSwitch :switchValueProp="overwriteDroppedFiles" />
             </div>
           </div>
 
@@ -183,6 +194,8 @@ const { t } = useI18n();
 const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 // Returns the current minimize on close state from the shared store.
 const minimizeOnClose = computed(() => settingsStore.minimizeOnClose);
+// Returns the current dropped-file overwrite state from the shared store.
+const overwriteDroppedFiles = computed(() => settingsStore.overwriteDroppedFiles);
 // Returns list of integrations user has authenticated with.
 const connectedIntegrations = computed(() => {
   return integrationStore.availableIntegrations.filter(i => integrationStore.isAuthenticated(i.id));
@@ -264,11 +277,26 @@ const toggleUseUpdateSync = () => {
   });
 };
 
+// Toggles whether OS file drops overwrite matching files.
+const toggleOverwriteDroppedFiles = () => {
+  settingsStore.toggleOverwriteDroppedFiles().then(() => {
+    notificationStore.addNotification(
+      t('settings.overwriteDroppedFiles'),
+      t('notifications.overwriteDroppedFilesToggled', { status: settingsStore.overwriteDroppedFiles ? 'enabled' : 'disabled' }),
+      "success"
+    );
+  }).catch((error) => {
+    console.log(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateOverwriteDroppedFiles'), "error");
+  });
+};
+
 // lifecycle hooks
 onMounted(async () => {
   try {
     await settingsStore.initializeBridge();
     await settingsStore.initializeMinimizeOnClose();
+    await settingsStore.initializeOverwriteDroppedFiles();
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
     useUpdateSync.value = await SettingsService.GetUseUpdateSync();
     await integrationStore.initialize();

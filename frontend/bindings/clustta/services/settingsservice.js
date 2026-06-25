@@ -269,6 +269,14 @@ export function GetMinimizeOnClose() {
 }
 
 /**
+ * GetOverwriteDroppedFiles returns whether OS file drops overwrite matching files.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetOverwriteDroppedFiles() {
+    return $Call.ByID(3517122962);
+}
+
+/**
  * GetPinnedProjects retrieves all pinned projects for the specified studio.
  * @param {string} studioName
  * @returns {$CancellablePromise<string[]>}
@@ -585,6 +593,15 @@ export function SetLastStudio(lastStudioName) {
  */
 export function SetMinimizeOnClose(enabled) {
     return $Call.ByID(2305241605, enabled);
+}
+
+/**
+ * SetOverwriteDroppedFiles sets whether OS file drops overwrite matching files.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetOverwriteDroppedFiles(enabled) {
+    return $Call.ByID(237542798, enabled);
 }
 
 /**
