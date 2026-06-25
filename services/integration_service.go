@@ -192,12 +192,12 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 				"asset": map[string]interface{}{
 					"name":     "Assets",
 					"icon":     "package",
-					"template": "Assets/<CollectionType>/<Asset>",
+					"template": "Assets/<CollectionType>/<Asset>/<AssetType><TemplateExtension>",
 				},
 				"shot": map[string]interface{}{
 					"name":     "Shots",
 					"icon":     "clapperboard",
-					"template": "Episodes/<Episode>/<Sequence>/<Shot>",
+					"template": "Episodes/<Episode>/<Sequence>/<Shot>/<AssetType><TemplateExtension>",
 				},
 			},
 		}
@@ -331,12 +331,29 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			parentPath = collectionPaths[parentCollection.ID]
 		}
 
+		// Get template mapping
+		templateID := ""
+		templateExtension := ""
+		if syncOptions.AssetTypeTemplates != nil {
+			if tmplID, ok := syncOptions.AssetTypeTemplates[asset.AssetTypeID]; ok {
+				templateID = tmplID
+				if tmpl, exists := templateByID[tmplID]; exists {
+					templateExtension = tmpl.Extension
+				}
+			}
+		}
+
+		assetName := asset.Name
+		if parentCollection, exists := collectionByID[asset.ParentID]; exists {
+			assetName = resolveAssetNameFromTemplate(assetName, parentCollection, asset, collectionByID, syncOptions.DirectoryStructure, templateExtension)
+		}
+
 		// Try to auto-match by name+parent in Clustta
 		if parentPath != "" {
 			parentCollection, err := repository.GetCollectionByPath(tx, parentPath)
 			if err == nil && parentCollection.Id != "" {
 				// Check if asset exists in this collection
-				existingAsset, err := repository.GetAssetByName(tx, asset.Name, parentCollection.Id, "")
+				existingAsset, err := repository.GetAssetByName(tx, assetName, parentCollection.Id, templateExtension)
 				if err == nil && existingAsset.Id != "" {
 					// Found matching asset - skip (not a new item)
 					continue
@@ -356,23 +373,11 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			missingAssetTypes[asset.AssetType] = true
 		}
 
-		// Get template mapping
-		templateID := ""
-		templateExtension := ""
-		if syncOptions.AssetTypeTemplates != nil {
-			if tmplID, ok := syncOptions.AssetTypeTemplates[asset.AssetTypeID]; ok {
-				templateID = tmplID
-				if tmpl, exists := templateByID[tmplID]; exists {
-					templateExtension = tmpl.Extension
-				}
-			}
-		}
-
 		// This is a new asset to create
 		preview.Assets = append(preview.Assets, integrations.SyncAsset{
 			TempID:            asset.ID,
 			ExternalID:        asset.ID,
-			ExternalName:      asset.Name,
+			ExternalName:      assetName,
 			ExternalParentID:  asset.ParentID,
 			ExternalType:      asset.AssetType,
 			ExternalTypeID:    asset.AssetTypeID,
@@ -444,6 +449,36 @@ func resolveCollectionPath(collection integrations.ExternalCollection, collectio
 	// Resolve template variables
 	resolved := resolveTemplateVariables(template, collection, collectionByID, dirStructure.Style)
 	return normalizeCollectionPath(resolved)
+}
+
+// resolveAssetNameFromTemplate returns the filename stem implied by the asset directory template.
+func resolveAssetNameFromTemplate(fallback string, parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, dirStructure integrations.DirectoryStructure, templateExtension string) string {
+	template := findMatchingTemplate(parentCollection.Type, dirStructure)
+	if template == "" {
+		return fallback
+	}
+
+	resolved := resolveAssetTemplateVariables(template, parentCollection, asset, collectionByID, dirStructure.Style, templateExtension)
+	resolved = strings.Trim(strings.TrimSpace(resolved), "/")
+	if resolved == "" {
+		return fallback
+	}
+
+	segments := strings.Split(resolved, "/")
+	fileName := strings.TrimSpace(segments[len(segments)-1])
+	if fileName == "" || strings.Contains(fileName, "<") {
+		return fallback
+	}
+
+	if templateExtension != "" && strings.HasSuffix(fileName, templateExtension) {
+		fileName = strings.TrimSuffix(fileName, templateExtension)
+	}
+	fileName = strings.TrimSpace(fileName)
+	if fileName == "" {
+		return fallback
+	}
+
+	return fileName
 }
 
 // normalizeCollectionPath ensures the path has leading/trailing slashes.
@@ -568,6 +603,36 @@ func resolveTemplateVariables(template string, collection integrations.ExternalC
 		}
 	}
 	result = strings.Join(cleanedSegments, "/")
+
+	return result
+}
+
+// resolveAssetTemplateVariables resolves the full asset template, including filename placeholders.
+func resolveAssetTemplateVariables(template string, parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, style, templateExtension string) string {
+	result := template
+
+	typeToVar := map[string]string{
+		"episode":  "<Episode>",
+		"sequence": "<Sequence>",
+		"shot":     "<Shot>",
+	}
+
+	hierarchy := buildCollectionHierarchy(parentCollection, collectionByID)
+	for _, e := range hierarchy {
+		typeLower := strings.ToLower(e.Type)
+		if varName, ok := typeToVar[typeLower]; ok {
+			result = strings.ReplaceAll(result, varName, applyNamingStyle(e.Name, style))
+		}
+	}
+
+	result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(parentCollection.Name, style))
+	result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(parentCollection.Type, style))
+	assetType := asset.AssetType
+	if assetType == "" {
+		assetType = asset.Name
+	}
+	result = strings.ReplaceAll(result, "<AssetType>", applyNamingStyle(assetType, style))
+	result = strings.ReplaceAll(result, "<TemplateExtension>", templateExtension)
 
 	return result
 }
