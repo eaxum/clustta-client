@@ -69,8 +69,12 @@
     <ActionButton :icon="getAppIcon('copy')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.copyClusttaLink')" :buttonFunction="copyDeepLink" />
 
+    <!-- Purge untracked -->
+    <ActionButton v-if="canPurgeUntracked" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
+      :label="$t('common.purgeUntracked')" :buttonFunction="prepPurgeUntrackedPopUpModal" />
+
     <!-- Free space -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('two-drives')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Asset -->
@@ -161,6 +165,10 @@ const collectionStateFlags = computed(() => {
 // Checks if there are items in the clipboard.
 const hasClipboardItems = computed(() => {
   return stage.cutItems.length > 0 || stage.copiedItems.length > 0;
+});
+
+const canPurgeUntracked = computed(() => {
+  return !platformStore.isWeb && !!collectionStore.selectedCollection?.file_path;
 });
 
 // methods
@@ -260,6 +268,44 @@ const freeUpSpace = async () => {
     });
   modals.disableAllModals();
   menu.hideContextMenu();
+};
+
+const purgeSummary = (result) => {
+  const deletedCount = (result?.deleted_files || 0) + (result?.deleted_folders || 0);
+  return t('notifications.purgeUntrackedSummary', {
+    count: deletedCount,
+    files: result?.deleted_files || 0,
+    folders: result?.deleted_folders || 0,
+  });
+};
+
+// Permanently deletes untracked files in the selected collection.
+const purgeUntracked = async () => {
+  const collection = collectionStore.selectedCollection;
+  const project = projectStore.activeProject;
+  if (!collection?.file_path || !project?.working_directory) return;
+
+  trayStates.popUpModalLoading = true;
+  try {
+    const result = await CollectionService.PurgeRecursiveUntrackedItems(
+      project.uri,
+      collection.id || 'root',
+      project.working_directory,
+      collection.file_path
+    );
+
+    emitter.emit('refresh-browser');
+    notificationStore.addNotification(t('notifications.untrackedItemsPurged'), purgeSummary(result), result?.errors?.length ? 'warning' : 'success');
+    if (result?.errors?.length) {
+      notificationStore.errorNotification(t('notifications.someUntrackedItemsCouldNotBePurged'), result.errors.join('\n'));
+    }
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.failedToPurgeUntrackedItems'), error);
+  } finally {
+    trayStates.popUpModalLoading = false;
+    modals.disableAllModals();
+    menu.hideContextMenu();
+  }
 };
 
 // Generates a unique destination path for imports.
@@ -391,8 +437,19 @@ const prepCreateCheckpointsModal = () => {
 const prepFreeUpSpacePopUpModal = () => {
   trayStates.popUpModalTitle = t('menus.freeUpCollectionSpace');
   trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'collection' });
-  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalIcon = 'two-drives';
   trayStates.popUpModalFunction = freeUpSpace;
+  modals.setModalVisibility('popUpModal', true);
+  menu.hideContextMenu();
+};
+
+// Prepares and shows the purge untracked confirmation modal.
+const prepPurgeUntrackedPopUpModal = () => {
+  const collection = collectionStore.selectedCollection;
+  trayStates.popUpModalTitle = t('confirmations.purgeUntrackedCollectionTitle', { name: collection?.name || t('common.collection') });
+  trayStates.popUpModalMessage = t('confirmations.purgeUntrackedCollection');
+  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalFunction = purgeUntracked;
   modals.setModalVisibility('popUpModal', true);
   menu.hideContextMenu();
 };

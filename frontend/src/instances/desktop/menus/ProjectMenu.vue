@@ -38,8 +38,12 @@
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('menus.fetchProject')"
       :buttonFunction="fetchAll" />
 
+    <!-- Purge untracked -->
+    <ActionButton v-if="canPurgeUntracked" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
+      :label="$t('common.purgeUntracked')" :buttonFunction="prepPurgeUntrackedPopUpModal" />
+
     <!-- Free space -->
-    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
+    <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('two-drives')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
       :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Clear Trash -->
@@ -106,6 +110,10 @@ const collectionMenu = ref(null);
 // computed properties
 // Returns true if there are items in the clipboard.
 const hasClipboardItems = computed(() => stage.cutItems.length > 0 || stage.copiedItems.length > 0);
+
+const canPurgeUntracked = computed(() => {
+  return !platformStore.isWeb && !!getCurrentDirectory();
+});
 
 // methods
 // Opens the workflow selection modal.
@@ -201,6 +209,49 @@ const freeUpProjectSpace = async () => {
       console.error(error);
     });
   modals.disableAllModals();
+};
+
+const purgeSummary = (result) => {
+  const deletedCount = (result?.deleted_files || 0) + (result?.deleted_folders || 0);
+  return t('notifications.purgeUntrackedSummary', {
+    count: deletedCount,
+    files: result?.deleted_files || 0,
+    folders: result?.deleted_folders || 0,
+  });
+};
+
+// Permanently deletes untracked files in the current project or navigated collection.
+const purgeUntracked = async () => {
+  const project = projectStore.getActiveProject;
+  const targetDirectory = getCurrentDirectory();
+  if (!project?.working_directory || !targetDirectory) return;
+
+  const collectionId = commonStore.navigatorMode
+    ? (collectionStore.navigatedCollection?.id || 'root')
+    : 'root';
+
+  trayStates.popUpModalLoading = true;
+  try {
+    const result = await CollectionService.PurgeRecursiveUntrackedItems(
+      project.uri,
+      collectionId,
+      project.working_directory,
+      targetDirectory
+    );
+
+    emitter.emit('refresh-browser');
+    await collectionStore.loadCollectionStateFlags();
+    notificationStore.addNotification(t('notifications.untrackedItemsPurged'), purgeSummary(result), result?.errors?.length ? 'warning' : 'success');
+    if (result?.errors?.length) {
+      notificationStore.errorNotification(t('notifications.someUntrackedItemsCouldNotBePurged'), result.errors.join('\n'));
+    }
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.failedToPurgeUntrackedItems'), error);
+  } finally {
+    trayStates.popUpModalLoading = false;
+    modals.disableAllModals();
+    menu.hideContextMenu();
+  }
 };
 
 // Generates a unique destination path for imports.
@@ -330,7 +381,24 @@ const prepFreeUpSpacePopUpModal = () => {
     trayStates.popUpModalMessage = t('confirmations.clearContentsProject');
     trayStates.popUpModalFunction = freeUpProjectSpace;
   }
+  trayStates.popUpModalIcon = 'two-drives';
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Prepares and shows the purge untracked confirmation modal.
+const prepPurgeUntrackedPopUpModal = () => {
+  menu.hideContextMenu();
+  const project = projectStore.getActiveProject;
+  if (commonStore.navigatorMode) {
+    const navigatedCollection = collectionStore.navigatedCollection;
+    trayStates.popUpModalTitle = t('confirmations.purgeUntrackedCollectionTitle', { name: navigatedCollection?.name || t('common.collection') });
+    trayStates.popUpModalMessage = t('confirmations.purgeUntrackedCollection');
+  } else {
+    trayStates.popUpModalTitle = t('confirmations.purgeUntrackedProjectTitle', { name: project?.name || t('common.project') });
+    trayStates.popUpModalMessage = t('confirmations.purgeUntrackedProject');
+  }
   trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalFunction = purgeUntracked;
   modals.setModalVisibility('popUpModal', true);
 };
 

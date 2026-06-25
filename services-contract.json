@@ -588,7 +588,8 @@
         "name": "GetCollectionDescendantAssets",
         "params": [
           "projectPath:string",
-          "collectionId:string"
+          "collectionId:string",
+          "includeResources:bool"
         ],
         "returns": [
           "[]models.Asset",
@@ -705,22 +706,22 @@
         ]
       },
       {
-        "name": "ToggleIsTask",
+        "name": "ToggleIsResource",
         "params": [
           "projectPath:string",
-          "assetId:string",
-          "isTask:bool"
+          "assetIds:[]string",
+          "isResource:bool"
         ],
         "returns": [
           "error"
         ]
       },
       {
-        "name": "ToggleIsResource",
+        "name": "ToggleIsTask",
         "params": [
           "projectPath:string",
-          "assetIds:[]string",
-          "isResource:bool"
+          "assetId:string",
+          "isTask:bool"
         ],
         "returns": [
           "error"
@@ -1538,6 +1539,20 @@
         ]
       },
       {
+        "name": "GetRecursiveUntrackedAssets",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "projectWorkingDir:string",
+          "collectionFolderPath:string",
+          "ignoreList:[]string"
+        ],
+        "returns": [
+          "[]models.UntrackedAsset",
+          "error"
+        ]
+      },
+      {
         "name": "IsUserAssignedToCollectionOrAncestor",
         "params": [
           "projectPath:string",
@@ -1546,6 +1561,19 @@
         ],
         "returns": [
           "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "PurgeRecursiveUntrackedItems",
+        "params": [
+          "projectPath:string",
+          "collectionId:string",
+          "projectWorkingDir:string",
+          "collectionFolderPath:string"
+        ],
+        "returns": [
+          "PurgeRecursiveUntrackedItemsResult",
           "error"
         ]
       },
@@ -3382,6 +3410,14 @@
         ]
       },
       {
+        "name": "GetUntrackedVisibility",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
         "name": "GetUseGrid",
         "params": null,
         "returns": [
@@ -3625,6 +3661,15 @@
         "name": "SetThemeTint",
         "params": [
           "tint:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetUntrackedVisibility",
+        "params": [
+          "enabled:bool"
         ],
         "returns": [
           "error"

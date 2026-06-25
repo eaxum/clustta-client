@@ -381,6 +381,14 @@ export function GetThemeTint() {
 }
 
 /**
+ * GetUntrackedVisibility retrieves whether untracked browser items are visible.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetUntrackedVisibility() {
+    return $Call.ByID(829946761);
+}
+
+/**
  * GetUseGrid retrieves whether grid view is enabled.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -631,6 +639,15 @@ export function SetTheme(theme) {
  */
 export function SetThemeTint(tint) {
     return $Call.ByID(1514301730, tint);
+}
+
+/**
+ * SetUntrackedVisibility sets whether untracked browser items are visible.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetUntrackedVisibility(enabled) {
+    return $Call.ByID(3591904125, enabled);
 }
 
 /**

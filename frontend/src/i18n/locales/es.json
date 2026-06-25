@@ -79,7 +79,10 @@
     "finish": "Finalizar",
     "copyId": "Copy ID",
     "approve": "Aprobar",
-    "deny": "Denegar"
+    "deny": "Denegar",
+    "collection": "Collection",
+    "project": "Project",
+    "purgeUntracked": "Purge untracked"
   },
   "placeholders": {
     "addItem": "Agregar elemento",
@@ -150,7 +153,11 @@
     "archiveProjectMessage": "Archivar este proyecto también liberará espacio en el directorio de trabajo. Cualquier elemento sin seguimiento se perderá. ¿Continuar?",
     "relocateWorkingDirectoryMessage": "Cambiar directorio de trabajo de:\n{from}\n\nA:\n{to}\n\nNota: Los archivos NO se moverán. Solo se actualizará la ruta.",
     "deleteRemoteProject": "Esto ELIMINARÁ PERMANENTEMENTE \"{name}\" del servidor. Esta acción no se puede deshacer. Escriba el nombre del proyecto para confirmar:",
-    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner.",
+    "purgeUntrackedCollectionTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedProjectTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedCollection": "This will permanently delete untracked files and empty untracked folders in this collection, including ignored files. Tracked assets and collections will be kept.",
+    "purgeUntrackedProject": "This will permanently delete untracked files and empty untracked folders in this project, including ignored files. Tracked assets and collections will be kept."
   },
   "notifications": {
     "defaultViewUpdated": "Vista Predeterminada Actualizada",
@@ -467,7 +474,11 @@
     "syncCompleteMessage": "All data has been synced successfully",
     "errorSelectingFile": "Error selecting file",
     "errorDeletingProject": "Error deleting project",
-    "failedToMergeItem": "Failed to merge item"
+    "failedToMergeItem": "Failed to merge item",
+    "untrackedItemsPurged": "Untracked items purged",
+    "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
+    "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
   },
   "settings": {
     "title": "Configuración",
@@ -885,6 +896,7 @@
     "noResults": "Sin resultados",
     "noSubCollections": "Sin sub-colecciones",
     "offlineModeTooltip": "Modo sin conexión - Inicia sesión para sincronizar",
+    "onlyAssets": "Only Assets",
     "onlyProjectAssets": "Solo assets del proyecto",
     "pinProject": "Fijar proyecto",
     "projectRoot": "Raíz del proyecto",
@@ -897,6 +909,8 @@
     "deleteProject": "Eliminar Proyecto",
     "deleteProjectTitle": "Eliminar \"{name}\"",
     "resources": "Recursos",
+    "tasks": "Tasks",
+    "untracked": "Untracked",
     "revertContents": "Revertir contenido",
     "revertFile": "Revertir archivo",
     "syncAsset": "Sincronizar Asset",

@@ -30,6 +30,10 @@
       :label="commonStore.showFullPath ? $t('menus.showNameOnly') : $t('menus.showFullPath')" :buttonFunction="toggleShowFullPath" />
 
     <ActionButton v-if="!isKanbanActive"
+      :icon="commonStore.showUntracked ? getAppIcon('eye-cancel') : getAppIcon('eye')" :showLabel="true" :fullWidth="true"
+      :label="untrackedVisibilityLabel" :buttonFunction="toggleShowUntracked" />
+
+    <ActionButton v-if="!isKanbanActive"
       :icon="getAppIcon('shapes')" :showLabel="true" :fullWidth="true"
       :label="settingsStore.showTypeIcons ? $t('modals.hideTypeIcons') : $t('modals.showTypeIcons')" :buttonFunction="toggleShowTypeIcons" />
 
@@ -78,6 +82,7 @@ const isDenseActive = computed(() => commonStore.viewMode === 'dense');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
 const isListActive = computed(() => commonStore.viewMode === 'compact');
+const untrackedVisibilityLabel = computed(() => `${commonStore.showUntracked ? t('common.hide') : t('common.show')} ${t('menus.untracked')}`);
 
 // methods
 
@@ -133,6 +138,13 @@ const toggleLockUI = () => {
 // Toggles the show full path option.
 const toggleShowFullPath = () => {
   commonStore.showFullPath = !commonStore.showFullPath;
+  menu.hideContextMenu();
+};
+
+// Toggles untracked item visibility and refreshes the browser.
+const toggleShowUntracked = async () => {
+  await commonStore.setUntrackedVisibility(!commonStore.showUntracked);
+  emitter.emit('refresh-browser');
   menu.hideContextMenu();
 };
 

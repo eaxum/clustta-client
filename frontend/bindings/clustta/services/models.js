@@ -1706,6 +1706,59 @@ export class ProfileUpdateData {
     }
 }
 
+export class PurgeRecursiveUntrackedItemsResult {
+    /**
+     * Creates a new PurgeRecursiveUntrackedItemsResult instance.
+     * @param {Partial<PurgeRecursiveUntrackedItemsResult>} [$$source = {}] - The source object to create the PurgeRecursiveUntrackedItemsResult.
+     */
+    constructor($$source = {}) {
+        if (!("deleted_files" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["deleted_files"] = 0;
+        }
+        if (!("deleted_folders" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["deleted_folders"] = 0;
+        }
+        if (!("skipped" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["skipped"] = 0;
+        }
+        if (!("errors" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["errors"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PurgeRecursiveUntrackedItemsResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PurgeRecursiveUntrackedItemsResult}
+     */
+    static createFrom($$source = {}) {
+        const $$createField3_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("errors" in $$parsedSource) {
+            $$parsedSource["errors"] = $$createField3_0($$parsedSource["errors"]);
+        }
+        return new PurgeRecursiveUntrackedItemsResult(/** @type {Partial<PurgeRecursiveUntrackedItemsResult>} */($$parsedSource));
+    }
+}
+
 export class RecycleItem {
     /**
      * Creates a new RecycleItem instance.

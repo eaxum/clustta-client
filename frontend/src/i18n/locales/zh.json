@@ -79,7 +79,10 @@
     "finish": "完成",
     "copyId": "Copy ID",
     "approve": "批准",
-    "deny": "拒绝"
+    "deny": "拒绝",
+    "collection": "Collection",
+    "project": "Project",
+    "purgeUntracked": "Purge untracked"
   },
   "placeholders": {
     "addItem": "添加项目",
@@ -150,7 +153,11 @@
     "archiveProjectMessage": "归档此项目还将释放工作目录中的空间。任何未跟踪的项目将丢失。继续？",
     "relocateWorkingDirectoryMessage": "将工作目录从：\n{from}\n\n更改为：\n{to}\n\n注意：文件不会被移动。只会更新路径。",
     "deleteRemoteProject": "这将永久删除服务器上的 \"{name}\"。此操作无法撤消。请输入项目名称以确认：",
-    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner.",
+    "purgeUntrackedCollectionTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedProjectTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedCollection": "This will permanently delete untracked files and empty untracked folders in this collection, including ignored files. Tracked assets and collections will be kept.",
+    "purgeUntrackedProject": "This will permanently delete untracked files and empty untracked folders in this project, including ignored files. Tracked assets and collections will be kept."
   },
   "notifications": {
     "defaultViewUpdated": "默认视图已更新",
@@ -467,7 +474,11 @@
     "syncCompleteMessage": "All data has been synced successfully",
     "errorSelectingFile": "Error selecting file",
     "errorDeletingProject": "Error deleting project",
-    "failedToMergeItem": "Failed to merge item"
+    "failedToMergeItem": "Failed to merge item",
+    "untrackedItemsPurged": "Untracked items purged",
+    "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
+    "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
   },
   "settings": {
     "title": "设置",
@@ -883,6 +894,7 @@
     "noResults": "无结果",
     "noSubCollections": "没有子集合",
     "offlineModeTooltip": "离线模式 - 登录以同步",
+    "onlyAssets": "Only Assets",
     "onlyProjectAssets": "仅项目资产",
     "pinProject": "置顶项目",
     "projectRoot": "项目根目录",
@@ -895,6 +907,8 @@
     "deleteProject": "删除项目",
     "deleteProjectTitle": "删除「{name}」",
     "resources": "资源",
+    "tasks": "Tasks",
+    "untracked": "Untracked",
     "revertContents": "还原内容",
     "revertFile": "还原文件",
     "syncAsset": "同步资产",

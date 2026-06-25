@@ -310,14 +310,15 @@ export function GetAssetsStates(projectPath, projectWorkingDir, ignoreList) {
 }
 
 /**
- * GetCollectionDescendantAssets returns all assets located anywhere under the given collection's subtree.
- * Used by the kanban view when navigated into a collection so descendants at any depth are included.
+ * GetCollectionDescendantAssets returns assets located anywhere under the given collection's subtree.
+ * includeResources controls whether resource assets are included alongside task assets.
  * @param {string} projectPath
  * @param {string} collectionId
+ * @param {boolean} includeResources
  * @returns {$CancellablePromise<models$0.Asset[]>}
  */
-export function GetCollectionDescendantAssets(projectPath, collectionId) {
-    return $Call.ByID(2603506523, projectPath, collectionId).then(/** @type {($result: any) => any} */(($result) => {
+export function GetCollectionDescendantAssets(projectPath, collectionId, includeResources) {
+    return $Call.ByID(2603506523, projectPath, collectionId, includeResources).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType3($result);
     }));
 }

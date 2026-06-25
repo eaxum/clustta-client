@@ -383,6 +383,16 @@ func (s *SettingsService) SetDefaultViewMode(viewMode string) error {
 	return nil
 }
 
+// GetUntrackedVisibility retrieves whether untracked browser items are visible.
+func (s *SettingsService) GetUntrackedVisibility() (bool, error) {
+	return settings.GetUntrackedVisibility()
+}
+
+// SetUntrackedVisibility sets whether untracked browser items are visible.
+func (s *SettingsService) SetUntrackedVisibility(enabled bool) error {
+	return settings.SetUntrackedVisibility(enabled)
+}
+
 // GetProjectDirectory retrieves the default project directory path.
 func (s *SettingsService) GetProjectDirectory() (string, error) {
 	projectDir, err := settings.GetProjectDirectory()

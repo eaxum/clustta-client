@@ -79,7 +79,10 @@
     "finish": "完了",
     "copyId": "Copy ID",
     "approve": "承認",
-    "deny": "拒否"
+    "deny": "拒否",
+    "collection": "コレクション",
+    "project": "プロジェクト",
+    "purgeUntracked": "未追跡を削除"
   },
   "placeholders": {
     "addItem": "アイテムを追加",
@@ -150,7 +153,11 @@
     "archiveProjectMessage": "このプロジェクトをアーカイブすると、作業ディレクトリのスペースも解放されます。未追跡のアイテムは失われます。続行しますか？",
     "relocateWorkingDirectoryMessage": "作業ディレクトリを変更:\n{from}\n\n先:\n{to}\n\n注意: ファイルは移動されません。パスのみが更新されます。",
     "deleteRemoteProject": "\"{name}\" がサーバーから完全に削除されます。この操作は元に戻せません。確認のためプロジェクト名を入力してください：",
-    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner.",
+    "purgeUntrackedCollectionTitle": "\"{name}\" の未追跡アイテムを削除しますか？",
+    "purgeUntrackedProjectTitle": "\"{name}\" の未追跡アイテムを削除しますか？",
+    "purgeUntrackedCollection": "このコレクション内の未追跡ファイルと空の未追跡フォルダを完全に削除します。無視リストのファイルも対象です。追跡済みのアセットとコレクションは保持されます。",
+    "purgeUntrackedProject": "このプロジェクト内の未追跡ファイルと空の未追跡フォルダを完全に削除します。無視リストのファイルも対象です。追跡済みのアセットとコレクションは保持されます。"
   },
   "notifications": {
     "defaultViewUpdated": "デフォルトビューが更新されました",
@@ -467,7 +474,11 @@
     "syncCompleteMessage": "All data has been synced successfully",
     "errorSelectingFile": "Error selecting file",
     "errorDeletingProject": "Error deleting project",
-    "failedToMergeItem": "Failed to merge item"
+    "failedToMergeItem": "Failed to merge item",
+    "untrackedItemsPurged": "未追跡アイテムを削除しました",
+    "purgeUntrackedSummary": "{count} 件を削除しました（ファイル {files} 件、フォルダ {folders} 件）。",
+    "someUntrackedItemsCouldNotBePurged": "一部の未追跡アイテムを削除できませんでした",
+    "failedToPurgeUntrackedItems": "未追跡アイテムの削除に失敗しました"
   },
   "settings": {
     "title": "設定",
@@ -885,6 +896,7 @@
     "noResults": "結果なし",
     "noSubCollections": "サブコレクションなし",
     "offlineModeTooltip": "オフラインモード - サインインして同期",
+    "onlyAssets": "Only Assets",
     "onlyProjectAssets": "プロジェクトアセットのみ",
     "pinProject": "プロジェクトを固定",
     "projectRoot": "プロジェクトルート",
@@ -897,6 +909,8 @@
     "deleteProject": "プロジェクトを削除",
     "deleteProjectTitle": "\"{name}\" を削除",
     "resources": "リソース",
+    "tasks": "Tasks",
+    "untracked": "Untracked",
     "revertContents": "コンテンツを復元",
     "revertFile": "ファイルを復元",
     "syncAsset": "アセットを同期",

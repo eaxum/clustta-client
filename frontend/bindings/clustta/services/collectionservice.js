@@ -294,6 +294,23 @@ export function GetOutdatedItemsInCollection(projectPath, collectionId, projectW
 }
 
 /**
+ * GetRecursiveUntrackedAssets returns all untracked files under a collection folder.
+ * Tracked asset files are excluded, but tracked collection folders are still scanned
+ * so untracked files inside child collections are included.
+ * @param {string} projectPath
+ * @param {string} collectionId
+ * @param {string} projectWorkingDir
+ * @param {string} collectionFolderPath
+ * @param {string[]} ignoreList
+ * @returns {$CancellablePromise<models$0.UntrackedAsset[]>}
+ */
+export function GetRecursiveUntrackedAssets(projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList) {
+    return $Call.ByID(4149737787, projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType9($result);
+    }));
+}
+
+/**
  * IsUserAssignedToCollectionOrAncestor checks if a user is assigned to a collection
  * or any of its parent collections recursively.
  * @param {string} projectPath
@@ -303,6 +320,22 @@ export function GetOutdatedItemsInCollection(projectPath, collectionId, projectW
  */
 export function IsUserAssignedToCollectionOrAncestor(projectPath, collectionId, userId) {
     return $Call.ByID(3770501513, projectPath, collectionId, userId);
+}
+
+/**
+ * PurgeRecursiveUntrackedItems deletes untracked files under a collection folder.
+ * Ignore rules are intentionally not applied: ignored files are still untracked
+ * and should be removed by an explicit purge.
+ * @param {string} projectPath
+ * @param {string} collectionId
+ * @param {string} projectWorkingDir
+ * @param {string} collectionFolderPath
+ * @returns {$CancellablePromise<$models.PurgeRecursiveUntrackedItemsResult>}
+ */
+export function PurgeRecursiveUntrackedItems(projectPath, collectionId, projectWorkingDir, collectionFolderPath) {
+    return $Call.ByID(170177315, projectPath, collectionId, projectWorkingDir, collectionFolderPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType10($result);
+    }));
 }
 
 /**
@@ -388,3 +421,5 @@ const $$createType5 = $models.CollectionStateFlags.createFrom;
 const $$createType6 = $Create.Array($$createType0);
 const $$createType7 = $models.ItemsForCheckpoint.createFrom;
 const $$createType8 = $models.ItemsForUpdate.createFrom;
+const $$createType9 = $Create.Array($Create.Any);
+const $$createType10 = $models.PurgeRecursiveUntrackedItemsResult.createFrom;

@@ -134,7 +134,7 @@ const loadAssets = async () => {
       // recursively fetch every asset in the collection's subtree.
       if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
         const navigatedCollectionId = collectionStore.navigatedCollection.id;
-        assets = await AssetService.GetCollectionDescendantAssets(projectPath, navigatedCollectionId);
+        assets = await AssetService.GetCollectionDescendantAssets(projectPath, navigatedCollectionId, false);
       } else {
         // Get all assets if not in navigator mode
         assets = await AssetService.GetAssetAssets(projectPath);

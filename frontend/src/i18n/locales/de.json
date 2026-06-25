@@ -79,7 +79,10 @@
     "finish": "Fertigstellen",
     "copyId": "Copy ID",
     "approve": "Genehmigen",
-    "deny": "Ablehnen"
+    "deny": "Ablehnen",
+    "collection": "Collection",
+    "project": "Project",
+    "purgeUntracked": "Purge untracked"
   },
   "placeholders": {
     "addItem": "Element hinzufügen",
@@ -150,7 +153,11 @@
     "archiveProjectMessage": "Die Archivierung dieses Projekts gibt auch Speicherplatz im Arbeitsverzeichnis frei. Nicht verfolgte Elemente gehen verloren. Fortfahren?",
     "relocateWorkingDirectoryMessage": "Arbeitsverzeichnis ändern von:\n{from}\n\nnach:\n{to}\n\nHinweis: Dateien werden NICHT verschoben. Nur der Pfad wird aktualisiert.",
     "deleteRemoteProject": "Dies wird \"{name}\" DAUERHAFT vom Server löschen. Diese Aktion kann nicht rückgängig gemacht werden. Geben Sie den Projektnamen zur Bestätigung ein:",
-    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner.",
+    "purgeUntrackedCollectionTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedProjectTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedCollection": "This will permanently delete untracked files and empty untracked folders in this collection, including ignored files. Tracked assets and collections will be kept.",
+    "purgeUntrackedProject": "This will permanently delete untracked files and empty untracked folders in this project, including ignored files. Tracked assets and collections will be kept."
   },
   "notifications": {
     "defaultViewUpdated": "Standardansicht aktualisiert",
@@ -467,7 +474,11 @@
     "syncCompleteMessage": "All data has been synced successfully",
     "errorSelectingFile": "Error selecting file",
     "errorDeletingProject": "Error deleting project",
-    "failedToMergeItem": "Failed to merge item"
+    "failedToMergeItem": "Failed to merge item",
+    "untrackedItemsPurged": "Untracked items purged",
+    "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
+    "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
   },
   "settings": {
     "title": "Einstellungen",
@@ -885,6 +896,7 @@
     "noResults": "Keine Ergebnisse",
     "noSubCollections": "Keine Untersammlungen",
     "offlineModeTooltip": "Offline-Modus - Anmelden zum Synchronisieren",
+    "onlyAssets": "Only Assets",
     "onlyProjectAssets": "Nur Projekt-Assets",
     "pinProject": "Projekt anheften",
     "projectRoot": "Projektwurzel",
@@ -897,6 +909,8 @@
     "deleteProject": "Projekt Löschen",
     "deleteProjectTitle": "\"{name}\" löschen",
     "resources": "Ressourcen",
+    "tasks": "Tasks",
+    "untracked": "Untracked",
     "revertContents": "Inhalte zurücksetzen",
     "revertFile": "Datei zurücksetzen",
     "syncAsset": "Asset synchronisieren",

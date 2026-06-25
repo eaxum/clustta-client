@@ -33,6 +33,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // components
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -44,6 +45,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 
 const modals = useDesktopModalStore();
 const trayStates = useTrayStates();
+const { t } = useI18n();
 
 // refs
 const popUpInput = ref(null);
@@ -56,12 +58,14 @@ const title = trayStates.popUpModalTitle;
 // computed
 // Returns the left button label.
 const leftButton = computed(() => {
-  return trayStates.popUpModalButtons[0];
+  const label = trayStates.popUpModalButtons[0];
+  return label === 'Cancel' ? t('common.cancel') : label;
 });
 
 // Returns the right button label.
 const rightButton = computed(() => {
-  return trayStates.popUpModalButtons[1];
+  const label = trayStates.popUpModalButtons[1];
+  return label === 'Confirm' ? t('common.confirm') : label;
 });
 
 // methods

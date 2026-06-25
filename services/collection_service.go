@@ -14,7 +14,9 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"slices"
+	"sort"
 	"strings"
 	"syscall"
 
@@ -52,6 +54,13 @@ type ItemsForCheckpoint struct {
 
 type ItemsForUpdate struct {
 	OutdatedAssets []models.Asset `json:"outdated_assets"`
+}
+
+type PurgeRecursiveUntrackedItemsResult struct {
+	DeletedFiles   int      `json:"deleted_files"`
+	DeletedFolders int      `json:"deleted_folders"`
+	Skipped        int      `json:"skipped"`
+	Errors         []string `json:"errors"`
 }
 
 type CollectionService struct {
@@ -412,6 +421,333 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 	}
 
 	return children, nil
+}
+
+// GetRecursiveUntrackedAssets returns all untracked files under a collection folder.
+// Tracked asset files are excluded, but tracked collection folders are still scanned
+// so untracked files inside child collections are included.
+func (e *CollectionService) GetRecursiveUntrackedAssets(projectPath, collectionId, projectWorkingDir, collectionFolderPath string, ignoreList []string) ([]models.UntrackedAsset, error) {
+	untrackedAssets := make([]models.UntrackedAsset, 0)
+
+	if collectionId == "root" {
+		collectionId = ""
+	}
+	if collectionFolderPath == "" {
+		collectionFolderPath = projectWorkingDir
+	}
+	if !utils.DirExists(collectionFolderPath) {
+		return untrackedAssets, nil
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return untrackedAssets, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return untrackedAssets, err
+	}
+	defer tx.Rollback()
+
+	type trackedAssetFile struct {
+		AssetPath string `db:"asset_path"`
+		Extension string `db:"extension"`
+	}
+	trackedAssets := []trackedAssetFile{}
+	err = tx.Select(&trackedAssets, "SELECT asset_path, extension FROM full_asset WHERE trashed = 0")
+	if err != nil {
+		return untrackedAssets, err
+	}
+
+	absoluteTrackedFiles := make(map[string]bool, len(trackedAssets))
+	for _, asset := range trackedAssets {
+		absoluteAssetPath, err := filepath.Abs(filepath.Join(projectWorkingDir, asset.AssetPath+asset.Extension))
+		if err != nil {
+			return untrackedAssets, err
+		}
+		absoluteTrackedFiles[absoluteAssetPath] = true
+	}
+
+	type trackedCollectionPath struct {
+		Id             string `db:"id"`
+		CollectionPath string `db:"collection_path"`
+	}
+	trackedCollections := []trackedCollectionPath{}
+	err = tx.Select(&trackedCollections, "SELECT id, collection_path FROM full_collection WHERE trashed = 0")
+	if err != nil {
+		return untrackedAssets, err
+	}
+
+	collectionIdsByPath := map[string]string{"": ""}
+	for _, collection := range trackedCollections {
+		collectionPath := strings.Trim(utils.NormalizePath(collection.CollectionPath), "/")
+		collectionIdsByPath[collectionPath] = collection.Id
+	}
+
+	collectionIdForPath := func(relativePath string) string {
+		relativePath = strings.Trim(utils.NormalizePath(relativePath), "/")
+		for {
+			if id, ok := collectionIdsByPath[relativePath]; ok {
+				return id
+			}
+			if relativePath == "" {
+				break
+			}
+			relativePath = strings.Trim(utils.NormalizePath(filepath.Dir(relativePath)), "/")
+			if relativePath == "." {
+				relativePath = ""
+			}
+		}
+		return collectionId
+	}
+
+	rootedDirPath := func(relativePath string) string {
+		relativePath = strings.Trim(utils.NormalizePath(relativePath), "/")
+		if relativePath == "" || relativePath == "." {
+			return "/"
+		}
+		return "/" + relativePath + "/"
+	}
+
+	absoluteCollectionFolderPath, err := filepath.Abs(collectionFolderPath)
+	if err != nil {
+		return untrackedAssets, err
+	}
+
+	clusttaIgnore := ignore.CompileIgnoreLines(ignoreList...)
+	err = filepath.WalkDir(absoluteCollectionFolderPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.Type()&fs.ModeSymlink != 0 {
+			if d.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		relativePath, err := filepath.Rel(projectWorkingDir, path)
+		if err != nil {
+			return err
+		}
+		relativePath = utils.NormalizePath(relativePath)
+
+		isRoot := path == absoluteCollectionFolderPath
+		if d.IsDir() {
+			if !isRoot && strings.HasPrefix(filepath.Base(path), ".") {
+				return filepath.SkipDir
+			}
+			if !isRoot && clusttaIgnore.MatchesPath(relativePath) {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		if strings.HasPrefix(filepath.Base(path), ".") {
+			return nil
+		}
+		if absoluteTrackedFiles[path] || clusttaIgnore.MatchesPath(relativePath) {
+			return nil
+		}
+
+		parentRelativePath := utils.NormalizePath(filepath.Dir(relativePath))
+		if parentRelativePath == "." {
+			parentRelativePath = ""
+		}
+		assetName := strings.TrimSuffix(d.Name(), filepath.Ext(d.Name()))
+		untrackedAssets = append(untrackedAssets, models.UntrackedAsset{
+			Id:             utils.GetMD5Hash(path),
+			Name:           assetName,
+			FilePath:       path,
+			AssetPath:      "/" + relativePath,
+			CollectionId:   collectionIdForPath(parentRelativePath),
+			CollectionPath: rootedDirPath(parentRelativePath),
+			Extension:      filepath.Ext(d.Name()),
+			ItemPath:       "/" + relativePath + "/",
+			AssetTypeIcon:  "generic",
+		})
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return untrackedAssets, nil
+}
+
+// PurgeRecursiveUntrackedItems deletes untracked files under a collection folder.
+// Ignore rules are intentionally not applied: ignored files are still untracked
+// and should be removed by an explicit purge.
+func (e *CollectionService) PurgeRecursiveUntrackedItems(projectPath, collectionId, projectWorkingDir, collectionFolderPath string) (PurgeRecursiveUntrackedItemsResult, error) {
+	result := PurgeRecursiveUntrackedItemsResult{
+		Errors: []string{},
+	}
+
+	if collectionId == "root" {
+		collectionId = ""
+	}
+	if collectionFolderPath == "" {
+		collectionFolderPath = projectWorkingDir
+	}
+	if !utils.DirExists(collectionFolderPath) {
+		return result, nil
+	}
+
+	absoluteProjectWorkingDir, err := filepath.Abs(projectWorkingDir)
+	if err != nil {
+		return result, err
+	}
+	absoluteTargetPath, err := filepath.Abs(collectionFolderPath)
+	if err != nil {
+		return result, err
+	}
+	relativeTarget, err := filepath.Rel(absoluteProjectWorkingDir, absoluteTargetPath)
+	if err != nil {
+		return result, err
+	}
+	if relativeTarget == ".." || strings.HasPrefix(relativeTarget, ".."+string(filepath.Separator)) || filepath.IsAbs(relativeTarget) {
+		return result, fmt.Errorf("purge target must be inside the project working directory")
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return result, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return result, err
+	}
+	defer tx.Rollback()
+
+	type trackedAssetFile struct {
+		AssetPath string `db:"asset_path"`
+		Extension string `db:"extension"`
+	}
+	trackedAssets := []trackedAssetFile{}
+	err = tx.Select(&trackedAssets, "SELECT asset_path, extension FROM full_asset WHERE trashed = 0")
+	if err != nil {
+		return result, err
+	}
+
+	pathKey := func(path string) string {
+		cleanedPath := filepath.Clean(path)
+		if runtime.GOOS == "windows" {
+			return strings.ToLower(cleanedPath)
+		}
+		return cleanedPath
+	}
+
+	absoluteTrackedFiles := make(map[string]bool, len(trackedAssets))
+	for _, asset := range trackedAssets {
+		assetPath := strings.Trim(asset.AssetPath+asset.Extension, "/\\")
+		absoluteAssetPath, err := filepath.Abs(filepath.Join(absoluteProjectWorkingDir, assetPath))
+		if err != nil {
+			return result, err
+		}
+		absoluteTrackedFiles[pathKey(absoluteAssetPath)] = true
+	}
+
+	type trackedCollectionPath struct {
+		CollectionPath string `db:"collection_path"`
+	}
+	trackedCollections := []trackedCollectionPath{}
+	err = tx.Select(&trackedCollections, "SELECT collection_path FROM full_collection WHERE trashed = 0")
+	if err != nil {
+		return result, err
+	}
+
+	absoluteTrackedCollections := map[string]bool{
+		pathKey(absoluteProjectWorkingDir): true,
+	}
+	for _, collection := range trackedCollections {
+		collectionPath := strings.Trim(utils.NormalizePath(collection.CollectionPath), "/")
+		absoluteCollectionPath, err := filepath.Abs(filepath.Join(absoluteProjectWorkingDir, collectionPath))
+		if err != nil {
+			return result, err
+		}
+		absoluteTrackedCollections[pathKey(absoluteCollectionPath)] = true
+	}
+
+	directories := []string{}
+	err = filepath.WalkDir(absoluteTargetPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			result.Errors = append(result.Errors, err.Error())
+			return nil
+		}
+
+		isRoot := pathKey(path) == pathKey(absoluteTargetPath)
+		if d.Type()&fs.ModeSymlink != 0 {
+			result.Skipped++
+			if d.IsDir() {
+				return filepath.SkipDir
+			}
+			return nil
+		}
+
+		if d.IsDir() {
+			if !isRoot && strings.HasPrefix(filepath.Base(path), ".") {
+				result.Skipped++
+				return filepath.SkipDir
+			}
+			if !isRoot {
+				directories = append(directories, path)
+			}
+			return nil
+		}
+
+		if strings.HasPrefix(filepath.Base(path), ".") {
+			result.Skipped++
+			return nil
+		}
+		if absoluteTrackedFiles[pathKey(path)] {
+			result.Skipped++
+			return nil
+		}
+
+		if err := os.Remove(path); err != nil {
+			result.Errors = append(result.Errors, err.Error())
+			return nil
+		}
+		result.DeletedFiles++
+		return nil
+	})
+	if err != nil {
+		return result, err
+	}
+
+	sort.Slice(directories, func(i, j int) bool {
+		return len(directories[i]) > len(directories[j])
+	})
+
+	for _, directory := range directories {
+		if absoluteTrackedCollections[pathKey(directory)] {
+			result.Skipped++
+			continue
+		}
+
+		entries, err := os.ReadDir(directory)
+		if err != nil {
+			result.Errors = append(result.Errors, err.Error())
+			continue
+		}
+		if len(entries) > 0 {
+			result.Skipped++
+			continue
+		}
+
+		if err := os.Remove(directory); err != nil {
+			result.Errors = append(result.Errors, err.Error())
+			continue
+		}
+		result.DeletedFolders++
+	}
+
+	return result, nil
 }
 
 // GetCollectionAssets retrieves all assets belonging to a specific collection.

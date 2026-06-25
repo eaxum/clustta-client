@@ -1755,9 +1755,9 @@ func (t *AssetService) GetAssetAssets(projectPath string) ([]models.Asset, error
 	return assets, nil
 }
 
-// GetCollectionDescendantAssets returns all assets located anywhere under the given collection's subtree.
-// Used by the kanban view when navigated into a collection so descendants at any depth are included.
-func (t *AssetService) GetCollectionDescendantAssets(projectPath, collectionId string) ([]models.Asset, error) {
+// GetCollectionDescendantAssets returns assets located anywhere under the given collection's subtree.
+// includeResources controls whether resource assets are included alongside task assets.
+func (t *AssetService) GetCollectionDescendantAssets(projectPath, collectionId string, includeResources bool) ([]models.Asset, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return []models.Asset{}, err
@@ -1769,7 +1769,7 @@ func (t *AssetService) GetCollectionDescendantAssets(projectPath, collectionId s
 	}
 	defer tx.Rollback()
 
-	assets, err := repository.GetCollectionDescendantAssets(tx, collectionId)
+	assets, err := repository.GetCollectionDescendantAssets(tx, collectionId, includeResources)
 	if err != nil {
 		return []models.Asset{}, err
 	}

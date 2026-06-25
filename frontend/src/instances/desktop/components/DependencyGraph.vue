@@ -154,7 +154,7 @@ const updateSearch = (event) => {
 
 const isFilterActive = (filter) => {
   if (filter.includes('general')) {
-    const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showResources;
+    const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showTasks && commonStore.showResources;
     return !isActive;
   } else
     if (filter.includes('collection')) {
@@ -514,6 +514,8 @@ watch(
     commonStore.workspaceSearchQuery,
     commonStore.assetFilters,
     commonStore.collectionFilters,
+    commonStore.showAssets,
+    commonStore.showTasks,
     commonStore.showResources
   ],
   async () => {

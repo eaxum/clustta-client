@@ -66,7 +66,7 @@
     <span v-if="canDeleteAsset || !isNotOnDisk" class="menu-divider"></span>
 
     <!-- Free space -->
-    <ActionButton :icon="getAppIcon('broom')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
+    <ActionButton :icon="getAppIcon('two-drives')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
       :label="$t('common.freeUpSpace')" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Asset -->
@@ -442,6 +442,7 @@ const goToLocation = async () => {
 const isFilterActive = (filter) => {
   if (filter.includes('general')) {
     const isActive = commonStore.showCollections && commonStore.showAssets
+      && commonStore.showUntracked && commonStore.showTasks
       && commonStore.showResources && commonStore.showChildCollections
       && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
     return !isActive;
@@ -495,7 +496,7 @@ const moveToCollection = () => {
 const prepFreeUpSpacePopUpModal = () => {
   trayStates.popUpModalTitle = t('menus.freeUpAssetSpace');
   trayStates.popUpModalMessage = t('confirmations.deleteWorkingFiles', { item: 'asset' });
-  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalIcon = 'two-drives';
   trayStates.popUpModalFunction = freeUpSpace;
   modals.setModalVisibility('popUpModal', true);
   menu.hideContextMenu();

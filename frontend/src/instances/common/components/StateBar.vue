@@ -7,7 +7,7 @@
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_fetchable" :icon="getAppIcon('fetch')" 
 			v-tooltip="$t('components.stateBar.fetchAll')" :buttonFunction="fetchAll" />
 
-		<ActionButton v-if="collectionStore.collectionStateFlags.has_untracked && canCreateFromUntrackedHere"
+		<ActionButton v-if="commonStore.showUntracked && collectionStore.collectionStateFlags.has_untracked && canCreateFromUntrackedHere"
 			:icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
 			:buttonFunction="prepAllCheckpointModal" />
 

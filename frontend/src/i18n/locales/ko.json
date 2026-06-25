@@ -80,7 +80,10 @@
     "finish": "완료",
     "copyId": "Copy ID",
     "approve": "승인",
-    "deny": "거부"
+    "deny": "거부",
+    "collection": "Collection",
+    "project": "Project",
+    "purgeUntracked": "Purge untracked"
   },
   "placeholders": {
     "addItem": "항목 추가",
@@ -151,7 +154,11 @@
     "archiveProjectMessage": "이 프로젝트를 보관하면 작업 디렉터리의 공간도 확보됩니다. 추적되지 않은 항목은 손실됩니다. 계속하시겠습니까?",
     "relocateWorkingDirectoryMessage": "작업 디렉터리를 변경합니다:\n{from}\n\n에서:\n{to}\n(으)로\n\n참고: 파일은 이동되지 않습니다. 경로만 업데이트됩니다.",
     "deleteRemoteProject": "\"{name}\" 이(가) 서버에서 영구적으로 삭제됩니다. 이 작업은 취소할 수 없습니다. 확인을 위해 프로젝트 이름을 입력하세요:",
-    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner.",
+    "purgeUntrackedCollectionTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedProjectTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedCollection": "This will permanently delete untracked files and empty untracked folders in this collection, including ignored files. Tracked assets and collections will be kept.",
+    "purgeUntrackedProject": "This will permanently delete untracked files and empty untracked folders in this project, including ignored files. Tracked assets and collections will be kept."
   },
   "notifications": {
     "defaultViewUpdated": "기본 보기 업데이트됨",
@@ -468,7 +475,11 @@
     "syncCompleteMessage": "All data has been synced successfully",
     "errorSelectingFile": "Error selecting file",
     "errorDeletingProject": "Error deleting project",
-    "failedToMergeItem": "Failed to merge item"
+    "failedToMergeItem": "Failed to merge item",
+    "untrackedItemsPurged": "Untracked items purged",
+    "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
+    "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
   },
   "settings": {
     "title": "설정",
@@ -909,6 +920,7 @@
     "noResults": "결과 없음",
     "noSubCollections": "하위 컬렉션 없음",
     "offlineModeTooltip": "오프라인 모드 - 동기화하려면 로그인하세요",
+    "onlyAssets": "Only Assets",
     "onlyProjectAssets": "프로젝트 에셋만",
     "pinProject": "프로젝트 고정",
     "projectRoot": "프로젝트 루트",
@@ -921,6 +933,8 @@
     "deleteProject": "프로젝트 삭제",
     "deleteProjectTitle": "「{name}」 삭제",
     "resources": "리소스",
+    "tasks": "Tasks",
+    "untracked": "Untracked",
     "revertContents": "콘텐츠 되돌리기",
     "revertFile": "파일 되돌리기",
     "syncAsset": "에셋 동기화",

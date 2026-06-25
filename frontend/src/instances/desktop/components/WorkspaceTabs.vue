@@ -230,6 +230,7 @@ const saveOverWorkspace = async () => {
       showCollections: commonStore.showCollections,
       showAssets: commonStore.showAssets,
       onlyAssets: commonStore.onlyAssets,
+      showTasks: commonStore.showTasks,
       showResources: commonStore.showResources,
       showChildCollections: commonStore.showChildCollections,
       showChildAssets: commonStore.showChildAssets,

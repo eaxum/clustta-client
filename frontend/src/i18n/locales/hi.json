@@ -79,7 +79,10 @@
     "finish": "समाप्त",
     "copyId": "Copy ID",
     "approve": "स्वीकृत करें",
-    "deny": "अस्वीकार करें"
+    "deny": "अस्वीकार करें",
+    "collection": "Collection",
+    "project": "Project",
+    "purgeUntracked": "Purge untracked"
   },
   "placeholders": {
     "addItem": "आइटम जोड़ें",
@@ -150,7 +153,11 @@
     "archiveProjectMessage": "इस प्रोजेक्ट को आर्काइव करने से कार्यशील डायरेक्टरी में स्थान भी खाली होगा। कोई भी अनट्रैक्ड आइटम खो जाएँगे। आगे बढ़ें?",
     "relocateWorkingDirectoryMessage": "कार्यशील डायरेक्टरी बदलें:\n{from}\n\nसे:\n{to}\n\nनोट: फ़ाइलें स्थानांतरित नहीं होंगी। केवल पथ अपडेट होगा।",
     "deleteRemoteProject": "यह \"{name}\" को सर्वर से स्थायी रूप से हटा देगा। यह कार्रवाई पूर्ववत नहीं की जा सकती। पुष्टि के लिए प्रोजेक्ट नाम टाइप करें:",
-    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner."
+    "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner.",
+    "purgeUntrackedCollectionTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedProjectTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedCollection": "This will permanently delete untracked files and empty untracked folders in this collection, including ignored files. Tracked assets and collections will be kept.",
+    "purgeUntrackedProject": "This will permanently delete untracked files and empty untracked folders in this project, including ignored files. Tracked assets and collections will be kept."
   },
   "notifications": {
     "defaultViewUpdated": "डिफ़ॉल्ट दृश्य अपडेट किया गया",
@@ -467,7 +474,11 @@
     "syncCompleteMessage": "All data has been synced successfully",
     "errorSelectingFile": "Error selecting file",
     "errorDeletingProject": "Error deleting project",
-    "failedToMergeItem": "Failed to merge item"
+    "failedToMergeItem": "Failed to merge item",
+    "untrackedItemsPurged": "Untracked items purged",
+    "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
+    "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -884,6 +895,7 @@
     "noResults": "कोई परिणाम नहीं",
     "noSubCollections": "कोई उप-कलेक्शन नहीं",
     "offlineModeTooltip": "ऑफ़लाइन मोड - सिंक के लिए साइन इन करें",
+    "onlyAssets": "Only Assets",
     "onlyProjectAssets": "केवल प्रोजेक्ट एसेट",
     "pinProject": "प्रोजेक्ट पिन करें",
     "projectRoot": "प्रोजेक्ट रूट",
@@ -896,6 +908,8 @@
     "deleteProject": "प्रोजेक्ट हटाएँ",
     "deleteProjectTitle": "\"{name}\" हटाएँ",
     "resources": "संसाधन",
+    "tasks": "Tasks",
+    "untracked": "Untracked",
     "revertContents": "सामग्री पूर्ववत करें",
     "revertFile": "फ़ाइल पूर्ववत करें",
     "syncAsset": "एसेट सिंक करें",

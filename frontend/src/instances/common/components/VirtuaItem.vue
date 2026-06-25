@@ -109,7 +109,16 @@ const filtersActive = computed(() => {
   const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
   const collectionFilters = commonStore.collectionFilters.length > 0;
   const assetFilters = commonStore.assetFilters.length > 0;
-  let generalFilter;
+  const generalFilter = !(
+    commonStore.showCollections &&
+    commonStore.showAssets &&
+    commonStore.showTasks &&
+    commonStore.showResources &&
+    commonStore.showChildCollections &&
+    commonStore.showChildAssets &&
+    commonStore.showDependencies &&
+    !commonStore.onlyAssets
+  );
   return assigneeFilters || collectionFilters || assetFilters || generalFilter;
 });
 
@@ -147,6 +156,63 @@ const virtuaIndentHeight = computed(() => {
 });
 
 // methods
+// Applies tracked task/resource visibility to assets that have already passed metadata filters.
+const applyTrackedAssetVisibility = (assets = []) => {
+  if (!commonStore.showAssets) return [];
+  return (assets || []).filter((asset) =>
+    (asset.is_resource && commonStore.showResources) ||
+    (!asset.is_resource && commonStore.showTasks)
+  );
+};
+
+// Filters untracked assets by broad asset/untracked toggles plus search and extension filters.
+const filterUntrackedAssets = (assets = []) => {
+  if (!commonStore.showAssets || !commonStore.showUntracked) return [];
+  const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
+  const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";
+  const selectedExtensions = commonStore.assetFilters
+    .filter((filter) => filter.type === "extension")
+    .map((filter) => filter.extension.toLowerCase());
+
+  return (assets || []).filter((item) => {
+    const extensionMatch = selectedExtensions.length === 0 || selectedExtensions.includes(item.extension?.toLowerCase());
+    const name = item.name?.toLowerCase() || "";
+    const filePath = item.file_path?.toLowerCase().replace(/\\/g, "/") || "";
+    const itemPath = item.item_path?.toLowerCase().replace(/\\/g, "/") || "";
+    const viewMatch = !viewSearchQuery || name.includes(viewSearchQuery) || filePath.includes(viewSearchQuery) || itemPath.includes(viewSearchQuery);
+    const workspaceMatch = !workspaceSearchQuery || name.includes(workspaceSearchQuery) || filePath.includes(workspaceSearchQuery) || itemPath.includes(workspaceSearchQuery);
+    return extensionMatch && viewMatch && workspaceMatch;
+  });
+};
+
+// Filters untracked collections by broad collection/untracked toggles plus search.
+const filterUntrackedCollections = (collections = []) => {
+  if (!commonStore.showCollections || !commonStore.showUntracked || commonStore.onlyAssets) return [];
+  const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
+  const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";
+
+  return (collections || []).filter((item) => {
+    const name = item.name?.toLowerCase() || "";
+    const collectionPath = item.collection_path?.toLowerCase().replace(/\\/g, "/") || "";
+    const itemPath = item.item_path?.toLowerCase().replace(/\\/g, "/") || "";
+    const viewMatch = !viewSearchQuery || name.includes(viewSearchQuery) || collectionPath.includes(viewSearchQuery) || itemPath.includes(viewSearchQuery);
+    const workspaceMatch = !workspaceSearchQuery || name.includes(workspaceSearchQuery) || collectionPath.includes(workspaceSearchQuery) || itemPath.includes(workspaceSearchQuery);
+    return viewMatch && workspaceMatch;
+  });
+};
+
+// Composes nested children using the same bucket visibility rules as the root browser.
+const composeVisibleChildren = (children = {}) => {
+  const collections = commonStore.showCollections && !commonStore.onlyAssets
+    ? (children.collections || []).filter((item) => !item.is_trashed)
+    : [];
+  const assets = applyTrackedAssetVisibility(children.assets || []);
+  const untrackedCollections = filterUntrackedCollections(children.untracked_collections || children.untracked_folders || []);
+  const untrackedAssets = filterUntrackedAssets(children.untracked_assets || children.untracked_files || []);
+
+  return [...collections, ...untrackedCollections, ...assets, ...untrackedAssets];
+};
+
 // Handles keyboard arrow key navigation for expanding/collapsing items.
 const handleKeyArrowKeys = async (event) => {
   if (modals.activeModal) {
@@ -270,7 +336,12 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
   const untrackedCollections = untrackedItems.filter(item => item.type === 'untracked_collection');
   const untrackedAssets = untrackedItems.filter(item => item.type === 'untracked_asset');
 
-  collectionChildren.value = [...trackedCollections, ...untrackedCollections, ...trackedAssets, ...untrackedAssets];
+  collectionChildren.value = composeVisibleChildren({
+    collections: trackedCollections,
+    assets: trackedAssets,
+    untracked_collections: untrackedCollections,
+    untracked_assets: untrackedAssets
+  });
   hasChildren.value = collectionChildren.value.length > 0;
 
   if (!hasChildren.value && isExpanded.value) {
@@ -366,7 +437,12 @@ const loadCollectionChildren = async () => {
     let childrenCollections = filtersActive.value ? await collectionStore.filterCollections(children.collections) : children.collections;
     let childrenAssets = filtersActive.value ? await assetStore.filterAssets(children.assets) : children.assets;
 
-    collectionChildren.value = [...childrenCollections, ...children.untracked_collections, ...childrenAssets, ...children.untracked_assets];
+    collectionChildren.value = composeVisibleChildren({
+      collections: childrenCollections,
+      assets: childrenAssets,
+      untracked_collections: children.untracked_collections,
+      untracked_assets: children.untracked_assets
+    });
     hasChildren.value = collectionChildren.value.length > 0;
     
     if (!hasChildren.value && props.child.id in stage.expandedCollections) {
@@ -480,7 +556,7 @@ onBeforeUnmount(() => {
   border-left: var(--transparent-line);
   box-sizing: border-box;
   height: 300px;
-  left: 15px;
+  left: 8px;
   position: absolute;
   width: 100%;
 }
@@ -500,7 +576,7 @@ onBeforeUnmount(() => {
 .virtua-item-children {
   box-sizing: border-box;
   overflow: hidden;
-  padding-left: 30px;
+  padding-left: 15px;
   width: 100%;
 }
 

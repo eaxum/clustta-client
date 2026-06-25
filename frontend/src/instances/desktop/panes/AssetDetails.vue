@@ -28,7 +28,7 @@
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('panes.task')" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('kanban')" :label="$t('panes.task')" />
 
             <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsTask') : $t('panes.setAsTask')"
               @click="toggleIsTask" :switchValueProp="!assetStore.selectedAsset.is_resource" />

@@ -2090,6 +2090,7 @@ func GetAssetAssets(tx *sqlx.Tx) ([]models.Asset, error) {
 			assignee_id,
 			preview,
 			status_id,
+			is_resource,
 			asset_type_id,
 			extension,
 			tags
@@ -2117,7 +2118,7 @@ func GetAssetAssets(tx *sqlx.Tx) ([]models.Asset, error) {
 
 // GetCollectionDescendantAssets returns assets located anywhere
 // under the given collection's subtree, with the same minimal fields as GetAssetAssets.
-func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string) ([]models.Asset, error) {
+func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string, includeResources bool) ([]models.Asset, error) {
 	assets := []models.Asset{}
 
 	var collectionPath string
@@ -2126,7 +2127,12 @@ func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string) ([]models.A
 		return assets, err
 	}
 
-	query := `
+	resourceClause := "AND is_resource = 0"
+	if includeResources {
+		resourceClause = ""
+	}
+
+	query := fmt.Sprintf(`
 		SELECT
 			id,
 			name,
@@ -2134,18 +2140,34 @@ func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string) ([]models.A
 			assignee_id,
 			preview,
 			status_id,
+			is_resource,
 			asset_type_id,
+			asset_path,
 			extension,
 			tags
 		FROM full_asset
-		WHERE is_resource = 0 AND trashed = 0 AND collection_path LIKE ?
-		ORDER BY name`
+		WHERE trashed = 0 AND collection_path LIKE ? %s
+		ORDER BY name`, resourceClause)
 
 	err = tx.Select(&assets, query, collectionPath+"%")
 	if err != nil {
 		return assets, err
 	}
+
+	statuses, err := GetStatuses(tx)
+	if err != nil {
+		return assets, err
+	}
+	statusesMap := map[string]models.Status{}
+	for _, status := range statuses {
+		statusesMap[status.Id] = status
+	}
+
 	for i := range assets {
+		status := statusesMap[assets[i].StatusId]
+		assets[i].Status = status
+		assets[i].StatusShortName = status.ShortName
+
 		if assets[i].TagsRaw != "" && assets[i].TagsRaw != "[]" {
 			assetTags := []AssetTags{}
 			if err := json.Unmarshal([]byte(assets[i].TagsRaw), &assetTags); err != nil {

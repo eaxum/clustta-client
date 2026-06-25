@@ -130,6 +130,7 @@ const hasActiveFilters = computed(() => {
 		|| !commonStore.showCollections
 		|| !commonStore.showAssets
 		|| commonStore.onlyAssets
+		|| !commonStore.showTasks
 		|| !commonStore.showResources
 		|| !commonStore.showChildCollections
 		|| !commonStore.showChildAssets

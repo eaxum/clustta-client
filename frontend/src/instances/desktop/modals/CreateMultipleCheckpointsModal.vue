@@ -30,10 +30,15 @@
                 :icon="getAppIcon(showCheckpointItems ? 'eye-cancel' : 'eye')" />
             </div>
 
+            <div v-if="trayStates.createMultipleCheckpoints" class="checkpoint-untracked-toggle" @click="toggleIncludeUntracked">
+              <div class="checkpoint-untracked-toggle-label">{{ $t('menus.untracked') }}</div>
+              <ToggleSwitch :switchValueProp="includeUntrackedInCheckpoint" />
+            </div>
+
             <div v-if="showCheckpointItems && !showModifiedItemsSidePane" class="modified-items-inline">
               <div class="modified-items-tabs-header">
-                <div class="modified-items-tabs">
-                  <PaneHeaderTabs :dataTypes="modifiedItemTabs" :selectedTab="selectedModifiedItemsFilter" @filter="handleModifiedItemsFilterChange" />
+                <div class="modified-items-tabs" :class="{ 'modified-items-tabs-empty': !showCheckpointTabs }">
+                  <PaneHeaderTabs v-if="showCheckpointTabs" :dataTypes="modifiedItemTabs" :selectedTab="selectedModifiedItemsFilter" @filter="handleModifiedItemsFilterChange" />
                 </div>
 
                 <div class="modified-items-tabs-options">
@@ -67,8 +72,8 @@
 
         <div v-if="showModifiedItemsSidePane" class="modified-items-history">
           <div class="modified-items-tabs-header">
-            <div class="modified-items-tabs">
-              <PaneHeaderTabs :dataTypes="modifiedItemTabs" :selectedTab="selectedModifiedItemsFilter" @filter="handleModifiedItemsFilterChange" />
+            <div class="modified-items-tabs" :class="{ 'modified-items-tabs-empty': !showCheckpointTabs }">
+              <PaneHeaderTabs v-if="showCheckpointTabs" :dataTypes="modifiedItemTabs" :selectedTab="selectedModifiedItemsFilter" @filter="handleModifiedItemsFilterChange" />
             </div>
 
             <div class="modified-items-tabs-options">
@@ -125,6 +130,7 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
 import { AssetService, CheckpointService, CollectionService } from '@/services';
@@ -157,6 +163,7 @@ const trayStates = useTrayStates();
 const isAwaitingResponse = ref(false);
 const candidateIcons = ref({});
 const hideExtensions = ref(true);
+const includeUntrackedInCheckpoint = ref(commonStore.showUntracked);
 const message = ref('');
 const removedPaths = ref([]);
 const selectedModifiedItemsFilter = ref('all');
@@ -189,7 +196,7 @@ const currentModifiedDisplayPaths = computed(() => {
 });
 
 // Returns untracked file paths after filtering.
-const currentUntrackedPaths = computed(() => {
+const availableUntrackedPaths = computed(() => {
   let filteredAssets = assetStore.modifiedAssets.untracked || [];
   filteredAssets = filteredAssets.filter((untrackedAssetPath) => !removedPaths.value.includes(untrackedAssetPath));
   if (trayStates.createMultipleCheckpointsCollectionPath) {
@@ -204,6 +211,12 @@ const currentUntrackedPaths = computed(() => {
       .filter(path => path && filteredAssets.includes(path));
     return selectedUntrackedAssets;
   }
+});
+
+// Returns untracked file paths when the modal-local untracked toggle is enabled.
+const currentUntrackedPaths = computed(() => {
+  if (!includeUntrackedInCheckpoint.value) return [];
+  return availableUntrackedPaths.value;
 });
 
 // Returns a normalized list of modified and untracked checkpoint candidates.
@@ -259,6 +272,7 @@ const checkpointItems = computed(() => {
 
 // Returns checkpoint candidates matching the selected tab.
 const filteredCheckpointItems = computed(() => {
+  if (!showCheckpointTabs.value) return checkpointItems.value;
   if (selectedModifiedItemsFilter.value === 'modified') {
     return checkpointItems.value.filter((item) => item.kind === 'modified');
   }
@@ -279,6 +293,12 @@ const modifiedItemsEmptyMessage = computed(() => {
 const showModifiedItemsSidePane = computed(() => {
   return showCheckpointItems.value && totalCheckpointItems.value > 2;
 });
+
+// Returns whether both tracked and untracked candidates are currently visible.
+const hasMixedCheckpointItems = computed(() => currentModifiedDisplayPaths.value.length > 0 && currentUntrackedPaths.value.length > 0);
+
+// Returns whether tab filters are useful for the current candidate set.
+const showCheckpointTabs = computed(() => hasMixedCheckpointItems.value);
 
 // Returns total checkpoint candidate count.
 const totalCheckpointItems = computed(() => {
@@ -611,6 +631,11 @@ const toggleShowCheckpointItems = () => {
   showCheckpointItems.value = !showCheckpointItems.value;
 };
 
+// Toggles untracked checkpoint candidates for collection-level checkpoint creation.
+const toggleIncludeUntracked = () => {
+  includeUntrackedInCheckpoint.value = !includeUntrackedInCheckpoint.value;
+};
+
 // Toggles extension visibility in modified items.
 const toggleHideExtensions = () => {
   hideExtensions.value = !hideExtensions.value;
@@ -640,10 +665,12 @@ const loadSelectedItemsForCheckpoint = () => {
         display_path: asset.asset_path + asset.extension
       }));
 
-    const untrackedPaths = stage.selectedItems
-      .filter((item) => item.type === 'untracked_asset')
-      .map((asset) => asset.asset_path)
-      .filter(Boolean);
+    const untrackedPaths = commonStore.showUntracked
+      ? stage.selectedItems
+        .filter((item) => item.type === 'untracked_asset')
+        .map((asset) => asset.asset_path)
+        .filter(Boolean)
+      : [];
 
     assetStore.modifiedAssets = {
       modified: modifiedAssets,
@@ -858,6 +885,29 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
+.checkpoint-untracked-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  height: 30px;
+  padding: 0 .5rem;
+  border-radius: var(--small-radius);
+  background-color: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.checkpoint-untracked-toggle:hover {
+  background-color: var(--surface-3);
+}
+
+.checkpoint-untracked-toggle-label {
+  font-size: 13px;
+  font-weight: 200;
+}
+
 .checkpoint-create-form {
   display: flex;
   flex: 1;
@@ -959,6 +1009,10 @@ onBeforeUnmount(() => {
   width: 100%;
   max-width: 250px;
   border-radius: var(--very-large-radius);
+}
+
+.modified-items-tabs-empty {
+  background: none;
 }
 
 .modified-items-tabs-header {

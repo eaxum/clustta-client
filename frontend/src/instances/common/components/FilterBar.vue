@@ -82,7 +82,7 @@ const clearFilters = () => { commonStore.resetFilters(); emitter.emit('refresh-b
 // Checks if a specific filter type is currently active.
 const isFilterActive = (filter) => {
 	if (filter.includes('general')) {
-		const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
+		const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showTasks && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
 		return !isActive;
 	} else if (filter.includes('collection')) return commonStore.collectionFilters.some((item) => item.type === filter);
 	else if (filter.includes('assignation')) {

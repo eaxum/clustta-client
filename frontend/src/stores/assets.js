@@ -451,9 +451,13 @@ export const useAssetStore = defineStore("asset", {
               return (nameMatch || filePathMatch) && (workspaceNameMatch || workspaceFilePathMatch);
             }
           );
-        return commonStore.showResources
-          ? filteredAsset
-          : filteredAsset.filter((item) => !item.is_resource);
+        return filteredAsset.filter((item) =>
+          commonStore.showAssets &&
+          (
+            (item.is_resource && commonStore.showResources) ||
+            (!item.is_resource && commonStore.showTasks)
+          )
+        );
       } else {
         filteredAsset = assets.filter(
           (item) => {
@@ -465,9 +469,13 @@ export const useAssetStore = defineStore("asset", {
             return (nameMatch || filePathMatch) && (workspaceNameMatch || workspaceFilePathMatch);
           }
         );
-        return commonStore.showResources
-          ? filteredAsset
-          : filteredAsset.filter((item) => !item.is_resource);
+        return filteredAsset.filter((item) =>
+          commonStore.showAssets &&
+          (
+            (item.is_resource && commonStore.showResources) ||
+            (!item.is_resource && commonStore.showTasks)
+          )
+        );
       }
     },
     async addModifiedAssetPath(assetPath) {

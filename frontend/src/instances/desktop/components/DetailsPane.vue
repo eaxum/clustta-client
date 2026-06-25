@@ -29,7 +29,7 @@
 
         <div v-if="onlyAssets" class="action-bar">
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('components.detailsPane.type')" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('kanban')" :label="$t('components.detailsPane.type')" />
             <DropDownBox :items="itemTypes" :selectedItem="''" :onSelect="toggleIsTask" :fixedWidth="true" />
           </div>
 

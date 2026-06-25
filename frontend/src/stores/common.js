@@ -11,6 +11,13 @@ await SettingsService.GetDefaultViewMode()
   })
   .catch((error) => console.log(error));
 
+let defaultShowUntracked = true;
+await SettingsService.GetUntrackedVisibility()
+  .then((response) => {
+    defaultShowUntracked = response;
+  })
+  .catch((error) => console.log(error));
+
 export const useCommonStore = defineStore("common", {
   state: () => ({
     activeFilters: [],
@@ -23,10 +30,11 @@ export const useCommonStore = defineStore("common", {
     showFullPath: false,
     hideExtensions: true,
     showThumbs: true,
-    showUntracked: true,
+    showUntracked: defaultShowUntracked,
     showCollections: true,
     showAssets: true,
     onlyAssets: false,
+    showTasks: true,
     showResources: true,
     showChildCollections: true,
     showChildAssets: true,
@@ -103,6 +111,7 @@ export const useCommonStore = defineStore("common", {
         state.showCollections !== snap.showCollections ||
         state.showAssets !== snap.showAssets ||
         state.onlyAssets !== snap.onlyAssets ||
+        state.showTasks !== snap.showTasks ||
         state.showResources !== snap.showResources ||
         state.showChildCollections !== snap.showChildCollections ||
         state.showChildAssets !== snap.showChildAssets ||
@@ -127,6 +136,7 @@ export const useCommonStore = defineStore("common", {
       this.showCollections = workspace.filters.showCollections;
       this.showAssets = workspace.filters.showAssets;
       this.onlyAssets = workspace.filters.onlyAssets;
+      this.showTasks = workspace.filters.showTasks ?? true;
       this.showResources = workspace.filters.showResources;
       this.showChildCollections = workspace.filters.showChildCollections;
       this.showChildAssets = workspace.filters.showChildAssets;
@@ -162,6 +172,7 @@ export const useCommonStore = defineStore("common", {
         showCollections: this.showCollections,
         showAssets: this.showAssets,
         onlyAssets: this.onlyAssets,
+        showTasks: this.showTasks,
         showResources: this.showResources,
         showChildCollections: this.showChildCollections,
         showChildAssets: this.showChildAssets,
@@ -185,6 +196,7 @@ export const useCommonStore = defineStore("common", {
         showCollections: this.showCollections,
         showAssets: this.showAssets,
         onlyAssets: this.onlyAssets,
+        showTasks: this.showTasks,
         showResources: this.showResources,
         showChildCollections: this.showChildCollections,
         showChildAssets: this.showChildAssets,
@@ -199,6 +211,7 @@ export const useCommonStore = defineStore("common", {
       (this.showCollections = true),
         (this.showAssets = true),
         (this.onlyAssets = false),
+        (this.showTasks = true),
         (this.showResources = true),
         (this.showChildCollections = true),
         (this.showChildAssets = true),
@@ -213,6 +226,11 @@ export const useCommonStore = defineStore("common", {
       this.workspaceSearchQuery = "";
       this.viewSearchQuery = "";
       this.applyViewMode(defaultViewMode);
+    },
+    async setUntrackedVisibility(value) {
+      this.showUntracked = value;
+      defaultShowUntracked = value;
+      await SettingsService.SetUntrackedVisibility(value);
     },
     setCompactView() {
       this.viewMode = 'compact';

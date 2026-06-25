@@ -732,7 +732,7 @@ const onAgentRevealInBrowser = async (event) => {
 // Applies a filter payload the agent built so the browser narrows to the
 // requested items. Mirrors the field assignments the filter menus do, so the
 // existing FilterBar Clear button and "modified workspace" indicator both work.
-const onAgentApplyFilter = (event) => {
+const onAgentApplyFilter = async (event) => {
   const payload = event?.data?.applied;
   if (!payload) return;
   if (Array.isArray(payload.asset_filters)) commonStore.assetFilters = payload.asset_filters;
@@ -744,6 +744,8 @@ const onAgentApplyFilter = (event) => {
   if (typeof payload.view_search_query === 'string') commonStore.viewSearchQuery = payload.view_search_query;
   if (typeof payload.show_collections === 'boolean') commonStore.showCollections = payload.show_collections;
   if (typeof payload.show_assets === 'boolean') commonStore.showAssets = payload.show_assets;
+  if (typeof payload.show_untracked === 'boolean') await commonStore.setUntrackedVisibility(payload.show_untracked);
+  if (typeof payload.show_tasks === 'boolean') commonStore.showTasks = payload.show_tasks;
   if (typeof payload.show_resources === 'boolean') commonStore.showResources = payload.show_resources;
   if (typeof payload.only_assets === 'boolean') commonStore.onlyAssets = payload.only_assets;
   emitter.emit('refresh-browser');

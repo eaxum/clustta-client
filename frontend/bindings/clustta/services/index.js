@@ -94,6 +94,7 @@ export {
     NullString,
     Plan,
     ProfileUpdateData,
+    PurgeRecursiveUntrackedItemsResult,
     RecycleItem,
     ShareLinkResponse,
     Skill,

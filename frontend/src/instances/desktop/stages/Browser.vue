@@ -11,7 +11,7 @@
 			<FilterBar v-if="showFilters || kanbanView" :kanbanView="kanbanView" />
 			<CreateMenu v-else-if="!kanbanView" :kanbanView="kanbanView" :importItems="importItems" :disabled="!canCreateInWorkspace" />
 			<StateBar v-if="!showFilters && !kanbanView" :hasData="!!rootData.length" />
-			<div v-if="(rootData.length || commonStore.viewSearchQuery.length || commonStore.showUntracked)"
+			<div v-if="!kanbanView"
 				class="view-options">
 				<ViewOptions />
 				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
@@ -130,7 +130,7 @@ const filtersActive = computed(() => {
 	const collectionFilters = commonStore.collectionFilters.length > 0;
 	const assetFilters = commonStore.assetFilters.length > 0;
 	const resourceFilters = commonStore.resourceFilters.length > 0;
-	const generalFilterActive = !(commonStore.showCollections && commonStore.showAssets && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets);
+	const generalFilterActive = isGeneralFilterActive();
 	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilterActive;
 });
 
@@ -157,6 +157,97 @@ const operationsActive = computed(() => {
 });
 
 // methods
+
+// Returns whether any broad visibility toggle differs from the default browser view.
+const isGeneralFilterActive = () => {
+	return !(
+		commonStore.showCollections &&
+		commonStore.showAssets &&
+		commonStore.showTasks &&
+		commonStore.showResources &&
+		commonStore.showChildCollections &&
+		commonStore.showChildAssets &&
+		commonStore.showDependencies &&
+		!commonStore.onlyAssets
+	);
+};
+
+// Applies tracked task/resource visibility to assets that have already passed metadata filters.
+const applyTrackedAssetVisibility = (assets = []) => {
+	if (!commonStore.showAssets) return [];
+	return (assets || []).filter((asset) =>
+		(asset.is_resource && commonStore.showResources) ||
+		(!asset.is_resource && commonStore.showTasks)
+	);
+};
+
+// Filters untracked assets by the broad asset/untracked toggles plus search and extension filters.
+const filterUntrackedAssets = (assets = []) => {
+	if (!commonStore.showAssets || !commonStore.showUntracked) return [];
+	const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
+	const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";
+	const selectedExtensions = commonStore.assetFilters
+		.filter((filter) => filter.type === "extension")
+		.map((filter) => filter.extension.toLowerCase());
+
+	return (assets || []).filter((item) => {
+		const extensionMatch = selectedExtensions.length === 0 || selectedExtensions.includes(item.extension?.toLowerCase());
+		const name = item.name?.toLowerCase() || "";
+		const filePath = item.file_path?.toLowerCase().replace(/\\/g, "/") || "";
+		const itemPath = item.item_path?.toLowerCase().replace(/\\/g, "/") || "";
+		const viewMatch = !viewSearchQuery || name.includes(viewSearchQuery) || filePath.includes(viewSearchQuery) || itemPath.includes(viewSearchQuery);
+		const workspaceMatch = !workspaceSearchQuery || name.includes(workspaceSearchQuery) || filePath.includes(workspaceSearchQuery) || itemPath.includes(workspaceSearchQuery);
+		return extensionMatch && viewMatch && workspaceMatch;
+	});
+};
+
+// Filters untracked collections by broad collection/untracked toggles plus search.
+const filterUntrackedCollections = (collections = []) => {
+	if (!commonStore.showCollections || !commonStore.showUntracked || commonStore.onlyAssets) return [];
+	const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
+	const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";
+
+	return (collections || []).filter((item) => {
+		const name = item.name?.toLowerCase() || "";
+		const collectionPath = item.collection_path?.toLowerCase().replace(/\\/g, "/") || "";
+		const itemPath = item.item_path?.toLowerCase().replace(/\\/g, "/") || "";
+		const viewMatch = !viewSearchQuery || name.includes(viewSearchQuery) || collectionPath.includes(viewSearchQuery) || itemPath.includes(viewSearchQuery);
+		const workspaceMatch = !workspaceSearchQuery || name.includes(workspaceSearchQuery) || collectionPath.includes(workspaceSearchQuery) || itemPath.includes(workspaceSearchQuery);
+		return viewMatch && workspaceMatch;
+	});
+};
+
+// Composes the four browser buckets into the visible list after filters have been applied.
+const composeVisibleItems = (children = {}) => {
+	const collections = commonStore.showCollections && !commonStore.onlyAssets
+		? (children.collections || []).filter((item) => !item.is_trashed)
+		: [];
+	const assets = applyTrackedAssetVisibility(children.assets || []);
+	const untrackedCollections = filterUntrackedCollections(children.untracked_collections || children.untracked_folders || []);
+	const untrackedAssets = filterUntrackedAssets(children.untracked_assets || children.untracked_files || []);
+
+	return sortItems(collections, assets, untrackedCollections, untrackedAssets);
+};
+
+// Loads recursive tracked assets for a navigated tracked collection when only-assets mode is active.
+const getNavigatedTrackedAssets = async (collectionId, immediateAssets = []) => {
+	if (!commonStore.onlyAssets || !collectionId) return immediateAssets;
+	const nav = collectionStore.navigatedCollection;
+	if (nav?.type !== 'collection') return immediateAssets;
+	return await AssetService.GetCollectionDescendantAssets(projectStore.activeProject.uri, collectionId, true);
+};
+
+// Loads recursive untracked assets for root/navigated only-assets mode.
+const getRecursiveUntrackedAssets = async (collectionId, collectionFolderPath) => {
+	if (!commonStore.onlyAssets || !commonStore.showUntracked || !collectionFolderPath) return null;
+	return await CollectionService.GetRecursiveUntrackedAssets(
+		projectStore.activeProject.uri,
+		collectionId || "root",
+		projectStore.activeProject.working_directory,
+		collectionFolderPath,
+		projectStore.activeProject.ignore_list
+	);
+};
 
 // Adds an collection dependency to a asset. Returns true on success.
 const addCollectionDependency = async (assetId, dependencyId, dependencyTypeId) => {
@@ -560,7 +651,12 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 	const trackedAssets = rootData.value.filter(item => item.type === 'asset');
 	const untrackedCollections = untrackedItems.filter(item => item.type === 'untracked_collection');
 	const untrackedAssets = untrackedItems.filter(item => item.type === 'untracked_asset');
-	rootData.value = sortItems(trackedCollections, trackedAssets, untrackedCollections, untrackedAssets);
+	rootData.value = composeVisibleItems({
+		collections: trackedCollections,
+		assets: trackedAssets,
+		untracked_collections: untrackedCollections,
+		untracked_assets: untrackedAssets
+	});
 	emitter.emit('get-project-data');
 	collectionStore.loadCollectionStateFlags();
 };
@@ -856,10 +952,19 @@ const refresh = async () => {
 		const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 		const collection_file_path = collectionStore.navigatedCollection?.file_path;
 		children = await CollectionService.GetCollectionChildren(project.uri, navigatedCollectionId, project.working_directory, collection_file_path, project.ignore_list, false);
+		children.assets = await getNavigatedTrackedAssets(navigatedCollectionId, children.assets);
 	}
+	const recursiveCollectionId = commonStore.navigatorMode && collectionStore.navigatedCollection?.type === 'collection'
+		? collectionStore.navigatedCollection?.id
+		: "root";
+	const recursiveFolderPath = commonStore.navigatorMode
+		? collectionStore.navigatedCollection?.file_path
+		: project.working_directory;
+	const recursiveUntrackedAssets = await getRecursiveUntrackedAssets(recursiveCollectionId, recursiveFolderPath);
+	if (recursiveUntrackedAssets) children.untracked_assets = recursiveUntrackedAssets;
 	await assetStore.processAssetsIconsAndPreviews(children.assets);
 	await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
-	rootData.value = sortItems(children.collections, children.assets, children.untracked_collections, children.untracked_assets);
+	rootData.value = composeVisibleItems(children);
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
 	await nextTick();
@@ -879,10 +984,14 @@ const softRefresh = async (options = {}) => {
 	let project = projectStore.activeProject;
 	const searching = commonStore.viewSearchQuery.toLowerCase();
 	if (searching || filtersActive.value) {
-		let collections, assets;
+		let collections, assets, collectionItems;
 		if (!commonStore.navigatorMode) {
+			const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+			children.untracked_collections = rootItems.untracked_collections;
+			children.untracked_assets = commonStore.onlyAssets
+				? await getRecursiveUntrackedAssets("root", project.working_directory)
+				: rootItems.untracked_assets;
 			if (!searching) {
-				const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 				collections = rootItems['collections'];
 				assets = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['assets'];
 			} else {
@@ -893,9 +1002,14 @@ const softRefresh = async (options = {}) => {
 		} else {
 			const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 			const collection_file_path = collectionStore.navigatedCollection?.file_path;
-			const collectionItems = await CollectionService.GetCollectionChildren(project.uri, navigatedCollectionId, project.working_directory, collection_file_path, project.ignore_list, false);
+			collectionItems = await CollectionService.GetCollectionChildren(project.uri, navigatedCollectionId, project.working_directory, collection_file_path, project.ignore_list, false);
+			children.untracked_collections = collectionItems.untracked_collections;
+			const recursiveCollectionId = collectionStore.navigatedCollection?.type === 'collection' ? navigatedCollectionId : "root";
+			children.untracked_assets = commonStore.onlyAssets
+				? await getRecursiveUntrackedAssets(recursiveCollectionId, collection_file_path)
+				: collectionItems.untracked_assets;
 			collections = collectionItems['collections'];
-			assets = collectionItems['assets'];
+			assets = await getNavigatedTrackedAssets(navigatedCollectionId, collectionItems['assets']);
 		}
 		children['collections'] = await collectionStore.filterCollections(collections);
 		children['assets'] = await assetStore.filterAssets(assets);
@@ -905,13 +1019,20 @@ const softRefresh = async (options = {}) => {
 			const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 			const collection_file_path = collectionStore.navigatedCollection?.file_path;
 			children = await CollectionService.GetCollectionChildren(project.uri, navigatedCollectionId, project.working_directory, collection_file_path, project.ignore_list, false);
+			children.assets = await getNavigatedTrackedAssets(navigatedCollectionId, children.assets);
 		}
+		const recursiveCollectionId = commonStore.navigatorMode && collectionStore.navigatedCollection?.type === 'collection'
+			? collectionStore.navigatedCollection?.id
+			: "root";
+		const recursiveFolderPath = commonStore.navigatorMode
+			? collectionStore.navigatedCollection?.file_path
+			: project.working_directory;
+		const recursiveUntrackedAssets = await getRecursiveUntrackedAssets(recursiveCollectionId, recursiveFolderPath);
+		if (recursiveUntrackedAssets) children.untracked_assets = recursiveUntrackedAssets;
 	}
 	if (children.assets) await assetStore.processAssetsIconsAndPreviews(children.assets);
 	if (children.untracked_assets) await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
-	const allCollections = commonStore.showCollections ? children.collections?.filter((item) => !item.is_trashed) : [];
-	const allAssets = commonStore.showAssets ? children.assets : [];
-	rootData.value = sortItems(allCollections, allAssets, children.untracked_collections, children.untracked_assets);
+	rootData.value = composeVisibleItems(children);
 	assetStore.assetsLoaded = true;
 	collectionStore.loadCollectionStateFlags();
 	refreshUnsyncedState();

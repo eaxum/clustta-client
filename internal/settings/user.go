@@ -111,6 +111,7 @@ type Settings struct {
 	ProjectGridView       bool   `json:"project_grid_view"`
 	UseGrid               bool   `json:"use_grid"`
 	DefaultViewMode       string `json:"default_view_mode"`
+	UntrackedVisibility   *bool  `json:"untracked_visibility,omitempty"`
 	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
 	ShowTypeIcons         *bool  `json:"show_type_icons,omitempty"`
 
@@ -458,6 +459,29 @@ func SetDefaultViewMode(viewMode string) error {
 	}
 	settings.DefaultViewMode = viewMode
 	settings.UseGrid = viewMode == "grid"
+	return saveSettings(settings)
+}
+
+// GetUntrackedVisibility returns whether untracked items are visible in the browser.
+// Defaults to true if not set.
+func GetUntrackedVisibility() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	if settings.UntrackedVisibility == nil {
+		return true, nil
+	}
+	return *settings.UntrackedVisibility, nil
+}
+
+// SetUntrackedVisibility sets whether untracked items are visible in the browser.
+func SetUntrackedVisibility(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.UntrackedVisibility = &enabled
 	return saveSettings(settings)
 }
 

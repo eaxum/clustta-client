@@ -10,7 +10,7 @@
     </span>
 
     <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleShowAssets()">
-      <img class="small-icons" :src="getAppIcon('brush')">
+      <img class="small-icons" :src="getAppIcon('file')">
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ $t('menus.assets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.showAssets" />
@@ -19,11 +19,19 @@
 
     <span class="menu-divider"></span>
 
-     <span :class="{ 'disabled' : !commonStore.showAssets }" v-if="!commonStore.navigatorMode && stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleOnlyAssets()">
+     <span :class="{ 'disabled' : !commonStore.showAssets }" v-if="stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleOnlyAssets()">
       <img class="small-icons" :src="getAppIcon('shapes')">
       <div class="horizontal-flex">
-        <div class="menu-item-text">{{ $t('menus.onlyProjectAssets') }}</div>
+        <div class="menu-item-text">{{ commonStore.navigatorMode ? $t('menus.onlyAssets') : $t('menus.onlyProjectAssets') }}</div>
         <ToggleSwitch :switchValueProp="commonStore.onlyAssets" />
+      </div>
+    </span>
+
+    <span :class="{ 'disabled' : !commonStore.showAssets }" class="filter-menu-item" @click="toggleShowTasks()">
+      <img class="small-icons" :src="getAppIcon('kanban')">
+      <div class="horizontal-flex">
+        <div class="menu-item-text">{{ $t('menus.tasks') }}</div>
+        <ToggleSwitch :switchValueProp="commonStore.showTasks" />
       </div>
     </span>
 
@@ -82,8 +90,16 @@ const toggleShowCollections = () => {
   emitter.emit('refresh-browser');
 };
 
+// Toggles tracked task assets and refreshes browser.
+const toggleShowTasks = () => {
+  if (!commonStore.showAssets) return;
+  commonStore.showTasks = !commonStore.showTasks;
+  emitter.emit('refresh-browser');
+};
+
 // Toggles show resources filter and refreshes browser.
 const toggleShowResources = () => {
+  if (!commonStore.showAssets) return;
   commonStore.showResources = !commonStore.showResources;
   emitter.emit('refresh-browser');
 };

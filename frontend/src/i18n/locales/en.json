@@ -81,7 +81,10 @@
     "show": "Show",
     "link": "Link",
     "manage": "Manage",
-    "finish": "Finish"
+    "finish": "Finish",
+    "collection": "Collection",
+    "project": "Project",
+    "purgeUntracked": "Purge untracked"
   },
   "placeholders": {
     "addIgnoreItem": "Add items separated by space or comma",
@@ -153,7 +156,11 @@
     "leaveProject": "You will be removed as a collaborator from this project. You can be re-added by the owner.",
     "trimProjectMessage": "This will remove cached file data from the project archive and delete the working directory to reduce disk usage. The data can be re-downloaded from the remote when needed. Continue?",
     "archiveProjectMessage": "Archiving this project will also free up space in the working directory. Any untracked items will be lost. Proceed?",
-    "relocateWorkingDirectoryMessage": "Change working directory from:\n{from}\n\nTo:\n{to}\n\nNote: Files will NOT be moved. Only the path will be updated."
+    "relocateWorkingDirectoryMessage": "Change working directory from:\n{from}\n\nTo:\n{to}\n\nNote: Files will NOT be moved. Only the path will be updated.",
+    "purgeUntrackedCollectionTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedProjectTitle": "Purge untracked in \"{name}\"?",
+    "purgeUntrackedCollection": "This will permanently delete untracked files and empty untracked folders in this collection, including ignored files. Tracked assets and collections will be kept.",
+    "purgeUntrackedProject": "This will permanently delete untracked files and empty untracked folders in this project, including ignored files. Tracked assets and collections will be kept."
   },
   "notifications": {
     "defaultViewUpdated": "Default View Updated",
@@ -470,7 +477,11 @@
     "errorAddingDependency": "Error adding dependencies",
     "errorRemovingDependency": "Error removing dependencies",
     "userAddedSuccessfully": "User added to project successfully.",
-    "errorUpdatingWorkingDirectory": "Error updating working directory"
+    "errorUpdatingWorkingDirectory": "Error updating working directory",
+    "untrackedItemsPurged": "Untracked items purged",
+    "purgeUntrackedSummary": "{count} item(s) removed ({files} files, {folders} folders).",
+    "someUntrackedItemsCouldNotBePurged": "Some untracked items could not be purged",
+    "failedToPurgeUntrackedItems": "Failed to purge untracked items"
   },
   "settings": {
     "title": "Settings",
@@ -920,6 +931,7 @@
     "noResults": "No results",
     "noSubCollections": "No sub-collections",
     "offlineModeTooltip": "Offline Mode - Sign in to sync",
+    "onlyAssets": "Only Assets",
     "onlyProjectAssets": "Only Project Assets",
     "pinProject": "Pin Project",
     "projectRoot": "Project Root",
@@ -935,6 +947,8 @@
     "deleteProject": "Delete Project",
     "deleteProjectTitle": "Delete \"{name}\"",
     "resources": "Resources",
+    "tasks": "Tasks",
+    "untracked": "Untracked",
     "revertContents": "Revert Contents",
     "revertFile": "Revert File",
     "syncAsset": "Sync Asset",

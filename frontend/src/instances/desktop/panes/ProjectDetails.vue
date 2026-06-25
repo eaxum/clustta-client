@@ -62,7 +62,7 @@
         <span v-if="!platformStore.isWeb" class="menu-divider"></span>
 
         <!-- Free space -->
-        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true" :label="$t('panes.freeUpSpace')"
+        <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('two-drives')" :showLabel="true" :fullWidth="true" :label="$t('panes.freeUpSpace')"
           :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('panes.freeUpSpaceTooltip')" />
 
         <!-- Trim Project - only for remote projects that are synced -->
@@ -375,7 +375,7 @@ const prepFreeUpSpacePopUpModal = () => {
   trayStates.popUpModalTitle = t('panes.deleteWorkingData', { name: project.name });
   trayStates.popUpModalMessage = t('confirmations.deleteWorkingData');
   trayStates.popUpModalFunction = deleteProjectWorkData;
-  trayStates.popUpModalIcon = 'broom';
+  trayStates.popUpModalIcon = 'two-drives';
   modals.setModalVisibility('popUpModal', true);
   menu.hideContextMenu();
 };
