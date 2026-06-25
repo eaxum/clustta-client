@@ -9,6 +9,7 @@
       :isRoot="true"
       :containerHeight="containerHeight"
       :itemHeight="commonStore.listItemHeight"
+      :renderAhead="40"
     />
   </div>
 </template>
