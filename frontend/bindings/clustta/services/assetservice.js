@@ -437,22 +437,22 @@ export function TestData() {
 
 /**
  * @param {string} projectPath
- * @param {string} assetId
- * @param {boolean} isAsset
- * @returns {$CancellablePromise<void>}
- */
-export function ToggleIsAsset(projectPath, assetId, isAsset) {
-    return $Call.ByID(1601453729, projectPath, assetId, isAsset);
-}
-
-/**
- * @param {string} projectPath
  * @param {string[]} assetIds
  * @param {boolean} isResource
  * @returns {$CancellablePromise<void>}
  */
 export function ToggleIsResource(projectPath, assetIds, isResource) {
     return $Call.ByID(3235593635, projectPath, assetIds, isResource);
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @param {boolean} isTask
+ * @returns {$CancellablePromise<void>}
+ */
+export function ToggleIsTask(projectPath, assetId, isTask) {
+    return $Call.ByID(1903957406, projectPath, assetId, isTask);
 }
 
 /**

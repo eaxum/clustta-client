@@ -1749,9 +1749,9 @@ func ChangeAssetType(tx *sqlx.Tx, assetId string, assetTypeId string) error {
 	return nil
 }
 
-func ToggleIsAsset(tx *sqlx.Tx, assetId string, isAsset bool) error {
+func ToggleIsTask(tx *sqlx.Tx, assetId string, isTask bool) error {
 	params := map[string]any{
-		"is_resource": !isAsset,
+		"is_resource": !isTask,
 	}
 	err := base_service.Update(tx, "asset", assetId, params)
 	if err != nil {

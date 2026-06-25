@@ -705,11 +705,11 @@
         ]
       },
       {
-        "name": "ToggleIsAsset",
+        "name": "ToggleIsTask",
         "params": [
           "projectPath:string",
           "assetId:string",
-          "isAsset:bool"
+          "isTask:bool"
         ],
         "returns": [
           "error"

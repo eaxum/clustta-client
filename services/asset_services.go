@@ -954,7 +954,7 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 	return nil
 }
 
-func (t *AssetService) ToggleIsAsset(projectPath, assetId string, isAsset bool) error {
+func (t *AssetService) ToggleIsTask(projectPath, assetId string, isTask bool) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -966,7 +966,7 @@ func (t *AssetService) ToggleIsAsset(projectPath, assetId string, isAsset bool) 
 	}
 	defer tx.Rollback()
 
-	err = repository.ToggleIsAsset(tx, assetId, isAsset)
+	err = repository.ToggleIsTask(tx, assetId, isTask)
 	if err != nil {
 		return err
 	}
@@ -1066,7 +1066,7 @@ func (t *AssetService) AssignAsset(projectPath, assetId, userId string) error {
 	}
 
 	if asset.IsResource {
-		err = repository.ToggleIsAsset(tx, assetId, true)
+		err = repository.ToggleIsTask(tx, assetId, true)
 		if err != nil {
 			return err
 		}

@@ -30,7 +30,7 @@
         <div v-if="onlyAssets" class="action-bar">
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('components.detailsPane.type')" />
-            <DropDownBox :items="itemTypes" :selectedItem="''" :onSelect="toggleIsAsset" :fixedWidth="true" />
+            <DropDownBox :items="itemTypes" :selectedItem="''" :onSelect="toggleIsTask" :fixedWidth="true" />
           </div>
 
           <div class="action-bar-section">
@@ -194,7 +194,7 @@ const props = defineProps({
 
 // constants
 const collectionMode = ['not shared', 'shared'];
-const itemTypes = ['asset', 'resource'];
+const itemTypes = ['task', 'resource'];
 const noHeaders = [];
 const placeholder = computed(() => t('components.detailsPane.searchCollaborators'));
 
@@ -834,12 +834,12 @@ const setMultipleStatus = async (statusName) => {
   stage.operationActive = false;
 };
 
-// Toggles between asset and resource type.
-const toggleIsAsset = async (newAssetType) => {
+// Toggles between task and resource asset roles.
+const toggleIsTask = async (newItemType) => {
   stage.operationActive = true;
-  let isResource = newAssetType === 'asset';
+  const targetIsTask = newItemType === 'task';
   for (const assetId of stage.markedItems) {
-    await AssetService.ToggleIsAsset(projectStore.activeProject.uri, assetId, isResource).catch((error) => console.error('Error:', error));
+    await AssetService.ToggleIsTask(projectStore.activeProject.uri, assetId, targetIsTask).catch((error) => console.error('Error:', error));
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;

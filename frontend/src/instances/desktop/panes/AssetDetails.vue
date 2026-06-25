@@ -28,10 +28,10 @@
           </div>
 
           <div class="action-bar-section">
-            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('panes.asset')" />
+            <ActionButton :isInactive="true" :icon="getAppIcon('shapes')" :label="$t('panes.task')" />
 
-            <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsAsset') : $t('panes.setAsAsset')"
-              @click="toggleIsAsset" :switchValueProp="!assetStore.selectedAsset.is_resource" />
+            <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsTask') : $t('panes.setAsTask')"
+              @click="toggleIsTask" :switchValueProp="!assetStore.selectedAsset.is_resource" />
           </div>
 
         </div>
@@ -85,7 +85,7 @@
             </div>
           </div>
 
-          <div v-if="lastCheckpoint?.comment !== $t('panes.noCheckpoints') && !assetStore.selectedAsset.is_link"
+          <div v-if="!assetStore.selectedAsset.is_link"
             class="pane-parameter-detail">
             <div class="simple-text-key">
               {{ $t('panes.checkpointDate') }}
@@ -398,18 +398,18 @@ const revealInExplorer = async () => {
   AssetService.RevealAsset(projectStore.activeProject.uri, assetStore.selectedAsset.id);
 };
 
-const toggleIsAsset = async () => {
+const toggleIsTask = async () => {
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
-  let isAsset = assetStore.selectedAsset.is_resource;
+  const targetIsTask = assetStore.selectedAsset.is_resource;
   let asset = assetStore.selectedAsset;
     
-  await AssetService.ToggleIsAsset(projectPath, asset.id,  isAsset)
+  await AssetService.ToggleIsTask(projectPath, asset.id, targetIsTask)
     .then((data) => {
 
-      assetStore.selectedAsset.is_resource = !isAsset;
+      assetStore.selectedAsset.is_resource = !targetIsTask;
       emitAssetUpdates(asset.id, [
-        { property: 'is_resource', value: !isAsset }
+        { property: 'is_resource', value: !targetIsTask }
       ]);
       
     })
