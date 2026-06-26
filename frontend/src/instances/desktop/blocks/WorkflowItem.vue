@@ -8,7 +8,7 @@
       </span>
 
       <span v-else class="single-action-button">
-        <img class="large-icons" :src="templateIcon">
+        <img class="large-icons no-filter" :src="templateIcon">
       </span>
     </div>
 
