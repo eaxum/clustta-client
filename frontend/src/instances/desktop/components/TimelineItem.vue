@@ -1,21 +1,21 @@
 <template>
     
-    <div  class="trash-item-container">
-        <div class="trash-item">
-            <div @click="toggleVersions" class="trash-item-meta">
+    <div  class="timeline-item-container">
+        <div class="timeline-item">
+            <div @click="toggleVersions" class="timeline-item-meta">
                 <div class="profile-picture" :style="{ backgroundColor: timelineItem.avatarColor }"
                     v-tooltip="timelineItem.author_name">
                     <img class="profile-img"
                         :src="timelineItem.author_profile ? timelineItem.author_profile : generateAvatar(timelineItem.author_id)">
                 </div>
-                <div ref="trash_name" class="meta">
-                    <div class="trash-item-name" @mouseenter="trayStates.handleHover($event)"
+                <div ref="timeline_name" class="meta">
+                    <div class="timeline-item-name" @mouseenter="trayStates.handleHover($event)"
                         @mouseleave="trayStates.resetScroll($event)">
                         <div class="checkpoint-item-label-text" style="font-weight: 400;">
                             {{ timelineItem.comment.replace(/_/g, " ") }}
                         </div>
                     </div>
-                    <div class="trash-item-name" @mouseenter="trayStates.handleHover($event)"
+                    <div class="timeline-item-name" @mouseenter="trayStates.handleHover($event)"
                         @mouseleave="trayStates.resetScroll($event)">
                         <div class="checkpoint-item-label-text" style="overflow: hidden; font-size: 12px; text-overflow: ellipsis;">{{
                             utils.formatDate(timelineItem.created_at, locale) }}</div>
@@ -51,18 +51,21 @@
 
         <transition name="expand" appear>
             <div v-if="timelineItem.asset_paths.length" v-show="isItemExpanded"
-                class="trash-checkpoints-root">
-                <div class="trash-checkpoints">
-                    <div class="checkpoint-item-children" v-for="(assetPath, index) in timelineItem.asset_paths" :key="index">
-                        <div class="trash-item-meta">
-                            <span><img class="small-icons" :src="getAppIcon('generic')"></span>
-                            <div ref="trash_name" class="trash-item-label" @mouseenter="handleHover($event)"
-                                @mouseleave="resetScroll($event)">
-                                <div @click="selectItem(assetPath, getAssetExtension(index))" class="trash-item-label-text">{{ assetPath }}</div>
-                            </div>
-                        </div>
-
-                    </div>
+                class="timeline-checkpoints-root">
+                <div class="timeline-checkpoints">
+                    <AssetItem
+                        v-for="(assetPath, index) in timelineItem.asset_paths"
+                        :key="`${assetPath}-${index}`"
+                        :assetPath="assetPath"
+                        :name="getAssetName(assetPath, index)"
+                        :extension="getAssetExtension(index)"
+                        :fullPath="getAssetDisplayPath(assetPath, index)"
+                        :showBadge="false"
+                        :showNavigate="true"
+                        :navigateTooltip="$t('components.changeItem.goToItem')"
+                        variant="compact"
+                        @navigate="selectItem(assetPath, getAssetExtension(index))"
+                    />
                 </div>
             </div>
         </transition>
@@ -71,7 +74,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { CheckpointService, CollectionService, AssetService, TrashService } from "@/services";
 import utils from '@/services/utils';
@@ -85,6 +88,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useAssetStore } from '@/stores/assets';
 import { useStageStore } from '@/stores/stages';
 import { useCommonStore } from '@/stores/common';
+import AssetItem from '@/instances/desktop/components/AssetItem.vue';
 
 const props = defineProps({
     timelineItem: Object,
@@ -183,6 +187,20 @@ const selectItem = async (assetPath, extension) => {
 
 const getAssetExtension = (index) => props.timelineItem.extensions?.[index] ?? '';
 
+const getAssetDisplayPath = (assetPath, index) => {
+    const extension = getAssetExtension(index);
+    if (!extension || assetPath.toLowerCase().endsWith(extension.toLowerCase())) return assetPath;
+    return `${assetPath}${extension}`;
+};
+
+const getAssetName = (assetPath, index) => {
+    const fullPath = getAssetDisplayPath(assetPath, index).replace(/\\/g, '/');
+    const fileName = fullPath.split('/').filter(Boolean).pop() || fullPath;
+    const extension = getAssetExtension(index);
+    if (!extension || !fileName.toLowerCase().endsWith(extension.toLowerCase())) return fileName;
+    return fileName.slice(0, -extension.length);
+};
+
 const findItem = async (assetPath, extension) => {
     const asset = await AssetService.GetAssetByPath(projectStore.activeProject.uri, assetPath, extension);
     if (!asset?.id) return;
@@ -231,7 +249,7 @@ onMounted(() => {
 
 }
 
-.trash-item-container {
+.timeline-item-container {
     position: relative;
     cursor: auto;
     box-sizing: border-box;
@@ -259,7 +277,7 @@ onMounted(() => {
 }
 
 
-.trash-item {
+.timeline-item {
     position: relative;
     cursor: auto;
     box-sizing: border-box;
@@ -285,12 +303,12 @@ onMounted(() => {
     overflow: hidden;
 }
 
-.trash-item-container:hover {
+.timeline-item-container:hover {
     border-radius: var(--normal-radius);
     background-color: var(--surface-3);
 }
 
-.trash-checkpoints-root {
+.timeline-checkpoints-root {
     box-sizing: border-box;
     position: relative;
     height: max-content;
@@ -300,17 +318,15 @@ onMounted(() => {
     padding-bottom: .3rem;
 }
 
-.trash-checkpoints{
+.timeline-checkpoints{
     border-radius: var(--normal-radius);
     background-color: var(--surface-4);
-    padding: .5rem 0;
-    padding-right: 1rem;
+    padding: .2rem ;
     display: flex;
     flex-direction: column;
-    gap: .5rem;
 }
 
-.trash-checkpoints-root-closed {
+.timeline-checkpoints-root-closed {
     position: relative;
     background-color: rgb(51, 51, 51);
     border-bottom-left-radius: 10px;
@@ -321,7 +337,7 @@ onMounted(() => {
     overflow: hidden;
 }
 
-.trash-item-meta {
+.timeline-item-meta {
     padding-left: .5rem;
     box-sizing: border-box;
     overflow: hidden;
@@ -374,7 +390,7 @@ onMounted(() => {
     color: rgb(15, 15, 15);
 }
 
-.trash-item-label {
+.timeline-item-label {
     align-items: center;
     overflow: hidden;
     width: 100%;
@@ -401,13 +417,13 @@ onMounted(() => {
     display: flex;
 }
 
-.trash-item-name {
+.timeline-item-name {
     color: rgb(224, 224, 224);
     height: min-content;
     width: 100%;
 }
 
-.trash-item-collection {
+.timeline-item-collection {
     color: rgb(219, 219, 219);
     background-color: rgba(0, 0, 0, 0.216);
     padding: .3rem;
@@ -416,7 +432,7 @@ onMounted(() => {
     transition: all 0.2s ease-in-out;
 }
 
-.trash-item-label-text {
+.timeline-item-label-text {
     font-family: 'Inter', sans-serif;
     font-size: 14px;
     /* font-weight: 200; */
@@ -424,7 +440,7 @@ onMounted(() => {
     text-overflow: ellipsis;
 }
 
-.trash-item-label-text:hover {
+.timeline-item-label-text:hover {
     text-decoration: underline;
 }
 
@@ -441,7 +457,7 @@ onMounted(() => {
     display: none;
 }
 
-.trash-item-container:hover .checkpoint-item-actions {
+.timeline-item-container:hover .checkpoint-item-actions {
     display: flex;
 }
 

@@ -50,20 +50,18 @@
               <div class="modified-items">
                 <PageState v-if="!filteredCheckpointItems.length" class="modified-items-empty-state" :message="modifiedItemsEmptyMessage" :illustration="'/page-states/resources.png'" />
                 <template v-for="item in filteredCheckpointItems" :key="item.key">
-                  <div class="checkpoint-candidate-item">
-                    <div class="checkpoint-candidate-meta">
-                      <img class="checkpoint-candidate-icon small-icons" :class="{ 'no-filter': hasCandidateIcon(item) }" :src="getCandidateIcon(item)" />
-                      <div class="checkpoint-candidate-label">
-                        <div class="checkpoint-candidate-name">{{ displayCandidateName(item) }}</div>
-                      </div>
-                      <span class="checkpoint-candidate-badge" :class="'badge-' + item.kind">{{ item.kindLabel }}</span>
-                    </div>
-
-                    <div class="checkpoint-candidate-actions">
-                      <ActionButton :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeItem.goToItem')" :buttonFunction="() => goToItem(item)" />
+                  <AssetItem
+                    :item="item"
+                    :hideExtension="hideExtensions"
+                    :showFullPath="showFullPath"
+                    :showNavigate="true"
+                    :navigateTooltip="$t('components.changeItem.goToItem')"
+                    @navigate="goToItem(item)"
+                  >
+                    <template #actions>
                       <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.remove')" :buttonFunction="() => removeItem(item.key)" />
-                    </div>
-                  </div>
+                    </template>
+                  </AssetItem>
                 </template>
               </div>
             </div>
@@ -85,20 +83,18 @@
           <div class="modified-items">
             <PageState v-if="!filteredCheckpointItems.length" class="modified-items-empty-state" :message="modifiedItemsEmptyMessage" :illustration="'/page-states/resources.png'" />
             <template v-for="item in filteredCheckpointItems" :key="item.key">
-              <div class="checkpoint-candidate-item">
-                <div class="checkpoint-candidate-meta">
-                  <img class="checkpoint-candidate-icon small-icons" :class="{ 'no-filter': hasCandidateIcon(item) }" :src="getCandidateIcon(item)" />
-                  <div class="checkpoint-candidate-label">
-                    <div class="checkpoint-candidate-name">{{ displayCandidateName(item) }}</div>
-                  </div>
-                  <span class="checkpoint-candidate-badge" :class="'badge-' + item.kind">{{ item.kindLabel }}</span>
-                </div>
-
-                <div class="checkpoint-candidate-actions">
-                  <ActionButton :icon="getAppIcon('file-search')" v-tooltip="$t('components.changeItem.goToItem')" :buttonFunction="() => goToItem(item)" />
+              <AssetItem
+                :item="item"
+                :hideExtension="hideExtensions"
+                :showFullPath="showFullPath"
+                :showNavigate="true"
+                :navigateTooltip="$t('components.changeItem.goToItem')"
+                @navigate="goToItem(item)"
+              >
+                <template #actions>
                   <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.remove')" :buttonFunction="() => removeItem(item.key)" />
-                </div>
-              </div>
+                </template>
+              </AssetItem>
             </template>
           </div>
         </div>
@@ -118,13 +114,14 @@
 
 <script setup>
 // imports
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import AssetItem from '@/instances/desktop/components/AssetItem.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import InputAlert from '@/instances/common/components/InputAlert.vue';
@@ -161,7 +158,6 @@ const trayStates = useTrayStates();
 
 // refs
 const isAwaitingResponse = ref(false);
-const candidateIcons = ref({});
 const hideExtensions = ref(true);
 const includeUntrackedInCheckpoint = ref(commonStore.showUntracked);
 const message = ref('');
@@ -385,15 +381,6 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Returns the display label for a checkpoint candidate.
-const displayCandidateName = (item) => {
-  const extension = item.extension || '';
-  if (showFullPath.value) {
-    return hideExtensions.value ? stripExtension(item.fullPath, extension) : item.fullPath;
-  }
-  return hideExtensions.value || !extension ? item.name : `${item.name}${extension}`;
-};
-
 // Returns the file name portion from a normalized path.
 const getFileName = (filePath = '') => {
   return normalizePath(filePath).split('/').filter(Boolean).pop() || filePath;
@@ -405,11 +392,6 @@ const getExtension = (filePath = '') => {
   const dotIndex = fileName.lastIndexOf('.');
   if (dotIndex <= 0) return '';
   return fileName.slice(dotIndex);
-};
-
-// Returns the icon for a checkpoint candidate.
-const getCandidateIcon = (item) => {
-  return candidateIcons.value[item.key] || item.fallbackIcon || getAppIcon('generic');
 };
 
 // Returns the parent path for a normalized item path.
@@ -589,28 +571,9 @@ const handleEnterKey = (event) => {
   }
 };
 
-// Returns whether a candidate has a resolved custom icon.
-const hasCandidateIcon = (item) => {
-  return !!(candidateIcons.value[item.key] || item.fallbackIcon);
-};
-
 // Updates the visible modified item filter.
 const handleModifiedItemsFilterChange = (filter) => {
   selectedModifiedItemsFilter.value = filter;
-};
-
-// Resolves icons for checkpoint candidates.
-const loadCandidateIcons = async () => {
-  const nextIcons = { ...candidateIcons.value };
-  for (const item of checkpointItems.value) {
-    if (nextIcons[item.key] || !item.extension) continue;
-    const ext = item.extension.toLowerCase().replace(/^\./, '');
-    const iconPath = await iconStore.getIcon(ext);
-    if (iconPath) {
-      nextIcons[item.key] = iconPath;
-    }
-  }
-  candidateIcons.value = nextIcons;
 };
 
 // Normalizes a filesystem path for display comparisons.
@@ -681,9 +644,6 @@ const loadSelectedItemsForCheckpoint = () => {
   }
 };
 
-// watchers
-watch(() => checkpointItems.value.map((item) => `${item.key}:${item.extension}`).join('|'), loadCandidateIcons);
-
 // lifecycle hooks
 onMounted(async () => {
   if (!trayStates.createMultipleCheckpoints) {
@@ -710,7 +670,6 @@ onMounted(async () => {
   trayStates.screenshot = null;
   trayStates.previewFile = '';
   trayStates.previewFullPath = '';
-  await loadCandidateIcons();
 });
 
 onBeforeUnmount(() => {
@@ -758,108 +717,6 @@ onBeforeUnmount(() => {
 
 .modified-items-empty-state :deep(.page-state-message) {
   height: auto;
-}
-
-.checkpoint-candidate-actions {
-  display: flex;
-  align-items: center;
-  gap: .25rem;
-  max-width: 0;
-  opacity: 0;
-  overflow: hidden;
-  transform: translateX(.5rem);
-  transition: max-width .2s ease-in-out, opacity .2s ease-out, transform .2s ease-out;
-}
-
-.checkpoint-candidate-badge {
-  border-radius: 4px;
-  flex-shrink: 0;
-  font-size: 10px;
-  font-weight: 500;
-  padding: 1px 5px;
-  text-transform: uppercase;
-  white-space: nowrap;
-  margin-left: auto;
-}
-
-.checkpoint-candidate-icon {
-  width: 20px;
-  height: 20px;
-  min-width: 20px;
-  object-fit: contain;
-}
-
-.checkpoint-candidate-item {
-  position: relative;
-  cursor: auto;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  min-height: 40px;
-  padding: 0 .5rem;
-  background-color: var(--surface-3);
-  border-radius: var(--large-radius);
-  overflow: hidden;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  transition: all .2s ease-in-out;
-}
-
-.checkpoint-candidate-item:hover {
-  border-radius: var(--small-radius);
-  background-color: var(--surface-3);
-}
-
-.checkpoint-candidate-item:hover .checkpoint-candidate-actions {
-  max-width: 108px;
-  width: 96px;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  overflow: hidden;
-  opacity: 1;
-  transform: translateX(0);
-}
-
-.checkpoint-candidate-label {
-  overflow: hidden;
-  width: 100%;
-  display: flex;
-  white-space: nowrap;
-}
-
-.checkpoint-candidate-meta {
-  box-sizing: border-box;
-  overflow: hidden;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: .5rem;
-  width: 100%;
-  min-height: 40px;
-  min-width: 0;
-}
-
-.checkpoint-candidate-name {
-  font-size: 13px;
-  font-weight: 300;
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.badge-modified {
-  background-color: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-}
-
-.badge-untracked {
-  background-color: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
 }
 
 .modal-container {
