@@ -21,13 +21,13 @@
               :onSelect="changeAssetType" :fixedWidth="true" />
           </div>
 
-          <div class="action-bar-section">
+          <div v-if="!assetStore.selectedAsset.is_resource" class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="$t('panes.status')" />
             <DropDownBox :items="projectStatuses" :selectedItem="assetStore.selectedAsset.status_short_name"
               :onSelect="setStatus" :fixedWidth="true" />
           </div>
 
-          <div class="action-bar-section">
+          <div v-if="!assetStore.selectedAsset.assignee_id" class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('kanban')" :label="$t('panes.task')" />
 
             <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsTask') : $t('panes.setAsTask')"
@@ -66,7 +66,7 @@
             </div>
           </div>
 
-          <div class="pane-parameter-detail">
+          <div v-if="!assetStore.selectedAsset.is_resource" class="pane-parameter-detail">
             <div class="simple-text-key">
               {{ $t('panes.assignedTo') }}
             </div>
