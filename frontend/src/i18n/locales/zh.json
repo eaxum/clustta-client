@@ -693,7 +693,7 @@
     "updateAvailable": "有可用更新：{version}",
     "clusttaDirectory": "选择 Clustta 目录",
     "versionLabel": "版本",
-    "copyrightNotice": "版权所有 © 2024 Clustta",
+    "copyrightNotice": "版权所有 © {year} Clustta",
     "trademarkNotice": "Clustta® 是 Eaxum LLC 的注册商标。",
     "importItems": "导入项目",
     "selectWorkflowTemplate": "选择工作流模板",

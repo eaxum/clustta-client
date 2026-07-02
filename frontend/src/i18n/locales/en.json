@@ -731,7 +731,7 @@
     "checkForUpdate": "Check for Updates",
     "upToDate": "You're on the latest version.",
     "updateAvailable": "Update available: {version}",
-    "copyrightNotice": "Copyright © 2024 Clustta",
+    "copyrightNotice": "Copyright © {year} Clustta",
     "trademarkNotice": "Clustta® is a registered trademark of Eaxum LLC.",
     "importItems": "Import Items",
     "selectWorkflowTemplate": "Select Workflow template",

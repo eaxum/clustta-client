@@ -693,7 +693,7 @@
     "updateAvailable": "Update verfügbar: {version}",
     "clusttaDirectory": "Clustta-Verzeichnis auswählen",
     "versionLabel": "Version",
-    "copyrightNotice": "Copyright © 2024 Clustta",
+    "copyrightNotice": "Copyright © {year} Clustta",
     "trademarkNotice": "Clustta® ist ein eingetragenes Warenzeichen von Eaxum LLC.",
     "importItems": "Elemente importieren",
     "selectWorkflowTemplate": "Workflow-Vorlage auswählen",

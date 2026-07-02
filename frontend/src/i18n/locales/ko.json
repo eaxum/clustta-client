@@ -712,7 +712,7 @@
     "updateAvailable": "업데이트 사용 가능: {version}",
     "clusttaDirectory": "Clustta 디렉터리 선택",
     "versionLabel": "버전",
-    "copyrightNotice": "Copyright © 2024 Clustta",
+    "copyrightNotice": "Copyright © {year} Clustta",
     "trademarkNotice": "Clustta®는 Eaxum LLC의 등록 상표입니다.",
     "importItems": "항목 가져오기",
     "selectWorkflowTemplate": "워크플로 템플릿 선택",

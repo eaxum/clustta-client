@@ -10,7 +10,7 @@
       <div class="version-info">
         <div> {{ osAppLabel }} </div>
         <div> {{ $t('modals.versionLabel') }} {{ clusttaVersion }} </div>
-        <div> {{ $t('modals.copyrightNotice') }} </div>
+        <div> {{ $t('modals.copyrightNotice', { year: currentYear }) }} </div>
         <div> {{ $t('modals.trademarkNotice') }} </div>
       </div>
 
@@ -48,6 +48,7 @@ const clusttaVersion = ref('');
 // constants
 const showSearch = false;
 const title = t('modals.clusttaApp');
+const currentYear = new Date().getFullYear();
 
 // computed properties
 const osAppLabel = computed(() => {

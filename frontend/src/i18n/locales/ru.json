@@ -693,7 +693,7 @@
     "updateAvailable": "Доступно обновление: {version}",
     "clusttaDirectory": "Выбрать каталог Clustta",
     "versionLabel": "Версия",
-    "copyrightNotice": "Copyright © 2024 Clustta",
+    "copyrightNotice": "Copyright © {year} Clustta",
     "trademarkNotice": "Clustta® — зарегистрированная торговая марка Eaxum LLC.",
     "importItems": "Импорт элементов",
     "selectWorkflowTemplate": "Выбрать шаблон рабочего процесса",

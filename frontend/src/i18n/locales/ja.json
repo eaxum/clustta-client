@@ -694,7 +694,7 @@
     "updateAvailable": "アップデートが利用可能: {version}",
     "clusttaDirectory": "Clusttaディレクトリを選択",
     "versionLabel": "バージョン",
-    "copyrightNotice": "Copyright © 2024 Clustta",
+    "copyrightNotice": "Copyright © {year} Clustta",
     "trademarkNotice": "Clustta®はEaxum LLCの登録商標です。",
     "importItems": "アイテムをインポート",
     "selectWorkflowTemplate": "ワークフローテンプレートを選択",

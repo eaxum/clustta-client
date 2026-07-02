@@ -693,7 +693,7 @@
     "updateAvailable": "अपडेट उपलब्ध: {version}",
     "clusttaDirectory": "Clustta डायरेक्टरी चुनें",
     "versionLabel": "संस्करण",
-    "copyrightNotice": "कॉपीराइट © 2024 Clustta",
+    "copyrightNotice": "कॉपीराइट © {year} Clustta",
     "trademarkNotice": "Clustta® Eaxum LLC का एक पंजीकृत ट्रेडमार्क है।",
     "importItems": "आइटम आयात करें",
     "selectWorkflowTemplate": "वर्कफ़्लो टेम्पलेट चुनें",
