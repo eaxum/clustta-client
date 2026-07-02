@@ -64,22 +64,39 @@ else
 	@if [ -n "$$(git status --porcelain services-contract.json)" ]; then echo 'services-contract.json is out of date. Run: make contract'; exit 1; fi
 endif
 
+# Stamp release metadata before packaging.
+# Usage:
+#   make release-version VERSION=0.4.36
+#   make release-version VERSION=0.4.36 RELEASE_DATE=2026-07-02
+.PHONY: release-version
+release-version:
+ifeq ($(strip $(VERSION)),)
+	$(error VERSION required. Usage: make release-version VERSION=0.4.36)
+endif
+	go run ./cmd/release-version -version "$(VERSION)" $(if $(RELEASE_DATE),-date "$(RELEASE_DATE)",)
+
 
 # Build the Clustta Engine project
 .PHONY: build
 build:
+ifneq ($(strip $(VERSION)),)
+	$(MAKE) release-version VERSION=$(VERSION) $(if $(RELEASE_DATE),RELEASE_DATE=$(RELEASE_DATE),)
+endif
 
 ifeq ($(DETECTED_OS),Windows)
-	wails3 package
+	wails3 task windows:package PRODUCTION=true
 	powershell -ExecutionPolicy Bypass -File ../clustta-deployment/windows/windows-sign.ps1
+ifneq ($(strip $(VERSION)),)
+	powershell -NoProfile -Command "Copy-Item -LiteralPath './bin/clustta-amd64-installer.exe' -Destination './bin/clustta-$(VERSION)-windows-amd64.exe' -Force"
+endif
 	powershell -Command "Start-Process 'MsixPackagingTool.exe' -ArgumentList 'create-package','--template','../clustta-deployment/windows/Clustta_template.xml','-v' -Verb RunAs"
 else ifeq ($(DETECTED_OS),Darwin)
-	wails3 package
+	wails3 task darwin:package PRODUCTION=true
 	bash ../clustta-deployment/darwin/website-build.sh
-	wails3 package
+	wails3 task darwin:package PRODUCTION=true
 	bash ../clustta-deployment/darwin/macappstore-build.sh
 else ifeq ($(DETECTED_OS),Linux)
-	wails3 package
+	wails3 task linux:package PRODUCTION=true
 	wails3 task linux:create:flatpak
 endif
 
@@ -141,7 +158,7 @@ flatpak-sources: flatpak-check
 # Tag and update the Flathub manifest
 .PHONY: flatpak-tag
 flatpak-tag: flatpak-check
-	@if [ -z "$(VERSION)" ]; then echo "Error: VERSION required. Usage: make flatpak-tag VERSION=v0.4.35-flatpak.1"; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "Error: VERSION required. Usage: make flatpak-tag VERSION=v0.4.36-flatpak.1"; exit 1; fi
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	@COMMIT=$$(git rev-parse $(VERSION)); \

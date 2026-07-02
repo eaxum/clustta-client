@@ -4,8 +4,7 @@ includes:
   common: ../Taskfile.yml
 
 vars:
-  APP_VERSION:
-    sh: sed -n 's/^[[:space:]]*version:[[:space:]]*"\([^"]*\)".*/\1/p' ./build/config.yml | head -n 1
+  APP_VERSION: "0.4.35"
 
 tasks:
   build:
