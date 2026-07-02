@@ -1399,8 +1399,8 @@
       "dec": "十二月"
     },
     "linksManager": {
-      "portfolioLabel": "作品集 URL（YouTube/Vimeo）",
-      "portfolioPlaceholder": "https://youtube.com/watch?v=... 或 https://vimeo.com/...",
+      "portfolioLabel": "作品集 URL",
+      "portfolioPlaceholder": "https://youtube.com/...、https://drive.google.com/... 或 https://bit.ly/...",
       "artstationLabel": "ArtStation URL",
       "artstationPlaceholder": "https://artstation.com/yourprofile",
       "behanceLabel": "Behance URL",
@@ -1418,7 +1418,7 @@
       "errorBehance": "必须以 https://behance.net/ 开头",
       "errorArtstation": "必须以 https://artstation.com/ 开头",
       "errorLinkedin": "必须以 https://linkedin.com/in/ 开头",
-      "errorPortfolio": "必须是 YouTube 或 Vimeo 链接",
+      "errorPortfolio": "必须是 YouTube、Vimeo、Google Drive、bit.ly 或 TinyURL 链接",
       "errorInstagram": "必须以 https://instagram.com/ 开头"
     },
     "paneHeader": {

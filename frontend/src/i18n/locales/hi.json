@@ -1399,8 +1399,8 @@
       "dec": "दिस"
     },
     "linksManager": {
-      "portfolioLabel": "पोर्टफ़ोलियो URL (YouTube/Vimeo)",
-      "portfolioPlaceholder": "https://youtube.com/watch?v=... या https://vimeo.com/...",
+      "portfolioLabel": "पोर्टफ़ोलियो URL",
+      "portfolioPlaceholder": "https://youtube.com/..., https://drive.google.com/... या https://bit.ly/...",
       "artstationLabel": "ArtStation URL",
       "artstationPlaceholder": "https://artstation.com/yourprofile",
       "behanceLabel": "Behance URL",
@@ -1418,7 +1418,7 @@
       "errorBehance": "https://behance.net/ से शुरू होना चाहिए",
       "errorArtstation": "https://artstation.com/ से शुरू होना चाहिए",
       "errorLinkedin": "https://linkedin.com/in/ से शुरू होना चाहिए",
-      "errorPortfolio": "एक YouTube या Vimeo लिंक होना चाहिए",
+      "errorPortfolio": "YouTube, Vimeo, Google Drive, bit.ly या TinyURL लिंक होना चाहिए",
       "errorInstagram": "https://instagram.com/ से शुरू होना चाहिए"
     },
     "paneHeader": {

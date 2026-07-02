@@ -1400,8 +1400,8 @@
       "dec": "12月"
     },
     "linksManager": {
-      "portfolioLabel": "ポートフォリオURL（YouTube/Vimeo）",
-      "portfolioPlaceholder": "https://youtube.com/watch?v=... または https://vimeo.com/...",
+      "portfolioLabel": "ポートフォリオURL",
+      "portfolioPlaceholder": "https://youtube.com/..., https://drive.google.com/... または https://bit.ly/...",
       "artstationLabel": "ArtStation URL",
       "artstationPlaceholder": "https://artstation.com/yourprofile",
       "behanceLabel": "Behance URL",
@@ -1419,7 +1419,7 @@
       "errorBehance": "https://behance.net/ で始まる必要があります",
       "errorArtstation": "https://artstation.com/ で始まる必要があります",
       "errorLinkedin": "https://linkedin.com/in/ で始まる必要があります",
-      "errorPortfolio": "YouTubeまたはVimeoのリンクである必要があります",
+      "errorPortfolio": "YouTube、Vimeo、Google Drive、bit.ly、またはTinyURLのリンクである必要があります",
       "errorInstagram": "https://instagram.com/ で始まる必要があります"
     },
     "paneHeader": {

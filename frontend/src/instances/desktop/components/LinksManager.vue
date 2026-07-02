@@ -188,7 +188,7 @@ const validateLink = (platform, url) => {
     behance: /^https:\/\/(www\.)?behance\.net\/.+/i,
     artstation: /^https:\/\/(www\.)?artstation\.com\/.+/i,
     linkedin: /^https:\/\/(www\.)?linkedin\.com\/(in)\/.+/i,
-    portfolio: /^https:\/\/(www\.)?(youtube\.com|youtu\.be|vimeo\.com)\/.+/i, // YouTube or Vimeo only
+    portfolio: /^https:\/\/(www\.)?(youtube\.com|youtu\.be|vimeo\.com|drive\.google\.com|bit\.ly|tinyurl\.com)\/.+/i,
     instagram: /^https:\/\/(www\.)?instagram\.com\/.+/i
   };
 

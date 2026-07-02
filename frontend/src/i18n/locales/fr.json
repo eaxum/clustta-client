@@ -1400,8 +1400,8 @@
       "dec": "Déc"
     },
     "linksManager": {
-      "portfolioLabel": "URL du portfolio (YouTube/Vimeo)",
-      "portfolioPlaceholder": "https://youtube.com/watch?v=... ou https://vimeo.com/...",
+      "portfolioLabel": "URL du portfolio",
+      "portfolioPlaceholder": "https://youtube.com/..., https://drive.google.com/... ou https://bit.ly/...",
       "artstationLabel": "URL ArtStation",
       "artstationPlaceholder": "https://artstation.com/votreprofil",
       "behanceLabel": "URL Behance",
@@ -1419,7 +1419,7 @@
       "errorBehance": "Doit commencer par https://behance.net/",
       "errorArtstation": "Doit commencer par https://artstation.com/",
       "errorLinkedin": "Doit commencer par https://linkedin.com/in/",
-      "errorPortfolio": "Doit être un lien YouTube ou Vimeo",
+      "errorPortfolio": "Doit être un lien YouTube, Vimeo, Google Drive, bit.ly ou TinyURL",
       "errorInstagram": "Doit commencer par https://instagram.com/"
     },
     "paneHeader": {
