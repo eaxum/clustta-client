@@ -33,7 +33,9 @@ func main() {
 	}
 
 	plistVersion := macOSBundleVersion(version)
+	msixVersion := msixPackageVersion(version)
 	dockerVersion := version
+	flatpakReleaseTag := "v" + version
 	flatpakTag := "v" + version + "-flatpak.1"
 
 	updateConfigVersion(version)
@@ -63,6 +65,11 @@ func main() {
 			path:    "build/windows/nsis/wails_tools.nsh",
 			pattern: `(!define INFO_PRODUCTVERSION ")[^"]+(")`,
 			replace: "${1}" + version + "${2}",
+		},
+		{
+			path:    "Clustta_template.xml",
+			pattern: `(PackageName="Eaxum\.Clustta"[^>]* Version=")[^"]+(")`,
+			replace: "${1}" + msixVersion + "${2}",
 		},
 		{
 			path:    "build/windows/Taskfile.yml",
@@ -115,6 +122,11 @@ func main() {
 			replace: "${1}" + version + "${2}" + *dateFlag + "${3}",
 		},
 		{
+			path:    "build/linux/flatpak/com.clustta.clustta.yml",
+			pattern: `(releases/download/)v[0-9]+\.[0-9]+\.[0-9]+(/clustta-)[0-9]+\.[0-9]+\.[0-9]+(-linux-amd64)`,
+			replace: "${1}" + flatpakReleaseTag + "${2}" + version + "${3}",
+		},
+		{
 			path:    "commands.txt",
 			pattern: `(clustta/clustta:)[0-9]+\.[0-9]+\.[0-9]+`,
 			replace: "${1}" + dockerVersion,
@@ -132,6 +144,7 @@ func main() {
 
 	fmt.Printf("Stamped Clustta %s metadata for %s\n", version, *dateFlag)
 	fmt.Printf("Stamped macOS bundle version as %s\n", plistVersion)
+	fmt.Printf("Stamped MSIX package version as %s\n", msixVersion)
 	fmt.Println("Note: Flatpak source URL/SHA still need updating after the Linux release binary exists.")
 }
 
@@ -193,6 +206,14 @@ func macOSBundleVersion(version string) string {
 		return version
 	}
 	return parts[0] + "." + parts[1] + "." + parts[2] + "0"
+}
+
+func msixPackageVersion(version string) string {
+	parts := strings.Split(version, ".")
+	if len(parts) != 3 {
+		return version
+	}
+	return parts[0] + "." + parts[1] + "." + parts[2] + ".0"
 }
 
 func fatalf(format string, args ...any) {
