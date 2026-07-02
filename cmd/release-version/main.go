@@ -174,30 +174,44 @@ func updateConfigVersion(version string) {
 
 	lines := strings.SplitAfter(string(input), "\n")
 	updated := false
+	inInfo := false
 	for i, line := range lines {
-		if strings.Contains(line, "# The application version") {
-			lineEnding := ""
-			body := line
-			if strings.HasSuffix(body, "\n") {
-				lineEnding = "\n"
-				body = strings.TrimSuffix(body, "\n")
-			}
-			if strings.HasSuffix(body, "\r") {
-				lineEnding = "\r" + lineEnding
-				body = strings.TrimSuffix(body, "\r")
-			}
+		body, lineEnding := splitLineEnding(line)
+		trimmed := strings.TrimSpace(body)
+
+		if trimmed == "info:" {
+			inInfo = true
+			continue
+		}
+		if inInfo && body != "" && !strings.HasPrefix(body, " ") && !strings.HasPrefix(body, "\t") {
+			inInfo = false
+		}
+		if inInfo && strings.HasPrefix(strings.TrimLeft(body, " \t"), "version:") {
 			indent := body[:len(body)-len(strings.TrimLeft(body, " \t"))]
-			lines[i] = indent + `version: "` + version + `" # The application version` + lineEnding
+			lines[i] = indent + `version: "` + version + `"` + lineEnding
 			updated = true
 			break
 		}
 	}
 	if !updated {
-		fatalf("no application version line found in %s", path)
+		fatalf("no info.version line found in %s", path)
 	}
 	if err := os.WriteFile(path, []byte(strings.Join(lines, "")), 0o644); err != nil {
 		fatalf("write %s: %v", path, err)
 	}
+}
+
+func splitLineEnding(line string) (string, string) {
+	lineEnding := ""
+	if strings.HasSuffix(line, "\n") {
+		lineEnding = "\n"
+		line = strings.TrimSuffix(line, "\n")
+	}
+	if strings.HasSuffix(line, "\r") {
+		lineEnding = "\r" + lineEnding
+		line = strings.TrimSuffix(line, "\r")
+	}
+	return line, lineEnding
 }
 
 func macOSBundleVersion(version string) string {
