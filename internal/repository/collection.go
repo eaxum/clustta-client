@@ -275,7 +275,6 @@ func GetSimpleCollections(tx *sqlx.Tx) ([]models.Collection, error) {
 	} else if err != nil {
 		return []models.Collection{}, err
 	}
-	fmt.Println("SimpleCollections: ", collections)
 	return collections, nil
 }
 
