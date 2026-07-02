@@ -20,7 +20,7 @@ tasks:
       - cmd: rm -f *.syso
         platforms: [linux, darwin]
     vars:
-      APP_VERSION: "0.4.35"
+      APP_VERSION: "0.4.36"
       # BUILD_FLAGS: '{{if eq .PRODUCTION "true"}}-tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui"{{else}}-buildvcs=false -ldflags="-X clustta/internal/constants.host=http://127.0.0.1:5000" -gcflags=all="-l"{{end}}'
       # To stamp the release version into the binary, append to the production ldflags:
       BUILD_FLAGS: '{{if eq .PRODUCTION "true"}}-tags production -trimpath -buildvcs=false -ldflags="-w -s -H windowsgui -X clustta/internal/constants.version={{.APP_VERSION}}"{{else}}-buildvcs=false -gcflags=all="-l"{{end}}'

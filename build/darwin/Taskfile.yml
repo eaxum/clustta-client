@@ -7,7 +7,7 @@ vars:
   MACOS_DEPLOYMENT_TARGET: '{{.MACOS_DEPLOYMENT_TARGET | default "15.0"}}'
   MAX_MACOS_SDK_VERSION: '{{.MAX_MACOS_SDK_VERSION | default "15.4"}}'
   MACOS_SDK_PATH: '{{.MACOS_SDK_PATH | default "/Library/Developer/CommandLineTools/SDKs/MacOSX15.sdk"}}'
-  APP_VERSION: "0.4.35"
+  APP_VERSION: "0.4.36"
 
 tasks:
   verify:sdk:

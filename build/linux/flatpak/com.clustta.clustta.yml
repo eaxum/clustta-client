@@ -41,7 +41,7 @@ modules:
       - install -Dm644 clustta-clst.xml /app/share/mime/packages/com.clustta.clustta-clst.xml
     sources:
       - type: file
-        url: https://github.com/eaxum/clustta-client/releases/download/v0.4.35/clustta-0.4.35-linux-amd64
+        url: https://github.com/eaxum/clustta-client/releases/download/v0.4.36/clustta-0.4.36-linux-amd64
         sha256: d418d2fbc9a9f6351ca81c24819492a46f84b81b88ec9810bb07d555b39e39db
         dest-filename: clustta
       - type: file
