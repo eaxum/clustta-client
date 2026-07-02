@@ -60,11 +60,14 @@ const props = defineProps({
   color: var(--text);
 }
 
+.inverted-icon{
+  filter: invert(100%);
+}
 .loading{
   width: 35px;
   min-width: 35px;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 18px;
 }
 
 .general-button:hover{
