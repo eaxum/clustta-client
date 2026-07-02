@@ -17,7 +17,7 @@
     !define INFO_PRODUCTVERSION "0.4.35"
 !endif
 !ifndef INFO_COPYRIGHT
-    !define INFO_COPYRIGHT "(c) 2025, Eaxum"
+    !define INFO_COPYRIGHT "(c) 2026, Eaxum"
 !endif
 !ifndef PRODUCT_EXECUTABLE
     !define PRODUCT_EXECUTABLE "${INFO_PROJECTNAME}.exe"
