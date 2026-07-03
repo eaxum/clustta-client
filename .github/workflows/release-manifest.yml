@@ -1,4 +1,5 @@
 name: Publish Update Manifest
+run-name: ${{ inputs.version || inputs.tag || github.event.release.tag_name || github.workflow }}
 
 # Computes SHA-256 from the assets actually uploaded to a GitHub Release and
 # publishes latest.json to GitHub Pages. This solves the multi-machine build
@@ -16,8 +17,11 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to build the manifest for (e.g. v0.4.36)"
+        description: "Release tag/version to build the manifest for (e.g. 0.4.36 or v0.4.36)"
         required: true
+      version:
+        description: "Display/build version without v prefix (usually set automatically)"
+        required: false
 
 permissions:
   actions: write
@@ -46,7 +50,8 @@ jobs:
           REF: ${{ github.event.repository.default_branch }}
           TAG: ${{ github.event.release.tag_name }}
         run: |
-          gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" -f tag="$TAG"
+          VERSION="${TAG#v}"
+          gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" -f tag="$TAG" -f version="$VERSION"
 
   manifest:
     if: github.event_name == 'workflow_dispatch'
@@ -55,8 +60,16 @@ jobs:
       - name: Resolve tag and version
         id: meta
         run: |
-          TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
-          VERSION="${TAG#v}"
+          RAW_TAG="${{ github.event.inputs.tag || github.event.release.tag_name }}"
+          TAG="$RAW_TAG"
+          case "$TAG" in
+            v*) ;;
+            *) TAG="v$TAG" ;;
+          esac
+          VERSION="${{ github.event.inputs.version }}"
+          if [ -z "$VERSION" ]; then
+            VERSION="${RAW_TAG#v}"
+          fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
