@@ -138,7 +138,7 @@ bridge-dev:
 # ─── Flatpak / Flathub ───────────────────────────────────────────────────────
 
 DEPLOYMENT_DIR := ../clustta-deployment
-FLATHUB_DIR := ../flathub
+FLATHUB_DIR := ../flathub-clustta
 FLATPAK_SCRIPTS := $(DEPLOYMENT_DIR)/linux/flatpak
 
 # Check that required sibling repos exist
