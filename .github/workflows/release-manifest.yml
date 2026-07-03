@@ -6,7 +6,9 @@ name: Publish Update Manifest
 # hashes the real published bytes (not local build output) after the fact.
 #
 # Trigger it manually after all platform artifacts are uploaded, or let it run
-# automatically when a release is published.
+# automatically when a release is published. Release events run on tag refs,
+# but the github-pages environment may only allow deployments from the default
+# branch, so release runs dispatch a default-branch run with the tag input.
 
 on:
   release:
@@ -18,6 +20,7 @@ on:
         required: true
 
 permissions:
+  actions: write
   contents: read
   pages: write
   id-token: write
@@ -31,7 +34,22 @@ permissions:
 #   *.exe -> windows, *.pkg/*.dmg -> darwin, *.AppImage -> linux
 
 jobs:
+  dispatch-from-release:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Start default-branch manifest run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          WORKFLOW: ${{ github.workflow }}
+          REF: ${{ github.event.repository.default_branch }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$REF" -f tag="$TAG"
+
   manifest:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Resolve tag and version
@@ -111,11 +129,12 @@ jobs:
           jq . site/latest.json
 
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
   deploy:
+    if: github.event_name == 'workflow_dispatch'
     needs: manifest
     runs-on: ubuntu-latest
     environment:
@@ -124,4 +143,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
