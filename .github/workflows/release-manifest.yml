@@ -35,7 +35,8 @@ permissions:
 # Optional repo Variables (Settings > Secrets and variables > Actions):
 #   MINIMUM_VERSION  (lowest version allowed before update is forced)
 # Assets are classified by extension, so exact filenames don't matter:
-#   *.exe -> windows, *.pkg/*.dmg -> darwin, *.AppImage -> linux
+#   *.exe -> windows, *.pkg/*.dmg -> darwin
+#   *.deb -> linux_deb, *.rpm -> linux_rpm, *.AppImage -> linux_appimage
 
 jobs:
   dispatch-from-release:
@@ -95,14 +96,16 @@ jobs:
           declare -A URL
           declare -A SHA
 
-          # Classify by extension into OS-level keys. macOS ships one universal
-          # bundle and Linux one AppImage, so per-arch keys aren't needed.
+          # Classify by extension into platform/package keys. Linux has multiple
+          # package formats, and each uploaded package has its own SHA-256.
           while IFS=$'\t' read -r name url digest; do
             case "$name" in
-              *.exe)       key="windows" ;;
-              *.pkg|*.dmg) key="darwin" ;;
-              *.AppImage)  key="linux" ;;
-              *)           continue ;;
+              *.exe)        key="windows" ;;
+              *.pkg|*.dmg)  key="darwin" ;;
+              *.deb)        key="linux_deb" ;;
+              *.rpm)        key="linux_rpm" ;;
+              *.AppImage)   key="linux_appimage" ;;
+              *)            continue ;;
             esac
 
             sha=""
@@ -127,7 +130,7 @@ jobs:
             echo "  \"notes_url\": \"https://github.com/${REPO}/releases/tag/${TAG}\","
             echo "  \"platforms\": {"
             sep=""
-            for key in windows darwin linux; do
+            for key in windows darwin linux_deb linux_rpm linux_appimage; do
               if [ -n "${URL[$key]:-}" ]; then
                 printf '%s    "%s": {"url":"%s","sha256":"%s"}' "$sep" "$key" "${URL[$key]}" "${SHA[$key]}"
                 sep=$',\n'
