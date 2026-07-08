@@ -458,7 +458,7 @@ func resolveAssetNameFromTemplate(fallback string, parentCollection integrations
 		return fallback
 	}
 
-	resolved := resolveAssetTemplateVariables(template, parentCollection, asset, collectionByID, dirStructure.Style, templateExtension)
+	resolved := resolveAssetTemplateVariables(template, parentCollection, asset, collectionByID, dirStructure, templateExtension)
 	resolved = strings.Trim(strings.TrimSpace(resolved), "/")
 	if resolved == "" {
 		return fallback
@@ -501,8 +501,20 @@ func normalizeCollectionPath(path string) string {
 // Templates match based on the variable names they contain.
 // Uses frontend format: <Episode>, <Sequence>, <Shot>, <Asset>, <CollectionType>
 func findMatchingTemplate(collectionType string, dirStructure integrations.DirectoryStructure) string {
-	if dirStructure.Paths == nil {
+	config := findMatchingPathConfig(collectionType, dirStructure)
+	if config == nil {
 		return ""
+	}
+	if tmpl, ok := config["template"].(string); ok {
+		return tmpl
+	}
+	return ""
+}
+
+// findMatchingPathConfig finds the configured path entry that applies to the collection type.
+func findMatchingPathConfig(collectionType string, dirStructure integrations.DirectoryStructure) map[string]interface{} {
+	if dirStructure.Paths == nil {
+		return nil
 	}
 
 	collectionTypeLower := strings.ToLower(collectionType)
@@ -521,12 +533,12 @@ func findMatchingTemplate(collectionType string, dirStructure integrations.Direc
 			if data, ok := pathData.(map[string]interface{}); ok {
 				if tmpl, ok := data["template"].(string); ok {
 					if strings.Contains(tmpl, varName) {
-						return tmpl
+						return data
 					}
 				}
 			}
 		}
-		return ""
+		return nil
 	}
 
 	// For assets (non-standard types like "Character", "Prop"), find template with <Asset>
@@ -534,13 +546,13 @@ func findMatchingTemplate(collectionType string, dirStructure integrations.Direc
 		if data, ok := pathData.(map[string]interface{}); ok {
 			if tmpl, ok := data["template"].(string); ok {
 				if strings.Contains(tmpl, "<Asset>") {
-					return tmpl
+					return data
 				}
 			}
 		}
 	}
 
-	return ""
+	return nil
 }
 
 // resolveTemplateVariables resolves variables in a template path.
@@ -608,8 +620,9 @@ func resolveTemplateVariables(template string, collection integrations.ExternalC
 }
 
 // resolveAssetTemplateVariables resolves the full asset template, including filename placeholders.
-func resolveAssetTemplateVariables(template string, parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, style, templateExtension string) string {
+func resolveAssetTemplateVariables(template string, parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, dirStructure integrations.DirectoryStructure, templateExtension string) string {
 	result := template
+	style := dirStructure.Style
 
 	typeToVar := map[string]string{
 		"episode":  "<Episode>",
@@ -631,6 +644,101 @@ func resolveAssetTemplateVariables(template string, parentCollection integration
 	if assetType == "" {
 		assetType = asset.Name
 	}
+	result = strings.ReplaceAll(result, "<AssetType>", applyNamingStyle(assetType, style))
+	outputName := resolveTaskOutputName(parentCollection, asset, collectionByID, dirStructure, templateExtension)
+	if outputName == "" {
+		outputName = assetType
+	}
+	result = strings.ReplaceAll(result, "<OutputName>", applyNamingStyle(outputName, style))
+	result = strings.ReplaceAll(result, "<TemplateExtension>", templateExtension)
+
+	return result
+}
+
+// resolveTaskOutputName resolves the per-task output filename segment from the matching directory mapping.
+// If no explicit task output is configured, it falls back to the task/asset type.
+func resolveTaskOutputName(parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, dirStructure integrations.DirectoryStructure, templateExtension string) string {
+	config := findMatchingPathConfig(parentCollection.Type, dirStructure)
+	if config == nil {
+		return fallbackAssetTaskType(asset)
+	}
+
+	outputTemplate := ""
+	if rawOutputs, ok := config["task_outputs"]; ok {
+		outputs := normalizeStringMap(rawOutputs)
+		taskKeys := []string{asset.AssetType, asset.AssetTypeID, asset.Name}
+		for _, key := range taskKeys {
+			if key == "" {
+				continue
+			}
+			if value, exists := outputs[key]; exists {
+				outputTemplate = value
+				break
+			}
+			if value, exists := outputs[strings.ToLower(key)]; exists {
+				outputTemplate = value
+				break
+			}
+		}
+	}
+	if strings.TrimSpace(outputTemplate) == "" {
+		return fallbackAssetTaskType(asset)
+	}
+
+	resolved := resolveAssetTemplateVariablesWithoutOutput(outputTemplate, parentCollection, asset, collectionByID, dirStructure.Style, templateExtension)
+	resolved = strings.TrimSpace(resolved)
+	if resolved == "" {
+		return fallbackAssetTaskType(asset)
+	}
+	return resolved
+}
+
+func fallbackAssetTaskType(asset integrations.ExternalAsset) string {
+	if asset.AssetType != "" {
+		return asset.AssetType
+	}
+	return asset.Name
+}
+
+func normalizeStringMap(raw interface{}) map[string]string {
+	result := make(map[string]string)
+	switch value := raw.(type) {
+	case map[string]string:
+		for k, v := range value {
+			result[k] = v
+			result[strings.ToLower(k)] = v
+		}
+	case map[string]interface{}:
+		for k, v := range value {
+			if s, ok := v.(string); ok {
+				result[k] = s
+				result[strings.ToLower(k)] = s
+			}
+		}
+	}
+	return result
+}
+
+func resolveAssetTemplateVariablesWithoutOutput(template string, parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, style, templateExtension string) string {
+	result := template
+
+	typeToVar := map[string]string{
+		"episode":  "<Episode>",
+		"sequence": "<Sequence>",
+		"shot":     "<Shot>",
+	}
+
+	hierarchy := buildCollectionHierarchy(parentCollection, collectionByID)
+	for _, e := range hierarchy {
+		typeLower := strings.ToLower(e.Type)
+		if varName, ok := typeToVar[typeLower]; ok {
+			result = strings.ReplaceAll(result, varName, applyNamingStyle(e.Name, style))
+		}
+	}
+
+	result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(parentCollection.Name, style))
+	result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(parentCollection.Type, style))
+	assetType := fallbackAssetTaskType(asset)
 	result = strings.ReplaceAll(result, "<AssetType>", applyNamingStyle(assetType, style))
 	result = strings.ReplaceAll(result, "<TemplateExtension>", templateExtension)
 
@@ -1914,7 +2022,7 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 	for i, assetId := range assetIds {
 
 		// Look up integration mapping for this asset
-		mapping, err := repository.GetAssetMappingByAssetId(tx, assetId)
+		mapping, err := s.selectAssetMappingForPush(tx, assetId)
 		if err != nil {
 			continue // Asset not mapped to integration — skip
 		}
@@ -2018,6 +2126,37 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 	}
 
 	return nil
+}
+
+func (s *IntegrationService) selectAssetMappingForPush(tx *sqlx.Tx, assetId string) (models.IntegrationAssetMapping, error) {
+	mappings, err := repository.GetAssetMappingsByAssetId(tx, assetId)
+	if err != nil {
+		return models.IntegrationAssetMapping{}, err
+	}
+	if len(mappings) == 0 {
+		return models.IntegrationAssetMapping{}, errors.New("asset mapping not found")
+	}
+	if len(mappings) == 1 {
+		return mappings[0], nil
+	}
+
+	asset, err := repository.GetAsset(tx, assetId)
+	if err != nil {
+		return mappings[0], nil
+	}
+	assetType, err := repository.GetAssetType(tx, asset.AssetTypeId)
+	if err != nil {
+		return mappings[0], nil
+	}
+
+	currentType := strings.ToLower(strings.TrimSpace(assetType.Name))
+	for _, mapping := range mappings {
+		if strings.ToLower(strings.TrimSpace(mapping.ExternalType)) == currentType {
+			return mapping, nil
+		}
+	}
+
+	return mappings[0], nil
 }
 
 // formatBytes returns a human-readable byte size string.

@@ -287,6 +287,16 @@ func GetAssetMappingByAssetId(tx *sqlx.Tx, assetId string) (models.IntegrationAs
 	return mappings[0], nil
 }
 
+// GetAssetMappingsByAssetId retrieves all mappings for a Clustta asset ID.
+func GetAssetMappingsByAssetId(tx *sqlx.Tx, assetId string) ([]models.IntegrationAssetMapping, error) {
+	mappings := []models.IntegrationAssetMapping{}
+	conditions := map[string]interface{}{
+		"asset_id": assetId,
+	}
+	err := base_service.GetAllBy(tx, "integration_asset_mapping", conditions, &mappings)
+	return mappings, err
+}
+
 // GetAssetMappings retrieves all asset mappings for an integration.
 func GetAssetMappings(tx *sqlx.Tx, integrationId string) ([]models.IntegrationAssetMapping, error) {
 	mappings := []models.IntegrationAssetMapping{}

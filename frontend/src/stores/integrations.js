@@ -69,7 +69,41 @@ export const useIntegrationStore = defineStore('integrations', {
     syncPreviewTree: (state) => {
       if (!state.syncPreview?.preview_items) return [];
 
-      const items = state.syncPreview.preview_items;
+      const items = [];
+      const groupedAssets = new Map();
+
+      for (const item of state.syncPreview.preview_items) {
+        if (item.item_type !== 'asset') {
+          items.push(item);
+          continue;
+        }
+
+        const key = [
+          item.parent_path || '/',
+          item.name || '',
+          item.template_extension || '',
+        ].join('|');
+        const existing = groupedAssets.get(key);
+        const taskType = item.external_type || item.type_name || '';
+        if (existing) {
+          if (taskType && !existing.task_types.includes(taskType)) {
+            existing.task_types.push(taskType);
+          }
+          existing.external_ids.push(item.external_id);
+          existing.external_types.push(item.external_type);
+          continue;
+        }
+
+        const grouped = {
+          ...item,
+          id: `asset-group-${key}`,
+          task_types: taskType ? [taskType] : [],
+          external_ids: item.external_id ? [item.external_id] : [],
+          external_types: item.external_type ? [item.external_type] : [],
+        };
+        groupedAssets.set(key, grouped);
+        items.push(grouped);
+      }
 
       // Group items by parent_path
       const childrenMap = new Map();
@@ -93,7 +127,10 @@ export const useIntegrationStore = defineStore('integrations', {
           asset_type_name: item.type_name,
           asset_type_icon: item.type_icon || 'generic',
           external_id: item.external_id,
+          external_ids: item.external_ids || (item.external_id ? [item.external_id] : []),
           external_type: item.external_type,
+          external_types: item.external_types || (item.external_type ? [item.external_type] : []),
+          task_types: item.task_types || [],
           external_type_id: item.external_type_id,
           collection_path: item.collection_path,
           parent_path: item.parent_path,

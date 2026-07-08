@@ -266,6 +266,13 @@ export class ExternalTypeInfo {
              */
             this["name"] = "";
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["for_entity"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }

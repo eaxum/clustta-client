@@ -14,7 +14,7 @@
     </div>
 
     <div class="preview-meta">
-      <span class="preview-type-label">{{ typeName }}</span>
+      <span v-for="taskType in taskTypes" :key="taskType" class="preview-type-label">{{ taskType }}</span>
     </div>
   </div>
 </template>
@@ -56,6 +56,11 @@ const typeIcon = computed(() => {
 // Returns the capitalized external type name.
 const typeName = computed(() => {
   return utils.capitalizeStr(props.asset.external_type || 'Asset');
+});
+
+const taskTypes = computed(() => {
+  const types = props.asset.task_types?.length ? props.asset.task_types : [typeName.value];
+  return [...new Set(types.filter(Boolean).map(type => utils.capitalizeStr(type)))];
 });
 
 // methods
@@ -148,6 +153,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.25rem;
   padding: 0.1rem 0.4rem;
   background-color: var(--surface-1);
   border-radius: var(--tiny-radius);

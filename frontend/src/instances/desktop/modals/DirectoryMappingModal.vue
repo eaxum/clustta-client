@@ -41,6 +41,33 @@
               <span class="preview-label">Preview:</span>
               <span class="preview-path">{{ getTemplatePreview(template) }}</span>
             </div>
+
+            <div class="task-output-section">
+              <button type="button" class="task-output-toggle" @click="toggleTaskOutputs(template.id)">
+                <img :src="getAppIcon(isTaskOutputExpanded(template.id) ? 'collapse-up' : 'collapse-down')" alt="" />
+                <span>Task outputs</span>
+                <span class="task-output-count">{{ configuredTaskOutputCount(template) }}/{{ getTemplateTaskTypes(template).length }}</span>
+              </button>
+
+              <div v-if="isTaskOutputExpanded(template.id)" class="task-output-rows">
+                <div v-if="externalTaskTypes.length === 0" class="task-output-empty">
+                  Connect to the integration to load task types.
+                </div>
+                <div v-else-if="getTemplateTaskTypes(template).length === 0" class="task-output-empty">
+                  No task types match this template's task set.
+                </div>
+                <div v-for="taskType in getTemplateTaskTypes(template)" :key="`${template.id}-${taskType.id || taskType.name}`" class="task-output-row">
+                  <span class="task-output-name">{{ taskType.name }}</span>
+                  <span class="task-output-arrow">-&gt;</span>
+                  <input
+                    type="text"
+                    class="task-output-input"
+                    v-model="template.task_outputs[taskType.name]"
+                    :placeholder="defaultTaskOutput(taskType.name)"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Add Template Button -->
@@ -95,9 +122,10 @@ const notificationStore = useNotificationStore();
 // refs
 const activeTemplateId = ref(null);
 const customTemplates = ref([
-  { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<AssetType><TemplateExtension>' },
-  { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<AssetType><TemplateExtension>' },
+  { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {} },
+  { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {} },
 ]);
+const expandedTaskOutputs = ref({});
 const isLoading = ref(false);
 const isSaving = ref(false);
 const namingStyle = ref('lowercase');
@@ -117,6 +145,7 @@ const serializeState = () => {
       name: t.name,
       icon: t.icon,
       template: t.template,
+      task_outputs: t.task_outputs || {},
     })),
   });
 };
@@ -133,12 +162,23 @@ const placeholders = computed(() => [
   { key: '<Asset>', label: 'Asset', icon: 'cube' },
   { key: '<CollectionType>', label: 'CollectionType', icon: 'folder' },
   { key: '<AssetType>', label: 'AssetType', icon: 'file' },
+  { key: '<OutputName>', label: 'OutputName', icon: 'file-name' },
   { key: '<TemplateExtension>', label: 'TemplateExtension', icon: 'extension' },
 ]);
 
 const presetOptions = computed(() => ['3d-animation', 'custom']);
 
 const styleOptions = computed(() => ['lowercase', 'uppercase', 'capitalize', 'kebab-case']);
+
+const externalTaskTypes = computed(() => {
+  return (integrationStore.externalAssetTypes || [])
+    .map(type => ({
+      id: type?.id || type?.ID || '',
+      name: type?.name || type?.Name || type,
+      for_entity: type?.for_entity || type?.ForEntity || '',
+    }))
+    .filter(type => type.name);
+});
 
 // methods
 // Adds a new blank template.
@@ -148,7 +188,8 @@ const addTemplate = () => {
     id,
     name: 'New Template',
     icon: 'folder',
-    template: '<CollectionType>/<Asset>/<AssetType><TemplateExtension>',
+    template: '<CollectionType>/<Asset>/<OutputName><TemplateExtension>',
+    task_outputs: {},
   });
 };
 
@@ -158,8 +199,8 @@ const applyPreset = (preset) => {
   if (preset === '3d-animation') {
     // Reset to default templates
     customTemplates.value = [
-      { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<AssetType><TemplateExtension>' },
-      { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<AssetType><TemplateExtension>' },
+      { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {} },
+      { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {} },
     ];
   }
 };
@@ -183,7 +224,48 @@ const getTemplatePreview = (template) => {
     CollectionType: 'character',
     Asset: 'hero',
     AssetType: 'modeling',
+    OutputName: 'hero-modeling',
     TemplateExtension: '.ext',
+  });
+};
+
+const configuredTaskOutputCount = (template) => {
+  const visibleTasks = new Set(getTemplateTaskTypes(template).map(taskType => taskType.name));
+  return Object.entries(template.task_outputs || {})
+    .filter(([taskType, value]) => visibleTasks.has(taskType) && String(value || '').trim())
+    .length;
+};
+
+const defaultTaskOutput = (taskType) => {
+  return `<Asset>-${String(taskType || '').toLowerCase()}`;
+};
+
+const isTaskOutputExpanded = (templateId) => {
+  return !!expandedTaskOutputs.value[templateId];
+};
+
+const toggleTaskOutputs = (templateId) => {
+  expandedTaskOutputs.value = {
+    ...expandedTaskOutputs.value,
+    [templateId]: !expandedTaskOutputs.value[templateId],
+  };
+};
+
+const inferTemplateEntity = (id, template = '') => {
+  const value = `${id || ''} ${template || ''}`.toLowerCase();
+  if (value.includes('<shot>') || value.includes('shot')) return 'shot';
+  if (value.includes('<asset>') || value.includes('asset')) return 'asset';
+  return '';
+};
+
+const getTemplateTaskTypes = (template) => {
+	const entity = inferTemplateEntity(template.id, template.template);
+	if (!entity) return externalTaskTypes.value;
+	if (!externalTaskTypes.value.some(taskType => taskType.for_entity)) return externalTaskTypes.value;
+
+	return externalTaskTypes.value.filter(taskType => {
+		const forEntity = String(taskType.for_entity || '').toLowerCase();
+    return forEntity === entity;
   });
 };
 
@@ -255,7 +337,12 @@ const saveMapping = async () => {
     // Build paths object from custom templates
     const paths = {};
     customTemplates.value.forEach(t => {
-      paths[t.id] = { name: t.name, icon: t.icon, template: t.template };
+      paths[t.id] = {
+        name: t.name,
+        icon: t.icon,
+        template: t.template,
+        task_outputs: t.task_outputs || {},
+      };
     });
 
     await integrationStore.saveDirectoryStructure({
@@ -278,6 +365,11 @@ onMounted(async () => {
   isLoading.value = true;
   try {
     await integrationStore.loadTypeMappings();
+    try {
+      await integrationStore.getExternalTypes();
+    } catch (error) {
+      console.warn('Failed to load external task types:', error);
+    }
     const structure = integrationStore.typeMappings?.directory_structure;
     if (structure) {
       selectedPreset.value = structure.preset || '3d-animation';
@@ -290,6 +382,7 @@ onMounted(async () => {
           name: data.name || id,
           icon: data.icon || 'folder',
           template: data.template || '',
+          task_outputs: data.task_outputs || {},
         }));
       }
     }
@@ -461,6 +554,82 @@ onMounted(async () => {
 .preview-path {
   color: var(--text);
   font-family: monospace;
+}
+
+.task-output-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-output-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.8rem;
+  text-align: left;
+}
+
+.task-output-toggle img {
+  width: 14px;
+  height: 14px;
+}
+
+.task-output-count {
+  margin-left: auto;
+  color: var(--text);
+  opacity: 0.6;
+  font-size: 0.75rem;
+}
+
+.task-output-rows {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.35rem;
+  padding: 0.5rem;
+  background-color: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--small-radius);
+}
+
+.task-output-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto minmax(220px, 2fr);
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.task-output-name,
+.task-output-arrow,
+.task-output-empty {
+  color: var(--text);
+  font-size: 0.75rem;
+}
+
+.task-output-arrow {
+  opacity: 0.6;
+}
+
+.task-output-input {
+  min-width: 0;
+  padding: 0.35rem 0.5rem;
+  background-color: var(--surface-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--small-radius);
+  color: var(--text);
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.task-output-input:focus {
+  outline: none;
+  border-color: var(--border-strong);
 }
 
 .placeholders-grid {

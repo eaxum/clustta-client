@@ -399,8 +399,9 @@ func (k *KitsuClient) GetAssetTypes(token, apiUrl, projectID string) ([]External
 		types := make([]ExternalTypeInfo, 0, len(kitsuTaskTypes))
 		for _, tt := range kitsuTaskTypes {
 			types = append(types, ExternalTypeInfo{
-				ID:   tt.ID,
-				Name: tt.Name,
+				ID:        tt.ID,
+				Name:      tt.Name,
+				ForEntity: tt.ForEntity,
 			})
 		}
 		return types, nil
@@ -422,8 +423,9 @@ func (k *KitsuClient) GetAssetTypes(token, apiUrl, projectID string) ([]External
 	for typeID := range usedTaskTypeIDs {
 		if tt, exists := allTaskTypes[typeID]; exists {
 			types = append(types, ExternalTypeInfo{
-				ID:   tt.ID,
-				Name: tt.Name,
+				ID:        tt.ID,
+				Name:      tt.Name,
+				ForEntity: tt.ForEntity,
 			})
 		}
 	}
@@ -743,8 +745,9 @@ type kitsuAssetType struct {
 }
 
 type kitsuTaskType struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	ForEntity string `json:"for_entity"`
 }
 
 type kitsuTaskStatus struct {

@@ -225,8 +225,9 @@ type MissingType struct {
 
 // ExternalTypeInfo represents a type definition from an external system.
 type ExternalTypeInfo struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	ForEntity string `json:"for_entity,omitempty"`
 }
 
 // ExternalStatusInfo represents a status definition from an external system.
