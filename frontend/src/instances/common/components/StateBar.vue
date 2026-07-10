@@ -4,6 +4,7 @@
 	</div>
 
 	<div v-else-if="hasData" class="state-bar">
+
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_fetchable" :icon="getAppIcon('fetch')" 
 			v-tooltip="$t('components.stateBar.fetchAll')" :buttonFunction="fetchAll" />
 
@@ -28,7 +29,7 @@
 import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
-import { canActInNavigatedCollection, canCreateAssetHere } from '@/lib/permissions';
+import { canCreateCheckpointInCollection } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -74,14 +75,14 @@ const isLoading = computed(() =>
 // navigated collection.
 const canCreateCheckpointHere = computed(() => {
 	collectionStore.navigatedCollection;
-	return canActInNavigatedCollection('create_checkpoint');
+	return canCreateCheckpointInCollection(collectionStore.navigatedCollection);
 });
 
 // Whether the user can materialize untracked items as new assets. Requires the
 // create_asset role on top of collection scope.
 const canCreateFromUntrackedHere = computed(() => {
 	collectionStore.navigatedCollection;
-	return canCreateAssetHere();
+	return canCreateCheckpointInCollection(collectionStore.navigatedCollection);
 });
 
 // methods

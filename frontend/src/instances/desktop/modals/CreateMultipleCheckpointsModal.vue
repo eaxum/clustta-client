@@ -30,7 +30,7 @@
                 :icon="getAppIcon(showCheckpointItems ? 'eye-cancel' : 'eye')" />
             </div>
 
-            <div v-if="trayStates.createMultipleCheckpoints" class="checkpoint-untracked-toggle" @click="toggleIncludeUntracked">
+            <div v-if="showUntrackedToggle" class="checkpoint-untracked-toggle" @click="toggleIncludeUntracked">
               <div class="checkpoint-untracked-toggle-label">{{ $t('menus.untracked') }}</div>
               <ToggleSwitch :switchValueProp="includeUntrackedInCheckpoint" />
             </div>
@@ -118,6 +118,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
+import { canCreateCheckpointForItem } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -182,6 +183,7 @@ const getModifiedAssetKey = (assetState) => `${assetState.asset_path}${assetStat
 const currentModifiedDisplayPaths = computed(() => {
   let filteredAssets = assetStore.modifiedAssets.modified || [];
   filteredAssets = filteredAssets.filter((assetState) => !removedPaths.value.includes(getModifiedAssetKey(assetState)));
+  filteredAssets = filteredAssets.filter((assetState) => canCreateCheckpointForItem(assetState));
   if (trayStates.createMultipleCheckpointsCollectionPath) {
     filteredAssets = filteredAssets.filter((assetState) => assetState.asset_path.startsWith(trayStates.createMultipleCheckpointsCollectionPath));
   }
@@ -194,17 +196,27 @@ const currentModifiedDisplayPaths = computed(() => {
 // Returns untracked file paths after filtering.
 const availableUntrackedPaths = computed(() => {
   let filteredAssets = assetStore.modifiedAssets.untracked || [];
-  filteredAssets = filteredAssets.filter((untrackedAssetPath) => !removedPaths.value.includes(untrackedAssetPath));
+  filteredAssets = filteredAssets.filter((untrackedAsset) => !removedPaths.value.includes(getUntrackedCandidatePath(untrackedAsset)));
+  filteredAssets = filteredAssets.filter((untrackedAsset) => {
+    const untrackedAssetPath = getUntrackedCandidatePath(untrackedAsset);
+    const resolvedItem = resolveUntrackedItemByPath(untrackedAssetPath) || (typeof untrackedAsset === 'object' ? untrackedAsset : null) || {
+      type: 'untracked_asset',
+      asset_path: normalizePath(untrackedAssetPath),
+      item_path: normalizePath(untrackedAssetPath),
+      collection_path: getParentPath(untrackedAssetPath),
+    };
+    return canCreateCheckpointForItem(resolvedItem);
+  });
   if (trayStates.createMultipleCheckpointsCollectionPath) {
-    filteredAssets = filteredAssets.filter((untrackedAssetPath) => untrackedAssetPath.startsWith(trayStates.createMultipleCheckpointsCollectionPath));
+    filteredAssets = filteredAssets.filter((untrackedAsset) => getUntrackedCandidatePath(untrackedAsset).startsWith(trayStates.createMultipleCheckpointsCollectionPath));
   }
   if (trayStates.createMultipleCheckpoints) {
     return filteredAssets;
   } else {
     const selectedUntrackedAssets = stage.selectedItems
-      .filter(item => item.type === 'untracked_asset')
-      .map(item => item.asset_path)
-      .filter(path => path && filteredAssets.includes(path));
+      .filter(item => item.type === 'untracked_asset' || item.type === 'untracked_collection')
+      .map(item => item.asset_path || item.item_path)
+      .filter(path => path && filteredAssets.some((untrackedAsset) => getUntrackedCandidatePath(untrackedAsset) === path));
     return selectedUntrackedAssets;
   }
 });
@@ -219,10 +231,9 @@ const currentUntrackedPaths = computed(() => {
 const checkpointItems = computed(() => {
   const modifiedItems = currentModifiedDisplayPaths.value.map((assetState) => {
     const key = getModifiedAssetKey(assetState);
-    const asset = assetStore.findAsset(assetState.asset_id) || {};
     const fullPath = normalizePath(assetState.display_path || `${assetState.asset_path}${assetState.extension || ''}`);
-    const extension = assetState.extension || asset.extension || getExtension(fullPath);
-    const name = asset.name || stripExtension(getFileName(fullPath), extension);
+    const extension = assetState.extension || getExtension(fullPath);
+    const name = assetState.name || stripExtension(getFileName(fullPath), extension);
 
     return {
       key,
@@ -232,16 +243,17 @@ const checkpointItems = computed(() => {
       name,
       extension,
       fullPath,
-      fallbackIcon: asset.icon || '',
-      source: asset?.id ? asset : assetState,
+      fallbackIcon: assetState.icon || '',
+      source: assetState,
     };
   });
 
-  const untrackedItems = currentUntrackedPaths.value.map((assetPath) => {
+  const untrackedItems = currentUntrackedPaths.value.map((untrackedAsset) => {
+    const assetPath = getUntrackedCandidatePath(untrackedAsset);
     const fullPath = normalizePath(assetPath);
     const extension = getExtension(fullPath);
     const name = stripExtension(getFileName(fullPath), extension);
-    const resolvedItem = resolveUntrackedItemByPath(fullPath);
+    const resolvedItem = resolveUntrackedItemByPath(fullPath) || (typeof untrackedAsset === 'object' ? untrackedAsset : null);
 
     return {
       key: assetPath,
@@ -292,6 +304,13 @@ const showModifiedItemsSidePane = computed(() => {
 
 // Returns whether both tracked and untracked candidates are currently visible.
 const hasMixedCheckpointItems = computed(() => currentModifiedDisplayPaths.value.length > 0 && currentUntrackedPaths.value.length > 0);
+
+// Returns whether the untracked toggle is useful for the current candidate set.
+const showUntrackedToggle = computed(() => {
+  return trayStates.createMultipleCheckpoints
+    && currentModifiedDisplayPaths.value.length > 0
+    && availableUntrackedPaths.value.length > 0;
+});
 
 // Returns whether tab filters are useful for the current candidate set.
 const showCheckpointTabs = computed(() => hasMixedCheckpointItems.value);
@@ -356,7 +375,7 @@ const createCheckPoints = async () => {
   const untracked = currentUntrackedPaths.value;
   try {
     for (let i = 0; i < untracked.length; i += 100) {
-      const batch = untracked.slice(i, i + 100);
+      const batch = untracked.slice(i, i + 100).map(getUntrackedCandidatePath);
       await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, batch, i, untracked.length, comment, previewPath, groupId);
     }
   } catch (error) {
@@ -364,7 +383,7 @@ const createCheckPoints = async () => {
     notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
   }
   assetStore.modifiedAssets.untracked = assetStore.modifiedAssets.untracked.filter(
-    (untrackedAssetPath) => !currentUntrackedPaths.value.includes(untrackedAssetPath)
+    (untrackedAsset) => !currentUntrackedPaths.value.some((checkpointAsset) => getUntrackedCandidatePath(checkpointAsset) === getUntrackedCandidatePath(untrackedAsset))
   );
   emitter.emit('refresh-browser');
   isAwaitingResponse.value = false;
@@ -379,6 +398,12 @@ const createCheckPoints = async () => {
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
+};
+
+// Returns a normalized checkpoint path from either a path string or an untracked item.
+const getUntrackedCandidatePath = (item) => {
+  if (typeof item === 'string') return normalizePath(item);
+  return normalizePath(item?.asset_path || item?.item_path || item?.display_path || '');
 };
 
 // Returns the file name portion from a normalized path.
@@ -623,16 +648,25 @@ const loadSelectedItemsForCheckpoint = () => {
       .filter((item) => item.type === 'asset' && item.file_status === 'modified')
       .map((asset) => ({
         asset_id: asset.id,
+        type: 'asset',
+        name: asset.name,
+        icon: asset.icon,
         asset_path: asset.asset_path,
+        assignee_id: asset.assignee_id,
+        collection_id: asset.collection_id,
         extension: asset.extension,
         display_path: asset.asset_path + asset.extension
       }));
 
     const untrackedPaths = commonStore.showUntracked
       ? stage.selectedItems
-        .filter((item) => item.type === 'untracked_asset')
-        .map((asset) => asset.asset_path)
-        .filter(Boolean)
+        .filter((item) => item.type === 'untracked_asset' || item.type === 'untracked_collection')
+        .filter((item) => canCreateCheckpointForItem(item))
+        .map((asset) => ({
+          ...asset,
+          display_path: asset.asset_path || asset.item_path
+        }))
+        .filter((asset) => getUntrackedCandidatePath(asset))
       : [];
 
     assetStore.modifiedAssets = {
@@ -644,28 +678,36 @@ const loadSelectedItemsForCheckpoint = () => {
   }
 };
 
+// Loads checkpoint candidates from the active collection context.
+const loadCollectionItemsForCheckpoint = async () => {
+  let collectionId = null;
+  let targetPath = null;
+  const selectedItem = stage.selectedItem;
+  let selectedCollection;
+
+  if (selectedItem?.type?.includes('collection')) {
+    selectedCollection = selectedItem;
+  } else {
+    selectedCollection = collectionStore.navigatedCollection;
+  }
+
+  if (selectedCollection) {
+    if (selectedCollection.type === 'collection') {
+      collectionId = selectedCollection.id;
+    } else if (selectedCollection.type === 'untracked_collection') {
+      targetPath = selectedCollection.file_path;
+    }
+  }
+
+  await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
+};
+
 // lifecycle hooks
 onMounted(async () => {
   if (!trayStates.createMultipleCheckpoints) {
     loadSelectedItemsForCheckpoint();
   } else {
-    let collectionId = null;
-    let targetPath = null;
-    const selectedItem = stage.selectedItem;
-    let selectedCollection;
-    if (selectedItem?.type?.includes('collection')) {
-      selectedCollection = selectedItem;
-    } else {
-      selectedCollection = collectionStore.navigatedCollection;
-    }
-    if (selectedCollection) {
-      if (selectedCollection.type === 'collection') {
-        collectionId = selectedCollection.id;
-      } else if (selectedCollection.type === 'untracked_collection') {
-        targetPath = selectedCollection.file_path;
-      }
-    }
-    await collectionStore.reloadItemsForCheckpoint(collectionId, targetPath);
+    await loadCollectionItemsForCheckpoint();
   }
   trayStates.screenshot = null;
   trayStates.previewFile = '';
@@ -804,7 +846,7 @@ onBeforeUnmount(() => {
   height: min-content;
   overflow: hidden;
   box-sizing: border-box;
-  height: 30px;
+  height: 35px;
   border-radius: var(--small-radius);
 }
 

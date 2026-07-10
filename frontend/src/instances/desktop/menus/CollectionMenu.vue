@@ -40,7 +40,7 @@
     <!-- Collection State Actions -->
     <span v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified || collectionStateFlags.has_outdated || collectionStateFlags.has_fetchable" class="menu-divider"></span>
 
-    <ActionButton v-if="collectionStateFlags.has_untracked || collectionStateFlags.has_modified" :icon="getAppIcon('plus-stone')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" :label="$t('modals.createCheckpoints')"
+    <ActionButton v-if="canCheckpointCollection && (collectionStateFlags.has_untracked || collectionStateFlags.has_modified)" :icon="getAppIcon('plus-stone')" :useAlert="collectionStateFlags.has_modified" :useDanger="collectionStateFlags.has_untracked" :showLabel="true" :fullWidth="true" :label="$t('modals.createCheckpoints')"
       :buttonFunction="prepCreateCheckpointsModal" />
 
     <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_fetchable" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('menus.fetchContents')"
@@ -91,6 +91,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
+import { canCreateCheckpointInCollection } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -160,6 +161,11 @@ const collectionStateFlags = computed(() => {
     has_outdated: false,
     has_fetchable: false
   };
+});
+
+// Returns whether checkpoints can be created for the selected collection.
+const canCheckpointCollection = computed(() => {
+  return canCreateCheckpointInCollection(collectionStore.selectedCollection);
 });
 
 // Checks if there are items in the clipboard.

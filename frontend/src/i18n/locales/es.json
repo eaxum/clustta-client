@@ -431,6 +431,7 @@
     "downloadFailed": "Error en la descarga",
     "errorDownloadingCheckpoint": "Error al descargar el punto de control",
     "cannotModifyAsset": "No puede modificar esta tarea porque está asignada a otro usuario.",
+    "cannotCreateCheckpoint": "No tiene permiso para crear checkpoints para este asset.",
     "removedUser": "Usuario eliminado",
     "renameFailed": "Error al renombrar",
     "failedToRenameCollection": "Error al renombrar la colección",

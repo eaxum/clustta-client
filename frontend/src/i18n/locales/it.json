@@ -431,6 +431,7 @@
     "downloadFailed": "Download fallito",
     "errorDownloadingCheckpoint": "Errore nello scaricamento del checkpoint",
     "cannotModifyAsset": "Non puoi modificare questa attività perché è assegnata a un altro utente.",
+    "cannotCreateCheckpoint": "Non hai l’autorizzazione per creare checkpoint per questo asset.",
     "removedUser": "Utente rimosso",
     "renameFailed": "Rinomina fallita",
     "failedToRenameCollection": "Rinomina collezione fallita",

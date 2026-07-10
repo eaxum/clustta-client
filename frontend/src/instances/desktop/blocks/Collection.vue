@@ -50,14 +50,14 @@
               :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified" 
               :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedItems')" />
-            <ActionButton v-else-if="hasVisibleUntrackedState && canCreateAssetFromCollection" 
+            <ActionButton v-else-if="hasVisibleUntrackedState && canCheckpointUntrackedFromCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
               :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
             <ActionButton v-else-if="hasVisibleUntrackedState" 
               :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedItems')" />
           </template>
           <template v-else-if="commonStore.showUntracked && collection.type === 'untracked_collection' && props.hasChildren">
-            <ActionButton v-if="canCreateAssetFromCollection" 
+            <ActionButton v-if="canCheckpointUntrackedFromCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
               :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
             <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" 
@@ -114,7 +114,7 @@
         </div> -->
 
         <div v-if="settingsStore.showTypeIcons" class="entity-item-icon-container">
-          <img class="large-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
+          <img :class="commonStore.viewMode === 'compact' ? 'large-icons' : 'small-icons'" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
 
         <div class="collection-item-content selection-area">
@@ -162,7 +162,7 @@
               :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections)" 
               :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedItems')" />
-            <ActionButton v-else-if="hasVisibleUntrackedState && !(collection.id in stage.expandedCollections) && canCreateAssetFromCollection" 
+            <ActionButton v-else-if="hasVisibleUntrackedState && !(collection.id in stage.expandedCollections) && canCheckpointUntrackedFromCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
               :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
             <ActionButton v-else-if="hasVisibleUntrackedState && !(collection.id in stage.expandedCollections)" 
@@ -178,7 +178,7 @@
         </div>
 
         <div v-else-if="!isEditing && commonStore.showUntracked && collection.type === 'untracked_collection' && props.hasChildren" class="collection-item-actions">
-            <ActionButton v-if="canCreateAssetFromCollection" @click="prepAllCheckpointModal(props.collection.collection_path)"
+            <ActionButton v-if="canCheckpointUntrackedFromCollection" @click="prepAllCheckpointModal(props.collection.collection_path)"
               :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.addCheckpoints')" />
             <ActionButton v-else :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true"
               v-tooltip="$t('blocks.untrackedCollection')" />
@@ -203,7 +203,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch, watchEffect
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
-import { canActInCollection, canCreateAssetInCollection } from '@/lib/permissions';
+import { canCreateCheckpointInCollection } from '@/lib/permissions';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
@@ -306,21 +306,12 @@ Events.On('free-item-space', async () => {
 // computed
 // True when the user may create checkpoints on modified items in this collection.
 const canCheckpointCollection = computed(() => {
-  return canActInCollection('create_checkpoint', props.collection);
+  return canCreateCheckpointInCollection(props.collection);
 });
 
-// True when the user can convert items in an untracked collection into new assets.
-const canCreateAssetFromCollection = computed(() => {
-  return canCreateAssetInCollection(props.collection);
-});
-
-// Checks if the user can import into this untracked collection.
-const canImport = computed(() => {
-  let trackedParent = utils.getUntrackedCollectionparent(props.collection);
-  if (props.collection.collection_path === "") {
-    return false;
-  }
-  return trackedParent && trackedParent.can_modify;
+// True when the user can checkpoint untracked items in this collection.
+const canCheckpointUntrackedFromCollection = computed(() => {
+  return canCreateCheckpointInCollection(props.collection);
 });
 
 // Returns list of collaborators assigned to this collection.
@@ -516,6 +507,7 @@ const expandCollection = () => {
 
 // Navigates into the collection to explore its contents.
 const exploreCollection = (collection) => {
+  // console.log(collection.can_modify)
   collectionStore.navigateToCollection(collection);
   commonStore.navigatorMode = true;
 };

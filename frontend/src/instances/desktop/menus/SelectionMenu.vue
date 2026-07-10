@@ -31,7 +31,7 @@
       <ActionButton v-if="!platformStore.isWeb && assetsCanFetch" :icon="getAppIcon('fetch')" :showLabel="true"
         :fullWidth="true" :label="$t('components.detailsPane.fetchAssets')" :buttonFunction="revertAllChanges" />
 
-      <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :showLabel="true"
+      <ActionButton v-if="selectedItemsCanCreateCheckpoints" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :showLabel="true"
         :fullWidth="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" />
 
       <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true"
@@ -78,7 +78,7 @@
     <template v-else-if="onlyUntracked">
       <span class="menu-divider"></span>
 
-      <ActionButton v-if="canCreateFromUntrackedHere && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true"
+      <ActionButton v-if="selectedItemsCanCreateCheckpoints && onlyUntracked" :icon="getAppIcon('plus-stone')" :useDanger="true"
         :noFilter="true" :showLabel="true" :fullWidth="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" />
 
       <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :showLabel="true" :fullWidth="true"
@@ -113,7 +113,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
-import { canCreateAssetHere } from '@/lib/permissions';
+import { canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
 import { canSquash } from '@/utils/squash';
 
 // components
@@ -208,8 +208,8 @@ const hasUntrackedAssetsSelected = computed(() => stage.selectedItems.some((item
 const selectedItemsCanCreateCheckpoints = computed(() => {
   if (!stage.selectedItems.length) return false;
   return stage.selectedItems.every((item) => {
-    if (item.type === 'asset') return item.file_status === 'modified';
-    if (item.type === 'untracked_asset') return canCreateFromUntrackedHere.value;
+    if (item.type === 'asset') return item.file_status === 'modified' && canCreateCheckpointForItem(item);
+    if (item.type === 'untracked_asset' || item.type === 'untracked_collection') return canCreateCheckpointForItem(item);
     return false;
   });
 });

@@ -432,6 +432,7 @@
     "downloadFailed": "다운로드 실패",
     "errorDownloadingCheckpoint": "체크포인트 다운로드 오류",
     "cannotModifyAsset": "이 작업은 다른 사용자에게 할당되어 수정할 수 없습니다.",
+    "cannotCreateCheckpoint": "이 에셋의 체크포인트를 생성할 권한이 없습니다.",
     "removedUser": "사용자 제거됨",
     "renameFailed": "이름 변경 실패",
     "failedToRenameCollection": "컬렉션 이름 변경 실패",

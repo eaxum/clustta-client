@@ -150,12 +150,9 @@
                 v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="asset.file_status == 'outdated'" 
                 @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
-                v-tooltip="$t('blocks.modifiedAssignedOther')" 
-                v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
-                v-tooltip="$t('blocks.modifiedClickCheckpoint')" 
-                v-else-if="asset.file_status == 'modified' && canCreateCheckpoint"
-                @click="prepCreateCheckpoint(index, asset, $event)" />
+                v-tooltip="modifiedAssetTooltip"
+                v-else-if="asset.file_status == 'modified'"
+                @click="handleModifiedAssetCheckpointClick(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.fileMissingClickFetch')"
                 v-else-if="asset.file_status == 'fetchable'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
@@ -198,10 +195,10 @@
 
     <div v-if="settingsStore.showTypeIcons" class="asset-spacer" v-tooltip="assetTypeName" @click="console.log(asset)">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
-        <img class="small-icons collection-collapsed" :src="getAppIcon('generic')">
+        <img :class="[commonStore.viewMode === 'compact' ? 'large-icons' : 'small-icons', 'collection-collapsed']" :src="getAppIcon('generic')">
       </span>
       <span v-else class="single-action-button single-action-button-disabled">
-        <img class="small-icons collection-collapsed" :src="getAppIcon(asset.asset_type_icon)">
+        <img :class="[commonStore.viewMode === 'compact' ? 'large-icons' : 'small-icons', 'collection-collapsed']" :src="getAppIcon(asset.asset_type_icon)">
       </span>
     </div>
 
@@ -211,7 +208,7 @@
 
         <div class="asset-item-icon-container" @click="console.log(asset)" >
           <img v-if="asset.icon" class="large-icons no-filter" :src="asset.icon">
-          <img v-else-if="isUntracked" class="large-icons " :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
+          <img v-else-if="isUntracked" class="small-icons " :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
           <span v-else class="app-ext">
           </span>
         </div>
@@ -307,11 +304,9 @@
                 v-tooltip="$t('blocks.noChanges')" v-else-if="asset.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
                 v-else-if="asset.file_status == 'outdated'" @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedAssignedOther')"
-                v-else-if="asset.file_status == 'modified' && !canModify" @click="canModifyPopUpModal()" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.modifiedClickCheckpoint')"
-                v-else-if="asset.file_status == 'modified' && canCreateCheckpoint"
-                @click="prepCreateCheckpoint(index, asset, $event)" />
+              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="modifiedAssetTooltip"
+                v-else-if="asset.file_status == 'modified'"
+                @click="handleModifiedAssetCheckpointClick(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.fileMissingClickFetch')"
                 v-else-if="asset.file_status == 'fetchable'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="$t('blocks.assetMissingResync')"
@@ -344,7 +339,7 @@ import { useI18n } from 'vue-i18n';
 import { Browser, Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
-import { canActOnAsset, canCreateAssetHere } from '@/lib/permissions';
+import { canActOnAsset, canCreateCheckpointForItem, isCheckpointBlockedByAssignment } from '@/lib/permissions';
 import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
@@ -431,31 +426,26 @@ const assetTypeName = computed(() => {
   return utils.capitalizeStr(props.asset?.asset_type_name);
 });
 
-// Checks if the user can import into the untracked asset's parent.
-const canImport = computed(() => {
-  let trackedParent = utils.getUntrackedCollectionparent(props.asset);
-  if (props.asset.collection_path === "") {
-    return false;
-  }
-  return trackedParent && trackedParent.can_modify;
-});
-
 // Permission gates that honor recursive collection-collaborator override.
-const canCreateCheckpoint = computed(() => canActOnAsset('create_checkpoint', props.asset));
+const canCreateCheckpoint = computed(() => {
+  // console.log(props.asset)
+  return canCreateCheckpointForItem(props.asset)
+});
 const canUpdateAsset = computed(() => canActOnAsset('update_asset', props.asset));
 const canDeleteAsset = computed(() => canActOnAsset('delete_asset', props.asset));
-const canCreateFromUntracked = computed(() => canCreateAssetHere());
+const canCreateFromUntracked = computed(() => canCreateCheckpoint.value);
 
-// Checks if the current user can modify this asset.
+// Checks if assignment locking allows the current user to checkpoint this asset.
 const canModify = computed(() => {
-  let assigneeId = props.asset.assignee_id;
-  if (assigneeId == "") {
-    return true;
-  } else if (assigneeId == userStore.user.id) {
-    return true;
-  } else {
-    return false;
+  return !isCheckpointBlockedByAssignment(props.asset);
+});
+
+// Returns tooltip text for the modified asset checkpoint action.
+const modifiedAssetTooltip = computed(() => {
+  if (!canModify.value) {
+    return t('blocks.modifiedAssignedOther');
   }
+  return t('blocks.modifiedClickCheckpoint');
 });
 
 // Returns the grid styles for the asset item.
@@ -588,6 +578,30 @@ const canModifyPopUpModal = () => {
   trayStates.popUpModalIcon = 'help';
   trayStates.popUpModalFunction = null;
   modals.setModalVisibility('popUpModal', true);
+};
+
+// Shows a popup modal when user cannot create a checkpoint.
+const cannotCreateCheckpointPopUpModal = () => {
+  trayStates.popUpModalTitle = t('common.warning');
+  trayStates.popUpModalMessage = t('notifications.cannotCreateCheckpoint');
+  trayStates.popUpModalIcon = 'help';
+  trayStates.popUpModalFunction = null;
+  modals.setModalVisibility('popUpModal', true);
+};
+
+// Handles the modified asset checkpoint action.
+const handleModifiedAssetCheckpointClick = (index, asset, event) => {
+  if (!canModify.value) {
+    canModifyPopUpModal();
+    return;
+  }
+
+  if (!canCreateCheckpoint.value) {
+    cannotCreateCheckpointPopUpModal();
+    return;
+  }
+
+  prepCreateCheckpoint(index, asset, event);
 };
 
 // Closes the grid status menu and updates asset status.

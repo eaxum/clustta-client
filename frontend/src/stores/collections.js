@@ -273,8 +273,7 @@ export const useCollectionStore = defineStore("collection", {
      * - Untracked path: Pass targetPath to scan a filesystem location
      * - Root: Pass neither to scan entire project
      * 
-     * Updates assetStore.modifiedAssets with structure:
-     * { modified: [{ asset_id, asset_path, display_path }], untracked: [asset_paths] }
+     * Updates assetStore.modifiedAssets with checkpoint candidates.
      */
     async reloadItemsForCheckpoint(collectionId = null, targetPath = null) {
       const assetStore = useAssetStore();
@@ -293,19 +292,27 @@ export const useCollectionStore = defineStore("collection", {
           project.working_directory,
           project.ignore_list
         );
-
         const modifiedAssets = items.modified_assets.map(asset => ({
           asset_id: asset.id,
+          type: 'asset',
+          name: asset.name,
+          icon: asset.icon,
           asset_path: asset.asset_path,
+          assignee_id: asset.assignee_id,
+          collection_id: asset.collection_id,
+          can_modify: true,
           extension: asset.extension,
           display_path: asset.asset_path + asset.extension
         }));
 
-        const untrackedPaths = items.untracked_files.map(file => file.asset_path);
+        const untrackedItems = items.untracked_files.map(file => ({
+          ...file,
+          display_path: file.asset_path || file.item_path
+        }));
 
         assetStore.modifiedAssets = {
           modified: modifiedAssets,
-          untracked: untrackedPaths
+          untracked: untrackedItems
         };
       } catch (error) {
         console.error('Error loading items for checkpoint:', error);

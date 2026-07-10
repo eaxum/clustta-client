@@ -174,6 +174,7 @@ type UntrackedAsset struct {
 	FilePath       string `db:"file_path" json:"file_path"`
 	ItemPath       string `db:"item_type" json:"item_type"`
 	AssetTypeIcon  string `db:"asset_type_icon" json:"asset_type_icon"`
+	CanModify      bool   `db:"can_modify" json:"can_modify"`
 }
 
 func (ut UntrackedAsset) MarshalJSON() ([]byte, error) {
@@ -194,6 +195,7 @@ type UntrackedCollection struct {
 	ItemPath       string `db:"item_path" json:"item_path"`
 	FilePath       string `db:"file_path" json:"file_path"`
 	ParentId       string `db:"parent_id" json:"parent_id"`
+	CanModify      bool   `db:"can_modify" json:"can_modify"`
 }
 
 func (ue UntrackedCollection) MarshalJSON() ([]byte, error) {

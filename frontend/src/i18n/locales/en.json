@@ -445,6 +445,7 @@
     "downloadFailed": "Download Failed",
     "errorDownloadingCheckpoint": "Error Downloading Checkpoint",
     "cannotModifyAsset": "You cannot modify this asset because it is assigned to another user.",
+    "cannotCreateCheckpoint": "You do not have permission to create checkpoints for this asset.",
     "removedUser": "Removed User",
     "renameFailed": "Rename Failed",
     "failedToRenameCollection": "Failed to rename collection",

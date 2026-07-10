@@ -431,6 +431,7 @@
     "downloadFailed": "下载失败",
     "errorDownloadingCheckpoint": "下载检查点时出错",
     "cannotModifyAsset": "您无法修改此任务，因为它已分配给其他用户。",
+    "cannotCreateCheckpoint": "您没有权限为此资产创建检查点。",
     "removedUser": "已移除用户",
     "renameFailed": "重命名失败",
     "failedToRenameCollection": "重命名集合失败",

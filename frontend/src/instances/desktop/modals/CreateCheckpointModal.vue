@@ -130,6 +130,10 @@ const useImageAsCover = ref(true);
 
 // constants
 const forbiddenComments = ['wip', 'wfa', 'retake', 'retook', 'todo', 'fmf'];
+const fallbackStatus = {
+  color: 'var(--item-border)',
+  short_name: '',
+};
 
 // computed
 // Returns whether the attachment is an image file.
@@ -182,11 +186,11 @@ const statusMenuDisplayed = computed(() => {
 
 // Returns the current asset status.
 const assetStatus = computed(() => {
-  if (!assetStore.selectedAsset) return null;
+  if (!assetStore.selectedAsset) return fallbackStatus;
   if (assetStore.selectedAsset.type === 'untracked_asset') {
-    return statusStore.statuses.find((item) => item.name === 'todo');
+    return statusStore.statuses.find((item) => item.name === 'todo') || fallbackStatus;
   }
-  return assetStore.selectedAsset.status;
+  return assetStore.selectedAsset.status || fallbackStatus;
 });
 
 // Returns the validation message for the comment field.

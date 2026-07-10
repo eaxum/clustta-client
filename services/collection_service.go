@@ -66,8 +66,14 @@ type PurgeRecursiveUntrackedItemsResult struct {
 type CollectionService struct {
 }
 
+type untrackedCanModifyContext struct {
+	allowAll            bool
+	canModifyIds        map[string]struct{}
+	collectionIdsByPath map[string]string
+}
+
 // stampCollectionsCanModify sets CanModify on each collection based on the
-// active user's role (view_asset grants all) or collaborator scope.
+// active user's admin role or collaborator scope.
 func (e *CollectionService) stampCollectionsCanModify(tx *sqlx.Tx, collections []models.Collection) error {
 	if len(collections) == 0 {
 		return nil
@@ -84,7 +90,7 @@ func (e *CollectionService) stampCollectionsCanModify(tx *sqlx.Tx, collections [
 	if err != nil {
 		return err
 	}
-	if role.ViewAsset {
+	if role.Name == "admin" {
 		for i := range collections {
 			collections[i].CanModify = true
 		}
@@ -110,6 +116,98 @@ func (e *CollectionService) stampCollectionCanModify(tx *sqlx.Tx, c *models.Coll
 	}
 	c.CanModify = list[0].CanModify
 	return nil
+}
+
+func (e *CollectionService) buildUntrackedCanModifyContext(tx *sqlx.Tx, includePathResolver bool) (untrackedCanModifyContext, error) {
+	context := untrackedCanModifyContext{
+		canModifyIds: map[string]struct{}{},
+	}
+
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return context, err
+	}
+	userData, err := repository.GetUser(tx, user.Id)
+	if err != nil {
+		return context, err
+	}
+	role, err := repository.GetRole(tx, userData.RoleId)
+	if err != nil {
+		return context, err
+	}
+	context.allowAll = role.Name == "admin"
+
+	if !context.allowAll {
+		context.canModifyIds, err = repository.GetUserCanModifyCollectionIds(tx, user.Id)
+		if err != nil {
+			return context, err
+		}
+	}
+
+	if includePathResolver {
+		context.collectionIdsByPath = map[string]string{}
+		type trackedCollectionPath struct {
+			Id             string `db:"id"`
+			CollectionPath string `db:"collection_path"`
+		}
+		trackedCollections := []trackedCollectionPath{}
+		if err := tx.Select(&trackedCollections, "SELECT id, collection_path FROM full_collection WHERE trashed = 0"); err != nil {
+			return context, err
+		}
+		for _, collection := range trackedCollections {
+			context.collectionIdsByPath[normalizeCollectionLookupPath(collection.CollectionPath)] = collection.Id
+		}
+	}
+
+	return context, nil
+}
+
+func normalizeCollectionLookupPath(path string) string {
+	path = utils.NormalizePath(path)
+	path = strings.Trim(path, "/")
+	if path == "." {
+		return ""
+	}
+	return path
+}
+
+func parentLookupPath(path string) string {
+	path = normalizeCollectionLookupPath(path)
+	if path == "" {
+		return ""
+	}
+	parent := normalizeCollectionLookupPath(filepath.Dir(path))
+	if parent == "." {
+		return ""
+	}
+	return parent
+}
+
+func (context untrackedCanModifyContext) canModifyCollection(collectionId string) bool {
+	if context.allowAll {
+		return true
+	}
+	if collectionId == "" {
+		return false
+	}
+	_, ok := context.canModifyIds[collectionId]
+	return ok
+}
+
+func (context untrackedCanModifyContext) canModifyPath(path string, fallbackCollectionId string) bool {
+	lookupPath := normalizeCollectionLookupPath(path)
+	if context.collectionIdsByPath != nil {
+		for {
+			if collectionId, ok := context.collectionIdsByPath[lookupPath]; ok {
+				return context.canModifyCollection(collectionId)
+			}
+			if lookupPath == "" {
+				break
+			}
+			lookupPath = parentLookupPath(lookupPath)
+		}
+	}
+	return context.canModifyCollection(fallbackCollectionId)
 }
 
 // GetCollectionCount returns the total number of collections in the project.
@@ -313,20 +411,24 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 		collectionId = ""
 	}
 
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return children, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return children, err
+	}
+	defer tx.Rollback()
+	canModifyContext, err := e.buildUntrackedCanModifyContext(tx, isUntracked)
+	if err != nil {
+		return children, err
+	}
+
 	collectionTrackFolders := []string{}
 	collectionTrackFiles := []string{}
 	if !isUntracked {
-		dbConn, err := utils.OpenDb(projectPath)
-		if err != nil {
-			return children, err
-		}
-		defer dbConn.Close()
-		tx, err := dbConn.Beginx()
-		if err != nil {
-			return children, err
-		}
-		defer tx.Rollback()
-
 		if collectionId == "root" {
 			collectionId = ""
 		}
@@ -389,14 +491,16 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 				continue
 			}
 			if !clusttaIgnore.MatchesPath(relativePath) {
-				children.UntrackedFolders = append(children.UntrackedFolders, models.UntrackedCollection{
+				untrackedFolder := models.UntrackedCollection{
 					Id:             utils.GetMD5Hash(entryPath),
 					Name:           entry.Name(),
 					FilePath:       entryPath,
 					CollectionPath: "/" + relativePath + "/",
 					ItemPath:       "/" + relativePath + "/",
 					ParentId:       parentId,
-				})
+				}
+				untrackedFolder.CanModify = canModifyContext.canModifyPath(parentLookupPath(untrackedFolder.ItemPath), untrackedFolder.ParentId)
+				children.UntrackedFolders = append(children.UntrackedFolders, untrackedFolder)
 			}
 		} else {
 			if slices.Contains(collectionTrackFiles, entry.Name()) {
@@ -405,7 +509,7 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 
 			if !clusttaIgnore.MatchesPath(relativePath) {
 				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-				children.UntrackedFiles = append(children.UntrackedFiles, models.UntrackedAsset{
+				untrackedFile := models.UntrackedAsset{
 					Id:             utils.GetMD5Hash(entryPath),
 					Name:           assetName,
 					FilePath:       entryPath,
@@ -415,7 +519,9 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 					Extension:      filepath.Ext(entry.Name()),
 					ItemPath:       "/" + relativePath + "/",
 					AssetTypeIcon:  "generic",
-				})
+				}
+				untrackedFile.CanModify = canModifyContext.canModifyPath(untrackedFile.CollectionPath, untrackedFile.CollectionId)
+				children.UntrackedFiles = append(children.UntrackedFiles, untrackedFile)
 			}
 		}
 	}
@@ -450,6 +556,10 @@ func (e *CollectionService) GetRecursiveUntrackedAssets(projectPath, collectionI
 		return untrackedAssets, err
 	}
 	defer tx.Rollback()
+	canModifyContext, err := e.buildUntrackedCanModifyContext(tx, true)
+	if err != nil {
+		return untrackedAssets, err
+	}
 
 	type trackedAssetFile struct {
 		AssetPath string `db:"asset_path"`
@@ -470,35 +580,16 @@ func (e *CollectionService) GetRecursiveUntrackedAssets(projectPath, collectionI
 		absoluteTrackedFiles[absoluteAssetPath] = true
 	}
 
-	type trackedCollectionPath struct {
-		Id             string `db:"id"`
-		CollectionPath string `db:"collection_path"`
-	}
-	trackedCollections := []trackedCollectionPath{}
-	err = tx.Select(&trackedCollections, "SELECT id, collection_path FROM full_collection WHERE trashed = 0")
-	if err != nil {
-		return untrackedAssets, err
-	}
-
-	collectionIdsByPath := map[string]string{"": ""}
-	for _, collection := range trackedCollections {
-		collectionPath := strings.Trim(utils.NormalizePath(collection.CollectionPath), "/")
-		collectionIdsByPath[collectionPath] = collection.Id
-	}
-
 	collectionIdForPath := func(relativePath string) string {
-		relativePath = strings.Trim(utils.NormalizePath(relativePath), "/")
+		relativePath = normalizeCollectionLookupPath(relativePath)
 		for {
-			if id, ok := collectionIdsByPath[relativePath]; ok {
+			if id, ok := canModifyContext.collectionIdsByPath[relativePath]; ok {
 				return id
 			}
 			if relativePath == "" {
 				break
 			}
-			relativePath = strings.Trim(utils.NormalizePath(filepath.Dir(relativePath)), "/")
-			if relativePath == "." {
-				relativePath = ""
-			}
+			relativePath = parentLookupPath(relativePath)
 		}
 		return collectionId
 	}
@@ -557,7 +648,7 @@ func (e *CollectionService) GetRecursiveUntrackedAssets(projectPath, collectionI
 			parentRelativePath = ""
 		}
 		assetName := strings.TrimSuffix(d.Name(), filepath.Ext(d.Name()))
-		untrackedAssets = append(untrackedAssets, models.UntrackedAsset{
+		untrackedFile := models.UntrackedAsset{
 			Id:             utils.GetMD5Hash(path),
 			Name:           assetName,
 			FilePath:       path,
@@ -567,7 +658,9 @@ func (e *CollectionService) GetRecursiveUntrackedAssets(projectPath, collectionI
 			Extension:      filepath.Ext(d.Name()),
 			ItemPath:       "/" + relativePath + "/",
 			AssetTypeIcon:  "generic",
-		})
+		}
+		untrackedFile.CanModify = canModifyContext.canModifyPath(untrackedFile.CollectionPath, untrackedFile.CollectionId)
+		untrackedAssets = append(untrackedAssets, untrackedFile)
 
 		return nil
 	})
@@ -1170,7 +1263,11 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 	}
 
 	if len(assets) == 0 {
-		return e.detectUntrackedItems(tx, state, collectionId, projectWorkingDir, rootFolder, ignoreList)
+		canModifyContext, err := e.buildUntrackedCanModifyContext(tx, false)
+		if err != nil {
+			return state, err
+		}
+		return e.detectUntrackedItems(tx, state, collectionId, projectWorkingDir, rootFolder, ignoreList, canModifyContext)
 	}
 
 	type fileMetadata struct {
@@ -1332,12 +1429,16 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 		}
 	}
 
-	return e.detectUntrackedItems(tx, state, collectionId, projectWorkingDir, rootFolder, ignoreList)
+	canModifyContext, err := e.buildUntrackedCanModifyContext(tx, false)
+	if err != nil {
+		return state, err
+	}
+	return e.detectUntrackedItems(tx, state, collectionId, projectWorkingDir, rootFolder, ignoreList, canModifyContext)
 }
 
 // detectUntrackedItems scans the filesystem for untracked files and folders.
 // Builds maps of tracked names and compares against filesystem entries.
-func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionChildrenState, collectionId, projectWorkingDir, rootFolder string, ignoreList []string) (CollectionChildrenState, error) {
+func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionChildrenState, collectionId, projectWorkingDir, rootFolder string, ignoreList []string, canModifyContext untrackedCanModifyContext) (CollectionChildrenState, error) {
 	trackedAssetNames := make(map[string]bool)
 	trackedCollectionNames := make(map[string]bool)
 
@@ -1422,14 +1523,16 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 			}
 
 			if !clusttaIgnore.MatchesPath(relativePath) {
-				state.UntrackedFolders = append(state.UntrackedFolders, models.UntrackedCollection{
+				untrackedFolder := models.UntrackedCollection{
 					Id:             utils.GetMD5Hash(entryPath),
 					Name:           entry.Name(),
 					FilePath:       entryPath,
 					CollectionPath: "/" + relativePath + "/",
 					ItemPath:       "/" + relativePath + "/",
 					ParentId:       collectionId,
-				})
+				}
+				untrackedFolder.CanModify = canModifyContext.canModifyPath(parentLookupPath(untrackedFolder.ItemPath), untrackedFolder.ParentId)
+				state.UntrackedFolders = append(state.UntrackedFolders, untrackedFolder)
 			}
 		} else {
 			if trackedAssetNames[entry.Name()] {
@@ -1438,7 +1541,7 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 
 			if !clusttaIgnore.MatchesPath(relativePath) {
 				assetName := strings.TrimSuffix(entry.Name(), filepath.Ext(entry.Name()))
-				state.UntrackedFiles = append(state.UntrackedFiles, models.UntrackedAsset{
+				untrackedFile := models.UntrackedAsset{
 					Id:             utils.GetMD5Hash(entryPath),
 					Name:           assetName,
 					FilePath:       entryPath,
@@ -1448,7 +1551,9 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 					Extension:      filepath.Ext(entry.Name()),
 					ItemPath:       "/" + relativePath + "/",
 					AssetTypeIcon:  "generic",
-				})
+				}
+				untrackedFile.CanModify = canModifyContext.canModifyPath(untrackedFile.CollectionPath, untrackedFile.CollectionId)
+				state.UntrackedFiles = append(state.UntrackedFiles, untrackedFile)
 			}
 		}
 	}
@@ -1485,19 +1590,23 @@ func (e *CollectionService) GetItemsForCheckpoint(projectPath, collectionId, tar
 
 	modifiedAssetsMap := make(map[string]models.Asset)
 	untrackedFilesMap := make(map[string]models.UntrackedAsset)
+	canModifyContext, err := e.buildUntrackedCanModifyContext(tx, true)
+	if err != nil {
+		return result, err
+	}
 
 	if isTrackedCollection {
-		err = e.processTrackedCollection(tx, collectionId, projectPath, projectWorkingDir, ignoreList, modifiedAssetsMap, untrackedFilesMap)
+		err = e.processTrackedCollection(tx, collectionId, projectPath, projectWorkingDir, ignoreList, modifiedAssetsMap, untrackedFilesMap, canModifyContext)
 		if err != nil {
 			return result, err
 		}
 	} else if isUntrackedPath {
-		err = e.processUntrackedPath(targetPath, projectWorkingDir, ignoreList, untrackedFilesMap)
+		err = e.processUntrackedPath(targetPath, projectWorkingDir, ignoreList, untrackedFilesMap, canModifyContext)
 		if err != nil {
 			return result, err
 		}
 	} else {
-		err = e.processTrackedCollection(tx, "", projectPath, projectWorkingDir, ignoreList, modifiedAssetsMap, untrackedFilesMap)
+		err = e.processTrackedCollection(tx, "", projectPath, projectWorkingDir, ignoreList, modifiedAssetsMap, untrackedFilesMap, canModifyContext)
 		if err != nil {
 			return result, err
 		}
@@ -1516,7 +1625,7 @@ func (e *CollectionService) GetItemsForCheckpoint(projectPath, collectionId, tar
 
 // processTrackedCollection recursively scans tracked collections for modified assets and untracked files.
 // Uses flag-based optimization to avoid scanning clean collection branches.
-func (e *CollectionService) processTrackedCollection(tx *sqlx.Tx, collectionId, projectPath, projectWorkingDir string, ignoreList []string, modifiedAssetsMap map[string]models.Asset, untrackedFilesMap map[string]models.UntrackedAsset) error {
+func (e *CollectionService) processTrackedCollection(tx *sqlx.Tx, collectionId, projectPath, projectWorkingDir string, ignoreList []string, modifiedAssetsMap map[string]models.Asset, untrackedFilesMap map[string]models.UntrackedAsset, canModifyContext untrackedCanModifyContext) error {
 	var processCollection func(string) error
 	processCollection = func(currentCollectionId string) error {
 		childrenState, err := e.GetCollectionChildrenState(projectPath, currentCollectionId, projectWorkingDir, ignoreList)
@@ -1559,7 +1668,7 @@ func (e *CollectionService) processTrackedCollection(tx *sqlx.Tx, collectionId, 
 		}
 
 		for _, untrackedFolder := range childrenState.UntrackedFolders {
-			err = e.processUntrackedPath(untrackedFolder.FilePath, projectWorkingDir, ignoreList, untrackedFilesMap)
+			err = e.processUntrackedPath(untrackedFolder.FilePath, projectWorkingDir, ignoreList, untrackedFilesMap, canModifyContext)
 			if err != nil {
 				continue
 			}
@@ -1573,7 +1682,7 @@ func (e *CollectionService) processTrackedCollection(tx *sqlx.Tx, collectionId, 
 
 // processUntrackedPath recursively scans an untracked filesystem location for files.
 // Performs pure filesystem scanning without database queries.
-func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir string, ignoreList []string, untrackedFilesMap map[string]models.UntrackedAsset) error {
+func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir string, ignoreList []string, untrackedFilesMap map[string]models.UntrackedAsset, canModifyContext untrackedCanModifyContext) error {
 	absolutePath, err := filepath.Abs(targetPath)
 	if err != nil {
 		return err
@@ -1632,6 +1741,7 @@ func (e *CollectionService) processUntrackedPath(targetPath, projectWorkingDir s
 					ItemPath:       "/" + relPath,
 					AssetTypeIcon:  "generic",
 				}
+				untrackedFile.CanModify = canModifyContext.canModifyPath(untrackedFile.CollectionPath, untrackedFile.CollectionId)
 				untrackedFilesMap[untrackedFile.Id] = untrackedFile
 			}
 		}

@@ -1,4 +1,5 @@
 import { useCollectionStore } from '@/stores/collections';
+import { useDndStore } from '@/stores/dnd';
 import { useUserStore } from '@/stores/users';
 
 // True when the user can modify the given collection.
@@ -8,31 +9,99 @@ export const canModifyCollection = (collectionId) => {
   const collectionStore = useCollectionStore();
   const navigated = collectionStore.navigatedCollection;
   if (navigated?.id === collectionId) return !!navigated.can_modify;
+  const selected = collectionStore.selectedCollection;
+  if (selected?.id === collectionId) return !!selected.can_modify;
+  const rendered = findRenderedCollection(collectionId);
+  if (rendered?.id === collectionId) return !!rendered.can_modify;
   return false;
 };
 
-// Gate for actions on a tracked asset. Unrestricted users (view_asset role) are
-// bound only by role permissions; scoped users must be in collaborator scope.
+// Finds a currently rendered collection row by id.
+export const findRenderedCollection = (collectionId) => {
+  if (!collectionId) return null;
+  const dndStore = useDndStore();
+  return dndStore.allViewItems?.find((item) => {
+    return item.id === collectionId && (item.type === 'collection' || item.collection_type_id);
+  }) || null;
+};
+
+// Returns whether the current user is a project administrator.
+export const isProjectAdmin = () => {
+  const userStore = useUserStore();
+  return userStore.user?.role?.name === 'admin';
+};
+
+// Returns whether checkpoint creation is blocked by another assignee.
+export const isCheckpointBlockedByAssignment = (item) => {
+  const userStore = useUserStore();
+  return !!item?.assignee_id && item.assignee_id !== userStore.user?.id;
+};
+
+// Returns whether the current navigation context grants checkpoint scope.
+const navigatedCollectionCanModify = () => {
+  return !!useCollectionStore().navigatedCollection?.can_modify;
+};
+
+// Returns whether the item's parent collection grants checkpoint scope.
+const itemParentCanModify = (item) => {
+  return !!item?.can_modify
+    || !!item?.parent?.can_modify
+    || !!item?.collection?.can_modify
+    || !!findRenderedCollection(item?.collection_id)?.can_modify
+    || canModifyCollection(item?.collection_id);
+};
+
+// Gate for creating checkpoints on one item. The create_checkpoint role is
+// required; assignment locks and recursive collection assignment decide scope.
+export const canCreateCheckpointForItem = (item) => {
+  const userStore = useUserStore();
+  if (!userStore.canDo('create_checkpoint')) return false;
+  if (!item) return false;
+  if (isCheckpointBlockedByAssignment(item)) return false;
+  if (isProjectAdmin()) return true;
+
+  if (item.type?.includes('untracked')) {
+    return navigatedCollectionCanModify() || !!item.can_modify;
+  }
+
+  if (item.assignee_id === userStore.user?.id) return true;
+  return itemParentCanModify(item);
+};
+
+// Gate for creating checkpoints from a collection-level action.
+export const canCreateCheckpointInCollection = (collection) => {
+  const userStore = useUserStore();
+  const collectionStore = useCollectionStore();
+  if (!userStore.canDo('create_checkpoint')) return false;
+  if (isProjectAdmin()) return true;
+  if (collection?.type?.includes('untracked')) {
+    return !!collection.can_modify || !!collectionStore.navigatedCollection?.can_modify;
+  }
+  return !!collection?.can_modify;
+};
+
+// Gate for actions on a tracked asset. Role permission grants the action
+// globally; scoped users must be in collaborator scope.
 export const canActOnAsset = (action, asset) => {
   const userStore = useUserStore();
-  if (userStore.canDo('view_asset')) return userStore.canDo(action);
+  if (userStore.canDo(action)) return true;
   return canModifyCollection(asset?.collection_id);
 };
 
 // Gate for bulk/contextual actions in the currently navigated collection.
-// At project root, only unrestricted users with the role permission pass.
+// At project root, only users with the role permission pass.
 export const canActInNavigatedCollection = (action) => {
   const collectionStore = useCollectionStore();
   const userStore = useUserStore();
-  if (userStore.canDo('view_asset')) return userStore.canDo(action);
+  if (userStore.canDo(action)) return true;
   return !!collectionStore.navigatedCollection?.can_modify;
 };
 
 // Gate for actions scoped to a specific collection object.
-// Unrestricted users (view_asset) pass on role; scoped users need can_modify.
+// Role permission grants the action globally; scoped users need can_modify.
 export const canActInCollection = (action, collection) => {
   const userStore = useUserStore();
-  if (userStore.canDo('view_asset')) return userStore.canDo(action);
+  if (userStore.canDo(action)) return true;
   return !!collection?.can_modify;
 };
 

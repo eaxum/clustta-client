@@ -431,6 +431,7 @@
     "downloadFailed": "ダウンロード失敗",
     "errorDownloadingCheckpoint": "チェックポイントのダウンロードエラー",
     "cannotModifyAsset": "このタスクは他のユーザーに割り当てられているため、変更できません。",
+    "cannotCreateCheckpoint": "このアセットのチェックポイントを作成する権限がありません。",
     "removedUser": "削除されたユーザー",
     "renameFailed": "名前変更に失敗",
     "failedToRenameCollection": "コレクションの名前変更に失敗",

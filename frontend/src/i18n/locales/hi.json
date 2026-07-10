@@ -431,6 +431,7 @@
     "downloadFailed": "डाउनलोड विफल",
     "errorDownloadingCheckpoint": "चेकपॉइंट डाउनलोड करने में त्रुटि",
     "cannotModifyAsset": "आप इस टास्क को संशोधित नहीं कर सकते क्योंकि यह किसी अन्य उपयोगकर्ता को असाइन किया गया है।",
+    "cannotCreateCheckpoint": "आपके पास इस एसेट के लिए चेकपॉइंट बनाने की अनुमति नहीं है।",
     "removedUser": "उपयोगकर्ता हटाया गया",
     "renameFailed": "नाम बदलना विफल",
     "failedToRenameCollection": "कलेक्शन का नाम बदलने में विफल",

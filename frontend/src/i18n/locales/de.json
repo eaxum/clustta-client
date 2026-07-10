@@ -431,6 +431,7 @@
     "downloadFailed": "Download fehlgeschlagen",
     "errorDownloadingCheckpoint": "Fehler beim Herunterladen des Checkpoints",
     "cannotModifyAsset": "Sie können diese Aufgabe nicht ändern, da sie einem anderen Benutzer zugewiesen ist.",
+    "cannotCreateCheckpoint": "Sie haben keine Berechtigung, Checkpoints für dieses Asset zu erstellen.",
     "removedUser": "Benutzer entfernt",
     "renameFailed": "Umbenennung fehlgeschlagen",
     "failedToRenameCollection": "Sammlung konnte nicht umbenannt werden",

@@ -49,7 +49,7 @@
             @click="prepMoveToCollection($event)" v-tooltip="$t('components.detailsPane.moveToCollectionTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsCanFetch" :icon="getAppIcon('fetch')" :label="$t('components.detailsPane.fetchAssets')"
             :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.fetchAssetsTooltip')" />
-          <ActionButton v-if="assetsModified" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
+          <ActionButton v-if="selectedItemsCanCreateCheckpoints" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :label="$t('components.detailsPane.createCheckpoints')"
             :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true" :label="$t('components.detailsPane.revertAssets')"
             :buttonFunction="prepResetPopUpModal" v-tooltip="$t('components.detailsPane.revertAssetsTooltip')" />
@@ -94,7 +94,7 @@
 
         
         <div v-else-if="onlyUntrackedAssets || onlyUntrackedCollections" class="action-bar">
-          <ActionButton v-if="canCreateFromUntrackedHere && onlyUntrackedAssets" :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
+          <ActionButton v-if="selectedItemsCanCreateCheckpoints && (onlyUntrackedAssets || onlyUntrackedCollections)" :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" v-tooltip="$t('components.detailsPane.createCheckpointsUntrackedTooltip')" />
           <ActionButton v-if="squashEnabled" :icon="getAppIcon('squash')" :label="$t('components.detailsPane.squashAssets')" :buttonFunction="prepSquashModal" v-tooltip="$t('components.detailsPane.squashAssetsTooltip')" />
           <ActionButton :icon="getAppIcon('file-watch')" :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" v-tooltip="$t('components.detailsPane.ignoreItemsTooltip')" />
           <ActionButton :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedAssets" v-tooltip="$t('components.detailsPane.deleteItemsTooltip')" />
@@ -126,7 +126,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
-import { canCreateAssetHere } from '@/lib/permissions';
+import { canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
 import { canSquash } from '@/utils/squash';
 import utils from "@/services/utils";
 
@@ -377,8 +377,8 @@ const hasUntrackedAssetsSelected = computed(() => stage.selectedItems.some((item
 const selectedItemsCanCreateCheckpoints = computed(() => {
   if (!stage.selectedItems.length) return false;
   return stage.selectedItems.every((item) => {
-    if (item.type === 'asset') return item.file_status === 'modified';
-    if (item.type === 'untracked_asset') return canCreateFromUntrackedHere.value;
+    if (item.type === 'asset') return item.file_status === 'modified' && canCreateCheckpointForItem(item);
+    if (item.type === 'untracked_asset' || item.type === 'untracked_collection') return canCreateCheckpointForItem(item);
     return false;
   });
 });
