@@ -59,8 +59,8 @@ export const useCommonStore = defineStore("common", {
     viewSearchQuery: "",
     workspaceSearchQuery: "",
     fileStates: [
-      { name: "normal", type: "state", icon: "circle-check" },
-      { name: "modified", type: "state", icon: "layers-plus-alert" },
+      { name: "normal", type: "state", icon: "circle-check-go" },
+      { name: "modified", type: "state", icon: "plus-stone" },
       { name: "outdated", type: "state", icon: "circle-check-alert" },
       { name: "fetchable", type: "state", icon: "fetch" },
       { name: "missing", type: "state", icon: "alert" },
