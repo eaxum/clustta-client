@@ -1059,7 +1059,8 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 		Total:   totalItems,
 	})
 
-	assetMap, err := s.createAssetsWithProgress(tx, assets, &syncOptions, app, collectionsToCreate, totalItems, user.Id)
+	inboundStatusMappings := buildInboundStatusMappings(syncOptions.StatusMappings)
+	assetMap, err := s.createAssetsWithProgress(tx, assets, &syncOptions, inboundStatusMappings, app, collectionsToCreate, totalItems, user.Id)
 	if err != nil {
 		return err
 	}
@@ -1436,9 +1437,36 @@ func (s *IntegrationService) createCollectionsWithProgress(tx *sqlx.Tx, collecti
 	return result, nil
 }
 
+// buildInboundStatusMappings reverses the configured outbound status mappings.
+// Ambiguous external statuses are excluded so inbound sync does not pick an
+// arbitrary local status when multiple local statuses map to the same external one.
+func buildInboundStatusMappings(statusMappings map[string]string) map[string]string {
+	inbound := make(map[string]string)
+	ambiguous := make(map[string]bool)
+
+	for localStatusID, externalStatusID := range statusMappings {
+		localStatusID = strings.TrimSpace(localStatusID)
+		externalStatusID = strings.TrimSpace(externalStatusID)
+		if localStatusID == "" || externalStatusID == "" {
+			continue
+		}
+		if existingLocalStatusID, exists := inbound[externalStatusID]; exists && existingLocalStatusID != localStatusID {
+			delete(inbound, externalStatusID)
+			ambiguous[externalStatusID] = true
+			continue
+		}
+		if ambiguous[externalStatusID] {
+			continue
+		}
+		inbound[externalStatusID] = localStatusID
+	}
+
+	return inbound
+}
+
 // createAssetsWithProgress creates assets with templates and emits progress events grouped by type.
 // Returns map of external_id -> created asset_id.
-func (s *IntegrationService) createAssetsWithProgress(tx *sqlx.Tx, assets []integrations.SyncAsset, syncOptions *integrations.SyncOptions, app *application.App, startIndex int, totalItems int, userId string) (map[string]string, error) {
+func (s *IntegrationService) createAssetsWithProgress(tx *sqlx.Tx, assets []integrations.SyncAsset, syncOptions *integrations.SyncOptions, inboundStatusMappings map[string]string, app *application.App, startIndex int, totalItems int, userId string) (map[string]string, error) {
 	// Group assets by type
 	typeGroups := make(map[string][]integrations.SyncAsset)
 	for _, asset := range assets {
@@ -1521,6 +1549,12 @@ func (s *IntegrationService) createAssetsWithProgress(tx *sqlx.Tx, assets []inte
 					}
 				}
 				return nil, err
+			}
+
+			if localStatusID, ok := inboundStatusMappings[strings.TrimSpace(asset.ExternalStatus)]; ok {
+				if err := repository.UpdateStatusOnly(tx, createdAsset.Id, localStatusID); err != nil {
+					return nil, err
+				}
 			}
 
 			result[asset.ExternalID] = createdAsset.Id

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"reflect"
 	"testing"
 
 	"clustta/internal/integrations"
@@ -55,5 +56,37 @@ func TestResolveAssetNameFromTemplateFallsBackWhenNoAssetTemplateMatches(t *test
 
 	if name != "Modeling" {
 		t.Fatalf("expected fallback Modeling, got %q", name)
+	}
+}
+
+func TestBuildInboundStatusMappingsReversesOutboundMappings(t *testing.T) {
+	got := buildInboundStatusMappings(map[string]string{
+		"local-todo": "kitsu-todo",
+		"local-wip":  "kitsu-wip",
+		"":           "ignored-external",
+		"ignored":    "",
+	})
+
+	want := map[string]string{
+		"kitsu-todo": "local-todo",
+		"kitsu-wip":  "local-wip",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("unexpected inbound status mappings: got %#v want %#v", got, want)
+	}
+}
+
+func TestBuildInboundStatusMappingsExcludesAmbiguousExternalStatuses(t *testing.T) {
+	got := buildInboundStatusMappings(map[string]string{
+		"local-wip":    "kitsu-in-progress",
+		"local-review": "kitsu-in-progress",
+		"local-done":   "kitsu-done",
+	})
+
+	want := map[string]string{
+		"kitsu-done": "local-done",
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("unexpected inbound status mappings: got %#v want %#v", got, want)
 	}
 }
