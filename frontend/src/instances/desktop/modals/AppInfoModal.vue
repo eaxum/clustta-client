@@ -126,7 +126,7 @@ onMounted(async () => {
 
 .update-status {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text);
   margin-right: auto;
 }
 </style>
