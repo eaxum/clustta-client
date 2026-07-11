@@ -8,6 +8,72 @@ import { useProjectStore } from "./projects";
 
 import utils from "@/services/utils";
 
+const normalizeSearchValue = (value) => String(value || "").toLowerCase();
+
+const matchesCollectionSearch = (collection, viewSearchQuery, workspaceSearchQuery) => {
+  const name = normalizeSearchValue(collection.name);
+  const collectionPath = normalizeSearchValue(collection.collection_path);
+  const viewSearch = normalizeSearchValue(viewSearchQuery);
+  const workspaceSearch = normalizeSearchValue(workspaceSearchQuery);
+
+  const viewMatch = !viewSearch || name.includes(viewSearch) || collectionPath.includes(viewSearch);
+  const workspaceMatch = !workspaceSearch || name.includes(workspaceSearch) || collectionPath.includes(workspaceSearch);
+
+  return viewMatch && workspaceMatch;
+};
+
+const getCollectionAssigneeIds = (collection) => {
+  return Array.isArray(collection.assignee_ids) ? collection.assignee_ids : [];
+};
+
+const matchesCollectionAssigneeFilters = (collection, commonStore, selectedAssigneeIds) => {
+  const assigneeIds = getCollectionAssigneeIds(collection);
+
+  if (commonStore.hasAssignees) return assigneeIds.length > 0;
+  if (commonStore.noAssignees) return assigneeIds.length === 0;
+  if (!selectedAssigneeIds.size) return true;
+
+  return assigneeIds.some((assigneeId) => selectedAssigneeIds.has(String(assigneeId)));
+};
+
+const matchesCollectionSharedFilters = (collection, selectedSharedValues) => {
+  return !selectedSharedValues.size || selectedSharedValues.has(!!collection.is_shared);
+};
+
+const matchesCollectionTypeFilters = (collection, collectionTypes, selectedTypeIds, selectedTypeNames) => {
+  if (!selectedTypeIds.size && !selectedTypeNames.size) return true;
+
+  if (selectedTypeIds.has(String(collection.collection_type_id))) return true;
+
+  const collectionType = collectionTypes.find((item) => item.id === collection.collection_type_id);
+  const collectionTypeName = normalizeSearchValue(collection.collection_type || collectionType?.name);
+
+  return selectedTypeNames.has(collectionTypeName);
+};
+
+const filterCollectionsByCommonFilters = (collections, commonStore, collectionTypes) => {
+  const selectedTypeFilters = commonStore.collectionFilters.filter((filter) => filter.type === "collection-type");
+  const selectedTypeIds = new Set(selectedTypeFilters.map((filter) => String(filter.id)));
+  const selectedTypeNames = new Set(selectedTypeFilters.map((filter) => normalizeSearchValue(filter.name)));
+  const selectedAssigneeIds = new Set(
+    commonStore.assetFilters
+      .filter((filter) => filter.type === "assignation")
+      .map((filter) => String(filter.id))
+  );
+  const selectedSharedValues = new Set(
+    commonStore.collectionFilters
+      .filter((filter) => filter.type === "shared")
+      .map((filter) => !!filter.value)
+  );
+
+  return (collections || []).filter((collection) => {
+    return matchesCollectionTypeFilters(collection, collectionTypes, selectedTypeIds, selectedTypeNames)
+      && matchesCollectionAssigneeFilters(collection, commonStore, selectedAssigneeIds)
+      && matchesCollectionSharedFilters(collection, selectedSharedValues)
+      && matchesCollectionSearch(collection, commonStore.viewSearchQuery, commonStore.workspaceSearchQuery);
+  });
+};
+
 export const useCollectionStore = defineStore("collection", {
   state: () => ({
     collections: [],
@@ -44,47 +110,9 @@ export const useCollectionStore = defineStore("collection", {
     },
     getFilteredCollections: (state) => {
       const commonStore = useCommonStore();
-      const assetStore = useAssetStore();
 
       const collections = state.collections;
-      const viewSearchQuery = commonStore.viewSearchQuery;
-      const workspaceSearchQuery = commonStore.workspaceSearchQuery;
-
-      let filteredCollections;
-
-      if (commonStore.collectionFilters.length) {
-        const selectedCollectionTypes = commonStore.collectionFilters
-          .filter((filter) => filter.type === "collection-type")
-          .map((filter) => filter.name.toLowerCase());
-
-        filteredCollections = collections
-          .filter((collection) => {
-            const collectionTypeMatch =
-              selectedCollectionTypes.length === 0 ||
-              selectedCollectionTypes.includes(collection.collection_type.toLowerCase());
-
-            return collectionTypeMatch;
-          })
-          .filter(
-            (item) =>
-              item.collection_path
-                .toLowerCase()
-                .includes(viewSearchQuery) &&
-              item.collection_path
-                .toLowerCase()
-                .includes(workspaceSearchQuery)
-          );
-      } else {
-        filteredCollections = collections.filter(
-          (item) =>
-            item.collection_path
-              .toLowerCase()
-              .includes(viewSearchQuery) &&
-            item.collection_path
-              .toLowerCase()
-              .includes(workspaceSearchQuery)
-        );
-      }
+      const filteredCollections = filterCollectionsByCommonFilters(collections, commonStore, state.collectionTypes);
 
       const sortedCollections = utils.sortPathAlphabetically(
         filteredCollections,
@@ -118,54 +146,7 @@ export const useCollectionStore = defineStore("collection", {
   actions: {
     filterCollections(collections){
       const commonStore = useCommonStore();
-      const assetStore = useAssetStore();
-
-      const viewSearchQuery = commonStore.viewSearchQuery;
-      const workspaceSearchQuery = commonStore.workspaceSearchQuery;
-
-      let filteredCollections;
-
-      if (commonStore.collectionFilters.length) {
-        const selectedCollectionTypes = commonStore.collectionFilters
-          .filter((filter) => filter.type === "collection-type")
-          .map((filter) => filter.name.toLowerCase());
-
-        filteredCollections = collections
-          .filter((collection) => {
-
-            // matched asset types
-            const collectionType = this.collectionTypes.find(
-              (item) => item.id === collection.collection_type_id
-            );
-
-            const collectionTypeMatch =
-              selectedCollectionTypes.length === 0 ||
-              selectedCollectionTypes.includes(collectionType.name.toLowerCase());
-
-            return collectionTypeMatch;
-          })
-          .filter(
-            (item) => {
-              const nameMatch = !viewSearchQuery || item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-              const collectionPathMatch = !viewSearchQuery || item.collection_path?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-              const workspaceNameMatch = !workspaceSearchQuery || item.name?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-              const workspaceCollectionPathMatch = !workspaceSearchQuery || item.collection_path?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-              
-              return (nameMatch || collectionPathMatch) && (workspaceNameMatch || workspaceCollectionPathMatch);
-            }
-          );
-      } else {
-        filteredCollections = collections.filter(
-          (item) => {
-            const nameMatch = !viewSearchQuery || item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-            const collectionPathMatch = !viewSearchQuery || item.collection_path?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-            const workspaceNameMatch = !workspaceSearchQuery || item.name?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-            const workspaceCollectionPathMatch = !workspaceSearchQuery || item.collection_path?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-            
-            return (nameMatch || collectionPathMatch) && (workspaceNameMatch || workspaceCollectionPathMatch);
-          }
-        );
-      }
+      const filteredCollections = filterCollectionsByCommonFilters(collections, commonStore, this.collectionTypes);
 
       const sortedCollections = utils.sortPathAlphabetically(
         filteredCollections,

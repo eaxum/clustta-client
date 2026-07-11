@@ -1,7 +1,7 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
-    <span v-if="stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleUseExclusive">
+    <!-- <span v-if="stage.activeStage === 'browser'" class="filter-menu-item" @click="toggleUseExclusive">
       <img class="small-icons" src="/icons/parameters.svg">
       <div class="horizontal-flex">
         <div>{{ $t('menus.useExclusive') }}</div>
@@ -17,7 +17,17 @@
       </div>
     </span>
 
-    <span v-if="stage.activeStage === 'browser'" class="menu-divider"></span>
+    <span v-if="stage.activeStage === 'browser'" class="menu-divider"></span> -->
+
+    <span :class="{ 'disabled' : commonStore.onlyAssets }" class="filter-menu-item" @click="toggleSharedCollections()">
+      <img class="small-icons" :src="getAppIcon('shared')">
+      <div class="horizontal-flex">
+        <div class="menu-item-text">{{ $t('common.shared') }}</div>
+        <ToggleSwitch :switchValueProp="sharedCollectionsFilterActive" />
+      </div>
+    </span>
+
+    <span class="menu-divider"></span>
 
     <span v-for="collectionType in collectionTypes" class="filter-menu-item" @click="toggleFilter(collectionType)">
       <img class="small-icons" :src="getAppIcon(collectionType.icon)">
@@ -34,6 +44,7 @@
 <script setup>
 // imports
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 import { useI18n } from 'vue-i18n';
 
@@ -65,6 +76,10 @@ const collectionTypes = computed(() => {
   return collectionStore.getCollectionTypes;
 });
 
+const sharedCollectionsFilterActive = computed(() => {
+  return commonStore.collectionFilters.some((filter) => filter.type === 'shared' && filter.value === true);
+});
+
 // methods
 // Adds a filter to the collection filters list.
 const addFilter = (filter) => {
@@ -86,9 +101,22 @@ const removeFilter = (filter) => {
   commonStore.collectionFilters = commonStore.collectionFilters.filter((item) => item !== filter);
 };
 
+// Toggles shared collection filtering and refreshes browser.
+const toggleSharedCollections = () => {
+  if (commonStore.onlyAssets) return;
+
+  if (sharedCollectionsFilterActive.value) {
+    commonStore.collectionFilters = commonStore.collectionFilters.filter((filter) => filter.type !== 'shared');
+  } else {
+    commonStore.collectionFilters.push({ name: 'shared', type: 'shared', value: true, icon: 'shared' });
+  }
+
+  emitter.emit('refresh-browser');
+};
+
 // Toggles a filter on or off with exclusive mode support.
 const toggleFilter = (filter) => {
-  const existingFilter = commonStore.collectionFilters.find((item) => item.type = 'collection-type');
+  const existingFilter = commonStore.collectionFilters.find((item) => item.type === 'collection-type');
 
   if (commonStore.collectionFilters.includes(filter)) {
     removeFilter(filter);
@@ -98,6 +126,8 @@ const toggleFilter = (filter) => {
       removeFilter(existingFilter);
     }
   }
+
+  emitter.emit('refresh-browser');
 };
 
 // Toggles deep filtering mode.

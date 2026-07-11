@@ -179,12 +179,14 @@ const isGeneralFilterActive = () => {
 		commonStore.showChildCollections &&
 		commonStore.showChildAssets &&
 		commonStore.showDependencies &&
-		!commonStore.onlyAssets
+		!commonStore.onlyAssets &&
+		!commonStore.onlyCollections
 	);
 };
 
 // Applies tracked task/resource visibility to assets that have already passed metadata filters.
 const applyTrackedAssetVisibility = (assets = []) => {
+	if (commonStore.onlyCollections) return [];
 	if (!commonStore.showAssets) return [];
 	return (assets || []).filter((asset) =>
 		(asset.is_resource && commonStore.showResources) ||
@@ -194,6 +196,7 @@ const applyTrackedAssetVisibility = (assets = []) => {
 
 // Filters untracked assets by the broad asset/untracked toggles plus search and extension filters.
 const filterUntrackedAssets = (assets = []) => {
+	if (commonStore.onlyCollections) return [];
 	if (!commonStore.showAssets || !commonStore.showUntracked) return [];
 	const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
 	const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";
@@ -1019,7 +1022,14 @@ const refresh = async () => {
 	await trayStates.refreshData();
 	let children;
 	let project = projectStore.activeProject;
-	if (!commonStore.navigatorMode) children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+	if (!commonStore.navigatorMode) {
+		children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+		if (commonStore.onlyCollections) {
+			children.collections = await CollectionService.GetCollections(project.uri);
+			children.assets = [];
+			children.untracked_assets = [];
+		}
+	}
 	else {
 		const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 		const collection_file_path = collectionStore.navigatedCollection?.file_path;
@@ -1060,15 +1070,17 @@ const softRefresh = async (options = {}) => {
 		if (!commonStore.navigatorMode) {
 			const rootItems = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 			children.untracked_collections = rootItems.untracked_collections;
-			children.untracked_assets = commonStore.onlyAssets
+			children.untracked_assets = commonStore.onlyCollections
+				? []
+				: commonStore.onlyAssets
 				? await getRecursiveUntrackedAssets("root", project.working_directory)
 				: rootItems.untracked_assets;
 			if (!searching) {
-				collections = rootItems['collections'];
-				assets = commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['assets'];
+				collections = commonStore.onlyCollections ? await CollectionService.GetCollections(project.uri) : rootItems['collections'];
+				assets = commonStore.onlyCollections ? [] : commonStore.onlyAssets ? await AssetService.GetAssets(project.uri) : rootItems['assets'];
 			} else {
 				collections = await CollectionService.GetCollections(project.uri);
-				assets = await AssetService.GetAssets(project.uri);
+				assets = commonStore.onlyCollections ? [] : await AssetService.GetAssets(project.uri);
 			}
 			collections = commonStore.onlyAssets ? [] : collections;
 		} else {
@@ -1086,7 +1098,14 @@ const softRefresh = async (options = {}) => {
 		children['collections'] = await collectionStore.filterCollections(collections);
 		children['assets'] = await assetStore.filterAssets(assets);
 	} else {
-		if (!commonStore.navigatorMode) children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+		if (!commonStore.navigatorMode) {
+			children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
+			if (commonStore.onlyCollections) {
+				children.collections = await CollectionService.GetCollections(project.uri);
+				children.assets = [];
+				children.untracked_assets = [];
+			}
+		}
 		else {
 			const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 			const collection_file_path = collectionStore.navigatedCollection?.file_path;

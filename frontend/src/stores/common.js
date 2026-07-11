@@ -34,6 +34,7 @@ export const useCommonStore = defineStore("common", {
     showCollections: true,
     showAssets: true,
     onlyAssets: false,
+    onlyCollections: false,
     showTasks: true,
     showResources: true,
     showChildCollections: true,
@@ -111,6 +112,7 @@ export const useCommonStore = defineStore("common", {
         state.showCollections !== snap.showCollections ||
         state.showAssets !== snap.showAssets ||
         state.onlyAssets !== snap.onlyAssets ||
+        state.onlyCollections !== snap.onlyCollections ||
         state.showTasks !== snap.showTasks ||
         state.showResources !== snap.showResources ||
         state.showChildCollections !== snap.showChildCollections ||
@@ -136,6 +138,9 @@ export const useCommonStore = defineStore("common", {
       this.showCollections = workspace.filters.showCollections;
       this.showAssets = workspace.filters.showAssets;
       this.onlyAssets = workspace.filters.onlyAssets;
+      this.onlyCollections = workspace.filters.onlyCollections ?? false;
+      if (this.onlyAssets) this.onlyCollections = false;
+      if (this.onlyCollections) this.onlyAssets = false;
       this.showTasks = workspace.filters.showTasks ?? true;
       this.showResources = workspace.filters.showResources;
       this.showChildCollections = workspace.filters.showChildCollections;
@@ -172,6 +177,7 @@ export const useCommonStore = defineStore("common", {
         showCollections: this.showCollections,
         showAssets: this.showAssets,
         onlyAssets: this.onlyAssets,
+        onlyCollections: this.onlyCollections,
         showTasks: this.showTasks,
         showResources: this.showResources,
         showChildCollections: this.showChildCollections,
@@ -196,6 +202,7 @@ export const useCommonStore = defineStore("common", {
         showCollections: this.showCollections,
         showAssets: this.showAssets,
         onlyAssets: this.onlyAssets,
+        onlyCollections: this.onlyCollections,
         showTasks: this.showTasks,
         showResources: this.showResources,
         showChildCollections: this.showChildCollections,
@@ -208,9 +215,10 @@ export const useCommonStore = defineStore("common", {
       };
     },
     resetFilters() {
-      (this.showCollections = true),
+        (this.showCollections = true),
         (this.showAssets = true),
         (this.onlyAssets = false),
+        (this.onlyCollections = false),
         (this.showTasks = true),
         (this.showResources = true),
         (this.showChildCollections = true),

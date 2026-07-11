@@ -117,7 +117,8 @@ const filtersActive = computed(() => {
     commonStore.showChildCollections &&
     commonStore.showChildAssets &&
     commonStore.showDependencies &&
-    !commonStore.onlyAssets
+    !commonStore.onlyAssets &&
+    !commonStore.onlyCollections
   );
   return assigneeFilters || collectionFilters || assetFilters || generalFilter;
 });
@@ -158,6 +159,7 @@ const virtuaIndentHeight = computed(() => {
 // methods
 // Applies tracked task/resource visibility to assets that have already passed metadata filters.
 const applyTrackedAssetVisibility = (assets = []) => {
+  if (commonStore.onlyCollections) return [];
   if (!commonStore.showAssets) return [];
   return (assets || []).filter((asset) =>
     (asset.is_resource && commonStore.showResources) ||
@@ -167,6 +169,7 @@ const applyTrackedAssetVisibility = (assets = []) => {
 
 // Filters untracked assets by broad asset/untracked toggles plus search and extension filters.
 const filterUntrackedAssets = (assets = []) => {
+  if (commonStore.onlyCollections) return [];
   if (!commonStore.showAssets || !commonStore.showUntracked) return [];
   const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
   const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";

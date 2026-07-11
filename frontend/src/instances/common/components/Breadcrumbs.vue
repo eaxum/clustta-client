@@ -153,6 +153,7 @@ const hasActiveFilters = computed(() => {
 		|| !commonStore.showCollections
 		|| !commonStore.showAssets
 		|| commonStore.onlyAssets
+		|| commonStore.onlyCollections
 		|| !commonStore.showTasks
 		|| !commonStore.showResources
 		|| !commonStore.showChildCollections

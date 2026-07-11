@@ -342,6 +342,7 @@ const showAllAssets = () => {
     }
   }
   commonStore.onlyAssets = true;
+  commonStore.onlyCollections = false;
   emitter.emit('refresh-browser');
 };
 

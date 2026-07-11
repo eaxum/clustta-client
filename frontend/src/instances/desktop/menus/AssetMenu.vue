@@ -12,7 +12,7 @@
     <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
       :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
+    <ActionButton v-if="!hideOnFilter && canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
@@ -21,7 +21,7 @@
       :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
-    <ActionButton v-if="!platformStore.isWeb && canUpdateAsset && !isWebLinkAsset"
+    <ActionButton v-if="!hideOnFilter && !platformStore.isWeb && canUpdateAsset && !isWebLinkAsset"
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
@@ -32,7 +32,7 @@
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
-    <ActionButton v-if="commonStore.viewSearchQuery || filtersActive" :icon="getAppIcon('file-search')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="hideOnFilter" :icon="getAppIcon('file-search')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.goToAsset')" :buttonFunction="goToLocation" />
 
     <!-- Reveal in Explorer -->
@@ -168,6 +168,8 @@ const filtersActive = computed(() => {
   const generalFilter = isFilterActive('general');
   return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
+
+const hideOnFilter = computed(() => commonStore.viewSearchQuery || filtersActive.value);
 
 // Checks if there are collections to move to or the asset is in a collection (can move to root).
 const hasCollections = computed(() => {
@@ -444,7 +446,7 @@ const isFilterActive = (filter) => {
     const isActive = commonStore.showCollections && commonStore.showAssets
       && commonStore.showUntracked && commonStore.showTasks
       && commonStore.showResources && commonStore.showChildCollections
-      && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
+      && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets && !commonStore.onlyCollections;
     return !isActive;
   } else if (filter.includes('collection')) {
     return commonStore.collectionFilters.some((item) => item.type === filter);

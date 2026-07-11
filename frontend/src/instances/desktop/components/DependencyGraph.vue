@@ -154,7 +154,7 @@ const updateSearch = (event) => {
 
 const isFilterActive = (filter) => {
   if (filter.includes('general')) {
-    const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showTasks && commonStore.showResources;
+    const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showTasks && commonStore.showResources && !commonStore.onlyAssets && !commonStore.onlyCollections;
     return !isActive;
   } else
     if (filter.includes('collection')) {

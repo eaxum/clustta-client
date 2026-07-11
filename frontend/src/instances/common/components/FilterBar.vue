@@ -1,18 +1,21 @@
 <template>
   <div ref="filterBarRoot" class="filter-bar-root">
   	<div ref="filterOptions" class="filter-options">
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('clock')" v-tooltip="barIsOverflowing ? $t('components.filterBar.status') : ''" :label="$t('components.filterBar.status')"
+			<FilterButton v-if="!kanbanView && showAssetSpecificFilters" :icon="getAppIcon('clock')" v-tooltip="barIsOverflowing ? $t('components.filterBar.status') : ''" :label="$t('components.filterBar.status')"
 				:alert="isFilterActive('status')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'statusFilterMenu')"
 				@click="showFilterMenu($event, 'statusFilterMenu')" />
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('circle-check')" v-tooltip="barIsOverflowing ? $t('components.filterBar.state') : ''" :alert="isFilterActive('state')"
+			<FilterButton v-if="!kanbanView && showAssetSpecificFilters" :icon="getAppIcon('circle-check')" v-tooltip="barIsOverflowing ? $t('components.filterBar.state') : ''" :alert="isFilterActive('state')"
 				:label="$t('components.filterBar.state')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'stateFilterMenu')"
 				@click="showFilterMenu($event, 'stateFilterMenu')" />
-			<FilterButton :icon="getAppIcon('extension')" v-tooltip="barIsOverflowing ? $t('components.filterBar.extension') : ''" :alert="isFilterActive('extension')"
+			<FilterButton v-if="showAssetSpecificFilters" :icon="getAppIcon('extension')" v-tooltip="barIsOverflowing ? $t('components.filterBar.extension') : ''" :alert="isFilterActive('extension')"
 				:label="$t('components.filterBar.extension')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'extensionFilterMenu')"
 				@click="showFilterMenu($event, 'extensionFilterMenu')" />
-			<FilterButton :icon="getAppIcon('man-running')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assetType') : ''" :alert="isFilterActive('asset-type')"
+			<FilterButton v-if="showAssetSpecificFilters" :icon="getAppIcon('file')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assetType') : ''" :alert="isFilterActive('asset-type')"
 				:label="$t('components.filterBar.assetType')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assetTypeFilterMenu')"
 				@click="showFilterMenu($event, 'assetTypeFilterMenu')" />
+			<FilterButton v-if="showCollectionSpecificFilters" :icon="getAppIcon('folder')" v-tooltip="barIsOverflowing ? $t('components.filterBar.collectionType') : ''" :alert="isFilterActive('collection-type')"
+				:label="$t('components.filterBar.collectionType')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'collectionTypeFilterMenu')"
+				@click="showFilterMenu($event, 'collectionTypeFilterMenu')" />
 			<FilterButton v-if="showTagsFilter" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
 				:label="$t('components.filterBar.tags')" :alert="isFilterActive('tags')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')"
 				@click="showFilterMenu($event, 'tagsFilterMenu')" />
@@ -70,7 +73,11 @@ const filtersActive = computed(() => {
 	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
 
-const showTagsFilter = computed(() => !!tagStore.tags.length && (commonStore.showAssets || commonStore.showResources));
+const showTagsFilter = computed(() => showAssetSpecificFilters.value && !!tagStore.tags.length && (commonStore.showAssets || commonStore.showResources));
+
+const showAssetSpecificFilters = computed(() => !commonStore.onlyCollections);
+
+const showCollectionSpecificFilters = computed(() => !props.kanbanView && !commonStore.onlyAssets);
 
 const emit = defineEmits(['selectCrumb']);
 
@@ -82,8 +89,9 @@ const clearFilters = () => { commonStore.resetFilters(); emitter.emit('refresh-b
 // Checks if a specific filter type is currently active.
 const isFilterActive = (filter) => {
 	if (filter.includes('general')) {
-		const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showTasks && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets;
-		return !isActive;
+		const isActive = commonStore.showCollections && commonStore.showAssets && commonStore.showTasks && commonStore.showResources && commonStore.showChildCollections && commonStore.showChildAssets && commonStore.showDependencies && !commonStore.onlyAssets && !commonStore.onlyCollections;
+		const sharedCollectionFilterActive = commonStore.collectionFilters.some((item) => item.type === 'shared');
+		return !isActive || sharedCollectionFilterActive;
 	} else if (filter.includes('collection')) return commonStore.collectionFilters.some((item) => item.type === filter);
 	else if (filter.includes('assignation')) {
 		const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;

@@ -748,6 +748,9 @@ const onAgentApplyFilter = async (event) => {
   if (typeof payload.show_tasks === 'boolean') commonStore.showTasks = payload.show_tasks;
   if (typeof payload.show_resources === 'boolean') commonStore.showResources = payload.show_resources;
   if (typeof payload.only_assets === 'boolean') commonStore.onlyAssets = payload.only_assets;
+  if (typeof payload.only_collections === 'boolean') commonStore.onlyCollections = payload.only_collections;
+  if (commonStore.onlyAssets) commonStore.onlyCollections = false;
+  if (commonStore.onlyCollections) commonStore.onlyAssets = false;
   emitter.emit('refresh-browser');
 };
 

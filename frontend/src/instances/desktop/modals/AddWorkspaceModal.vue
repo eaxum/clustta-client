@@ -88,6 +88,7 @@ const saveWorkspace = async () => {
       showCollections: commonStore.showCollections,
       showAssets: commonStore.showAssets,
       onlyAssets: commonStore.onlyAssets,
+      onlyCollections: commonStore.onlyCollections,
       showTasks: commonStore.showTasks,
       showResources: commonStore.showResources,
       showChildCollections: commonStore.showChildCollections,

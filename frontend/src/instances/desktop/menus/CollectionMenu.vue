@@ -14,24 +14,24 @@
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
-      v-if="templateStore.getTemplates.length && (userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createAsset" />
+      v-if="!hideOnFilter && templateStore.getTemplates.length && (userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createAsset" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
-      v-if="userStore.canDo('create_collection') || collectionStore.selectedCollection.can_modify" :buttonFunction="createCollection" />
+      v-if="!hideOnFilter && (userStore.canDo('create_collection') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createCollection" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
-      v-if="workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
+      v-if="!hideOnFilter && workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
 
     
 
     <ActionButton :icon="getAppIcon('web-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.newLink')"
-      v-if="userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify" :buttonFunction="createLink" />
+      v-if="!hideOnFilter && (userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createLink" />
 
     <ActionButton :icon="getAppIcon('data-download')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
-      v-if="!platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="importItems" />
+      v-if="!hideOnFilter && !platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="importItems" />
 
     <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
-      v-if="platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="uploadItems" />
+      v-if="!hideOnFilter && platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="uploadItems" />
 
     <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
       v-if="hasClipboardItems && userStore.canDo('update_collection')" :buttonFunction="pasteItems" />
@@ -56,6 +56,10 @@
 
 
     <span v-if="userStore.canDo('update_collection') || collectionStore.selectedCollection.can_modify" class="menu-divider"></span>
+
+    <!-- Go to Collection -->
+    <ActionButton v-if="commonStore.viewSearchQuery || filtersActive" :icon="getAppIcon('file-search')" :showLabel="true" :fullWidth="true"
+      :label="$t('menus.goToCollection')" :buttonFunction="goToCollection" />
 
     <!-- Reveal in Explorer -->
     <span v-if="!platformStore.isWeb" class="horizontal-flex">
@@ -105,6 +109,7 @@ import { CheckpointService, CollectionService, DialogService, FSService, SyncSer
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
@@ -120,6 +125,7 @@ import { useWorkflowStore } from '@/stores/workflow';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -176,6 +182,28 @@ const hasClipboardItems = computed(() => {
 const canPurgeUntracked = computed(() => {
   return !platformStore.isWeb && !!collectionStore.selectedCollection?.file_path;
 });
+
+// Checks if any browser filters are currently active.
+const filtersActive = computed(() => {
+  const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
+  const collectionFilters = commonStore.collectionFilters.length > 0;
+  const assetFilters = commonStore.assetFilters.length > 0;
+  const resourceFilters = commonStore.resourceFilters.length > 0;
+  const generalFilter = !(
+    commonStore.showCollections &&
+    commonStore.showAssets &&
+    commonStore.showTasks &&
+    commonStore.showResources &&
+    commonStore.showChildCollections &&
+    commonStore.showChildAssets &&
+    commonStore.showDependencies &&
+    !commonStore.onlyAssets &&
+    !commonStore.onlyCollections
+  );
+  return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
+});
+
+const hideOnFilter = computed(() => commonStore.viewSearchQuery || filtersActive.value);
 
 // methods
 // Opens the workflow selection modal.
@@ -351,6 +379,21 @@ const getAppIcon = (iconName) => {
 // Returns the current directory path.
 const getCurrentDirectory = () => {
   return collectionStore.selectedCollection?.file_path;
+};
+
+// Navigates directly to the selected collection after clearing search and filters.
+const goToCollection = () => {
+  const selectedCollection = collectionStore.selectedCollection;
+  commonStore.activeWorkspace = 'Default';
+  menu.hideContextMenu();
+  commonStore.viewSearchQuery = '';
+  commonStore.resetFilters();
+
+  if (selectedCollection) {
+    commonStore.navigatorMode = true;
+    collectionStore.navigatedCollection = selectedCollection;
+    collectionStore.selectedCollection = selectedCollection;
+  }
 };
 
 // Imports files and folders from the file system.
