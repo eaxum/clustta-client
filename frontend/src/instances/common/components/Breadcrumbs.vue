@@ -25,7 +25,7 @@
 		<div ref="breadcrumbWrapper" class="breadcrumb-wrapper">
 			<div ref="breadcrumbContainer" class="breadcrumb-container">
 				<span v-if="showFilteredLabel" class="kanban-filter-text">
-					{{ $t('components.breadcrumbs.filterResults') }}
+					{{ filteredResultsLabel }}
 				</span>
 				<nav v-else-if="path" ref="breadcrumbContent" class="nav">
 					<ActionButton v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="true" @click="toggleOverflowList" />
@@ -95,6 +95,13 @@ const stage = useStageStore();
 const { t } = useI18n();
 const { showLabel } = useRevealLabel();
 
+const props = defineProps({
+	filteredResultCounts: {
+		type: Object,
+		default: null
+	}
+});
+
 // refs
 const breadcrumbContainer = ref(null);
 const breadcrumbContent = ref(null);
@@ -117,6 +124,22 @@ const listItemsLeft = computed(() => breadcrumbContent.value?.getBoundingClientR
 const navigatedCollection = computed(() => collectionStore.navigatedCollection);
 
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+
+const filteredResultsLabel = computed(() => {
+	const label = t('components.breadcrumbs.filterResults');
+	if (!props.filteredResultCounts) return label;
+
+	const assets = props.filteredResultCounts.assets ?? 0;
+	const collections = props.filteredResultCounts.collections ?? 0;
+	const resultParts = [];
+	const assetLabel = t(assets === 1 ? 'components.importPreview.asset' : 'components.importPreview.assets');
+	const collectionLabel = t(collections === 1 ? 'components.importPreview.collection' : 'components.importPreview.collections');
+
+	if (assets > 0) resultParts.push(`${assets} ${assetLabel}`);
+	if (collections > 0) resultParts.push(`${collections} ${collectionLabel}`);
+
+	return resultParts.length ? `${label} - ${resultParts.join(', ')}` : label;
+});
 
 // True when any filter, search or visibility toggle is active (ignores view-mode changes).
 const hasActiveFilters = computed(() => {

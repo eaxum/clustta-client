@@ -1,7 +1,7 @@
 <template>
 	<div ref="browserRoot" v-esc="cancelOps" v-right-click="openMenu" class="dash-board-root absolute-pane">
 		<div ref="browserFilters" class="dash-board-filter">
-			<Breadcrumbs />
+			<Breadcrumbs :filteredResultCounts="filteredResultCounts" />
 			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search')" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
 			<ActionButton v-if="!kanbanView" :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
@@ -127,6 +127,14 @@ const scrollTop = ref(0);
 const draggedCard = computed(() => dndStore.allViewItems?.find(card => card.id === dndStore.draggedItemId));
 
 const collectionExpanded = computed(() => Object.keys(stage.expandedCollections).length);
+
+const filteredResultCounts = computed(() => {
+	return rootData.value.reduce((counts, item) => {
+		if (item.type === 'asset' || item.type === 'untracked_asset') counts.assets += 1;
+		else if (item.type === 'collection' || item.type === 'untracked_collection') counts.collections += 1;
+		return counts;
+	}, { assets: 0, collections: 0 });
+});
 
 const filtersActive = computed(() => {
 	const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
