@@ -1749,7 +1749,10 @@
       "navigationFailed": "ナビゲーション失敗",
       "couldNotFindSelectedPath": "選択されたパスが見つかりませんでした",
       "exitKanban": "カンバンビューを終了",
-      "filterResults": "フィルター結果"
+      "filterResults": "フィルター結果",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "ログアウト",

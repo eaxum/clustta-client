@@ -1748,7 +1748,10 @@
       "navigationFailed": "Ошибка навигации",
       "couldNotFindSelectedPath": "Не удалось найти выбранный путь",
       "exitKanban": "Выйти из вида Канбан",
-      "filterResults": "Результаты фильтра"
+      "filterResults": "Результаты фильтра",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "Выйти",

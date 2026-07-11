@@ -1748,7 +1748,10 @@
       "navigationFailed": "नेविगेशन विफल",
       "couldNotFindSelectedPath": "चयनित पथ नहीं मिला",
       "exitKanban": "कानबन दृश्य से बाहर निकलें",
-      "filterResults": "फ़िल्टर परिणाम"
+      "filterResults": "फ़िल्टर परिणाम",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "लॉगआउट",

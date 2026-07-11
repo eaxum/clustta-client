@@ -1748,7 +1748,10 @@
       "navigationFailed": "Falha na navegação",
       "couldNotFindSelectedPath": "Não foi possível encontrar o caminho selecionado",
       "exitKanban": "Sair da visualização Kanban",
-      "filterResults": "Resultados do filtro"
+      "filterResults": "Resultados do filtro",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "Sair",

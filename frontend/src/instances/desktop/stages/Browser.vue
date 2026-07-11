@@ -1,7 +1,7 @@
 <template>
 	<div ref="browserRoot" v-esc="cancelOps" v-right-click="openMenu" class="dash-board-root absolute-pane">
 		<div ref="browserFilters" class="dash-board-filter">
-			<Breadcrumbs :filteredResultCounts="filteredResultCounts" />
+			<Breadcrumbs :filteredResultCounts="breadcrumbResultCounts" />
 			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search')" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
 			<ActionButton v-if="!kanbanView" :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
@@ -33,7 +33,7 @@
 			</div>
 		</div>
 		<div v-else ref="assetListContainer" class="browser-root-container kanban-container">
-			<Kanban :filtersActive="filtersActive" :assets="rootData" />
+			<Kanban :filtersActive="filtersActive" :assets="rootData" @filtered-count-change="updateKanbanTaskCount" />
 		</div>
 	</div>
 </template>
@@ -122,6 +122,7 @@ const screenWidth = ref(window.innerWidth);
 const searchBar = ref(null);
 const showFilters = ref(false);
 const scrollTop = ref(0);
+const kanbanTaskCount = ref(0);
 
 // computed properties
 const draggedCard = computed(() => dndStore.allViewItems?.find(card => card.id === dndStore.draggedItemId));
@@ -134,6 +135,11 @@ const filteredResultCounts = computed(() => {
 		else if (item.type === 'collection' || item.type === 'untracked_collection') counts.collections += 1;
 		return counts;
 	}, { assets: 0, collections: 0 });
+});
+
+const breadcrumbResultCounts = computed(() => {
+	if (kanbanView.value) return { assets: kanbanTaskCount.value, collections: 0 };
+	return filteredResultCounts.value;
 });
 
 const filtersActive = computed(() => {
@@ -1148,6 +1154,11 @@ const toggleDetailsPane = () => { panes.showDetailsPane = !panes.showDetailsPane
 
 // Toggles between showing file name or full path.
 const toggleShowFilters = () => { showFilters.value = !showFilters.value; };
+
+// Keeps breadcrumb text in sync with Kanban's internally filtered cards.
+const updateKanbanTaskCount = (count) => {
+	kanbanTaskCount.value = count || 0;
+};
 
 // Callback for ResizeObserver to track container width changes.
 const trackWidthChange = (entries) => { /* Reserved for future responsive layout calculations */ };

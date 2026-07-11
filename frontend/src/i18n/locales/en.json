@@ -1793,7 +1793,10 @@
       "navigationFailed": "Navigation failed",
       "couldNotFindSelectedPath": "Could not find the selected path",
       "exitKanban": "Exit Kanban view",
-      "filterResults": "Filter results"
+      "filterResults": "Filter results",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "Logout",

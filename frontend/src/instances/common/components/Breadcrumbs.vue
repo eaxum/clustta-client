@@ -1,9 +1,8 @@
 <template>
 	<div ref="breadcrumbRoot" class="breadcrumb-root">
-		<template v-if="commonStore.viewMode === 'kanban'">
+		<template v-if="isKanbanView">
 			<div class="kanban-indicator">
-				<ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('arrow-left')" v-tooltip="$t('components.breadcrumbs.exitKanban')" :buttonFunction="exitKanbanView" />
-				<ActionButton v-else :icon="getAppIcon('kanban')" :allowDeactivate="true" />
+				<ActionButton  :icon="getAppIcon('arrow-left')" v-tooltip="$t('components.breadcrumbs.exitKanban')" :buttonFunction="exitKanbanView" />
 				<span class="kanban-indicator-label">{{ $t('settings.kanban') }}</span>
 			</div>
 			<div class="kanban-path-separator"></div>
@@ -27,7 +26,7 @@
 				<span v-if="showFilteredLabel" class="kanban-filter-text">
 					{{ filteredResultsLabel }}
 				</span>
-				<nav v-else-if="path" ref="breadcrumbContent" class="nav">
+				<nav v-else-if="!isKanbanView && path" ref="breadcrumbContent" class="nav">
 					<ActionButton v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="true" @click="toggleOverflowList" />
 					<div v-for="(segment, index) in visibleSegments" :key="`${segment}-${index}`" class="breadcrumb-segment">
 						<ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="true"
@@ -125,9 +124,21 @@ const navigatedCollection = computed(() => collectionStore.navigatedCollection);
 
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
 
+const isKanbanView = computed(() => commonStore.viewMode === 'kanban');
+
+const taskCountLabel = computed(() => {
+	const count = props.filteredResultCounts?.assets ?? 0;
+	const label = t(count === 1 ? 'components.breadcrumbs.task' : 'components.breadcrumbs.tasks');
+	return `${count} ${label}`;
+});
+
 const filteredResultsLabel = computed(() => {
 	const label = t('components.breadcrumbs.filterResults');
-	if (!props.filteredResultCounts) return label;
+	if (commonStore.activeWorkspace === 'My Assets') {
+		return `${taskCountLabel.value} ${t('components.breadcrumbs.assignedToYou')}`;
+	}
+	if (isKanbanView.value) return taskCountLabel.value;
+	if (!props.filteredResultCounts || !isDefaultWorkspace.value) return label;
 
 	const assets = props.filteredResultCounts.assets ?? 0;
 	const collections = props.filteredResultCounts.collections ?? 0;
@@ -173,8 +184,8 @@ const showProjectChip = computed(() => {
 });
 
 const showFilteredLabel = computed(() => {
+	if (isKanbanView.value) return true;
 	if (commonStore.navigatorMode) return false;
-	if (commonStore.viewMode === 'kanban') return true;
 	return !showProjectChip.value;
 });
 

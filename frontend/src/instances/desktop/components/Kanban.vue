@@ -114,6 +114,8 @@ const props = defineProps({
   }
 });
 
+const emit = defineEmits(['filtered-count-change']);
+
 // refs
 const targetRefs = ref({});
 const draggedItemRefs = ref({});
@@ -559,6 +561,10 @@ onMounted(async () => {
 watch(() => cards.value, async () => {
   await updateFilteredCards();
 }, { deep: true });
+
+watch(filteredCards, (nextCards) => {
+  emit('filtered-count-change', nextCards?.length || 0);
+}, { immediate: true });
 
 watch(() => commonStore.assetFilters, async () => {
   await updateFilteredCards();

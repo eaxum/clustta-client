@@ -1749,7 +1749,10 @@
       "navigationFailed": "Navigation fehlgeschlagen",
       "couldNotFindSelectedPath": "Ausgewählter Pfad konnte nicht gefunden werden",
       "exitKanban": "Kanban-Ansicht verlassen",
-      "filterResults": "Filterergebnisse"
+      "filterResults": "Filterergebnisse",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "Abmelden",

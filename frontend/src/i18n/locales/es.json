@@ -1749,7 +1749,10 @@
       "navigationFailed": "Navegación fallida",
       "couldNotFindSelectedPath": "No se pudo encontrar la ruta seleccionada",
       "exitKanban": "Salir de la vista Kanban",
-      "filterResults": "Resultados del filtro"
+      "filterResults": "Resultados del filtro",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "Cerrar sesión",

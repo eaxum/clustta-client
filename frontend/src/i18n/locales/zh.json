@@ -1748,7 +1748,10 @@
       "navigationFailed": "导航失败",
       "couldNotFindSelectedPath": "未找到选中的路径",
       "exitKanban": "退出看板视图",
-      "filterResults": "筛选结果"
+      "filterResults": "筛选结果",
+      "task": "Task",
+      "tasks": "Tasks",
+      "assignedToYou": "assigned to you"
     },
     "footerArea": {
       "logout": "退出登录",
