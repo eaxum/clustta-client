@@ -26,7 +26,8 @@
 			<div class="browser-root-content">
 				<div class="left-column" :class="{ 'file-drop-target-active': isHovered }" data-file-drop-target>
 					<VirtuaScroll v-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
-					<GridView v-else-if="!assetStore.assetsLoaded || rootData.length" :rootItems="rootData" />
+					<GridView v-else-if="!assetStore.assetsLoaded || rootData.length" :rootItems="rootData"
+						:isFilteredView="isFilteredView" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
 				</div>
 				<DetailsPane v-if="projectStore.getProjects.length && isWideScreen" :isVisible="panes.showDetailsPane" />
@@ -150,6 +151,9 @@ const filtersActive = computed(() => {
 	const generalFilterActive = isGeneralFilterActive();
 	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilterActive;
 });
+
+// Search and filters show flat results whose per-item filesystem state is intentionally deferred.
+const isFilteredView = computed(() => !!commonStore.viewSearchQuery || filtersActive.value);
 
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
 

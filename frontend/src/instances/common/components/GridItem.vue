@@ -55,7 +55,8 @@ import Collection from '@/instances/desktop/blocks/Collection.vue'
 const props = defineProps({
   index: { type: Number, required: true },
   isGhost: { type: Boolean, default: false },
-  child: { type: Object, default: null }
+  child: { type: Object, default: null },
+  isFilteredView: { type: Boolean, default: false }
 });
 
 // menu methods
@@ -147,11 +148,22 @@ const toggleEditMode = (value) => {
   isEditing.value = value;
 };
 
+const emptyCollectionStateFlags = () => ({
+  has_untracked: false,
+  has_modified: false,
+  has_outdated: false,
+  has_fetchable: false
+});
+
 // Loads the file status state for an asset.
 const loadAssetState = async () => {
   const asset = props.child;
   
   if (asset.type !== 'asset' || asset.is_link) return;
+  if (props.isFilteredView) {
+    loadingAssetState.value = false;
+    return;
+  }
 
   const loadingTimer = setTimeout(() => {
     loadingAssetState.value = true;
@@ -163,8 +175,10 @@ const loadAssetState = async () => {
       asset.id
     );
 
+    if (props.isFilteredView) return;
     props.child.file_status = fileStatus;
   } catch (error) {
+    if (props.isFilteredView) return;
     console.error(`Error loading asset state for ${asset.id}:`, error);
     asset.file_status = 'fetchable';
   } finally {
@@ -178,6 +192,11 @@ const loadCollectionState = async () => {
   const collection = props.child;
   
   if (collection.type !== 'collection') return;
+  if (props.isFilteredView) {
+    loadingCollectionState.value = false;
+    props.child.collectionStateFlags = emptyCollectionStateFlags();
+    return;
+  }
 
   const loadingTimer = setTimeout(() => {
     loadingCollectionState.value = true;
@@ -191,20 +210,35 @@ const loadCollectionState = async () => {
       projectStore.activeProject.ignore_list
     );
 
+    if (props.isFilteredView) {
+      props.child.collectionStateFlags = emptyCollectionStateFlags();
+      return;
+    }
     props.child.collectionStateFlags = flags;
   } catch (error) {
+    if (props.isFilteredView) return;
     console.error(`Error loading collection state for ${collection.id}:`, error);
-    props.child.collectionStateFlags = {
-      has_untracked: false,
-      has_modified: false,
-      has_outdated: false,
-      has_fetchable: false
-    };
+    props.child.collectionStateFlags = emptyCollectionStateFlags();
   } finally {
     clearTimeout(loadingTimer);
     loadingCollectionState.value = false;
   }
 };
+
+watch(() => props.isFilteredView, async (filtered) => {
+  loadingAssetState.value = false;
+  loadingCollectionState.value = false;
+
+  if (filtered) {
+    if (props.child.type === 'collection') {
+      props.child.collectionStateFlags = emptyCollectionStateFlags();
+    }
+    return;
+  }
+
+  if (props.child.type === 'asset') await loadAssetState();
+  if (props.child.type === 'collection') await loadCollectionState();
+});
 
 const isItemInFocus = computed(() => {
   return stage.markedItems.length === 1 && stage.firstSelectedItemId === props.child.id && !dndStore.draggedItem

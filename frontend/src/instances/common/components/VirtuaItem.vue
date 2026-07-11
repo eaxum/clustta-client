@@ -109,6 +109,7 @@ const filtersActive = computed(() => {
   const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
   const collectionFilters = commonStore.collectionFilters.length > 0;
   const assetFilters = commonStore.assetFilters.length > 0;
+  const resourceFilters = commonStore.resourceFilters.length > 0;
   const generalFilter = !(
     commonStore.showCollections &&
     commonStore.showAssets &&
@@ -120,8 +121,13 @@ const filtersActive = computed(() => {
     !commonStore.onlyAssets &&
     !commonStore.onlyCollections
   );
-  return assigneeFilters || collectionFilters || assetFilters || generalFilter;
+  return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
+
+// Search and filters present collections as flat results, so nested expansion is disabled.
+const isFilteredView = computed(() => !!commonStore.viewSearchQuery || filtersActive.value);
+
+const shouldLoadAssetState = computed(() => !isFilteredView.value);
 
 // Calculates the indent guide height for nested items.
 const indentHeight = computed(() => {
@@ -358,11 +364,36 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
   collectionStore.loadCollectionStateFlags();
 };
 
+// Clears nested collection state when search/filter results are being shown.
+const clearCollectionChildren = () => {
+  clearTimeout(loadingChildrenTimer);
+  collectionChildren.value = [];
+  hasChildren.value = false;
+  loadingChildren.value = false;
+  loadingChildrenSkeleton.value = false;
+
+  if (isExpanded.value) {
+    const isUntracked = props.child.type === 'untracked_collection';
+    stage.expandCollection(props.child, isUntracked);
+  }
+};
+
+const emptyCollectionStateFlags = () => ({
+  has_untracked: false,
+  has_modified: false,
+  has_outdated: false,
+  has_fetchable: false
+});
+
 // Loads the file status state for an asset.
 const loadAssetState = async () => {
   const asset = props.child;
   
   if (asset.type !== 'asset' || asset.is_link) return;
+  if (!shouldLoadAssetState.value) {
+    loadingAssetState.value = false;
+    return;
+  }
 
   const loadingTimer = setTimeout(() => {
     loadingAssetState.value = true;
@@ -373,6 +404,8 @@ const loadAssetState = async () => {
       projectStore.activeProject.uri,
       asset.id
     );
+
+    if (!shouldLoadAssetState.value) return;
 
     props.child.file_status = fileStatus;
   } catch (error) {
@@ -390,6 +423,12 @@ const loadCollectionState = async () => {
   
   if (collection.type !== 'collection') return;
 
+  if (isFilteredView.value) {
+    loadingCollectionState.value = false;
+    props.child.collectionStateFlags = emptyCollectionStateFlags();
+    return;
+  }
+
   const loadingTimer = setTimeout(() => {
     loadingCollectionState.value = true;
   }, loadingDelay);
@@ -402,15 +441,15 @@ const loadCollectionState = async () => {
       projectStore.activeProject.ignore_list
     );
 
+    if (isFilteredView.value) {
+      props.child.collectionStateFlags = emptyCollectionStateFlags();
+      return;
+    }
+
     props.child.collectionStateFlags = flags;
   } catch (error) {
     console.error(`Error loading collection state for ${collection.id}:`, error);
-    props.child.collectionStateFlags = {
-      has_untracked: false,
-      has_modified: false,
-      has_outdated: false,
-      has_fetchable: false
-    };
+    props.child.collectionStateFlags = emptyCollectionStateFlags();
   } finally {
     clearTimeout(loadingTimer);
     loadingCollectionState.value = false;
@@ -419,6 +458,11 @@ const loadCollectionState = async () => {
 
 // Loads children for an collection or untracked collection.
 const loadCollectionChildren = async () => {
+  if (isFilteredView.value) {
+    clearCollectionChildren();
+    return;
+  }
+
   if (stage.operationActive) {
     loadingChildrenSkeleton.value = true;
     return;
@@ -434,11 +478,24 @@ const loadCollectionChildren = async () => {
     let isUntracked = props.child.type == 'untracked_collection';
     let project = projectStore.activeProject;
     let children = await CollectionService.GetCollectionChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked);
+    if (isFilteredView.value) {
+      clearCollectionChildren();
+      return;
+    }
+
     await assetStore.processAssetsIconsAndPreviews(children.assets);
     await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
+    if (isFilteredView.value) {
+      clearCollectionChildren();
+      return;
+    }
 
     let childrenCollections = filtersActive.value ? await collectionStore.filterCollections(children.collections) : children.collections;
     let childrenAssets = filtersActive.value ? await assetStore.filterAssets(children.assets) : children.assets;
+    if (isFilteredView.value) {
+      clearCollectionChildren();
+      return;
+    }
 
     collectionChildren.value = composeVisibleChildren({
       collections: childrenCollections,
@@ -526,6 +583,33 @@ const updateItemHeight = async () => {
 watch(() => stage.operationActive, (newValue, oldValue) => {
   if (oldValue && !newValue && loadingChildrenSkeleton.value) {
     loadCollectionChildren();
+  }
+});
+
+watch(isFilteredView, async (filtered) => {
+  if (props.child.type === 'asset') {
+    if (filtered) {
+      loadingAssetState.value = false;
+      return;
+    }
+    await loadAssetState();
+    return;
+  }
+
+  if (props.child.type !== 'collection' && props.child.type !== 'untracked_collection') return;
+
+  if (filtered) {
+    clearCollectionChildren();
+    if (props.child.type === 'collection') {
+      props.child.collectionStateFlags = emptyCollectionStateFlags();
+      loadingCollectionState.value = false;
+    }
+    return;
+  }
+
+  await loadCollectionChildren();
+  if (props.child.type === 'collection') {
+    await loadCollectionState();
   }
 });
 

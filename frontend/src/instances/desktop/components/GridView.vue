@@ -6,13 +6,15 @@
     <div v-else ref="navigatorRoot" class="navigator-root">
       
       <div v-if="collectionItems.length > 0" class="navigator-item-container" :style="gridStyles">
-          <GridItem v-for="(child, index) in collectionItems" :child="child" :key="child.index" :index="index" 
+          <GridItem v-for="(child, index) in collectionItems" :child="child" :key="child.index" :index="index"
+          :isFilteredView="isFilteredView"
           @mousedown="onMouseDown($event, child, index)"
           @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
       </div>
       
       <div v-if="assetItems.length > 0" class="navigator-item-container" :style="gridStyles">
-          <GridItem v-for="(child, index) in assetItems" :child="child" :key="child.index" :index="index" 
+          <GridItem v-for="(child, index) in assetItems" :child="child" :key="child.index" :index="index"
+          :isFilteredView="isFilteredView"
           @mousedown="onMouseDown($event, child, index)"
           @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
       </div>
@@ -45,7 +47,8 @@ const dndStore = useDndStore();
 
 // props
 const props = defineProps({
-  rootItems: { type: Array, default: [] }
+  rootItems: { type: Array, default: () => [] },
+  isFilteredView: { type: Boolean, default: false }
 });
 
 // refs
