@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <div class="sidebar-outer">
+    <!-- <div class="sidebar-outer">
       <div class="sidebar">
         <input v-model="commonStore.viewSearchQuery" class="desktop-search-bar" type="text" :placeholder="$t('components.dependencyGraph.search')"
           @input="updateSearch" />
@@ -61,7 +61,7 @@
           <ItemsList :forList="true" :items="projectData" :showAdd="true" />
         </div>
       </div>
-    </div>
+    </div> -->
 
   </div>
 </template>
@@ -654,7 +654,7 @@ const handleRemoveDependency = (payload) => {
 };
 
 onMounted(async () => {
-  commonStore.resetFilters();
+  // commonStore.resetFilters();
   
   // Fetch sidebar data first
   await fetchSidebarData();
@@ -714,7 +714,6 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: var(--text);
-  padding: 0px;
   justify-content: flex-start;
   padding: 0px;
   position: relative;
@@ -732,7 +731,7 @@ onUnmounted(() => {
   justify-content: center;
   color: var(--text);
   padding: 1rem;
-  padding-right: 0px;
+  /* padding-right: 0px; */
   padding-top: 0px;
   /* background-color: tomato; */
 }

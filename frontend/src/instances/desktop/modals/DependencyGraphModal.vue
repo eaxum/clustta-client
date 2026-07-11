@@ -47,17 +47,17 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 @import "@/assets/desktop.css";
 
 .dependency-graph-modal-container {
-  padding: 0 .5rem;
   display: flex;
   flex-direction: column;
 }
 
 .dependency-graph-modal-header {
   display: flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.5rem;
+  padding: 0.5rem 1rem;
   border-radius: var(--small-radius);
   background-color: var(--bg);
   outline: var(--transparent-line);
