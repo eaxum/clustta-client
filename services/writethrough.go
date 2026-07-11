@@ -15,7 +15,7 @@ import (
 type writeThroughItem struct {
 	projectPath string
 	table       string
-	id          string
+	ids         []string
 	data        sync_service.ProjectData
 }
 
@@ -110,7 +110,7 @@ func (b *writeThroughBatcher) pushBatch(projectPath string, items []writeThrough
 	syncTargets := make(map[string][]string)
 
 	for _, item := range items {
-		syncTargets[item.table] = append(syncTargets[item.table], item.id)
+		syncTargets[item.table] = append(syncTargets[item.table], item.ids...)
 		mergeProjectData(&merged, &item.data)
 	}
 
@@ -188,7 +188,16 @@ func enqueueWriteThrough(projectPath, table, id string, data sync_service.Projec
 	batcher.enqueue(writeThroughItem{
 		projectPath: projectPath,
 		table:       table,
-		id:          id,
+		ids:         []string{id},
+		data:        data,
+	})
+}
+
+func enqueueWriteThroughBatch(projectPath, table string, ids []string, data sync_service.ProjectData) {
+	batcher.enqueue(writeThroughItem{
+		projectPath: projectPath,
+		table:       table,
+		ids:         ids,
 		data:        data,
 	})
 }
@@ -200,6 +209,21 @@ func enqueueWriteThrough(projectPath, table, id string, data sync_service.Projec
 func enqueueAssetWriteThrough(projectPath string, asset models.Asset) {
 	enqueueWriteThrough(projectPath, "asset", asset.Id, sync_service.ProjectData{
 		Assets: []models.Asset{asset},
+	})
+}
+
+func enqueueAssetsWriteThrough(projectPath string, assets []models.Asset) {
+	if len(assets) == 0 {
+		return
+	}
+
+	assetIds := make([]string, 0, len(assets))
+	for _, asset := range assets {
+		assetIds = append(assetIds, asset.Id)
+	}
+
+	enqueueWriteThroughBatch(projectPath, "asset", assetIds, sync_service.ProjectData{
+		Assets: assets,
 	})
 }
 
@@ -245,7 +269,7 @@ func enqueueCollectionDependencyWriteThrough(projectPath string, dep models.Asse
 	collectionDep := models.CollectionDependency{
 		Id:               dep.Id,
 		MTime:            dep.MTime,
-		AssetId:           dep.AssetId,
+		AssetId:          dep.AssetId,
 		DependencyId:     dep.DependencyId,
 		DependencyTypeId: dep.DependencyTypeId,
 		Synced:           dep.Synced,

@@ -838,9 +838,7 @@ const setMultipleStatus = async (statusName) => {
 const toggleIsTask = async (newItemType) => {
   stage.operationActive = true;
   const targetIsTask = newItemType === 'task';
-  for (const assetId of stage.markedItems) {
-    await AssetService.ToggleIsTask(projectStore.activeProject.uri, assetId, targetIsTask).catch((error) => console.error('Error:', error));
-  }
+  await AssetService.BulkToggleIsTask(projectStore.activeProject.uri, stage.markedItems, targetIsTask).catch((error) => console.error('Error:', error));
   emitter.emit('refresh-browser');
   stage.operationActive = false;
 };

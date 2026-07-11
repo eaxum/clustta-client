@@ -982,6 +982,39 @@ func (t *AssetService) ToggleIsTask(projectPath, assetId string, isTask bool) er
 	return nil
 }
 
+func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, isTask bool) error {
+	if len(assetIds) == 0 {
+		return nil
+	}
+
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	err = repository.BulkToggleIsTask(tx, assetIds, isTask)
+	if err != nil {
+		return err
+	}
+	assets, err := repository.GetSimpleAssetsByIds(tx, assetIds)
+	if err != nil {
+		return err
+	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	go enqueueAssetsWriteThrough(projectPath, assets)
+	return nil
+}
+
 func (t *AssetService) RenameAsset(projectPath, assetId, name string) (models.Asset, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

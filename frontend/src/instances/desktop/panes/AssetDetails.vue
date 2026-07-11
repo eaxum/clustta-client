@@ -405,7 +405,7 @@ const toggleIsTask = async () => {
   const targetIsTask = assetStore.selectedAsset.is_resource;
   let asset = assetStore.selectedAsset;
     
-  await AssetService.ToggleIsTask(projectPath, asset.id, targetIsTask)
+  await AssetService.BulkToggleIsTask(projectPath, [asset.id], targetIsTask)
     .then((data) => {
 
       assetStore.selectedAsset.is_resource = !targetIsTask;

@@ -83,6 +83,16 @@ export function AssignAsset(projectPath, assetId, userId) {
 }
 
 /**
+ * @param {string} projectPath
+ * @param {string[]} assetIds
+ * @param {boolean} isTask
+ * @returns {$CancellablePromise<void>}
+ */
+export function BulkToggleIsTask(projectPath, assetIds, isTask) {
+    return $Call.ByID(938403102, projectPath, assetIds, isTask);
+}
+
+/**
  * ChangeAssetCollection moves one or more assets to a different collection.
  * Checks for name+extension conflicts in the target collection before moving.
  * Returns an error if any asset would conflict or if the operation fails.
