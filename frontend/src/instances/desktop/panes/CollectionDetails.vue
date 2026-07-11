@@ -261,6 +261,11 @@ const addUser = (user) => {
 
 const parentName = ref(t('common.none'));
 
+const getCollectionPathName = (collectionPath) => {
+  const segments = collectionPath?.replace(/\\/g, '/').replace(/^\/+|\/+$/g, '').split('/').filter(Boolean);
+  return segments?.at(-1) || t('common.none');
+};
+
 const resolveParentName = async () => {
   const collection = collectionStore.selectedCollection;
   const parentId = collection?.parent_id;
@@ -270,7 +275,7 @@ const resolveParentName = async () => {
   }
   try {
     const parent = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentId);
-    parentName.value = parent ? parent.collection_path.replace(/\//g, '') : t('common.none');
+    parentName.value = parent ? getCollectionPathName(parent.collection_path) : t('common.none');
   } catch (error) {
     parentName.value = t('common.none');
     console.error('Error resolving parent collection:', error);
