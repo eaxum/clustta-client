@@ -20,7 +20,7 @@
               </span>
               <span v-tooltip="$t('components.workspaceTabs.deleteWorkspace')"
                 @click.stop="deleteWorkspace(workspace.name)" class="workspace-tab-button workspace-hover-button">
-                <img class="small-icons no-cursor" :src="getAppIcon('trash')">
+                <img class="small-icons no-cursor" :src="getAppIcon('minus-circle')">
               </span>
             </div>
             <ActionButton v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace" class="dirty-indicator"
@@ -132,7 +132,6 @@ const setWorkspace = (workspaceName) => {
     return;
   }
   
-  console.log(commonStore.viewSearchQuery)
   if (workspaceName === 'Default') {
     setDefaultWorkspace();
     emitter.emit('refresh-browser');
