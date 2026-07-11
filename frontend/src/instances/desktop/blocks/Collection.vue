@@ -139,20 +139,26 @@
           </div>
         </div>
 
-        <div v-if="collaboratorsList.length && !isEditing && !isGhost" class="collection-item-assignees">
-          <div v-for="(collaborator, index) in collaboratorsList.slice(0, 5)" class="collection-item-assignee-container"
+        <div v-if="(collaboratorsList.length || collection.is_shared) && !isEditing && !isGhost" class="collection-item-assignees">
+          <div v-for="(collaborator, index) in visibleCollaborators" class="collection-item-assignee-container"
             v-tooltip="collaborator.full_name"
             :class="{ 'collection-item-assignee-container-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === collection.id && !isGhost }"
-            :style="{ zIndex: collaboratorsList.length - index }">
+            :style="{ zIndex: index + 1 }">
             <ProfilePhoto :assigneeId="collaborator.id" :userPhoto="collaborator.photo"
               :avatarColor="collaborator.avatarColor" />
           </div>
+          <div v-if="hiddenCollaboratorsCount" class="collection-item-assignee-container"
+            v-tooltip="`${hiddenCollaboratorsCount} more`"
+            :style="{ zIndex: visibleCollaborators.length + 1 }">
+            <ProfilePhoto :displayString="`+${hiddenCollaboratorsCount}`" avatarColor="var(--surface-4)" />
+          </div>
+          <span v-if="collaboratorsList.length && collection.is_shared" class="collection-shared-separator" aria-hidden="true"></span>
+          <ActionButton v-if="collection.is_shared" :icon="getAppIcon('shared')" v-tooltip="$t('blocks.thisIsShared')" />
         </div>
         
         
-        <div v-if="collaboratorsList.length && collection.is_shared && !isEditing && !isGhost" class="horizontal-divider">
+        <div v-if="(collaboratorsList.length || collection.is_shared)  && !isEditing && !isGhost" class="horizontal-divider">
         </div>
-
         <!-- Optimized collection-item-actions using GetCollectionStateFlags -->
         <div v-if="!isEditing && !isUntracked" class="collection-item-actions">
           <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
@@ -173,8 +179,8 @@
             <ActionButton v-if="collectionStateFlags.has_fetchable && !(collection.id in stage.expandedCollections)" 
               @click="fetchCollection" 
               :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.itemsMissingClickFetch')" />
-              <ActionButton v-if="collection.is_shared" :icon="getAppIcon('shared')" v-tooltip="$t('blocks.thisIsShared')" />
           </template>
+          <!-- <ActionButton v-else :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" /> -->
         </div>
 
         <div v-else-if="!isEditing && commonStore.showUntracked && collection.type === 'untracked_collection' && props.hasChildren" class="collection-item-actions">
@@ -333,6 +339,12 @@ const collaboratorsList = computed(() => {
   return projectCollaborators.filter((user) => collection.assignee_ids.includes(user.id));
 });
 
+// Returns the collaborators shown before the overflow avatar.
+const visibleCollaborators = computed(() => collaboratorsList.value.slice(0, 3));
+
+// Returns how many collaborators are hidden behind the overflow avatar.
+const hiddenCollaboratorsCount = computed(() => Math.max(collaboratorsList.value.length - visibleCollaborators.value.length, 0));
+
 // Returns the state flags for this collection.
 const collectionStateFlags = computed(() => {
   return props.collection.collectionStateFlags || {
@@ -342,6 +354,11 @@ const collectionStateFlags = computed(() => {
     has_fetchable: false
   };
 });
+
+//Returns true if the values of any item in collectionStateFlags is true
+const hasAnyCollectionStateFlag = computed(() =>
+  Object.values(collectionStateFlags.value).some(Boolean)
+);
 
 // Returns whether untracked state should be surfaced in this collection row.
 const hasVisibleUntrackedState = computed(() => commonStore.showUntracked && collectionStateFlags.value.has_untracked);
@@ -1205,10 +1222,12 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   width: min-content;
-  min-width: max-content;
+  min-width: calc(22px + .6rem);
+  flex-shrink: 0;
   gap: .7rem;
   height: 100%;
   justify-content: flex-end;
+  /* background-color: forestgreen; */
 }
 
 .file-state {
@@ -1229,8 +1248,22 @@ onBeforeUnmount(() => {
   justify-content: flex-end;
   align-items: center;
   height: 100%;
+  padding: 0px;
   /* background-color: crimson; */
-  padding-right: .4rem;
+  /* padding-right: .4rem; */
+  /* padding-right: 0px; */
+}
+
+.collection-shared-separator {
+  width: 6px;
+  height: 6px;
+  margin-left: 1rem;
+  margin-right: .3rem;
+  border-radius: 50%;
+  background-color: currentColor;
+  /* opacity: .8; */
+  
+  flex-shrink: 0;
 }
 
 .collection-item-assignee-container {
@@ -1247,6 +1280,10 @@ onBeforeUnmount(() => {
   justify-content: center;
   background-color: black;
   margin-right: -0.5rem;
+}
+
+.horizontal-divider{
+  height: 20px;
 }
 
 .collection-item-assignee-container-selected {

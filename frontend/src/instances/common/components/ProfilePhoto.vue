@@ -1,6 +1,7 @@
 <template>
-    <div class="profile-picture" :style="{ backgroundColor: profileColor(assigneeId) }">
-      <img v-if="userPhoto" class="profile-img" :src="userPhoto">
+    <div class="profile-picture" :style="{ backgroundColor: displayString ? avatarColor : profileColor(assigneeId) }">
+      <span v-if="displayString" class="profile-string">{{ displayString }}</span>
+      <img v-else-if="userPhoto" class="profile-img" :src="userPhoto">
       <img v-else class="profile-img" :src="fallbackAvatar">
     </div>
   </template>
@@ -24,6 +25,10 @@ const props = defineProps({
     avatarColor: {
     type: String,
     default: 'grey'
+    },
+    displayString: {
+    type: String,
+    default: ''
     }
 });
 
@@ -55,8 +60,15 @@ const profileColor = (uuid) => {
   }
   
   .profile-img {
-    width: 120%;
-    height: 120%;
+    width: 100%;
+    height: 100%;
+  }
+
+  .profile-string {
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
   }
   
   .assignee-list-item-name {
