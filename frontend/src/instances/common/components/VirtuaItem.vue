@@ -124,8 +124,11 @@ const filtersActive = computed(() => {
   return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
 
-// Search and filters present collections as flat results, so nested expansion is disabled.
-const isFilteredView = computed(() => !!commonStore.viewSearchQuery || filtersActive.value);
+// Search always presents flat results. Filters only do so in the Default workspace.
+const isFilteredView = computed(() =>
+  !!commonStore.viewSearchQuery ||
+  (filtersActive.value && commonStore.activeWorkspace === 'Default')
+);
 
 const shouldLoadAssetState = computed(() => !isFilteredView.value);
 

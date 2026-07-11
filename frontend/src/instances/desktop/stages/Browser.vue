@@ -10,7 +10,7 @@
 		<div class="dash-board-header">
 			<FilterBar v-if="showFilters || kanbanView" :kanbanView="kanbanView" />
 			<CreateMenu v-else-if="!kanbanView" :kanbanView="kanbanView" :importItems="importItems" :disabled="!canCreateInWorkspace" />
-			<StateBar v-if="!showFilters && !kanbanView" :hasData="!!rootData.length" />
+			<StateBar v-if="!showFilters && !kanbanView && !stateBarInactive" :hasData="!!rootData.length" />
 			<div v-if="!kanbanView"
 				class="view-options">
 				<ViewOptions />
@@ -152,10 +152,21 @@ const filtersActive = computed(() => {
 	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilterActive;
 });
 
-// Search and filters show flat results whose per-item filesystem state is intentionally deferred.
-const isFilteredView = computed(() => !!commonStore.viewSearchQuery || filtersActive.value);
-
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+
+// Search always shows flat results. Filters only defer per-item state in the Default workspace.
+const isFilteredView = computed(() =>
+	!!commonStore.viewSearchQuery ||
+	(filtersActive.value && isDefaultWorkspace.value)
+);
+
+// StateBar represents the unfiltered collection context, so do not compute or show it for result sets.
+const stateBarInactive = computed(() => !!commonStore.viewSearchQuery || filtersActive.value);
+
+const loadStateBarFlags = () => {
+	if (stateBarInactive.value) return;
+	collectionStore.loadCollectionStateFlags();
+};
 
 // Whether the active workspace allows creating items (Default or a collection-based workspace).
 const canCreateInWorkspace = computed(() => {
@@ -633,7 +644,7 @@ const handleUpdateRootData = (eventData) => {
 		}
 	}
 	emitter.emit('get-project-data');
-	collectionStore.loadCollectionStateFlags();
+	loadStateBarFlags();
 	refreshUnsyncedState();
 };
 
@@ -743,7 +754,7 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 		untracked_assets: untrackedAssets
 	});
 	emitter.emit('get-project-data');
-	collectionStore.loadCollectionStateFlags();
+	loadStateBarFlags();
 };
 
 // Returns the empty state illustration path.
@@ -1058,7 +1069,7 @@ const refresh = async () => {
 	await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
 	rootData.value = composeVisibleItems(children);
 	assetStore.assetsLoaded = true;
-	collectionStore.loadCollectionStateFlags();
+	loadStateBarFlags();
 	await nextTick();
 	dndStore.triggerDomUpdate();
 };
@@ -1135,7 +1146,7 @@ const softRefresh = async (options = {}) => {
 	if (children.untracked_assets) await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
 	rootData.value = composeVisibleItems(children);
 	assetStore.assetsLoaded = true;
-	collectionStore.loadCollectionStateFlags();
+	loadStateBarFlags();
 	refreshUnsyncedState();
 	await nextTick();
 	dndStore.triggerDomUpdate();
