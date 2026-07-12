@@ -261,6 +261,14 @@ export function GetLogPath() {
 }
 
 /**
+ * GetMetadataOnlyStorage returns whether downloaded and uploaded chunks are discarded.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetMetadataOnlyStorage() {
+    return $Call.ByID(1931212874);
+}
+
+/**
  * GetMinimizeOnClose returns whether the app minimizes to tray on close.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -584,6 +592,15 @@ export function SetLanguage(language) {
  */
 export function SetLastStudio(lastStudioName) {
     return $Call.ByID(4086447016, lastStudioName);
+}
+
+/**
+ * SetMetadataOnlyStorage sets whether downloaded and uploaded chunks are discarded.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetMetadataOnlyStorage(enabled) {
+    return $Call.ByID(4057540398, enabled);
 }
 
 /**

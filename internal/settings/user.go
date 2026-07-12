@@ -129,6 +129,7 @@ type Settings struct {
 
 	SyncAfterCheckpoint   bool  `json:"sync_after_checkpoint"`
 	UseUpdateSync         bool  `json:"use_update_sync"`
+	MetadataOnlyStorage   bool  `json:"metadata_only_storage"`
 	OverwriteDroppedFiles *bool `json:"overwrite_dropped_files,omitempty"`
 	BridgeEnabled         bool  `json:"bridge_enabled"`
 	MinimizeOnClose       *bool `json:"minimize_on_close,omitempty"`
@@ -524,6 +525,26 @@ func SetUseUpdateSync(enabled bool) error {
 		return err
 	}
 	settings.UseUpdateSync = enabled
+	return saveSettings(settings)
+}
+
+// GetMetadataOnlyStorage returns whether downloaded and uploaded chunks are discarded.
+// Defaults to false.
+func GetMetadataOnlyStorage() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	return settings.MetadataOnlyStorage, nil
+}
+
+// SetMetadataOnlyStorage sets whether downloaded and uploaded chunks are discarded.
+func SetMetadataOnlyStorage(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.MetadataOnlyStorage = enabled
 	return saveSettings(settings)
 }
 

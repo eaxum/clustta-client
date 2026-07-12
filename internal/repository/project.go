@@ -752,6 +752,64 @@ func TrimProject(projectPath string) error {
 	return nil
 }
 
+// ClearChunkCache removes all cached file chunks while retaining their metadata references.
+func ClearChunkCache(tx *sqlx.Tx) error {
+	_, err := tx.Exec("DELETE FROM chunk")
+	return err
+}
+
+// ClearSyncedChunkCache removes cached chunks that are not needed by unsynced data.
+func ClearSyncedChunkCache(tx *sqlx.Tx) error {
+	_, err := tx.Exec(`
+		WITH protected_chunks AS (
+			SELECT TRIM(value) AS hash
+			FROM asset_checkpoint, json_each('["' || REPLACE(chunks, ',', '","') || '"]')
+			WHERE synced = 0 AND chunks != ''
+			UNION
+			SELECT TRIM(value) AS hash
+			FROM template, json_each('["' || REPLACE(chunks, ',', '","') || '"]')
+			WHERE synced = 0 AND chunks != ''
+		)
+		DELETE FROM chunk WHERE hash NOT IN (SELECT hash FROM protected_chunks)
+	`)
+	return err
+}
+
+// ShouldVacuum reports whether compacting an archive would reclaim enough space.
+func ShouldVacuum(fileSize, pageSize, freePages int64) bool {
+	const (
+		minimumFreeSpace   = int64(100 << 20)
+		minimumFreePercent = 0.2
+	)
+	freeSpace := pageSize * freePages
+	return fileSize > 0 && freeSpace >= minimumFreeSpace && float64(freeSpace)/float64(fileSize) >= minimumFreePercent
+}
+
+// VacuumIfNeeded compacts an archive when enough reusable space has accumulated.
+func VacuumIfNeeded(dbConn *sqlx.DB, projectPath string, onVacuum func()) error {
+	fileInfo, err := os.Stat(projectPath)
+	if err != nil {
+		return err
+	}
+	var pageSize, freePages int64
+	if err = dbConn.Get(&pageSize, "PRAGMA page_size"); err != nil {
+		return err
+	}
+	if err = dbConn.Get(&freePages, "PRAGMA freelist_count"); err != nil {
+		return err
+	}
+
+	if !ShouldVacuum(fileInfo.Size(), pageSize, freePages) {
+		return nil
+	}
+	if onVacuum != nil {
+		onVacuum()
+	}
+
+	_, err = dbConn.Exec("VACUUM")
+	return err
+}
+
 func Vacuum(projectPath string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

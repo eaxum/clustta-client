@@ -140,6 +140,17 @@
             </div>
           </div>
 
+          <div class="settings-item" @click="toggleMetadataOnlyStorage">
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('database-sync')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ $t('settings.metadataOnlyStorage') }}</div>
+              <div class="settings-body">{{ $t('settings.metadataOnlyStorageDescription') }}</div>
+            </div>
+            <div class="settings-action fixed-width">
+              <ToggleSwitch :switchValueProp="metadataOnlyStorage" />
+            </div>
+          </div>
+
           <div class="settings-item" @click="toggleOverwriteDroppedFiles">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('data-download')"></div>
             <div class="settings-content">
@@ -183,6 +194,7 @@ const agentKeyConfigured = ref(false);
 const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
+const metadataOnlyStorage = ref(false);
 const notificationStore = useNotificationStore();
 const settingsStore = useSettingsStore();
 const syncAfterCheckpoint = ref(false);
@@ -277,6 +289,22 @@ const toggleUseUpdateSync = () => {
   });
 };
 
+// Toggles whether transferred chunks are retained in project archives.
+const toggleMetadataOnlyStorage = () => {
+  const newValue = !metadataOnlyStorage.value;
+  SettingsService.SetMetadataOnlyStorage(newValue).then(() => {
+    metadataOnlyStorage.value = newValue;
+    notificationStore.addNotification(
+      t('settings.metadataOnlyStorage'),
+      t('notifications.metadataOnlyStorageToggled', { status: newValue ? 'enabled' : 'disabled' }),
+      "success"
+    );
+  }).catch((error) => {
+    console.log(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateMetadataOnlyStorage'), "error");
+  });
+};
+
 // Toggles whether OS file drops overwrite matching files.
 const toggleOverwriteDroppedFiles = () => {
   settingsStore.toggleOverwriteDroppedFiles().then(() => {
@@ -299,6 +327,7 @@ onMounted(async () => {
     await settingsStore.initializeOverwriteDroppedFiles();
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
     useUpdateSync.value = await SettingsService.GetUseUpdateSync();
+    metadataOnlyStorage.value = await SettingsService.GetMetadataOnlyStorage();
     await integrationStore.initialize();
     const status = await AgentService.GetAPIKeyStatus();
     agentKeyConfigured.value = status.configured;

@@ -534,6 +534,16 @@ func (s *SettingsService) SetUseUpdateSync(enabled bool) error {
 	return settings.SetUseUpdateSync(enabled)
 }
 
+// GetMetadataOnlyStorage returns whether downloaded and uploaded chunks are discarded.
+func (s *SettingsService) GetMetadataOnlyStorage() (bool, error) {
+	return settings.GetMetadataOnlyStorage()
+}
+
+// SetMetadataOnlyStorage sets whether downloaded and uploaded chunks are discarded.
+func (s *SettingsService) SetMetadataOnlyStorage(enabled bool) error {
+	return settings.SetMetadataOnlyStorage(enabled)
+}
+
 // GetOverwriteDroppedFiles returns whether OS file drops overwrite matching files.
 func (s *SettingsService) GetOverwriteDroppedFiles() (bool, error) {
 	return settings.GetOverwriteDroppedFiles()

@@ -3294,6 +3294,14 @@
         ]
       },
       {
+        "name": "GetMetadataOnlyStorage",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
         "name": "GetMinimizeOnClose",
         "params": null,
         "returns": [
@@ -3598,6 +3606,15 @@
         "name": "SetLastStudio",
         "params": [
           "lastStudioName:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetMetadataOnlyStorage",
+        "params": [
+          "enabled:bool"
         ],
         "returns": [
           "error"

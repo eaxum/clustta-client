@@ -7,6 +7,7 @@ import (
 	"clustta/internal/constants"
 	"clustta/internal/repository"
 	"clustta/internal/repository/repositorypb"
+	"clustta/internal/settings"
 	"clustta/internal/studio_service"
 	"clustta/internal/utils"
 	"context"
@@ -14,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -43,6 +45,16 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		return ctx.Err()
 	}
 
+	metadataOnlyStorage, err := settings.GetMetadataOnlyStorage()
+	if err != nil {
+		return err
+	}
+	reclaimProgress := func() {
+		if callback != nil {
+			callback(1, 1, "Reclaiming archive space", "")
+		}
+	}
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -65,6 +77,17 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		return err
 	}
 	if data.IsEmpty() {
+		if metadataOnlyStorage {
+			if err = repository.ClearChunkCache(tx); err != nil {
+				return err
+			}
+			if err = tx.Commit(); err != nil {
+				return err
+			}
+			if err = repository.VacuumIfNeeded(dbConn, projectPath, reclaimProgress); err != nil {
+				log.Printf("Failed to reclaim project archive space: %v", err)
+			}
+		}
 		return nil
 	}
 
@@ -228,9 +251,19 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 			if err != nil {
 				return err
 			}
+			if metadataOnlyStorage {
+				if err = repository.ClearChunkCache(tx); err != nil {
+					return err
+				}
+			}
 			err = tx.Commit()
 			if err != nil {
 				return err
+			}
+			if metadataOnlyStorage {
+				if err = repository.VacuumIfNeeded(dbConn, projectPath, reclaimProgress); err != nil {
+					log.Printf("Failed to reclaim project archive space: %v", err)
+				}
 			}
 			return nil
 		case 409:
@@ -276,9 +309,19 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		if err != nil {
 			return err
 		}
+		if metadataOnlyStorage {
+			if err = repository.ClearChunkCache(tx); err != nil {
+				return err
+			}
+		}
 		err = tx.Commit()
 		if err != nil {
 			return err
+		}
+		if metadataOnlyStorage {
+			if err = repository.VacuumIfNeeded(dbConn, projectPath, reclaimProgress); err != nil {
+				log.Printf("Failed to reclaim project archive space: %v", err)
+			}
 		}
 
 		return nil
@@ -393,6 +436,15 @@ func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, sy
 func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func(int, int, string, string)) error {
 	if !utils.IsValidURL(remoteUrl) {
 		return fmt.Errorf("invalid remote URL: %s", remoteUrl)
+	}
+	metadataOnlyStorage, err := settings.GetMetadataOnlyStorage()
+	if err != nil {
+		return err
+	}
+	reclaimProgress := func() {
+		if callback != nil {
+			callback(1, 1, "Reclaiming archive space", "")
+		}
 	}
 
 	dbConn, err := utils.OpenDb(projectPath)
@@ -525,7 +577,20 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 				return err
 			}
 		}
-		return tx.Commit()
+		if metadataOnlyStorage {
+			if err = repository.ClearSyncedChunkCache(tx); err != nil {
+				return err
+			}
+		}
+		if err = tx.Commit(); err != nil {
+			return err
+		}
+		if metadataOnlyStorage {
+			if err = repository.VacuumIfNeeded(dbConn, projectPath, reclaimProgress); err != nil {
+				log.Printf("Failed to reclaim project archive space: %v", err)
+			}
+		}
+		return nil
 	case 409:
 		body, err := io.ReadAll(response.Body)
 		if err != nil {

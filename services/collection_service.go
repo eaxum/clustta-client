@@ -2103,6 +2103,12 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 			return err
 		}
 	}
+	if err = tx.Rollback(); err != nil {
+		return err
+	}
+	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+		return err
+	}
 
 	close(progressChan)
 	progress := output.ProgressReport{

@@ -207,6 +207,12 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, 
 	if err != nil {
 		return err
 	}
+	if err = tx.Rollback(); err != nil {
+		return err
+	}
+	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+		return err
+	}
 
 	close(progressChan)
 	progress := output.ProgressReport{
@@ -763,6 +769,9 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		}
 		tx.Rollback()
 	}
+	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+		return err
+	}
 
 	close(progressChan)
 	progress := output.ProgressReport{
@@ -946,6 +955,9 @@ func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, asse
 			return err
 		}
 		tx.Rollback()
+	}
+	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+		return err
 	}
 
 	close(progressChan)
@@ -1133,6 +1145,9 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 			return err
 		}
 		tx.Rollback()
+	}
+	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+		return err
 	}
 
 	close(progressChan)
