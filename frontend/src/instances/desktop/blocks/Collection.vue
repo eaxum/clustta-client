@@ -139,7 +139,8 @@
           </div>
         </div>
 
-        <div v-if="(collaboratorsList.length || collection.is_shared) && !isEditing && !isGhost" class="collection-item-assignees">
+        <div v-if="(collaboratorsList.length || collection.is_shared) && !isEditing && !isGhost" class="collection-item-assignees"
+          :class="{ 'collection-item-assignees-unshared': !collection.is_shared }">
           <div v-for="(collaborator, index) in visibleCollaborators" class="collection-item-assignee-container"
             v-tooltip="collaborator.full_name"
             :class="{ 'collection-item-assignee-container-selected': stage.markedItems.length === 1 && stage.firstSelectedItemId === collection.id && !isGhost }"
@@ -157,7 +158,8 @@
         </div>
         
         
-        <div v-if="(collaboratorsList.length || collection.is_shared)  && !isEditing && !isGhost" class="horizontal-divider">
+        <div v-if="(collaboratorsList.length || collection.is_shared) && !isEditing && !isGhost" class="horizontal-divider"
+          :class="{ 'horizontal-divider-invisible': collection.id in stage.expandedCollections }">
         </div>
         <!-- Optimized collection-item-actions using GetCollectionStateFlags -->
         <div v-if="!isEditing && !isUntracked" class="collection-item-actions">
@@ -1254,6 +1256,10 @@ onBeforeUnmount(() => {
   /* padding-right: 0px; */
 }
 
+.collection-item-assignees-unshared {
+  padding-right: 1rem;
+}
+
 .collection-shared-separator {
   width: 6px;
   height: 6px;
@@ -1284,6 +1290,10 @@ onBeforeUnmount(() => {
 
 .horizontal-divider{
   height: 20px;
+}
+
+.horizontal-divider-invisible {
+  visibility: hidden;
 }
 
 .collection-item-assignee-container-selected {
