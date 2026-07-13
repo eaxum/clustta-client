@@ -13,6 +13,22 @@ import { FSService } from "@/services";
 import { useProjectStore } from "./projects";
 import { useStageStore } from "./stages";
 
+const normalizeSearchValue = (value) => String(value || "").toLowerCase();
+
+const matchesAssetQuery = (asset, query) => {
+  const searchQuery = normalizeSearchValue(query);
+  if (!searchQuery) return true;
+
+  return normalizeSearchValue(asset.id).includes(searchQuery)
+    || normalizeSearchValue(asset.name).includes(searchQuery)
+    || normalizeSearchValue(asset.file_path).replace(/\\/g, "/").includes(searchQuery);
+};
+
+const matchesAssetSearch = (asset, viewSearchQuery, workspaceSearchQuery) => {
+  return matchesAssetQuery(asset, viewSearchQuery)
+    && matchesAssetQuery(asset, workspaceSearchQuery);
+};
+
 export const useAssetStore = defineStore("asset", {
   state: () => ({
     assets: [],
@@ -70,11 +86,8 @@ export const useAssetStore = defineStore("asset", {
           (state.showDoneAssets || asset.status.name !== "done") &&
           (!state.showTraySearch ||
             state.assetListTags.every((tag) => asset.tags.includes(tag))) &&
-          (commonStore.viewSearchQuery === "" ||
-            !state.showTraySearch ||
-            asset.name
-              .toLowerCase()
-              .includes(commonStore.viewSearchQuery.toLowerCase()))
+          (!state.showTraySearch ||
+            matchesAssetQuery(asset, commonStore.viewSearchQuery))
         ) {
           assets.push(asset);
         }
@@ -117,11 +130,8 @@ export const useAssetStore = defineStore("asset", {
           (state.showDoneAssets || asset.status.name !== "done") &&
           (!state.showTraySearch ||
             state.assetListTags.every((tag) => asset.tags.includes(tag))) &&
-          (commonStore.viewSearchQuery === "" ||
-            !state.showTraySearch ||
-            asset.name
-              .toLowerCase()
-              .includes(commonStore.viewSearchQuery.toLowerCase()))
+          (!state.showTraySearch ||
+            matchesAssetQuery(asset, commonStore.viewSearchQuery))
         ) {
           assets.push(asset);
         }
@@ -228,33 +238,15 @@ export const useAssetStore = defineStore("asset", {
               assetTypeMatch
             );
           })
-          .filter(
-            (item) =>
-              item.file_path
-                .toLowerCase()
-                .replace(/\\/g, "/")
-                .includes(viewSearchQuery) &&
-              item.file_path
-                .toLowerCase()
-                .replace(/\\/g, "/")
-                .includes(workspaceSearchQuery)
-          );
+          .filter((item) => matchesAssetSearch(item, viewSearchQuery, workspaceSearchQuery));
         // const sortedAssets = utils.sortAlphabetically(filteredAsset);
         // const sortedAssets = utils.sortPathAlphabetically(filteredAsset, "asset");
         return commonStore.showDependencies
           ? filteredAsset
           : filteredAsset.filter((item) => !item.is_dependency);
       } else {
-        filteredAsset = assets.filter(
-          (item) =>
-            item.file_path
-              .toLowerCase()
-              .replace(/\\/g, "/")
-              .includes(viewSearchQuery) &&
-            item.file_path
-              .toLowerCase()
-              .replace(/\\/g, "/")
-              .includes(workspaceSearchQuery)
+        filteredAsset = assets.filter((item) =>
+          matchesAssetSearch(item, viewSearchQuery, workspaceSearchQuery)
         );
         // const sortedAssets = utils.sortAlphabetically(filteredAsset);
         // const sortedAssets = utils.sortPathAlphabetically(filteredAsset, "asset");
@@ -441,16 +433,7 @@ export const useAssetStore = defineStore("asset", {
               assetTypeMatch
             );
           })
-          .filter(
-            (item) => {
-              const nameMatch = !viewSearchQuery ||  item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-              const filePathMatch = !viewSearchQuery || item.file_path?.toLowerCase().replace(/\\/g, "/").includes(viewSearchQuery.toLowerCase());
-              const workspaceNameMatch = !workspaceSearchQuery || item.name?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-              const workspaceFilePathMatch = !workspaceSearchQuery || item.file_path?.toLowerCase().replace(/\\/g, "/").includes(workspaceSearchQuery.toLowerCase());
-              
-              return (nameMatch || filePathMatch) && (workspaceNameMatch || workspaceFilePathMatch);
-            }
-          );
+          .filter((item) => matchesAssetSearch(item, viewSearchQuery, workspaceSearchQuery));
         return filteredAsset.filter((item) =>
           commonStore.showAssets &&
           (
@@ -459,15 +442,8 @@ export const useAssetStore = defineStore("asset", {
           )
         );
       } else {
-        filteredAsset = assets.filter(
-          (item) => {
-            const nameMatch = !viewSearchQuery || item.name?.toLowerCase().includes(viewSearchQuery.toLowerCase());
-            const filePathMatch = !viewSearchQuery || item.file_path?.toLowerCase().replace(/\\/g, "/").includes(viewSearchQuery.toLowerCase());
-            const workspaceNameMatch = !workspaceSearchQuery || item.name?.toLowerCase().includes(workspaceSearchQuery.toLowerCase());
-            const workspaceFilePathMatch = !workspaceSearchQuery || item.file_path?.toLowerCase().replace(/\\/g, "/").includes(workspaceSearchQuery.toLowerCase());
-            
-            return (nameMatch || filePathMatch) && (workspaceNameMatch || workspaceFilePathMatch);
-          }
+        filteredAsset = assets.filter((item) =>
+          matchesAssetSearch(item, viewSearchQuery, workspaceSearchQuery)
         );
         return filteredAsset.filter((item) =>
           commonStore.showAssets &&

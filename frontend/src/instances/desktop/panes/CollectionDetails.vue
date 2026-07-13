@@ -98,6 +98,18 @@
           </div>
         </div>
 
+        <div class="pane-parameter-detail">
+          <div class="simple-text-key">
+            ID
+          </div>
+          <div class="simple-text-value truncate-path" v-tooltip="collectionStore.selectedCollection.id">
+            {{ collectionStore.selectedCollection.id }}
+          </div>
+          <div class="pane-parameter-actions">
+            <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('common.copyId')" @click="copyCollectionId" />
+          </div>
+        </div>
+
 
       </div>
     </div>
@@ -211,6 +223,11 @@ const copyCollectionPath = async () => {
   await Clipboard.SetText(collectionDir);
   const message = t('notifications.pathCopied');
   notificationStore.addNotification(message, "", "success");
+};
+
+const copyCollectionId = async () => {
+  await Clipboard.SetText(collectionStore.selectedCollection.id);
+  notificationStore.addNotification(t('notifications.idCopied'), '', 'success');
 };
 
 const removeUser = (user) => {

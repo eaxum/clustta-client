@@ -11,13 +11,14 @@ import utils from "@/services/utils";
 const normalizeSearchValue = (value) => String(value || "").toLowerCase();
 
 const matchesCollectionSearch = (collection, viewSearchQuery, workspaceSearchQuery) => {
+  const id = normalizeSearchValue(collection.id);
   const name = normalizeSearchValue(collection.name);
   const collectionPath = normalizeSearchValue(collection.collection_path);
   const viewSearch = normalizeSearchValue(viewSearchQuery);
   const workspaceSearch = normalizeSearchValue(workspaceSearchQuery);
 
-  const viewMatch = !viewSearch || name.includes(viewSearch) || collectionPath.includes(viewSearch);
-  const workspaceMatch = !workspaceSearch || name.includes(workspaceSearch) || collectionPath.includes(workspaceSearch);
+  const viewMatch = !viewSearch || id.includes(viewSearch) || name.includes(viewSearch) || collectionPath.includes(viewSearch);
+  const workspaceMatch = !workspaceSearch || id.includes(workspaceSearch) || name.includes(workspaceSearch) || collectionPath.includes(workspaceSearch);
 
   return viewMatch && workspaceMatch;
 };
