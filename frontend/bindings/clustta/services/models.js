@@ -1360,6 +1360,41 @@ export class ItemsForUpdate {
     }
 }
 
+export class MetadataUpdateResult {
+    /**
+     * Creates a new MetadataUpdateResult instance.
+     * @param {Partial<MetadataUpdateResult>} [$$source = {}] - The source object to create the MetadataUpdateResult.
+     */
+    constructor($$source = {}) {
+        if (!("remote_applied" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["remote_applied"] = false;
+        }
+        if (!("requires_sync" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["requires_sync"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new MetadataUpdateResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {MetadataUpdateResult}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new MetadataUpdateResult(/** @type {Partial<MetadataUpdateResult>} */($$parsedSource));
+    }
+}
+
 /**
  * NullString represents a nullable string from the database
  */

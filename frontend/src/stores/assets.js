@@ -12,6 +12,7 @@ import { useUserStore } from "./users";
 import { FSService } from "@/services";
 import { useProjectStore } from "./projects";
 import { useStageStore } from "./stages";
+import { useNotificationStore } from "./notifications";
 
 const normalizeSearchValue = (value) => String(value || "").toLowerCase();
 
@@ -568,13 +569,13 @@ export const useAssetStore = defineStore("asset", {
 
     async setStatus(status, assetId) {
       const projectStore = useProjectStore();
+      const notificationStore = useNotificationStore();
       await AssetService.ChangeStatus(
         projectStore.activeProject.uri,
         [assetId],
         status.id
       )
-        .then((data) => {
-        })
+        .then((result) => notificationStore.notifyMetadataUpdate(result, "Status updated successfully", false))
         .catch((error) => {
           console.error("Error:", error);
         });
@@ -582,12 +583,13 @@ export const useAssetStore = defineStore("asset", {
     },
     async setMultipleStatus(status, assetIds) {
       const projectStore = useProjectStore();
+      const notificationStore = useNotificationStore();
       await AssetService.ChangeStatus(
         projectStore.activeProject.uri,
         assetIds,
         status.id
       )
-        .then((data) => {})
+        .then((result) => notificationStore.notifyMetadataUpdate(result, "Statuses updated successfully", false))
         .catch((error) => {
           console.error("Error:", error);
         });

@@ -434,11 +434,13 @@ const assignCollections = async (user) => {
   stage.operationActive = true;
   const collectionIds = stage.markedItems;
   const userId = user.id;
+  let requiresSync = false;
   for (let collectionId of collectionIds) {
     const item = stage.selectedItems.find(item => item.id === collectionId);
     if (item && item.assignee_ids && item.assignee_ids.includes(userId)) continue;
     await CollectionService.Assign(projectStore.activeProject.uri, collectionId, userId)
-      .then(() => {
+      .then((result) => {
+        requiresSync ||= result?.requires_sync === true;
         const itemIndex = stage.selectedItems.findIndex(item => item.id === collectionId);
         if (itemIndex !== -1 && !stage.selectedItems[itemIndex].assignee_ids.includes(userId)) {
           stage.selectedItems[itemIndex].assignee_ids.push(userId);
@@ -447,6 +449,7 @@ const assignCollections = async (user) => {
       })
       .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorAddingUser'), error); console.error('Error adding user:', error); });
   }
+  notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, 'Collections assigned successfully', false);
   emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
@@ -474,9 +477,13 @@ const changeCollectionType = async (collectionTypeName) => {
 const changeIsShared = async (mode) => {
   stage.operationActive = true;
   let isShared = mode === 'shared';
+  let requiresSync = false;
   for (const collectionId of stage.markedItems) {
-    await CollectionService.ChangeIsShared(projectStore.activeProject.uri, collectionId, isShared).catch((error) => console.error('Error:', error));
+    await CollectionService.ChangeIsShared(projectStore.activeProject.uri, collectionId, isShared)
+      .then((result) => { requiresSync ||= result?.requires_sync === true; })
+      .catch((error) => console.error('Error:', error));
   }
+  notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, 'Sharing updated successfully', false);
   emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
@@ -838,7 +845,9 @@ const setMultipleStatus = async (statusName) => {
 const toggleIsTask = async (newItemType) => {
   stage.operationActive = true;
   const targetIsTask = newItemType === 'task';
-  await AssetService.BulkToggleIsTask(projectStore.activeProject.uri, stage.markedItems, targetIsTask).catch((error) => console.error('Error:', error));
+  await AssetService.BulkToggleIsTask(projectStore.activeProject.uri, stage.markedItems, targetIsTask)
+    .then((result) => notificationStore.notifyMetadataUpdate(result, 'Task status updated successfully', false))
+    .catch((error) => console.error('Error:', error));
   emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
@@ -853,16 +862,16 @@ const toSentenceCase = (str) => {
 // Unassigns all collaborators from collections.
 const unassignCollections = async () => {
   stage.operationActive = true;
-  for (const collection of stage.selectedItems) {
-    const currentAssigneeIds = collection.assignee_ids || [];
-    for (const assigneeId of currentAssigneeIds) {
-      await CollectionService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
-        .then(() => {
-          const itemIndex = stage.selectedItems.findIndex(item => item.id === collection.id);
-          if (itemIndex !== -1) stage.selectedItems[itemIndex].assignee_ids = stage.selectedItems[itemIndex].assignee_ids.filter(id => id !== assigneeId);
-        })
-        .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorRemovingUser'), error); console.error('Error removing user:', error); });
-    }
+  const collectionIds = stage.selectedItems.filter(item => item.type === 'collection').map(item => item.id);
+  try {
+    const result = await CollectionService.UnassignCollections(projectStore.activeProject.uri, collectionIds);
+    notificationStore.notifyMetadataUpdate(result, 'Collections unassigned successfully', false);
+    stage.selectedItems.filter(item => item.type === 'collection').forEach(item => { item.assignee_ids = []; });
+  } catch (error) {
+    notificationStore.errorNotification(t('components.detailsPane.errorRemovingUser'), error);
+    console.error('Error removing user:', error);
+    stage.operationActive = false;
+    return;
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;
@@ -870,11 +879,15 @@ const unassignCollections = async () => {
 
 // Unassigns all collaborators from assets.
 const unassignAssets = async () => {
-  for (const assetId of stage.markedItems) {
-    await AssetService.UnassignAsset(projectStore.activeProject.uri, assetId).catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAssigningAsset'), error); });
+  try {
+    const result = await AssetService.UnassignAssets(projectStore.activeProject.uri, stage.markedItems);
+    notificationStore.notifyMetadataUpdate(result, t('components.detailsPane.assetsUnassignedSuccessfully'));
+  } catch (error) {
+    console.log(error);
+    notificationStore.errorNotification(t('components.detailsPane.errorAssigningAsset'), error);
+    return;
   }
   emitter.emit('refresh-browser');
-  notificationStore.addNotification(t('components.detailsPane.assetsUnassignedSuccessfully'), "", "success");
 };
 
 // Switches to the checkpoints tab.

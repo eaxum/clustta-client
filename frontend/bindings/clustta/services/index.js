@@ -91,6 +91,7 @@ export {
     ImportItems,
     ItemsForCheckpoint,
     ItemsForUpdate,
+    MetadataUpdateResult,
     NullString,
     Plan,
     ProfileUpdateData,

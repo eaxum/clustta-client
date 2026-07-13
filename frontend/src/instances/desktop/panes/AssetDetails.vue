@@ -422,7 +422,8 @@ const toggleIsTask = async () => {
   let asset = assetStore.selectedAsset;
     
   await AssetService.BulkToggleIsTask(projectPath, [asset.id], targetIsTask)
-    .then((data) => {
+    .then((result) => {
+      notificationStore.notifyMetadataUpdate(result, 'Task status updated successfully', false);
 
       assetStore.selectedAsset.is_resource = !targetIsTask;
       emitAssetUpdates(asset.id, [
@@ -448,7 +449,7 @@ const changeAssetType = async (assetTypeName) => {
   let asset = assetStore.selectedAsset;
 
   await AssetService.UpdateAsset(projectPath, asset.id, asset.name, newAssetType.id, asset.is_resource, '', asset.tags)
-    .then((data) => {
+    .then(() => {
       asset.asset_type_name = newAssetType.name;
       asset.asset_type_icon = newAssetType.icon;
       asset.asset_type_id = newAssetType.id;
@@ -475,7 +476,8 @@ const setStatus = async (statusName) => {
   let asset = assetStore.selectedAsset;
   
   await AssetService.ChangeStatus(projectPath, [asset.id], status.id)
-    .then((data) => {
+    .then((result) => {
+      notificationStore.notifyMetadataUpdate(result, 'Status updated successfully', false);
       asset.status_short_name = status.short_name;
       asset.status = status;
       

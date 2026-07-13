@@ -283,7 +283,8 @@ const updateCollectionMeta = async () => {
   }
   if (currentCollection.isShared != isShared.value) {
     await CollectionService.ChangeIsShared(projectStore.activeProject.uri, collectionId, isShared.value)
-      .then(() => {
+      .then((result) => {
+        notificationStore.notifyMetadataUpdate(result, 'Sharing updated successfully', false);
         currentCollection.isShared = isShared.value;
       })
       .catch((error) => {

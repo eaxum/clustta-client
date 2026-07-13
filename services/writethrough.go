@@ -126,18 +126,7 @@ func (b *writeThroughBatcher) getRemoteURL(projectPath string) (string, error) {
 		return cached.(string), nil
 	}
 
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return "", err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return "", err
-	}
-	defer tx.Rollback()
-
-	remote, err := utils.GetRemoteUrl(tx)
+	remote, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil || remote == "" {
 		return "", err
 	}

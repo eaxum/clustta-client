@@ -185,21 +185,23 @@ const assignAsset = (assigneeId) => {
 const assignMultipleAssets = async (assigneeId) => {
   let assetIds = stage.markedItems;
 
-  for (const assetId of assetIds) {
-    await AssetService.AssignAsset(projectStore.activeProject.uri, assetId, assigneeId)
-      .then(async () => {
+  return await AssetService.AssignAssets(projectStore.activeProject.uri, assetIds, assigneeId)
+    .then(async (result) => {
+      for (const assetId of assetIds) {
         emitAssetUpdates(assetId, [
           { property: 'assignee_id', value: assigneeId },
           { property: 'is_resource', value: false }
         ]);
-        menu.disableAllMenus();
-      })
-      .catch((error) => {
-        console.log(error);
-        notificationStore.errorNotification(t('notifications.errorAssigningAsset'), error);
-      });
-  }
-  notificationStore.addNotification(t('notifications.assetsAssigned'), "", "success");
+      }
+      menu.disableAllMenus();
+      notificationStore.notifyMetadataUpdate(result, t('notifications.assetsAssigned'));
+      return result;
+    })
+    .catch((error) => {
+      console.log(error);
+      notificationStore.errorNotification(t('notifications.errorAssigningAsset'), error);
+      return undefined;
+    });
 };
 
 // Assigns a single asset to a user.
@@ -209,8 +211,8 @@ const assignSingleAsset = async (assigneeId) => {
   let user = collaboratorsList.value.find((item) => item.id === assigneeId);
   let userId = user ? user.id : "";
   
-  await AssetService.AssignAsset(projectStore.activeProject.uri, assetId, userId)
-    .then(async () => {
+  return await AssetService.AssignAsset(projectStore.activeProject.uri, assetId, userId)
+    .then(async (result) => {
       selectedAsset.assignee_id = userId;
       selectedAsset.is_resource = false;
       emitAssetUpdates(assetId, [
@@ -218,11 +220,13 @@ const assignSingleAsset = async (assigneeId) => {
         { property: 'is_resource', value: false }
       ]);
       menu.disableAllMenus();
-      notificationStore.addNotification(t('notifications.assetAssigned'), "", "success");
+      notificationStore.notifyMetadataUpdate(result, t('notifications.assetAssigned'));
+      return result;
     })
     .catch((error) => {
       console.log(error);
       notificationStore.errorNotification(t('notifications.errorAssigningAsset'), error);
+      return undefined;
     });
 };
 
@@ -244,13 +248,13 @@ const assignStudioUser = async (user) => {
     await ProjectService.AddUser(projectStore.activeProject.uri, user.email, defaultRole);
     await userStore.reloadUsers();
     
-    if (!multipleAssets.value) {
-      await assignSingleAsset(user.id);
-    } else {
-      await assignMultipleAssets(user.id);
+    const result = !multipleAssets.value
+      ? await assignSingleAsset(user.id)
+      : await assignMultipleAssets(user.id);
+
+    if (result && !result.requires_sync) {
+      notificationStore.addNotification(t('notifications.userAddedAndAssigned'), "", "success");
     }
-    
-    notificationStore.addNotification(t('notifications.userAddedAndAssigned'), "", "success");
   } catch (error) {
     console.error(error);
     notificationStore.errorNotification(t('notifications.errorAddingUserToProject'), error);
@@ -295,20 +299,20 @@ const unassignAsset = () => {
 const unassignMultipleAssets = async () => {
   let assetIds = stage.markedItems;
 
-  for (const assetId of assetIds) {
-    await AssetService.UnassignAsset(projectStore.activeProject.uri, assetId)
-      .then(async () => {
+  await AssetService.UnassignAssets(projectStore.activeProject.uri, assetIds)
+    .then(async (result) => {
+      for (const assetId of assetIds) {
         let asset = assetStore.findAsset(assetId);
         asset.assignee_id = null;
         emitAssetUpdates(assetId, [{ property: 'assignee_id', value: null }]);
-        menu.disableAllMenus();
-      })
-      .catch((error) => {
-        console.log(error);
-        notificationStore.errorNotification(t('notifications.errorUnassigningAsset'), error);
-      });
-  }
-  notificationStore.addNotification(t('notifications.assetsUnassigned'), "", "success");
+      }
+      menu.disableAllMenus();
+      notificationStore.notifyMetadataUpdate(result, t('notifications.assetsUnassigned'));
+    })
+    .catch((error) => {
+      console.log(error);
+      notificationStore.errorNotification(t('notifications.errorUnassigningAsset'), error);
+    });
 };
 
 // Unassigns a single asset.
@@ -317,10 +321,10 @@ const unassignSingleAsset = async () => {
   let assetId = selectedAsset.id;
   
   await AssetService.UnassignAsset(projectStore.activeProject.uri, assetId)
-    .then(async () => {
+    .then(async (result) => {
       selectedAsset.assignee_id = null;
       emitAssetUpdates(assetId, [{ property: 'assignee_id', value: null }]);
-      notificationStore.addNotification(t('notifications.assetUnassigned'), "", "success");
+      notificationStore.notifyMetadataUpdate(result, t('notifications.assetUnassigned'));
       menu.disableAllMenus();
     })
     .catch((error) => {

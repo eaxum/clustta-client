@@ -598,27 +598,31 @@ const revertAllChanges = async () => {
 // Unassigns all collaborators from assets.
 const unassignAssets = async () => {
   menu.hideContextMenu();
-  for (const assetId of stage.markedItems) {
-    await AssetService.UnassignAsset(projectStore.activeProject.uri, assetId).catch((error) => { console.log(error); notificationStore.errorNotification(t('components.detailsPane.errorAssigningAsset'), error); });
+  try {
+    const result = await AssetService.UnassignAssets(projectStore.activeProject.uri, stage.markedItems);
+    notificationStore.notifyMetadataUpdate(result, t('components.detailsPane.assetsUnassignedSuccessfully'));
+  } catch (error) {
+    console.log(error);
+    notificationStore.errorNotification(t('components.detailsPane.errorAssigningAsset'), error);
+    return;
   }
   emitter.emit('refresh-browser');
-  notificationStore.addNotification(t('components.detailsPane.assetsUnassignedSuccessfully'), "", "success");
 };
 
 // Unassigns all collaborators from collections.
 const unassignCollections = async () => {
   menu.hideContextMenu();
   stage.operationActive = true;
-  for (const collection of stage.selectedItems) {
-    const currentAssigneeIds = collection.assignee_ids || [];
-    for (const assigneeId of currentAssigneeIds) {
-      await CollectionService.Unassign(projectStore.activeProject.uri, collection.id, assigneeId)
-        .then(() => {
-          const itemIndex = stage.selectedItems.findIndex(item => item.id === collection.id);
-          if (itemIndex !== -1) stage.selectedItems[itemIndex].assignee_ids = stage.selectedItems[itemIndex].assignee_ids.filter(id => id !== assigneeId);
-        })
-        .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorRemovingUser'), error); console.error('Error removing user:', error); });
-    }
+  const collectionIds = stage.selectedItems.filter(item => item.type === 'collection').map(item => item.id);
+  try {
+    const result = await CollectionService.UnassignCollections(projectStore.activeProject.uri, collectionIds);
+    notificationStore.notifyMetadataUpdate(result, 'Collections unassigned successfully', false);
+    stage.selectedItems.filter(item => item.type === 'collection').forEach(item => { item.assignee_ids = []; });
+  } catch (error) {
+    notificationStore.errorNotification(t('components.detailsPane.errorRemovingUser'), error);
+    console.error('Error removing user:', error);
+    stage.operationActive = false;
+    return;
   }
   emitter.emit('refresh-browser');
   stage.operationActive = false;

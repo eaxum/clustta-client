@@ -697,15 +697,15 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 	}
 
 	userData := &repositorypb.ProjectData{
-		ProjectPreview:  projectPreview.Hash,
+		ProjectPreview:      projectPreview.Hash,
 		CollectionTypes:     repository.ToPbCollectionTypes(collectionTypes),
-		Collections:        repository.ToPbCollections(collections),
+		Collections:         repository.ToPbCollections(collections),
 		CollectionAssignees: repository.ToPbCollectionAssignees(collectionAssignees),
 
-		AssetTypes:          repository.ToPbAssetTypes(assetTypes),
-		Assets:              repository.ToPbAssets(assets),
-		AssetCheckpoints:   repository.ToPbCheckpoints(assetsCheckpoints),
-		AssetDependencies:   repository.ToPbAssetDependencies(assetDependencies),
+		AssetTypes:             repository.ToPbAssetTypes(assetTypes),
+		Assets:                 repository.ToPbAssets(assets),
+		AssetCheckpoints:       repository.ToPbCheckpoints(assetsCheckpoints),
+		AssetDependencies:      repository.ToPbAssetDependencies(assetDependencies),
 		CollectionDependencies: repository.ToPbCollectionDependencies(collectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(statuses),
@@ -716,10 +716,10 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 
 		Templates: repository.ToPbTemplates(templates),
 
-		Workflows:        repository.ToPbWorkflows(workflows),
-		WorkflowLinks:    repository.ToPbWorkflowLinks(workflowLinks),
+		Workflows:           repository.ToPbWorkflows(workflows),
+		WorkflowLinks:       repository.ToPbWorkflowLinks(workflowLinks),
 		WorkflowCollections: repository.ToPbWorkflowCollections(workflowCollections),
-		WorkflowAssets:    repository.ToPbWorkflowAssets(workflowAssets),
+		WorkflowAssets:      repository.ToPbWorkflowAssets(workflowAssets),
 
 		Tags:      repository.ToPbTags(tags),
 		AssetTags: repository.ToPbAssetTags(assetsTags),
@@ -896,7 +896,8 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 		return userData, err
 	}
 
-	tombs, err := repository.GetTombs(tx)
+	tombs := []repository.Tomb{}
+	err = tx.Select(&tombs, "SELECT id, mtime, table_name, synced FROM tomb WHERE synced = 0")
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
@@ -1139,15 +1140,15 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 	}
 
 	userData := &repositorypb.ProjectData{
-		ProjectPreview:  projectPreview.Hash,
+		ProjectPreview:      projectPreview.Hash,
 		CollectionTypes:     repository.ToPbCollectionTypes(collectionTypes),
-		Collections:        repository.ToPbCollections(collections),
+		Collections:         repository.ToPbCollections(collections),
 		CollectionAssignees: repository.ToPbCollectionAssignees(collectionAssignees),
 
-		AssetTypes:          repository.ToPbAssetTypes(assetTypes),
-		Assets:              repository.ToPbAssets(assets),
-		AssetCheckpoints:   repository.ToPbCheckpoints(assetsCheckpoints),
-		AssetDependencies:   repository.ToPbAssetDependencies(assetDependencies),
+		AssetTypes:             repository.ToPbAssetTypes(assetTypes),
+		Assets:                 repository.ToPbAssets(assets),
+		AssetCheckpoints:       repository.ToPbCheckpoints(assetsCheckpoints),
+		AssetDependencies:      repository.ToPbAssetDependencies(assetDependencies),
 		CollectionDependencies: repository.ToPbCollectionDependencies(collectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(statuses),
@@ -1158,10 +1159,10 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 
 		Templates: repository.ToPbTemplates(templates),
 
-		Workflows:        repository.ToPbWorkflows(workflows),
-		WorkflowLinks:    repository.ToPbWorkflowLinks(workflowLinks),
+		Workflows:           repository.ToPbWorkflows(workflows),
+		WorkflowLinks:       repository.ToPbWorkflowLinks(workflowLinks),
 		WorkflowCollections: repository.ToPbWorkflowCollections(workflowCollections),
-		WorkflowAssets:    repository.ToPbWorkflowAssets(workflowAssets),
+		WorkflowAssets:      repository.ToPbWorkflowAssets(workflowAssets),
 
 		Tags:      repository.ToPbTags(tags),
 		AssetTags: repository.ToPbAssetTags(assetsTags),

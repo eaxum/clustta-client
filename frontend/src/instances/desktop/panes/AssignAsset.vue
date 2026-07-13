@@ -111,9 +111,9 @@ const assignAsset = async (index) => {
   let user = collaboratorsList.value[index];
   let userId = user ? user.id : "";
   await AssetService.AssignAsset(projectStore.activeProject.uri, assetId, userId)
-    .then(async (data) => {
+    .then(async (result) => {
       assetStore.findAsset(assetId).assignee_id = userId;
-      notificationStore.addNotification(t('notifications.assetAssigned'), "", "success")
+      notificationStore.notifyMetadataUpdate(result, t('notifications.assetAssigned'))
     })
     .catch((error) => {
       console.log(error)
@@ -125,9 +125,9 @@ const unassignAsset = async (index) => {
   let asset = collection.value;
   let assetId = collection.value.id;
   await AssetService.UnassignAsset(projectStore.activeProject.uri, assetId)
-    .then(async (data) => {
+    .then(async (result) => {
       assetStore.findAsset(assetId).assignee_id = ""
-      notificationStore.addNotification(t('notifications.assetUnassigned'), "", "success")
+      notificationStore.notifyMetadataUpdate(result, t('notifications.assetUnassigned'))
     })
     .catch((error) => {
       console.log(error)

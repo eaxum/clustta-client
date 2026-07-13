@@ -76,20 +76,37 @@ export function AssetFilesStatus(projectPath, assetIds) {
  * @param {string} projectPath
  * @param {string} assetId
  * @param {string} userId
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function AssignAsset(projectPath, assetId, userId) {
-    return $Call.ByID(1650043410, projectPath, assetId, userId);
+    return $Call.ByID(1650043410, projectPath, assetId, userId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
+}
+
+/**
+ * AssignAssets assigns assets atomically; remote projects use one PATCH request.
+ * @param {string} projectPath
+ * @param {string[]} assetIds
+ * @param {string} userId
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
+ */
+export function AssignAssets(projectPath, assetIds, userId) {
+    return $Call.ByID(874985139, projectPath, assetIds, userId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**
  * @param {string} projectPath
  * @param {string[]} assetIds
  * @param {boolean} isTask
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function BulkToggleIsTask(projectPath, assetIds, isTask) {
-    return $Call.ByID(938403102, projectPath, assetIds, isTask);
+    return $Call.ByID(938403102, projectPath, assetIds, isTask).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**
@@ -121,10 +138,12 @@ export function ChangeAssetType(projectPath, assetId, assetTypeId) {
  * @param {string} projectPath
  * @param {string[]} assetIds
  * @param {string} statusId
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function ChangeStatus(projectPath, assetIds, statusId) {
-    return $Call.ByID(2581918589, projectPath, assetIds, statusId);
+    return $Call.ByID(2581918589, projectPath, assetIds, statusId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**
@@ -170,7 +189,7 @@ export function CreateAsset(projectPath, name, description, assetTypeId, collect
  */
 export function CreateAssetType(projectPath, name, icon) {
     return $Call.ByID(2315337865, projectPath, name, icon).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
@@ -212,7 +231,7 @@ export function DuplicateAsset(projectPath, sourceAssetId, targetCollectionId) {
  */
 export function GetAssetAssets(projectPath) {
     return $Call.ByID(677448758, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -252,7 +271,7 @@ export function GetAssetCount(projectPath) {
  */
 export function GetAssetDependencies(projectPath, assetIds) {
     return $Call.ByID(2929165906, projectPath, assetIds).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
 }
 
@@ -263,7 +282,7 @@ export function GetAssetDependencies(projectPath, assetIds) {
  */
 export function GetAssetDependencies2(projectPath, assetIds) {
     return $Call.ByID(948472096, projectPath, assetIds).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -283,7 +302,7 @@ export function GetAssetState(projectPath, assetId) {
  */
 export function GetAssetTypes(projectPath) {
     return $Call.ByID(3278131604, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -293,7 +312,7 @@ export function GetAssetTypes(projectPath) {
  */
 export function GetAssets(projectPath) {
     return $Call.ByID(4140153068, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -315,7 +334,7 @@ export function GetAssetsPB(projectPath) {
  */
 export function GetAssetsStates(projectPath, projectWorkingDir, ignoreList) {
     return $Call.ByID(4116784294, projectPath, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -329,7 +348,7 @@ export function GetAssetsStates(projectPath, projectWorkingDir, ignoreList) {
  */
 export function GetCollectionDescendantAssets(projectPath, collectionId, includeResources) {
     return $Call.ByID(2603506523, projectPath, collectionId, includeResources).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -341,7 +360,7 @@ export function GetCollectionDescendantAssets(projectPath, collectionId, include
  */
 export function GetRecursiveDependencies(projectPath, assetId, maxDepth) {
     return $Call.ByID(2219419678, projectPath, assetId, maxDepth).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
 }
 
@@ -355,7 +374,7 @@ export function GetRecursiveDependencies(projectPath, assetId, maxDepth) {
  */
 export function GetSiblingAssetNames(projectPath, collectionId, extension) {
     return $Call.ByID(3568231505, projectPath, collectionId, extension).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -367,7 +386,7 @@ export function GetSiblingAssetNames(projectPath, collectionId, extension) {
  */
 export function GetUntrackedFiles(projectPath, projectWorkingDir, ignoreList) {
     return $Call.ByID(1088682931, projectPath, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -426,7 +445,7 @@ export function RenameAsset(projectPath, assetId, name) {
  */
 export function ResolveBuildDependencies(projectPath, assetId) {
     return $Call.ByID(1805101810, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -460,28 +479,34 @@ export function ToggleIsResource(projectPath, assetIds, isResource) {
  * @param {string} projectPath
  * @param {string} assetId
  * @param {boolean} isTask
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function ToggleIsTask(projectPath, assetId, isTask) {
-    return $Call.ByID(1903957406, projectPath, assetId, isTask);
+    return $Call.ByID(1903957406, projectPath, assetId, isTask).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**
  * @param {string} projectPath
  * @param {string} assetId
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function UnassignAsset(projectPath, assetId) {
-    return $Call.ByID(2170415471, projectPath, assetId);
+    return $Call.ByID(2170415471, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**
  * @param {string} projectPath
  * @param {string[]} assetIds
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function UnassignAssets(projectPath, assetIds) {
-    return $Call.ByID(3268802324, projectPath, assetIds);
+    return $Call.ByID(3268802324, projectPath, assetIds).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**
@@ -507,16 +532,17 @@ export function UpdateAsset(projectPath, assetId, name, assetTypeId, isResource,
  */
 export function UpdateAssetType(projectPath, id, name, icon) {
     return $Call.ByID(865399386, projectPath, id, name, icon).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
 // Private type creation functions
 const $$createType0 = models$0.AssetDependency.createFrom;
 const $$createType1 = $Create.Map($Create.Any, $Create.Any);
-const $$createType2 = models$0.AssetType.createFrom;
-const $$createType3 = $Create.Array($Create.Any);
+const $$createType2 = $models.MetadataUpdateResult.createFrom;
+const $$createType3 = models$0.AssetType.createFrom;
 const $$createType4 = $Create.Array($Create.Any);
-const $$createType5 = $Create.Array($$createType2);
-const $$createType6 = $models.AssetsStates.createFrom;
-const $$createType7 = $Create.Array($Create.Any);
+const $$createType5 = $Create.Array($Create.Any);
+const $$createType6 = $Create.Array($$createType3);
+const $$createType7 = $models.AssetsStates.createFrom;
+const $$createType8 = $Create.Array($Create.Any);

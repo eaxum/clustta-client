@@ -233,7 +233,8 @@ const copyCollectionId = async () => {
 const removeUser = (user) => {
   const userId = user.id;
   CollectionService.Unassign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
-    .then((data) => {
+    .then((result) => {
+      notificationStore.notifyMetadataUpdate(result, 'User removed successfully', false);
       // Update local collection data
       collectionStore.selectedCollection.assignee_ids = collectionStore.selectedCollection.assignee_ids.filter(t => t !== userId);
       
@@ -258,7 +259,8 @@ const addUser = (user) => {
   }
   else {
     CollectionService.Assign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
-      .then((data) => {
+      .then((result) => {
+        notificationStore.notifyMetadataUpdate(result, 'User added successfully', false);
         // Update local collection data
         collectionStore.selectedCollection.assignee_ids.push(userId);
         
@@ -310,7 +312,7 @@ const changeCollectionType = async (collectionTypeName) => {
   let collection = collectionStore.selectedCollection;
 
   await CollectionService.ChangeType(projectPath, collection.id, newCollectionType.id)
-    .then((data) => {
+    .then((result) => {
       // Update local collection data
       collection.collection_type_name = newCollectionType.name;
       collection.collection_type_icon = newCollectionType.icon;
@@ -336,7 +338,8 @@ const changeIsShared = async () => {
   let collection = collectionStore.selectedCollection;
 
   await CollectionService.ChangeIsShared(projectPath, collection.id, !collectionStore.selectedCollection.is_shared)
-    .then((data) => {
+    .then((result) => {
+      notificationStore.notifyMetadataUpdate(result, 'Sharing updated successfully', false);
       // Update local collection data
       collectionStore.selectedCollection.is_shared = !collectionStore.selectedCollection.is_shared;
       

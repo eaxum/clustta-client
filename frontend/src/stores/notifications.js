@@ -33,6 +33,18 @@ export const useNotificationStore = defineStore("notifications", {
     },
   },
   actions: {
+    notifyMetadataUpdate(result, successMessage = "", notifyOnSuccess = true) {
+      if (result?.requires_sync) {
+        const message = successMessage || "Updated successfully";
+        this.addNotification(
+          `${message}: Network unavailable, manual sync required`,
+          "The change was saved locally. Sync manually when the project server is available.",
+          "warning"
+        );
+      } else if (successMessage && notifyOnSuccess) {
+        this.addNotification(successMessage, "", "success");
+      }
+    },
     addNotification(message, longMessage, type, hasUndo = false) {
       let notification = {
         message: message,

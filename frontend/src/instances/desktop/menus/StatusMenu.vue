@@ -15,6 +15,7 @@ import { useStatusStore } from '@/stores/status';
 import { useUserStore } from '@/stores/users';
 import { useStageStore } from '@/stores/stages';
 import { useProjectStore } from '@/stores/projects';
+import { useNotificationStore } from '@/stores/notifications';
 
 
 // services
@@ -27,6 +28,7 @@ const assetStore = useAssetStore();
 const statusStore = useStatusStore();
 const userStore = useUserStore();
 const projectStore = useProjectStore();
+const notificationStore = useNotificationStore();
 
 
 const emits = defineEmits(['statusSelected']);
@@ -49,7 +51,8 @@ const selectStatus = async (fullStatus) => {
   let asset = assetStore.selectedAsset;
   
   await AssetService.ChangeStatus(projectPath, [asset.id], status.id)
-    .then((data) => {
+    .then((result) => {
+      notificationStore.notifyMetadataUpdate(result, 'Status updated successfully', false);
       asset.status_short_name = status.short_name;
       asset.status = status;
       

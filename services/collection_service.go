@@ -2282,94 +2282,316 @@ func (e *CollectionService) ChangeType(projectPath, collectionId, collectionType
 
 // ChangeIsShared toggles the shared flag on a collection.
 // Returns an error if the operation fails.
-func (e *CollectionService) ChangeIsShared(projectPath, collectionId string, isShared bool) error {
+func (e *CollectionService) ChangeIsShared(projectPath, collectionId string, isShared bool) (MetadataUpdateResult, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		response, err := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, IsShared: &isShared}})
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, err
+			}
+			remoteFailure = err
+		} else {
+			db, err := utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err := db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalCollections(tx, response.Collections); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
 	err = repository.ChangeIsShared(tx, collectionId, isShared)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	collection, err := repository.GetSimpleCollection(tx, collectionId)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	enqueueCollectionWriteThrough(projectPath, collection)
-	return nil
+	if remoteFailure == nil {
+		enqueueCollectionWriteThrough(projectPath, collection)
+	}
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
 
 // Assign assigns a user to a collection.
 // Returns an error if the operation fails.
-func (e *CollectionService) Assign(projectPath, collectionId, userId string) error {
+func (e *CollectionService) Assign(projectPath, collectionId, userId string) (MetadataUpdateResult, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		response, err := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, AddAssigneeIds: []string{userId}}})
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, err
+			}
+			remoteFailure = err
+		} else {
+			db, err := utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err := db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalCollections(tx, response.Collections); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if err = applyCanonicalCollectionAssignees(tx, response.CollectionAssignees); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
 	err = repository.AssignCollection(tx, collectionId, userId)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	collection, err := repository.GetSimpleCollection(tx, collectionId)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	enqueueCollectionWriteThrough(projectPath, collection)
-	return nil
+	if remoteFailure == nil {
+		enqueueCollectionWriteThrough(projectPath, collection)
+	}
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
 
 // Unassign removes a user assignment from a collection.
 // Returns an error if the operation fails.
-func (e *CollectionService) Unassign(projectPath, collectionId, userId string) error {
+func (e *CollectionService) Unassign(projectPath, collectionId, userId string) (MetadataUpdateResult, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		response, err := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, RemoveAssigneeIds: []string{userId}}})
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, err
+			}
+			remoteFailure = err
+		} else {
+			db, err := utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err := db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalCollections(tx, response.Collections); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			var id string
+			_ = tx.Get(&id, "SELECT id FROM collection_assignee WHERE collection_id=? AND assignee_id=?", collectionId, userId)
+			if _, err = tx.Exec("DELETE FROM collection_assignee WHERE collection_id=? AND assignee_id=?", collectionId, userId); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if id != "" {
+				if _, err = tx.Exec("UPDATE tomb SET synced=1 WHERE id=? AND table_name='collection_assignee'", id); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
 	err = repository.UnAssignCollection(tx, collectionId, userId)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	collection, err := repository.GetSimpleCollection(tx, collectionId)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	enqueueCollectionWriteThrough(projectPath, collection)
-	return nil
+	if remoteFailure == nil {
+		enqueueCollectionWriteThrough(projectPath, collection)
+	}
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
+}
+
+// UnassignCollections removes every direct assignee from the supplied collections atomically.
+func (e *CollectionService) UnassignCollections(projectPath string, collectionIds []string) (MetadataUpdateResult, error) {
+	if len(collectionIds) == 0 {
+		return MetadataUpdateResult{}, nil
+	}
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, err
+	}
+	tx, err := db.Beginx()
+	if err != nil {
+		db.Close()
+		return MetadataUpdateResult{}, err
+	}
+	patches := make([]collectionPatch, 0, len(collectionIds))
+	for _, collectionId := range collectionIds {
+		var ids []string
+		if err = tx.Select(&ids, "SELECT assignee_id FROM collection_assignee WHERE collection_id=?", collectionId); err != nil {
+			tx.Rollback()
+			db.Close()
+			return MetadataUpdateResult{}, err
+		}
+		patches = append(patches, collectionPatch{Id: collectionId, RemoveAssigneeIds: ids})
+	}
+	tx.Rollback()
+	db.Close()
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		response, remoteErr := patchCollectionsRemote(remoteURL, patches)
+		if remoteErr != nil {
+			if !IsMetadataTransportFailure(remoteErr) {
+				return MetadataUpdateResult{}, remoteErr
+			}
+			remoteFailure = remoteErr
+		} else {
+			db, err = utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err = db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalCollections(tx, response.Collections); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			for _, patch := range patches {
+				for _, userId := range patch.RemoveAssigneeIds {
+					var id string
+					_ = tx.Get(&id, "SELECT id FROM collection_assignee WHERE collection_id=? AND assignee_id=?", patch.Id, userId)
+					if _, err = tx.Exec("DELETE FROM collection_assignee WHERE collection_id=? AND assignee_id=?", patch.Id, userId); err != nil {
+						return MetadataUpdateResult{}, err
+					}
+					if id != "" {
+						if _, err = tx.Exec("UPDATE tomb SET synced=1 WHERE id=? AND table_name='collection_assignee'", id); err != nil {
+							return MetadataUpdateResult{}, err
+						}
+					}
+				}
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
+	}
+
+	db, err = utils.OpenDb(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, err
+	}
+	defer db.Close()
+	tx, err = db.Beginx()
+	if err != nil {
+		return MetadataUpdateResult{}, err
+	}
+	defer tx.Rollback()
+	collections := make([]models.Collection, 0, len(patches))
+	for _, patch := range patches {
+		for _, userId := range patch.RemoveAssigneeIds {
+			if err = repository.UnAssignCollection(tx, patch.Id, userId); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+		}
+		collection, getErr := repository.GetSimpleCollection(tx, patch.Id)
+		if getErr != nil {
+			return MetadataUpdateResult{}, getErr
+		}
+		collections = append(collections, collection)
+	}
+	if err = tx.Commit(); err != nil {
+		return MetadataUpdateResult{}, err
+	}
+	if remoteFailure == nil {
+		for _, collection := range collections {
+			enqueueCollectionWriteThrough(projectPath, collection)
+		}
+	}
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
 
 // CreateCollectionType creates a new collection type in the project.

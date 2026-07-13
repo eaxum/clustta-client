@@ -77,6 +77,7 @@ import { useStatusStore } from '@/stores/status';
 import { useDndStore } from '@/stores/dnd';
 import { useMenu } from '@/stores/menu';
 import { useProjectStore } from '@/stores/projects';
+import { useNotificationStore } from '@/stores/notifications';
 
 // components
 import AssetItemCard from '@/instances/desktop/components/AssetItemCard.vue'
@@ -90,6 +91,7 @@ const commonStore = useCommonStore();
 const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
+const notificationStore = useNotificationStore();
 
 // props
 const props = defineProps({
@@ -431,7 +433,8 @@ const setStatus = async () => {
   try {
     const projectPath = projectStore.activeProject?.uri;
     if (projectPath && assetId && status) {
-      await AssetService.ChangeStatus(projectPath, [assetId], status.id);
+      const result = await AssetService.ChangeStatus(projectPath, [assetId], status.id);
+      notificationStore.notifyMetadataUpdate(result, 'Status updated successfully', false);
       
       // The card position has already been updated in putCardInColumn
       // No need to update local data again here since putCardInColumn handles positioning

@@ -231,6 +231,26 @@ func GetRemoteUrl(tx *sqlx.Tx) (string, error) {
 	return remoteUrl, nil
 }
 
+// ResolveProjectRemoteURL resolves a project's configured remote without coupling
+// callers to synchronization or write-through services.
+func ResolveProjectRemoteURL(projectPath string) (string, error) {
+	dbConn, err := OpenDb(projectPath)
+	if err != nil {
+		return "", err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	remoteURL, err := GetRemoteUrl(tx)
+	if err == sql.ErrNoRows {
+		return "", nil
+	}
+	return remoteURL, err
+}
+
 // SetRemoteUrl writes the remote project URL to the config table.
 func SetRemoteUrl(tx *sqlx.Tx, remoteUrl string) error {
 	_, err := tx.Exec("UPDATE config SET value = ?, mtime = ? WHERE name = 'remote'", remoteUrl, GetEpochTime())

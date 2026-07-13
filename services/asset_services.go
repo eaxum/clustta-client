@@ -625,44 +625,62 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceAssetId, targ
 
 // ChangeStatus updates asset statuses on the remote server first, then locally.
 // If no remote is configured, falls back to local-only update.
-func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statusId string) error {
-	remoteURL, _ := batcher.getRemoteURL(projectPath)
+func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statusId string) (MetadataUpdateResult, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
 
-	// Remote-first: push to server, only update local on confirmation
+	// Remote-first: push to the typed asset mutation endpoint, then apply canonical rows locally.
 	remoteConfirmed := false
+	var remoteFailure error
+	var remoteAssets []models.Asset
 	if remoteURL != "" {
-		err := postStatusChangeRemote(remoteURL, assetIds, statusId)
-		if err != nil {
-			return fmt.Errorf("remote status update failed: %w", err)
+		patches := make([]assetPatch, 0, len(assetIds))
+		for _, assetId := range assetIds {
+			id := statusId
+			patches = append(patches, assetPatch{Id: assetId, StatusId: &id})
 		}
-		remoteConfirmed = true
+		response, err := patchAssetsRemote(remoteURL, patches)
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, fmt.Errorf("remote status update failed: %w", err)
+			}
+			remoteFailure = err
+		} else {
+			remoteAssets = response.Assets
+			remoteConfirmed = true
+		}
 	}
 
 	// Apply locally after remote confirmation (or directly if no remote)
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
-	for _, assetId := range assetIds {
-		if remoteConfirmed {
-			err = repository.UpdateStatusOnly(tx, assetId, statusId)
-		} else {
+	if !remoteConfirmed {
+		for _, assetId := range assetIds {
 			err = repository.UpdateStatus(tx, assetId, statusId)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
 		}
-		if err != nil {
-			return err
+	}
+	if remoteConfirmed {
+		if err = applyCanonicalAssets(tx, remoteAssets); err != nil {
+			return MetadataUpdateResult{}, err
 		}
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 
 	// Push status to external integration (non-blocking)
@@ -673,7 +691,7 @@ func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statu
 		}
 	}()
 
-	return nil
+	return MetadataUpdateResult{RemoteApplied: remoteConfirmed, RequiresSync: remoteFailure != nil}, nil
 }
 
 // postStatusChangeRemote sends a status change request to the remote server.
@@ -954,65 +972,80 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 	return nil
 }
 
-func (t *AssetService) ToggleIsTask(projectPath, assetId string, isTask bool) error {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	err = repository.ToggleIsTask(tx, assetId, isTask)
-	if err != nil {
-		return err
-	}
-	asset, err := repository.GetSimpleAsset(tx, assetId)
-	if err != nil {
-		return err
-	}
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	enqueueAssetWriteThrough(projectPath, asset)
-	return nil
+func (t *AssetService) ToggleIsTask(projectPath, assetId string, isTask bool) (MetadataUpdateResult, error) {
+	return t.BulkToggleIsTask(projectPath, []string{assetId}, isTask)
 }
 
-func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, isTask bool) error {
+func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, isTask bool) (MetadataUpdateResult, error) {
 	if len(assetIds) == 0 {
-		return nil
+		return MetadataUpdateResult{}, nil
+	}
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		patches := make([]assetPatch, 0, len(assetIds))
+		for _, assetId := range assetIds {
+			value := isTask
+			patches = append(patches, assetPatch{Id: assetId, IsTask: &value})
+		}
+		response, err := patchAssetsRemote(remoteURL, patches)
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, err
+			}
+			remoteFailure = err
+		} else {
+			db, err := utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err := db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
 	}
 
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
 	err = repository.BulkToggleIsTask(tx, assetIds, isTask)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	assets, err := repository.GetSimpleAssetsByIds(tx, assetIds)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 
-	go enqueueAssetsWriteThrough(projectPath, assets)
-	return nil
+	if remoteFailure == nil {
+		go enqueueAssetsWriteThrough(projectPath, assets)
+	}
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
 
 func (t *AssetService) RenameAsset(projectPath, assetId, name string) (models.Asset, error) {
@@ -1081,89 +1114,211 @@ func (t *AssetService) AddPreview(projectPath, assetId, previewPath string) (mod
 
 // AssignAsset assigns a asset to a user.
 // If the asset is a resource (is_resource == true), it will be converted to a asset first.
-func (t *AssetService) AssignAsset(projectPath, assetId, userId string) error {
+func (t *AssetService) AssignAsset(projectPath, assetId, userId string) (MetadataUpdateResult, error) {
+	return t.AssignAssets(projectPath, []string{assetId}, userId)
+}
+
+// AssignAssets assigns assets atomically; remote projects use one PATCH request.
+func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userId string) (MetadataUpdateResult, error) {
+	if len(assetIds) == 0 {
+		return MetadataUpdateResult{}, nil
+	}
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		uid := userId
+		patches := make([]assetPatch, 0, len(assetIds))
+		for _, assetId := range assetIds {
+			patches = append(patches, assetPatch{Id: assetId, AssigneeId: &uid})
+		}
+		response, err := patchAssetsRemote(remoteURL, patches)
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, err
+			}
+			remoteFailure = err
+		} else {
+			db, err := utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err := db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
-	asset, err := repository.GetAsset(tx, assetId)
-	if err != nil {
-		return err
-	}
-
-	if asset.IsResource {
-		err = repository.ToggleIsTask(tx, assetId, true)
+	assets := make([]models.Asset, 0, len(assetIds))
+	for _, assetId := range assetIds {
+		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
-			return err
+			return MetadataUpdateResult{}, err
 		}
-	}
-
-	err = repository.AssignAsset(tx, assetId, userId)
-	if err != nil {
-		return err
-	}
-	asset, err = repository.GetSimpleAsset(tx, assetId)
-	if err != nil {
-		return err
+		if asset.IsResource {
+			if err = repository.ToggleIsTask(tx, assetId, true); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+		}
+		if err = repository.AssignAsset(tx, assetId, userId); err != nil {
+			return MetadataUpdateResult{}, err
+		}
+		asset, err = repository.GetSimpleAsset(tx, assetId)
+		if err != nil {
+			return MetadataUpdateResult{}, err
+		}
+		assets = append(assets, asset)
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	enqueueAssetWriteThrough(projectPath, asset)
-	return nil
+	if remoteFailure == nil {
+		enqueueAssetsWriteThrough(projectPath, assets)
+	}
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
-func (t *AssetService) UnassignAsset(projectPath, assetId string) error {
+func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdateResult, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		empty := ""
+		response, err := patchAssetsRemote(remoteURL, []assetPatch{{Id: assetId, AssigneeId: &empty}})
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, err
+			}
+			remoteFailure = err
+		} else {
+			db, err := utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err := db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
 	err = repository.UnAssignAsset(tx, assetId)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	asset, err := repository.GetSimpleAsset(tx, assetId)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	enqueueAssetWriteThrough(projectPath, asset)
-	return nil
+	if remoteFailure == nil {
+		enqueueAssetWriteThrough(projectPath, asset)
+	}
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
-func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) error {
+func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (MetadataUpdateResult, error) {
+	if len(assetIds) == 0 {
+		return MetadataUpdateResult{}, nil
+	}
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	var remoteFailure error
+	if remoteURL != "" {
+		empty := ""
+		patches := make([]assetPatch, 0, len(assetIds))
+		for _, assetId := range assetIds {
+			patches = append(patches, assetPatch{Id: assetId, AssigneeId: &empty})
+		}
+		response, err := patchAssetsRemote(remoteURL, patches)
+		if err != nil {
+			if !IsMetadataTransportFailure(err) {
+				return MetadataUpdateResult{}, err
+			}
+			remoteFailure = err
+		} else {
+			db, err := utils.OpenDb(projectPath)
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer db.Close()
+			tx, err := db.Beginx()
+			if err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+			return MetadataUpdateResult{RemoteApplied: true}, nil
+		}
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
 
 	err = repository.UnAssignAssets(tx, assetIds)
 	if err != nil {
 		tx.Rollback()
-		return err
+		return MetadataUpdateResult{}, err
 	}
 	var unassignedAssets []models.Asset
 	for _, id := range assetIds {
@@ -1174,12 +1329,14 @@ func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	for _, asset := range unassignedAssets {
-		enqueueAssetWriteThrough(projectPath, asset)
+	if remoteFailure == nil {
+		for _, asset := range unassignedAssets {
+			enqueueAssetWriteThrough(projectPath, asset)
+		}
 	}
-	return nil
+	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
 func (t *AssetService) AssetFileStatus(projectPath, assetId string) (string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
