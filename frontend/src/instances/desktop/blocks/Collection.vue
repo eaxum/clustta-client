@@ -159,7 +159,7 @@
         
         
         <div v-if="(collaboratorsList.length || collection.is_shared) && !isEditing && !isGhost" class="horizontal-divider"
-          :class="{ 'horizontal-divider-invisible': collection.id in stage.expandedCollections }">
+          :class="{ 'horizontal-divider-invisible': collection.id in stage.expandedCollections || !hasAnyCollectionStateFlag }">
         </div>
         <!-- Optimized collection-item-actions using GetCollectionStateFlags -->
         <div v-if="!isEditing && !isUntracked" class="collection-item-actions">
