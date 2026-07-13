@@ -223,9 +223,9 @@ const saveOverWorkspace = async () => {
   const updatedWorkspace = {
     name: workspaceName,
     filters: {
-      assetFilters: commonStore.assetFilters,
-      collectionFilters: commonStore.collectionFilters,
-      resourceFilters: commonStore.resourceFilters,
+      assetFilters: JSON.parse(JSON.stringify(commonStore.assetFilters)),
+      collectionFilters: JSON.parse(JSON.stringify(commonStore.collectionFilters)),
+      resourceFilters: JSON.parse(JSON.stringify(commonStore.resourceFilters)),
       showCollections: commonStore.showCollections,
       showAssets: commonStore.showAssets,
       onlyAssets: commonStore.onlyAssets,

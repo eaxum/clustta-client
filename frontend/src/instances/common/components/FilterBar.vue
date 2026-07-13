@@ -19,10 +19,10 @@
 			<FilterButton v-if="showTagsFilter" :icon="getAppIcon('tag')" v-tooltip="barIsOverflowing ? $t('components.filterBar.tags') : ''"
 				:label="$t('components.filterBar.tags')" :alert="isFilterActive('tags')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'tagsFilterMenu')"
 				@click="showFilterMenu($event, 'tagsFilterMenu')" />
-			<FilterButton :icon="getAppIcon('person')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assignation') : ''" :label="$t('components.filterBar.assignees')"
+			<FilterButton v-if="!isMyAssetsWorkspace" :icon="getAppIcon('person')" v-tooltip="barIsOverflowing ? $t('components.filterBar.assignation') : ''" :label="$t('components.filterBar.assignees')"
 				:alert="isFilterActive('assignation')" :showLabel="!barIsOverflowing" @mouseenter="flashFilterMenu($event, 'assigneeFilterMenu')"
 				@click="showFilterMenu($event, 'assigneeFilterMenu')" />
-			<FilterButton v-if="!kanbanView" :icon="getAppIcon('shapes')" v-tooltip="barIsOverflowing ? $t('components.filterBar.type') : ''" :alert="isFilterActive('general')"
+			<FilterButton v-if="!kanbanView && !isMyAssetsWorkspace" :icon="getAppIcon('shapes')" v-tooltip="barIsOverflowing ? $t('components.filterBar.type') : ''" :alert="isFilterActive('general')"
 			 :showLabel="!barIsOverflowing"	@mouseenter="flashFilterMenu($event, 'typeFilterMenu')"
 				@click="showFilterMenu($event, 'typeFilterMenu')" />
 			<ActionButton v-if="filtersActive" :icon="getAppIcon('close')" :allowDeactivate="true"
@@ -79,12 +79,22 @@ const showAssetSpecificFilters = computed(() => !commonStore.onlyCollections);
 
 const showCollectionSpecificFilters = computed(() => !props.kanbanView && !commonStore.onlyAssets);
 
+const isMyAssetsWorkspace = computed(() => commonStore.activeWorkspace === 'My Assets');
+
 const emit = defineEmits(['selectCrumb']);
 
 // methods
 
-// Clears all filters and triggers a browser refresh.
-const clearFilters = () => { commonStore.resetFilters(); emitter.emit('refresh-browser'); };
+// Clears user filters, or restores the built-in filters for My Assets.
+const clearFilters = () => {
+	if (isMyAssetsWorkspace.value) {
+		const workspace = commonStore.workspaces.find((item) => item.name === 'My Assets');
+		if (workspace) commonStore.setActiveWorkspace(workspace);
+	} else {
+		commonStore.resetFilters();
+	}
+	emitter.emit('refresh-browser');
+};
 
 // Checks if a specific filter type is currently active.
 const isFilterActive = (filter) => {

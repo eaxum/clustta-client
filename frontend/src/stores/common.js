@@ -4,6 +4,8 @@ import {
 } from "@/services";
 import { useCollectionStore } from "@/stores/collections";
 
+const cloneFilterList = (filters) => JSON.parse(JSON.stringify(filters ?? []));
+
 let defaultViewMode = 'dense';
 await SettingsService.GetDefaultViewMode()
   .then((response) => {
@@ -131,9 +133,9 @@ export const useCommonStore = defineStore("common", {
   actions: {
     setActiveWorkspace(workspace) {
       this.activeWorkspace = workspace.name;
-      this.assetFilters = workspace.filters.assetFilters;
-      this.collectionFilters = workspace.filters.collectionFilters;
-      this.resourceFilters = workspace.filters.resourceFilters;
+      this.assetFilters = cloneFilterList(workspace.filters.assetFilters);
+      this.collectionFilters = cloneFilterList(workspace.filters.collectionFilters);
+      this.resourceFilters = cloneFilterList(workspace.filters.resourceFilters);
 
       this.showCollections = workspace.filters.showCollections;
       this.showAssets = workspace.filters.showAssets;
@@ -196,9 +198,9 @@ export const useCommonStore = defineStore("common", {
     },
     getCurrentWorkspaceState() {
       return {
-        assetFilters: this.assetFilters,
-        collectionFilters: this.collectionFilters,
-        resourceFilters: this.resourceFilters,
+        assetFilters: cloneFilterList(this.assetFilters),
+        collectionFilters: cloneFilterList(this.collectionFilters),
+        resourceFilters: cloneFilterList(this.resourceFilters),
         showCollections: this.showCollections,
         showAssets: this.showAssets,
         onlyAssets: this.onlyAssets,

@@ -146,7 +146,7 @@ export const useAssetStore = defineStore("asset", {
           .map((filter) => filter.name.toLowerCase());
         const selectedAssignees = commonStore.assetFilters
           .filter((filter) => filter.type === "assignation")
-          .map((filter) => filter.id);
+          .map((filter) => String(filter.id));
         const selectedState = commonStore.assetFilters
           .filter((filter) => filter.type === "state")
           .map((filter) => filter.name.toLowerCase());
@@ -198,7 +198,7 @@ export const useAssetStore = defineStore("asset", {
             } else {
               assigneeMatch =
                 selectedAssignees.length === 0 ||
-                selectedAssignees.includes(asset.assignee_id);
+                selectedAssignees.includes(String(asset.assignee_id));
             }
 
             // matched states
@@ -359,7 +359,7 @@ export const useAssetStore = defineStore("asset", {
           .map((filter) => filter.name.toLowerCase());
         const selectedAssignees = commonStore.assetFilters
           .filter((filter) => filter.type === "assignation")
-          .map((filter) => filter.id);
+          .map((filter) => String(filter.id));
         const selectedState = commonStore.assetFilters
           .filter((filter) => filter.type === "state")
           .map((filter) => filter.name.toLowerCase());
@@ -411,7 +411,7 @@ export const useAssetStore = defineStore("asset", {
             } else {
               assigneeMatch =
                 selectedAssignees.length === 0 ||
-                selectedAssignees.includes(asset.assignee_id);
+                selectedAssignees.includes(String(asset.assignee_id));
             }
 
             // matched states

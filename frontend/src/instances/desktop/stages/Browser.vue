@@ -218,6 +218,7 @@ const applyTrackedAssetVisibility = (assets = []) => {
 // Filters untracked assets by the broad asset/untracked toggles plus search and extension filters.
 const filterUntrackedAssets = (assets = []) => {
 	if (commonStore.onlyCollections) return [];
+	if (commonStore.activeWorkspace === 'My Assets') return [];
 	if (!commonStore.showAssets || !commonStore.showUntracked) return [];
 	const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
 	const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";
@@ -274,6 +275,7 @@ const getNavigatedTrackedAssets = async (collectionId, immediateAssets = []) => 
 
 // Loads recursive untracked assets for root/navigated only-assets mode.
 const getRecursiveUntrackedAssets = async (collectionId, collectionFolderPath) => {
+	if (commonStore.activeWorkspace === 'My Assets') return null;
 	if (!commonStore.onlyAssets || !commonStore.showUntracked || !collectionFolderPath) return null;
 	return await CollectionService.GetRecursiveUntrackedAssets(
 		projectStore.activeProject.uri,

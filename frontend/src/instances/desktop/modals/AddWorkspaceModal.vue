@@ -82,9 +82,9 @@ const saveWorkspace = async () => {
   const newWorkspace = {
     name: workspaceName.value,
     filters: {
-      assetFilters: commonStore.assetFilters,
-      collectionFilters: commonStore.collectionFilters,
-      resourceFilters: commonStore.resourceFilters,
+      assetFilters: JSON.parse(JSON.stringify(commonStore.assetFilters)),
+      collectionFilters: JSON.parse(JSON.stringify(commonStore.collectionFilters)),
+      resourceFilters: JSON.parse(JSON.stringify(commonStore.resourceFilters)),
       showCollections: commonStore.showCollections,
       showAssets: commonStore.showAssets,
       onlyAssets: commonStore.onlyAssets,
