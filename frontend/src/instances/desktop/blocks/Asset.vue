@@ -431,7 +431,9 @@ const canCreateCheckpoint = computed(() => {
   // console.log(props.asset)
   return canCreateCheckpointForItem(props.asset)
 });
-const canUpdateAsset = computed(() => canActOnAsset('update_asset', props.asset));
+const canUpdateAsset = computed(() => {
+  return userStore.canDo('update_asset') && canActOnAsset('update_asset', props.asset);
+});
 const canDeleteAsset = computed(() => canActOnAsset('delete_asset', props.asset));
 const canCreateFromUntracked = computed(() => canCreateCheckpoint.value);
 

@@ -6,13 +6,13 @@
 
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" class="menu-divider"></span>
 
-    <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="userStore.canDo('update_asset') && canUpdateAsset" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameAsset" />
 
-    <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
+    <ActionButton v-if="userStore.canDo('update_asset') && canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
       :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="!hideOnFilter && canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
+    <ActionButton v-if="!hideOnFilter && userStore.canDo('create_asset') && canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
@@ -21,7 +21,7 @@
       :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
-    <ActionButton v-if="!hideOnFilter && !platformStore.isWeb && canUpdateAsset && !isWebLinkAsset"
+    <ActionButton v-if="!hideOnFilter && !platformStore.isWeb && userStore.canDo('update_asset') && canUpdateAsset && !isWebLinkAsset"
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
@@ -71,7 +71,7 @@
 
     <!-- Delete Asset -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
-      v-if="canDeleteAsset" :buttonFunction="deleteAsset" />
+      v-if="canDeleteAsset && userStore.canDo('delete_asset')" :buttonFunction="deleteAsset" />
 
   </div>
 
@@ -580,9 +580,6 @@ onBeforeUnmount(() => {
 @import "@/assets/menu.css";
 
 </style>
-
-
-
 
 
 

@@ -13,7 +13,7 @@
     <ActionButton v-if="canMoveHere" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.moveHere')" :buttonFunction="() => moveToLocation(currentParentId)" />
 
-    <!-- Move to root option (when not at root and didn't start at root) -->
+    <!-- Administrators can move to project root when the assets started in a collection. -->
     <ActionButton v-if="canMoveToRoot" :icon="getAppIcon('home')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.moveToRoot')" :buttonFunction="() => moveToLocation('')" />
 
@@ -55,9 +55,10 @@
 
 <script setup>
 // imports
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { isProjectAdmin } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -66,8 +67,6 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { AssetService, CollectionService } from '@/services';
 
 // stores
-import { useAssetStore } from '@/stores/assets';
-import { useCollectionStore } from '@/stores/collections';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
@@ -75,8 +74,6 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 
 const { t } = useI18n();
-const assetStore = useAssetStore();
-const collectionStore = useCollectionStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const notificationStore = useNotificationStore();
@@ -84,7 +81,7 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 
 // refs
-const childCollections = ref([]);
+const allowedCollections = ref([]);
 const isLoading = ref(false);
 const searchInput = ref(null);
 const searchTerm = ref('');
@@ -98,13 +95,13 @@ const assetIds = computed(() => menu.subMenuState.selectedAssetIds || []);
 // Checks if user can move to the current location (not the starting location).
 const canMoveHere = computed(() => {
   const startingId = menu.subMenuState.startingCollectionId || '';
-  return currentParentId.value !== startingId;
+  return !isAtRoot.value && currentParentId.value !== startingId;
 });
 
-// Checks if user can move to root (not at root and didn't start at root).
+// Only project administrators can move assets outside collection assignment scope.
 const canMoveToRoot = computed(() => {
   const startingId = menu.subMenuState.startingCollectionId || '';
-  return !isAtRoot.value && startingId !== '';
+  return isProjectAdmin() && startingId !== '';
 });
 
 // Returns the current navigation item from the stack.
@@ -115,6 +112,17 @@ const currentNavItem = computed(() => {
 
 // Returns the current parent collection ID.
 const currentParentId = computed(() => currentNavItem.value?.parentId ?? '');
+
+// Returns the allowed children at the current location. At the virtual root,
+// collections whose physical parent is outside the allowed set become roots.
+const childCollections = computed(() => {
+  const allowedIds = new Set(allowedCollections.value.map(collection => collection.id));
+  const collections = isAtRoot.value
+    ? allowedCollections.value.filter(collection => !allowedIds.has(collection.parent_id))
+    : allowedCollections.value.filter(collection => collection.parent_id === currentParentId.value);
+
+  return collections.slice().sort((a, b) => a.name.localeCompare(b.name));
+});
 
 // Returns collections filtered by search term.
 const filteredCollections = computed(() => {
@@ -132,78 +140,27 @@ const headerTitle = computed(() => {
 // Checks if currently at project root.
 const isAtRoot = computed(() => currentParentId.value === '');
 
-// Returns the current navigation depth.
-const navigationDepth = computed(() => menu.subMenuState.navigationStack.length);
-
 // methods
 
 // Returns the icon path for a given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Navigates back in the sub-menu (to parent collection).
-const goBack = async () => {
+const goBack = () => {
   searchTerm.value = '';
-  
-  // If already at root, do nothing (can't go further back)
   if (isAtRoot.value) return;
-  
-  const currentId = currentParentId.value;
-  
-  try {
-    // Get the parent of the current collection
-    const currentCollection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, currentId);
-    const parentId = currentCollection?.collection_id || '';
-    
-    // Get parent name for the header
-    let parentName = projectStore.activeProject?.name || t('menus.projectRoot');
-    if (parentId) {
-      const parentCollection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, parentId);
-      parentName = parentCollection?.name || t('menus.collection');
-    }
-    
-    // Update navigation stack to go to parent
-    menu.subMenuState.slideDirection = 'right';
-    menu.subMenuState.navigationStack = [{
-      type: 'move-to-collection',
-      parentId: parentId,
-      title: parentName
-    }];
-    
-    await loadCollections(parentId);
-  } catch (error) {
-    console.error('Error navigating back:', error);
-  }
+  menu.subMenuState.slideDirection = 'right';
+  menu.subMenuState.navigationStack.pop();
 };
 
-// Loads child collections for a parent.
-const loadCollections = async (parentId) => {
+// Loads collections in the active user's direct or inherited assignment scope.
+const loadCollections = async () => {
   isLoading.value = true;
-  childCollections.value = [];
+  allowedCollections.value = [];
   
   try {
-    const project = projectStore.activeProject;
-    const collectionId = parentId || 'root';
-    
-    // Get the folder path for the parent
-    let folderPath = project.working_directory;
-    if (parentId) {
-      const parentCollection = await CollectionService.GetCollectionByID(project.uri, parentId);
-      if (parentCollection) folderPath = parentCollection.file_path;
-    }
-    
-    const children = await CollectionService.GetCollectionChildren(
-      project.uri,
-      collectionId,
-      project.working_directory,
-      folderPath,
-      project.ignore_list || [],
-      false
-    );
-    
-    // Filter out the assets being moved (if they're collections - shouldn't happen but safety check)
-    childCollections.value = (children.collections || [])
-      .filter(collection => !assetIds.value.includes(collection.id))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const collections = await CollectionService.GetCollections(projectStore.activeProject.uri);
+    allowedCollections.value = (collections || []).filter(collection => collection.can_modify);
   } catch (error) {
     console.error('Error loading collections:', error);
     notificationStore.errorNotification(t('notifications.failedToLoadCollections'), error);
@@ -247,7 +204,7 @@ const moveToLocation = async (targetCollectionId) => {
 };
 
 // Navigates into an collection to show its children.
-const navigateIntoCollection = async (collection) => {
+const navigateIntoCollection = (collection) => {
   searchTerm.value = '';
   
   menu.navigateSubMenuForward({
@@ -257,21 +214,8 @@ const navigateIntoCollection = async (collection) => {
     title: collection.name
   });
   
-  await loadCollections(collection.id);
+  menu.subMenuState.slideDirection = 'left';
 };
-
-// watchers
-watch(
-  () => menu.subMenuState.navigationStack.length,
-  async (newLength) => {
-    if (newLength > 0) {
-      const navItem = currentNavItem.value;
-      if (navItem?.type === 'move-to-collection') {
-        await loadCollections(navItem.parentId || '');
-      }
-    }
-  }
-);
 
 // lifecycle hooks
 onMounted(async () => {
@@ -283,27 +227,9 @@ onMounted(async () => {
     searchInput.value.focus();
   }
   
-  // Initialize navigation stack with starting collection info
-  const startingId = menu.subMenuState.startingCollectionId || '';
-  
-  if (startingId) {
-    // Starting from a collection - get its info to initialize the stack
-    try {
-      const startingCollection = await CollectionService.GetCollectionByID(projectStore.activeProject.uri, startingId);
-      if (startingCollection) {
-        menu.subMenuState.navigationStack = [{
-          type: 'move-to-collection',
-          parentId: startingId,
-          title: startingCollection.name
-        }];
-      }
-    } catch (error) {
-      console.error('Error loading starting collection:', error);
-    }
-  }
-  // If startingId is empty, stack stays empty = at root
-  
-  await loadCollections(startingId);
+  // Start at a virtual root containing only the user's assignment scopes.
+  menu.subMenuState.navigationStack = [];
+  await loadCollections();
 });
 
 onBeforeUnmount(() => {

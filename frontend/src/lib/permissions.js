@@ -85,7 +85,7 @@ export const canCreateCheckpointInCollection = (collection) => {
 export const canActOnAsset = (action, asset) => {
   const userStore = useUserStore();
   if (userStore.canDo(action)) return true;
-  return canModifyCollection(asset?.collection_id);
+  return canModifyCollection(asset?.collection_id || asset?.parent_id);
 };
 
 // Gate for bulk/contextual actions in the currently navigated collection.

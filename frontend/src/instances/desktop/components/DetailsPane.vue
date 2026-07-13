@@ -45,7 +45,7 @@
               :fixedWidth="true" />
           </div>
           
-          <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-in')" :label="$t('components.detailsPane.moveToCollection')"
+          <ActionButton v-if="!platformStore.isWeb && selectedAssetsCanMove" :icon="getAppIcon('folder-arrow-in')" :label="$t('components.detailsPane.moveToCollection')"
             @click="prepMoveToCollection($event)" v-tooltip="$t('components.detailsPane.moveToCollectionTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsCanFetch" :icon="getAppIcon('fetch')" :label="$t('components.detailsPane.fetchAssets')"
             :buttonFunction="revertAllChanges" v-tooltip="$t('components.detailsPane.fetchAssetsTooltip')" />
@@ -126,7 +126,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
-import { canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
+import { canActOnAsset, canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
 import { canSquash } from '@/utils/squash';
 import utils from "@/services/utils";
 
@@ -381,6 +381,12 @@ const selectedItemsCanCreateCheckpoints = computed(() => {
     if (item.type === 'untracked_asset' || item.type === 'untracked_collection') return canCreateCheckpointForItem(item);
     return false;
   });
+});
+
+// Moving a selection requires update scope for every selected asset.
+const selectedAssetsCanMove = computed(() => {
+  return stage.selectedItems.length > 0
+    && stage.selectedItems.every(item => item.type === 'asset' && canActOnAsset('update_asset', item));
 });
 
 const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'fetchable'));
@@ -836,7 +842,7 @@ const prepMoveToCollection = (event) => {
   if (selectedAssetIds.length === 0) return;
   const firstAsset = stage.selectedItems.find(item => item.id === selectedAssetIds[0] && item.type === 'asset');
   menu.subMenuState.selectedAssetIds = selectedAssetIds;
-  menu.subMenuState.startingCollectionId = firstAsset?.parent_id || '';
+  menu.subMenuState.startingCollectionId = firstAsset?.collection_id || firstAsset?.parent_id || '';
   menu.position = { x: event.clientX, y: event.clientY };
   menu.showSubMenu('move-to-collection');
 };

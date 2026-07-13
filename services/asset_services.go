@@ -13,6 +13,7 @@ import (
 	"clustta/output"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -32,6 +33,27 @@ import (
 )
 
 type AssetService struct {
+}
+
+// requireAssetUpdatePermission prevents UI shortcuts or direct service calls
+// from bypassing the active user's update_asset role permission.
+func requireAssetUpdatePermission(tx *sqlx.Tx) error {
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	user, err := repository.GetUser(tx, activeUser.Id)
+	if err != nil {
+		return err
+	}
+	role, err := repository.GetRole(tx, user.RoleId)
+	if err != nil {
+		return err
+	}
+	if !role.UpdateAsset {
+		return errors.New("user does not have permission to update assets")
+	}
+	return nil
 }
 
 type ChangedFiles struct {
@@ -808,6 +830,32 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 	}
 	defer tx.Rollback()
 
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	user, err := repository.GetUser(tx, activeUser.Id)
+	if err != nil {
+		return err
+	}
+	role, err := repository.GetRole(tx, user.RoleId)
+	if err != nil {
+		return err
+	}
+	allowedCollectionIds := map[string]struct{}{}
+	if role.Name != "admin" {
+		if targetCollectionId == "" {
+			return errors.New("assets can only be moved to an assigned collection")
+		}
+		allowedCollectionIds, err = repository.GetUserCanModifyCollectionIds(tx, activeUser.Id)
+		if err != nil {
+			return err
+		}
+		if _, allowed := allowedCollectionIds[targetCollectionId]; !allowed {
+			return errors.New("assets can only be moved to an assigned collection")
+		}
+	}
+
 	// Get target directory path
 	var targetDir string
 	if targetCollectionId == "" {
@@ -832,6 +880,11 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
 			return err
+		}
+		if role.Name != "admin" && !role.UpdateAsset {
+			if _, allowed := allowedCollectionIds[asset.CollectionId]; !allowed {
+				return errors.New("user cannot move one or more selected assets")
+			}
 		}
 		// Skip if already in target collection
 		if asset.CollectionId == targetCollectionId {
@@ -931,6 +984,9 @@ func (t *AssetService) UpdateAsset(projectPath, assetId, name, assetTypeId strin
 		return models.Asset{}, err
 	}
 	defer tx.Rollback()
+	if err := requireAssetUpdatePermission(tx); err != nil {
+		return models.Asset{}, err
+	}
 
 	updatedAsset, err := repository.UpdateAsset(tx, assetId, name, assetTypeId, isResource, pointer, tags)
 	if err != nil {
@@ -1059,6 +1115,9 @@ func (t *AssetService) RenameAsset(projectPath, assetId, name string) (models.As
 		return models.Asset{}, err
 	}
 	defer tx.Rollback()
+	if err := requireAssetUpdatePermission(tx); err != nil {
+		return models.Asset{}, err
+	}
 
 	updatedAsset, err := repository.RenameAsset(tx, assetId, name)
 	if err != nil {

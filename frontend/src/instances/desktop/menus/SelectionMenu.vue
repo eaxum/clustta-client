@@ -25,7 +25,7 @@
     <template v-if="onlyAssets">
       <span class="menu-divider"></span>
 
-      <ActionButton v-if="!platformStore.isWeb && userStore.canDo('update_asset')" :icon="getAppIcon('folder-arrow-in')"
+      <ActionButton v-if="!platformStore.isWeb && selectedAssetsCanMove" :icon="getAppIcon('folder-arrow-in')"
         :showLabel="true" :fullWidth="true" :label="$t('components.detailsPane.moveToCollection')" :buttonFunction="prepMoveToCollection" />
 
       <ActionButton v-if="!platformStore.isWeb && assetsCanFetch" :icon="getAppIcon('fetch')" :showLabel="true"
@@ -113,7 +113,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
-import { canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
+import { canActOnAsset, canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
 import { canSquash } from '@/utils/squash';
 
 // components
@@ -212,6 +212,12 @@ const selectedItemsCanCreateCheckpoints = computed(() => {
     if (item.type === 'untracked_asset' || item.type === 'untracked_collection') return canCreateCheckpointForItem(item);
     return false;
   });
+});
+
+// Moving a selection requires update scope for every selected asset.
+const selectedAssetsCanMove = computed(() => {
+  return stage.selectedItems.length > 0
+    && stage.selectedItems.every(item => item.type === 'asset' && canActOnAsset('update_asset', item));
 });
 
 // Returns whether any selected asset is present on disk.
@@ -545,7 +551,7 @@ const prepMoveToCollection = (event) => {
   if (selectedAssetIds.length === 0) return;
   const firstAsset = stage.selectedItems.find(item => item.id === selectedAssetIds[0] && item.type === 'asset');
   menu.subMenuState.selectedAssetIds = selectedAssetIds;
-  menu.subMenuState.startingCollectionId = firstAsset?.parent_id || '';
+  menu.subMenuState.startingCollectionId = firstAsset?.collection_id || firstAsset?.parent_id || '';
   menu.position = { x: event.clientX, y: event.clientY };
   menu.showSubMenu('move-to-collection');
 };
