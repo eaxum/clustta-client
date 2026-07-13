@@ -30,8 +30,8 @@
 
 				<div v-if="userStore.canDo('create_asset')" class="actions-divider" ></div>
 				
-				<!-- <ActionButton :isDisabled="revertButtonDisabled" @click="openChangeLog()" :icon="getAppIcon('revert')"
-					:iconAfter="true" v-tooltip="revertButtonTooltip" /> -->
+				<ActionButton :isDisabled="revertButtonDisabled" :buttonFunction="prepDiscardAll" :icon="getAppIcon('revert')"
+					:useOutline="true" :useBackground="false" :useDanger="true" v-tooltip="revertButtonTooltip" />
 
 				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
 					:useOutline="true" :color="cloudIconColor" :isLoading="isSyncing" :label="cloudIconLabel" v-tooltip="cloudIconTooltip" />
@@ -62,7 +62,7 @@
 import { computed, ref, onMounted, toRaw } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { ProjectService, AuthService } from '@/services';
+import { ProjectService, AuthService, SyncService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
 import { resetStoreInitialization } from '@/router';
 import utils from '@/services/utils';
@@ -231,10 +231,43 @@ const syncButtonTooltip = computed(() => {
 
 // methods
 
-// Opens the change log pane in the details panel.
-const openChangeLog = () => {
-	stage.deselectAllItems();
-	emitter.emit('view-changelog');
+// Reverts the project to the remote version as of the last sync.
+const revertChanges = async () => {
+	const syncOptions = {
+		only_latest_checkpoints: false,
+		asset_dependencies: false,
+		assets: false,
+		templates: false,
+		force: true,
+	};
+
+	try {
+		await SyncService.PullData(
+			projectStore.activeProject.uri,
+			projectStore.getActiveProjectUrl,
+			false,
+			syncOptions,
+		);
+		projectStore.activeProject.is_unsynced = false;
+		trayStates.refreshData();
+		emitter.emit('refresh-browser');
+		modals.disableAllModals();
+	} catch (error) {
+		console.error(error.message);
+		notificationStore.errorNotification(t('notifications.errorDiscardingChanges'), error);
+		modals.disableAllModals();
+	}
+};
+
+// Shows the discard-all confirmation modal.
+const prepDiscardAll = () => {
+	if (revertButtonDisabled.value) return;
+
+	trayStates.popUpModalIcon = 'revert';
+	trayStates.popUpModalTitle = t('panes.discardAllChanges');
+	trayStates.popUpModalMessage = t('confirmations.discardAllChanges');
+	trayStates.popUpModalFunction = revertChanges;
+	modals.setModalVisibility('popUpModal', true);
 };
 
 const prepEmptyTrashPopUpModal = () => {
