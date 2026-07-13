@@ -432,25 +432,28 @@ const addAssetDependency = async (asset, dependencyId) => {
 // Assigns collections to a user.
 const assignCollections = async (user) => {
   stage.operationActive = true;
-  const collectionIds = stage.markedItems;
+  const collectionIds = stage.selectedItems.filter(item => item.type === 'collection').map(item => item.id);
   const userId = user.id;
   let requiresSync = false;
+  const itemUpdates = [];
   for (let collectionId of collectionIds) {
     const item = stage.selectedItems.find(item => item.id === collectionId);
-    if (item && item.assignee_ids && item.assignee_ids.includes(userId)) continue;
+    const assigneeIds = Array.isArray(item?.assignee_ids) ? item.assignee_ids : [];
+    if (assigneeIds.includes(userId)) continue;
     await CollectionService.Assign(projectStore.activeProject.uri, collectionId, userId)
       .then((result) => {
         requiresSync ||= result?.requires_sync === true;
-        const itemIndex = stage.selectedItems.findIndex(item => item.id === collectionId);
-        if (itemIndex !== -1 && !stage.selectedItems[itemIndex].assignee_ids.includes(userId)) {
-          stage.selectedItems[itemIndex].assignee_ids.push(userId);
-        }
-        projectStore.refreshActiveProject();
+        itemUpdates.push({
+          itemId: collectionId,
+          updates: [{ property: 'assignee_ids', value: [...assigneeIds, userId] }]
+        });
       })
       .catch((error) => { notificationStore.errorNotification(t('components.detailsPane.errorAddingUser'), error); console.error('Error adding user:', error); });
   }
-  notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, 'Collections assigned successfully', false);
-  emitter.emit('refresh-browser');
+  if (itemUpdates.length) {
+    emitBatchItemUpdates(itemUpdates);
+    notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, 'Collections assigned successfully', false);
+  }
   stage.operationActive = false;
 };
 
@@ -478,13 +481,22 @@ const changeIsShared = async (mode) => {
   stage.operationActive = true;
   let isShared = mode === 'shared';
   let requiresSync = false;
+  const itemUpdates = [];
   for (const collectionId of stage.markedItems) {
     await CollectionService.ChangeIsShared(projectStore.activeProject.uri, collectionId, isShared)
-      .then((result) => { requiresSync ||= result?.requires_sync === true; })
+      .then((result) => {
+        requiresSync ||= result?.requires_sync === true;
+        itemUpdates.push({
+          itemId: collectionId,
+          updates: [{ property: 'is_shared', value: isShared }]
+        });
+      })
       .catch((error) => console.error('Error:', error));
   }
-  notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, 'Sharing updated successfully', false);
-  emitter.emit('refresh-browser');
+  if (itemUpdates.length) {
+    emitBatchItemUpdates(itemUpdates);
+    notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, 'Sharing updated successfully', false);
+  }
   stage.operationActive = false;
 };
 
@@ -587,6 +599,19 @@ const emitItemUpdates = (assetId, updates) => {
   const updateData = { itemId: assetId, updates };
   emitter.emit('update-root-data', updateData);
   emitter.emit('update-children', updateData);
+};
+
+// Applies and emits multiple item updates without refreshing the browser.
+const emitBatchItemUpdates = (itemUpdates) => {
+  itemUpdates.forEach(({ itemId, updates }) => {
+    const selectedItem = stage.selectedItems.find(item => item.id === itemId);
+    if (!selectedItem || !Array.isArray(updates)) return;
+    updates.forEach(update => {
+      if (update.property && update.value !== undefined) selectedItem[update.property] = update.value;
+    });
+  });
+  emitter.emit('update-root-data', itemUpdates);
+  emitter.emit('update-children', itemUpdates);
 };
 
 // Filters the detail pane tabs.
@@ -845,10 +870,16 @@ const setMultipleStatus = async (statusName) => {
 const toggleIsTask = async (newItemType) => {
   stage.operationActive = true;
   const targetIsTask = newItemType === 'task';
-  await AssetService.BulkToggleIsTask(projectStore.activeProject.uri, stage.markedItems, targetIsTask)
-    .then((result) => notificationStore.notifyMetadataUpdate(result, 'Task status updated successfully', false))
+  const assetIds = stage.selectedItems.filter(item => item.type === 'asset').map(item => item.id);
+  await AssetService.BulkToggleIsTask(projectStore.activeProject.uri, assetIds, targetIsTask)
+    .then((result) => {
+      emitBatchItemUpdates(assetIds.map(itemId => ({
+        itemId,
+        updates: [{ property: 'is_resource', value: !targetIsTask }]
+      })));
+      notificationStore.notifyMetadataUpdate(result, 'Task status updated successfully', false);
+    })
     .catch((error) => console.error('Error:', error));
-  emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
 
@@ -865,29 +896,38 @@ const unassignCollections = async () => {
   const collectionIds = stage.selectedItems.filter(item => item.type === 'collection').map(item => item.id);
   try {
     const result = await CollectionService.UnassignCollections(projectStore.activeProject.uri, collectionIds);
+    emitBatchItemUpdates(collectionIds.map(itemId => ({
+      itemId,
+      updates: [{ property: 'assignee_ids', value: [] }]
+    })));
     notificationStore.notifyMetadataUpdate(result, 'Collections unassigned successfully', false);
-    stage.selectedItems.filter(item => item.type === 'collection').forEach(item => { item.assignee_ids = []; });
   } catch (error) {
     notificationStore.errorNotification(t('components.detailsPane.errorRemovingUser'), error);
     console.error('Error removing user:', error);
     stage.operationActive = false;
     return;
   }
-  emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
 
 // Unassigns all collaborators from assets.
 const unassignAssets = async () => {
+  stage.operationActive = true;
+  const assetIds = stage.selectedItems.filter(item => item.type === 'asset').map(item => item.id);
   try {
-    const result = await AssetService.UnassignAssets(projectStore.activeProject.uri, stage.markedItems);
+    const result = await AssetService.UnassignAssets(projectStore.activeProject.uri, assetIds);
+    emitBatchItemUpdates(assetIds.map(itemId => ({
+      itemId,
+      updates: [{ property: 'assignee_id', value: null }]
+    })));
     notificationStore.notifyMetadataUpdate(result, t('components.detailsPane.assetsUnassignedSuccessfully'));
   } catch (error) {
     console.log(error);
     notificationStore.errorNotification(t('components.detailsPane.errorAssigningAsset'), error);
+    stage.operationActive = false;
     return;
   }
-  emitter.emit('refresh-browser');
+  stage.operationActive = false;
 };
 
 // Switches to the checkpoints tab.

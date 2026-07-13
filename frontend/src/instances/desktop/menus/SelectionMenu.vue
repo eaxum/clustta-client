@@ -355,6 +355,19 @@ const emitItemUpdates = (assetId, updates) => {
   emitter.emit('update-children', updateData);
 };
 
+// Applies and emits multiple item updates without refreshing the browser.
+const emitBatchItemUpdates = (itemUpdates) => {
+  itemUpdates.forEach(({ itemId, updates }) => {
+    const selectedItem = stage.selectedItems.find(item => item.id === itemId);
+    if (!selectedItem || !Array.isArray(updates)) return;
+    updates.forEach(update => {
+      if (update.property && update.value !== undefined) selectedItem[update.property] = update.value;
+    });
+  });
+  emitter.emit('update-root-data', itemUpdates);
+  emitter.emit('update-children', itemUpdates);
+};
+
 // Frees up collection space by deleting contents.
 const freeUpCollectionSpace = async () => {
   const selectedCollections = stage.selectedItems.filter(item => item.type === 'collection');
@@ -598,15 +611,22 @@ const revertAllChanges = async () => {
 // Unassigns all collaborators from assets.
 const unassignAssets = async () => {
   menu.hideContextMenu();
+  stage.operationActive = true;
+  const assetIds = stage.selectedItems.filter(item => item.type === 'asset').map(item => item.id);
   try {
-    const result = await AssetService.UnassignAssets(projectStore.activeProject.uri, stage.markedItems);
+    const result = await AssetService.UnassignAssets(projectStore.activeProject.uri, assetIds);
+    emitBatchItemUpdates(assetIds.map(itemId => ({
+      itemId,
+      updates: [{ property: 'assignee_id', value: null }]
+    })));
     notificationStore.notifyMetadataUpdate(result, t('components.detailsPane.assetsUnassignedSuccessfully'));
   } catch (error) {
     console.log(error);
     notificationStore.errorNotification(t('components.detailsPane.errorAssigningAsset'), error);
+    stage.operationActive = false;
     return;
   }
-  emitter.emit('refresh-browser');
+  stage.operationActive = false;
 };
 
 // Unassigns all collaborators from collections.
@@ -616,15 +636,17 @@ const unassignCollections = async () => {
   const collectionIds = stage.selectedItems.filter(item => item.type === 'collection').map(item => item.id);
   try {
     const result = await CollectionService.UnassignCollections(projectStore.activeProject.uri, collectionIds);
+    emitBatchItemUpdates(collectionIds.map(itemId => ({
+      itemId,
+      updates: [{ property: 'assignee_ids', value: [] }]
+    })));
     notificationStore.notifyMetadataUpdate(result, 'Collections unassigned successfully', false);
-    stage.selectedItems.filter(item => item.type === 'collection').forEach(item => { item.assignee_ids = []; });
   } catch (error) {
     notificationStore.errorNotification(t('components.detailsPane.errorRemovingUser'), error);
     console.error('Error removing user:', error);
     stage.operationActive = false;
     return;
   }
-  emitter.emit('refresh-browser');
   stage.operationActive = false;
 };
 </script>
