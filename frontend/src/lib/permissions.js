@@ -141,19 +141,43 @@ export const canCreateCollectionHere = () => {
   return userStore.canDo('create_collection') && canActInNavigatedCollection('create_collection');
 };
 
+const projectSettingsAccessPermissions = [
+  'view_template',
+  'create_template',
+  'update_template',
+  'delete_template',
+  'add_user',
+  'remove_user',
+  'change_role',
+];
+
+const projectSettingsTabPermissions = {
+  templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
+  collaborators: ['add_user', 'remove_user', 'change_role'],
+  roles: ['change_role'],
+  assettypes: ['change_role'],
+  collectiontypes: ['change_role'],
+  workflows: ['change_role'],
+  ignorelist: ['change_role'],
+  advanced: ['change_role'],
+};
+
 // Project settings remain available to roles with an existing project-management
-// permission. Type/workflow-specific gating should wait for explicit permissions.
+// permission. Type/workflow-specific permissions should wait for a schema change.
 export const canAccessProjectSettings = () => {
   const userStore = useUserStore();
-  return [
-    'view_template',
-    'create_template',
-    'update_template',
-    'delete_template',
-    'add_user',
-    'remove_user',
-    'change_role',
-  ].some(permission => userStore.canDo(permission));
+  return projectSettingsAccessPermissions.some(permission => userStore.canDo(permission));
+};
+
+// Uses change_role as the temporary gate for settings areas that do not yet
+// have explicit permissions in the project schema.
+export const canAccessProjectSettingsTab = (tabId) => {
+  if (tabId === 'general') return canAccessProjectSettings();
+  const permissions = projectSettingsTabPermissions[tabId];
+  if (!permissions) return false;
+
+  const userStore = useUserStore();
+  return permissions.some(permission => userStore.canDo(permission));
 };
 
 export const permissionGroups = {

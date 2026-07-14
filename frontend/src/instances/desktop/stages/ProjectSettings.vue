@@ -16,17 +16,15 @@
 <script setup>
 // imports
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
-import { canAccessProjectSettings } from '@/lib/permissions';
+import { canAccessProjectSettings, canAccessProjectSettingsTab } from '@/lib/permissions';
 
 // state imports
 import { useSettingsStore } from '@/stores/settings';
-import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useStageStore } from '@/stores/stages';
 
 // states/stores
-const userStore = useUserStore();
 const settings = useSettingsStore();
 const projectStore = useProjectStore();
 const entitlementStore = useEntitlementStore();
@@ -61,8 +59,6 @@ const settingsComponents = {
 
 // computed props
 const settingsItems = computed(() => {
-	const canChangeRole = userStore.canDo('change_role');
-	const canViewTemplate = userStore.canDo('view_template');
 	const isProjectRemote = projectStore.activeProject.has_remote;
 
 	const canCollaborate = entitlementStore.canCollaborate;
@@ -74,9 +70,7 @@ const settingsItems = computed(() => {
 
 	const projectSettings = settings.settingsItems.filter((item) => 
 		!userSettingsIds.includes(item.id) &&
-		(canChangeRole || item.id !== 'roles') &&
-		(canChangeRole || item.id !== 'advanced') &&
-		(canViewTemplate || item.id !== 'projecttemplates') &&
+		canAccessProjectSettingsTab(item.id) &&
 		(canCollaborate || item.id !== 'collaborators') &&
 		(hasCustomRoles || item.id !== 'roles') &&
 		(hasIntegrations || item.id !== 'advanced')
@@ -88,7 +82,7 @@ const settingsItems = computed(() => {
 
 const visiblePages = computed(() => {
 	return Object.entries(settings.modalStates)
-		.filter(([name, isVisible]) => isVisible)
+		.filter(([name, isVisible]) => isVisible && canAccessProjectSettingsTab(name))
 		.map(([name]) => ({
 			name,
 			component: settingsComponents[name],
@@ -97,31 +91,34 @@ const visiblePages = computed(() => {
 
 // methods
 const filterList = (selectedTab) => {
+	if (!canAccessProjectSettingsTab(selectedTab)) return;
 	selectedSettingsContext.value = selectedTab;
 	settings.setModalVisibility(selectedTab, true);
 };
 
-const ensureSettingsAccess = () => {
-	if (!canAccessProjectSettings()) {
+const ensureAuthorizedTab = () => {
+	const authorizedTabs = settingsItems.value;
+	if (!canAccessProjectSettings() || !authorizedTabs.length) {
 		stage.setStageVisibility('browser', true);
 		return false;
 	}
+
+	const activeTab = authorizedTabs.find(item => item.id === settings.activeModal)?.id;
+	const targetTab = activeTab || authorizedTabs[0].id;
+	if (settings.activeModal !== targetTab) {
+		settings.setModalVisibility(targetTab, true);
+	}
+	settings.activeModalName = targetTab;
+	selectedSettingsContext.value = targetTab;
 	return true;
 };
 
 // onmounted hook
 onMounted(() => {
-	if (!ensureSettingsAccess()) return;
-	if(!settings.activeModal){
-		settings.setModalVisibility('templates', true);
-		settings.activeModalName = 'templates';
-		selectedSettingsContext.value = 'templates';
-	} else {
-		selectedSettingsContext.value = settings.activeModal;
-	}
+	ensureAuthorizedTab();
 });
 
-watch(() => canAccessProjectSettings(), ensureSettingsAccess);
+watch(settingsItems, ensureAuthorizedTab);
 
 onUnmounted(() => {
 	settings.disableAllModals();
