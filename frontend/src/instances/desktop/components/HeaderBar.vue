@@ -21,7 +21,7 @@
 			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
 				<ActionButton v-if="userStore.canDo('delete_asset')" :icon="getAppIcon('trash')" @click="goToTrash()"
 					v-tooltip="$t('components.headerBar.trash')" />
-				<ActionButton v-if="userStore.canDo('create_asset')" :icon="getAppIcon('briefcase-cog')"
+				<ActionButton v-if="canOpenProjectSettings" :icon="getAppIcon('briefcase-cog')"
 					@click="goToSettings()" v-tooltip="$t('components.headerBar.projectSettings')" />
 
 			</div>
@@ -64,6 +64,7 @@ import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { ProjectService, AuthService, SyncService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
+import { canAccessProjectSettings } from '@/lib/permissions';
 import { resetStoreInitialization } from '@/router';
 import utils from '@/services/utils';
 
@@ -102,6 +103,7 @@ const studioStore = useStudioStore();
 const userStore = useUserStore();
 const platformStore = usePlatformStore();
 const router = useRouter();
+const canOpenProjectSettings = computed(() => canAccessProjectSettings());
 
 const { t } = useI18n();
 
@@ -321,6 +323,7 @@ const goToTrash = () => {
 };
 
 const goToSettings = () => {
+	if (!canOpenProjectSettings.value) return;
 	stage.setStageVisibility('projectSettings', true);
 };
 
@@ -572,8 +575,5 @@ const logUserOut = async () => {
 	width: 400px;
 }
 </style>
-
-
-
 
 

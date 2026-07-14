@@ -15,19 +15,22 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
+import { canAccessProjectSettings } from '@/lib/permissions';
 
 // state imports
 import { useSettingsStore } from '@/stores/settings';
 import { useUserStore } from '@/stores/users';
 import { useProjectStore } from '@/stores/projects';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { useStageStore } from '@/stores/stages';
 
 // states/stores
 const userStore = useUserStore();
 const settings = useSettingsStore();
 const projectStore = useProjectStore();
 const entitlementStore = useEntitlementStore();
+const stage = useStageStore();
 
 // components
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
@@ -98,8 +101,17 @@ const filterList = (selectedTab) => {
 	settings.setModalVisibility(selectedTab, true);
 };
 
+const ensureSettingsAccess = () => {
+	if (!canAccessProjectSettings()) {
+		stage.setStageVisibility('browser', true);
+		return false;
+	}
+	return true;
+};
+
 // onmounted hook
 onMounted(() => {
+	if (!ensureSettingsAccess()) return;
 	if(!settings.activeModal){
 		settings.setModalVisibility('templates', true);
 		settings.activeModalName = 'templates';
@@ -108,6 +120,8 @@ onMounted(() => {
 		selectedSettingsContext.value = settings.activeModal;
 	}
 });
+
+watch(() => canAccessProjectSettings(), ensureSettingsAccess);
 
 onUnmounted(() => {
 	settings.disableAllModals();
@@ -230,4 +244,3 @@ onUnmounted(() => {
 	min-width: max-content;
 }
 </style>
-

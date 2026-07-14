@@ -141,6 +141,21 @@ export const canCreateCollectionHere = () => {
   return userStore.canDo('create_collection') && canActInNavigatedCollection('create_collection');
 };
 
+// Project settings remain available to roles with an existing project-management
+// permission. Type/workflow-specific gating should wait for explicit permissions.
+export const canAccessProjectSettings = () => {
+  const userStore = useUserStore();
+  return [
+    'view_template',
+    'create_template',
+    'update_template',
+    'delete_template',
+    'add_user',
+    'remove_user',
+    'change_role',
+  ].some(permission => userStore.canDo(permission));
+};
+
 export const permissionGroups = {
   assets: ['view_asset', 'create_asset', 'update_asset', 'delete_asset', 'manage_dependencies'],
   assignation: ['assign_asset', 'unassign_asset'],
