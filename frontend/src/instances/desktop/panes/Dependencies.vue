@@ -18,11 +18,11 @@
       </div>
 
       <PageState v-if="!availableDependencies.length && !dependencyPresets.length && !isLoadingData" :message="message()" :illustration="illustration()" />
-      <ItemsList v-else-if="availableDependencies.length" :items="availableDependencies" :isDependency="true" :showAdd="true" :forList="true" />
+      <ItemsList v-else-if="availableDependencies.length" :items="availableDependencies" :isDependency="true" :showAdd="canManageDependencies" :forList="true" />
     </div>
     
     <div v-else-if="assetDependencies.length" class="sidebar-scroll">
-      <ItemsList :items="assetDependencies" :isDependency="true" :showRemove="true" :forList="true"/>
+      <ItemsList :items="assetDependencies" :isDependency="true" :showRemove="canManageDependencies" :forList="true"/>
       
       <div class="bottom-bar">
         <ActionButton :icon="getAppIcon('floppy-disk')" v-tooltip="$t('panes.saveAsPreset')" :buttonFunction="openSavePresetModal" />
@@ -42,6 +42,7 @@ import { computed, ref, watch, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useDebounce } from '@/lib/debounce';
 import emitter from '@/lib/mitt';
+import { canActOnAsset } from '@/lib/permissions';
 import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
 
@@ -91,6 +92,10 @@ const availableDependencies = ref([]);
 // computed props
 const selectedAsset = computed(() => {
   return assetStore.selectedAsset
+});
+
+const canManageDependencies = computed(() => {
+  return canActOnAsset('manage_dependencies', selectedAsset.value);
 });
 
 const isSearching = computed(() => {
@@ -202,6 +207,7 @@ const openSavePresetModal = () => {
 };
 
 const applyPreset = async (preset) => {
+  if (!canManageDependencies.value) return;
   const asset = assetStore.selectedAsset;
   if (!asset) return;
 
@@ -335,6 +341,7 @@ const handleAddDependency = (payload) => {
 };
 
 const removeDependency = async (dependencyId, itemType) => {
+  if (!canManageDependencies.value) return;
   const asset = assetStore.selectedAsset;
   let selectedAssetDependencies;
 
@@ -369,6 +376,7 @@ const removeDependency = async (dependencyId, itemType) => {
 };
 
 const addDependency = async (dependencyId, itemType) => {
+  if (!canManageDependencies.value) return;
   const asset = assetStore.selectedAsset;
   let selectedAssetDependencies;
   let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked")?.id;
@@ -572,5 +580,4 @@ onUnmounted(() => {
   padding: .25rem .5rem;
 }
 </style>
-
 

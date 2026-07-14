@@ -15,10 +15,10 @@
     </div>
 
     <!-- Context-sensitive actions (based on active item) -->
-    <ActionButton v-if="activeIsAsset" :icon="getAppIcon('dependency')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="activeAssetCanManageDependencies" :icon="getAppIcon('dependency')" :showLabel="true" :fullWidth="true"
       :label="$t('components.detailsPane.makeDependencies')" :buttonFunction="makeDependenciesOfActive" />
 
-    <ActionButton v-if="activeIsCollection" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="selectionCanMoveIntoActiveCollection" :icon="getAppIcon('folder-arrow-in')" :showLabel="true" :fullWidth="true"
       :label="$t('components.detailsPane.moveIntoCollection')" :buttonFunction="moveIntoFolder" />
 
     <!-- Asset-only actions -->
@@ -37,21 +37,21 @@
       <ActionButton v-if="!platformStore.isWeb && assetsModified" :noFilter="true" :icon="getAppIcon('revert')" :useAlert="true"
         :showLabel="true" :fullWidth="true" :label="$t('components.detailsPane.revertAssets')" :buttonFunction="prepResetPopUpModal" />
 
-      <ActionButton :icon="getAppIcon('person-plus')" :showLabel="true" :fullWidth="true"
+      <ActionButton v-if="selectedAssetsCanAssign" :icon="getAppIcon('person-plus')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.assignAssets')" :buttonFunction="prepAssignAsset" />
 
-      <ActionButton :icon="getAppIcon('person-minus')" :showLabel="true" :fullWidth="true"
+      <ActionButton v-if="selectedAssetsCanUnassign" :icon="getAppIcon('person-minus')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.unassignAssets')" :buttonFunction="unassignAssets" />
 
-      <ActionButton :icon="getAppIcon('tag')" :showLabel="true" :fullWidth="true"
+      <ActionButton v-if="selectedAssetsCanUpdate" :icon="getAppIcon('tag')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.manageTags')" :buttonFunction="prepManageTags" />
 
       <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.freeUpSpace')" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
-      <span v-if="userStore.canDo('delete_asset')" class="menu-divider"></span>
+      <span v-if="selectedAssetsCanDelete" class="menu-divider"></span>
 
-      <ActionButton v-if="userStore.canDo('delete_asset')" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
+      <ActionButton v-if="selectedAssetsCanDelete" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.deleteSelectedAssets')" :buttonFunction="deleteMultipleAssets" />
     </template>
 
@@ -99,7 +99,7 @@
         :useDanger="hasUntrackedAssetsSelected" :noFilter="true" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" />
 
-      <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
+      <ActionButton v-if="mixedSelectionCanDelete" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleItems" />
     </template>
 
@@ -113,7 +113,7 @@ import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
-import { canActOnAsset, canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
+import { canActInCollection, canActOnAsset, canActOnAssets, canCreateAssetHere, canCreateCheckpointForItem } from '@/lib/permissions';
 import { canSquash } from '@/utils/squash';
 
 // components
@@ -156,18 +156,6 @@ const { t } = useI18n();
 const selectionMenu = ref(null);
 
 // computed properties
-// Returns whether the active (last-clicked) item is an asset.
-const activeIsAsset = computed(() => {
-  const activeAsset = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
-  return activeAsset?.type === 'asset';
-});
-
-// Returns whether the active (last-clicked) item is a collection.
-const activeIsCollection = computed(() => {
-  const activeCollection = stage.selectedItems.find((item) => item.id === stage.lastSelectedItemId);
-  return activeCollection?.type === 'collection';
-});
-
 // Counts the selected items by type.
 const itemCounts = computed(() => {
   const counts = { collection: 0, asset: 0, untracked_asset: 0, untracked_collection: 0, resource: 0 };
@@ -214,10 +202,41 @@ const selectedItemsCanCreateCheckpoints = computed(() => {
   });
 });
 
+const selectedAssets = computed(() => stage.selectedItems.filter(item => item.type === 'asset'));
+const selectedAssetsCanUpdate = computed(() => canActOnAssets('update_asset', selectedAssets.value));
+const selectedAssetsCanDelete = computed(() => canActOnAssets('delete_asset', selectedAssets.value));
+const selectedAssetsCanAssign = computed(() => canActOnAssets('assign_asset', selectedAssets.value));
+const selectedAssetsCanUnassign = computed(() => canActOnAssets('unassign_asset', selectedAssets.value));
+const mixedSelectionCanDelete = computed(() => {
+  return selectedAssets.value.length === 0 || selectedAssetsCanDelete.value;
+});
+
+const activeAssetCanManageDependencies = computed(() => {
+  const activeAsset = stage.selectedItems.find(item => item.id === stage.lastSelectedItemId && item.type === 'asset');
+  return canActOnAsset('manage_dependencies', activeAsset);
+});
+
+const selectionCanMoveIntoActiveCollection = computed(() => {
+  const target = stage.selectedItems.find(item => item.id === stage.lastSelectedItemId && item.type === 'collection');
+  if (!target) return false;
+  const sources = stage.selectedItems.filter(item => item.id !== target.id);
+  if (!sources.length) return false;
+
+  const assets = sources.filter(item => item.type === 'asset');
+  const collections = sources.filter(item => item.type === 'collection');
+  const hasUntrackedAssets = sources.some(item => item.type === 'untracked_asset');
+  const hasUntrackedCollections = sources.some(item => item.type === 'untracked_collection');
+
+  if (assets.length && (!canActOnAssets('update_asset', assets) || !canActInCollection('update_asset', target))) return false;
+  if (collections.length && (!collections.every(item => canActInCollection('update_collection', item)) || !canActInCollection('update_collection', target))) return false;
+  if (hasUntrackedAssets && !canActInCollection('create_asset', target)) return false;
+  if (hasUntrackedCollections && !canActInCollection('create_collection', target)) return false;
+  return true;
+});
+
 // Moving a selection requires update scope for every selected asset.
 const selectedAssetsCanMove = computed(() => {
-  return stage.selectedItems.length > 0
-    && stage.selectedItems.every(item => item.type === 'asset' && canActOnAsset('update_asset', item));
+  return onlyAssets.value && selectedAssetsCanUpdate.value;
 });
 
 // Returns whether any selected asset is present on disk.
@@ -290,6 +309,7 @@ const closeModals = () => modals.disableAllModals();
 
 // Deletes multiple assets.
 const deleteMultipleAssets = async () => {
+  if (!selectedAssetsCanDelete.value) return;
   menu.hideContextMenu();
   stage.operationActive = true;
   for (let assetId of stage.markedItems) {
@@ -317,6 +337,7 @@ const deleteMultipleCollections = async () => {
 
 // Deletes multiple items (assets and collections).
 const deleteMultipleItems = async () => {
+  if (!mixedSelectionCanDelete.value) return;
   menu.hideContextMenu();
   panes.setPaneVisibility('projectDetails', true);
   await deleteMultipleCollections();
@@ -440,6 +461,7 @@ const ignoreItems = async () => {
 
 // Makes selected items dependencies of the active asset.
 const makeDependenciesOfActive = async () => {
+  if (!activeAssetCanManageDependencies.value) return;
   menu.hideContextMenu();
   stage.operationActive = true;
   const activeItemId = stage.lastSelectedItemId;
@@ -465,6 +487,7 @@ const makeDependenciesOfActive = async () => {
 
 // Moves selected items into the active collection.
 const moveIntoFolder = async () => {
+  if (!selectionCanMoveIntoActiveCollection.value) return;
   menu.hideContextMenu();
   stage.operationActive = true;
   const activeItemId = stage.lastSelectedItemId;
@@ -530,7 +553,10 @@ const prepAllCheckpointModal = () => {
 };
 
 // Opens the assign menu for the currently selected assets.
-const prepAssignAsset = (event) => menu.showContextMenu(event, 'assignMenu', true);
+const prepAssignAsset = (event) => {
+  if (!selectedAssetsCanAssign.value) return;
+  menu.showContextMenu(event, 'assignMenu', true);
+};
 
 // Shows the free up asset space confirmation modal.
 const prepFreeUpSpacePopUpModal = () => {
@@ -543,10 +569,14 @@ const prepFreeUpSpacePopUpModal = () => {
 };
 
 // Opens the manage tags menu for the currently selected assets.
-const prepManageTags = (event) => menu.showContextMenu(event, 'manageTagsMenu', true);
+const prepManageTags = (event) => {
+  if (!selectedAssetsCanUpdate.value) return;
+  menu.showContextMenu(event, 'manageTagsMenu', true);
+};
 
 // Prepares and opens the Move to Collection sub-menu for multi-selection.
 const prepMoveToCollection = (event) => {
+  if (!selectedAssetsCanMove.value) return;
   const selectedAssetIds = stage.markedItems.filter(id => stage.selectedItems.find(item => item.id === id && item.type === 'asset'));
   if (selectedAssetIds.length === 0) return;
   const firstAsset = stage.selectedItems.find(item => item.id === selectedAssetIds[0] && item.type === 'asset');
@@ -616,6 +646,7 @@ const revertAllChanges = async () => {
 
 // Unassigns all collaborators from assets.
 const unassignAssets = async () => {
+  if (!selectedAssetsCanUnassign.value) return;
   menu.hideContextMenu();
   stage.operationActive = true;
   const assetIds = stage.selectedItems.filter(item => item.type === 'asset').map(item => item.id);

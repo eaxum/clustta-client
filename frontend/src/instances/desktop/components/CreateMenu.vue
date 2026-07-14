@@ -5,7 +5,7 @@
 		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="props.disabled || kanbanView || !canCreateCollection"
 			@click="createCollection" v-tooltip="$t('components.createMenu.addCollection')" />
 		<ActionButton :icon="getAppIcon('data-download')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !canCreateAsset"
-			@click="importItems" v-tooltip="$t('components.createMenu.importItems')" />
+			@click="importItemsWithPermission" v-tooltip="$t('components.createMenu.importItems')" />
 		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="props.disabled || kanbanView || !canCreateWorkflow"
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
 		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="props.disabled || kanbanView || !canCreateAsset"
@@ -51,6 +51,7 @@ const canCreateAsset = computed(() => canCreateAssetHere());
 const canCreateCollection = computed(() => canCreateCollectionHere());
 
 const canCreateWorkflow = computed(() => canCreateAsset.value && canCreateCollection.value);
+const creationBlocked = computed(() => props.disabled || props.kanbanView);
 
 // methods
 
@@ -64,22 +65,47 @@ const clearSelection = () => {
 };
 
 // Opens the application selection modal to create a new asset.
-const createAsset = () => { clearSelection(); modals.setModalVisibility('selectAppModal', true); };
+const createAsset = () => {
+	if (creationBlocked.value || !canCreateAsset.value) return;
+	clearSelection();
+	modals.setModalVisibility('selectAppModal', true);
+};
 
 // Opens the create collection modal.
-const createCollection = () => { if (!stage.groupItems) clearSelection(); modals.setModalVisibility('createCollectionModal', true); };
+const createCollection = () => {
+	if (creationBlocked.value || !canCreateCollection.value) return;
+	if (!stage.groupItems) clearSelection();
+	modals.setModalVisibility('createCollectionModal', true);
+};
 
 // Opens the add web link modal.
-const createWebLink = () => { clearSelection(); modals.setModalVisibility('addWebLinkModal', true); };
+const createWebLink = () => {
+	if (creationBlocked.value || !canCreateAsset.value) return;
+	clearSelection();
+	modals.setModalVisibility('addWebLinkModal', true);
+};
 
 // Opens the workflow selection modal.
-const createWorkflow = () => { clearSelection(); modals.setModalVisibility('selectWorkflowModal', true); };
+const createWorkflow = () => {
+	if (creationBlocked.value || !canCreateWorkflow.value) return;
+	clearSelection();
+	modals.setModalVisibility('selectWorkflowModal', true);
+};
+
+// Imports untracked items only when asset creation is allowed here.
+const importItemsWithPermission = () => {
+	if (props.disabled || !canCreateAsset.value) return;
+	return props.importItems();
+};
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Opens the integration sync modal.
-const openSyncModal = () => { modals.setModalVisibility('integrationSyncModal', true); };
+const openSyncModal = () => {
+	if (creationBlocked.value || !canCreateAsset.value) return;
+	modals.setModalVisibility('integrationSyncModal', true);
+};
 
 // lifecycle hooks
 onMounted(async () => {

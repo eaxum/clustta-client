@@ -51,6 +51,7 @@ export async function syncData() {
   
   const projectStore = useProjectStore();
   const notificationStore = useNotificationStore();
+  const userStore = useUserStore();
 
   
   notificationStore.cancleFunction = SyncService.CancelSync;
@@ -71,6 +72,7 @@ export async function syncData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser')
     })
@@ -85,6 +87,7 @@ export async function pullData() {
   
   const projectStore = useProjectStore();
   const notificationStore = useNotificationStore();
+  const userStore = useUserStore();
   
   let syncOptions = {
       only_latest_checkpoints: false,
@@ -102,6 +105,7 @@ export async function pullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser')
     })
@@ -126,7 +130,7 @@ export async function updateProject() {
   )
     .then(async () => {
       await projectStore.reloadActiveProject();
-      await userStore.reloadUsers();
+      await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser');
     })
@@ -140,6 +144,7 @@ export async function syncFullData() {
   
   const projectStore = useProjectStore();
   const notificationStore = useNotificationStore();
+  const userStore = useUserStore();
   let syncOptions = {
     only_latest_checkpoints: false,
     asset_dependencies: true,
@@ -155,6 +160,7 @@ export async function syncFullData() {
     .then(async () => {
       projectStore.activeProject.is_unsynced = false;
       await projectStore.reloadActiveProject();
+      await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser')
     })

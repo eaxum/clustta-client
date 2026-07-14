@@ -42,6 +42,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { canActOnAssets } from '@/lib/permissions';
 import utils from '@/services/utils';
 
 // components
@@ -67,6 +68,9 @@ const isProcessing = ref(false);
 const manageTagsMenuRoot = ref(null);
 const searchTagInput = ref(null);
 const searchTerm = ref('');
+
+const selectedAssets = computed(() => stage.selectedItems.filter(item => item?.type === 'asset'));
+const canUpdateAssets = computed(() => canActOnAssets('update_asset', selectedAssets.value));
 
 // constants
 const TAG_MAX_LENGTH = 32;
@@ -95,6 +99,7 @@ const clearSearch = () => {
 
 // Creates a new tag from the search term and assigns it to all selected assets.
 const addNewTag = async () => {
+  if (!canUpdateAssets.value) return;
   const name = searchTerm.value.trim();
   if (!name || !canAddNewTag.value || isProcessing.value) return;
   const assets = getSelectedAssets();
@@ -142,6 +147,7 @@ const isTagOnAll = (tag) => {
 
 // Toggles a tag on or off for all selected assets in a single batch call.
 const toggleTag = async (tag) => {
+  if (!canUpdateAssets.value) return;
   if (isProcessing.value) return;
   const assets = getSelectedAssets();
   if (!assets.length) return;

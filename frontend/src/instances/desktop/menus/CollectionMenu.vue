@@ -14,24 +14,24 @@
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
-      v-if="!hideOnFilter && templateStore.getTemplates.length && (userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createAsset" />
+      v-if="!hideOnFilter && templateStore.getTemplates.length && canCreateAsset" :buttonFunction="createAsset" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
-      v-if="!hideOnFilter && (userStore.canDo('create_collection') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createCollection" />
+      v-if="!hideOnFilter && canCreateCollection" :buttonFunction="createCollection" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
-      v-if="!hideOnFilter && workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
+      v-if="!hideOnFilter && workflowStore.workflows.length && canCreateWorkflow" :buttonFunction="addWorkflow" />
 
     
 
     <ActionButton :icon="getAppIcon('web-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.newLink')"
-      v-if="!hideOnFilter && (userStore.canDo('create_asset') || collectionStore.selectedCollection.can_modify)" :buttonFunction="createLink" />
+      v-if="!hideOnFilter && canCreateAsset" :buttonFunction="createLink" />
 
     <ActionButton :icon="getAppIcon('data-download')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
-      v-if="!hideOnFilter && !platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="importItems" />
+      v-if="!hideOnFilter && !platformStore.isWeb && canCreateAsset" :buttonFunction="importItems" />
 
     <ActionButton :icon="getAppIcon('arrow-up-ramp')" :showLabel="true" :fullWidth="true" :label="$t('menus.uploadItems')"
-      v-if="!hideOnFilter && platformStore.isWeb && userStore.canDo('create_asset')" :buttonFunction="uploadItems" />
+      v-if="!hideOnFilter && platformStore.isWeb && canCreateAsset" :buttonFunction="uploadItems" />
 
     <ActionButton :icon="getAppIcon('clipboard')" :showLabel="true" :fullWidth="true" :label="$t('common.paste')"
       v-if="hasClipboardItems && userStore.canDo('update_collection')" :buttonFunction="pasteItems" />
@@ -95,7 +95,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Clipboard } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
-import { canCreateCheckpointInCollection } from '@/lib/permissions';
+import { canActInCollection, canCreateAssetInCollection, canCreateCheckpointInCollection } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -204,10 +204,14 @@ const filtersActive = computed(() => {
 });
 
 const hideOnFilter = computed(() => commonStore.viewSearchQuery || filtersActive.value);
+const canCreateAsset = computed(() => canCreateAssetInCollection(collectionStore.selectedCollection));
+const canCreateCollection = computed(() => canActInCollection('create_collection', collectionStore.selectedCollection));
+const canCreateWorkflow = computed(() => canCreateAsset.value && canCreateCollection.value);
 
 // methods
 // Opens the workflow selection modal.
 const addWorkflow = () => {
+  if (!canCreateWorkflow.value) return;
   modals.setModalVisibility('selectWorkflowModal', true);
   menu.hideContextMenu();
 };
@@ -246,6 +250,7 @@ const copyDeepLink = async () => {
 
 // Opens the create collection modal.
 const createCollection = () => {
+  if (!canCreateCollection.value) return;
   stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('createCollectionModal', true);
   menu.hideContextMenu();
@@ -253,6 +258,7 @@ const createCollection = () => {
 
 // Opens the add web link modal.
 const createLink = () => {
+  if (!canCreateAsset.value) return;
   stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('addWebLinkModal', true);
   menu.hideContextMenu();
@@ -260,6 +266,7 @@ const createLink = () => {
 
 // Opens the select app modal to create an asset.
 const createAsset = () => {
+  if (!canCreateAsset.value) return;
   stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('selectAppModal', true);
   menu.hideContextMenu();
@@ -398,6 +405,7 @@ const goToCollection = () => {
 
 // Imports files and folders from the file system.
 const importItems = async () => {
+  if (!canCreateAsset.value) return;
   try {
     const selectedPaths = await DialogService.SelectFilesDialog();
     if (!selectedPaths || selectedPaths.length === 0) {
@@ -630,6 +638,7 @@ const updateContents = async () => {
 
 // Opens the upload items modal for web platform.
 const uploadItems = () => {
+  if (!canCreateAsset.value) return;
   stage.expandCollection(collectionStore.selectedCollection);
   modals.setModalVisibility('uploadItemsModal', true);
   menu.hideContextMenu();
@@ -651,7 +660,6 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 </style>
-
 
 
 

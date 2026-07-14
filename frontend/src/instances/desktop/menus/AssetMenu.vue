@@ -6,13 +6,13 @@
 
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" class="menu-divider"></span>
 
-    <ActionButton v-if="userStore.canDo('update_asset') && canUpdateAsset" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
       :label="$t('common.rename')" :buttonFunction="renameAsset" />
 
-    <ActionButton v-if="userStore.canDo('update_asset') && canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
+    <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
       :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
 
-    <ActionButton v-if="!hideOnFilter && userStore.canDo('create_asset') && canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
+    <ActionButton v-if="!hideOnFilter && canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
@@ -21,14 +21,14 @@
       :fullWidth="true" :label="$t('menus.copyToProject')" :buttonFunction="copyToProject" />
 
     <!-- Move to Collection -->
-    <ActionButton v-if="!hideOnFilter && !platformStore.isWeb && userStore.canDo('update_asset') && canUpdateAsset && !isWebLinkAsset"
+    <ActionButton v-if="!hideOnFilter && !platformStore.isWeb && canUpdateAsset && !isWebLinkAsset"
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
     <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('fetch')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
-    <ActionButton v-if="isRemoteProject && userStore.canDo('manage_dependencies') && !isWebLinkAsset" :icon="getAppIcon('dependency')" :showLabel="true"
+    <ActionButton v-if="isRemoteProject && canManageDependencies && !isWebLinkAsset" :icon="getAppIcon('dependency')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
 
     <!-- Go to Location -->
@@ -71,7 +71,7 @@
 
     <!-- Delete Asset -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
-      v-if="canDeleteAsset && userStore.canDo('delete_asset')" :buttonFunction="deleteAsset" />
+      v-if="canDeleteAsset" :buttonFunction="deleteAsset" />
 
   </div>
 
@@ -144,10 +144,11 @@ const asset = computed(() => {
   return assetStore.selectedAsset;
 });
 
-// Permission gates that honor recursive collection-collaborator override.
+// Asset actions require both the role capability and parent collection scope.
 const canUpdateAsset = computed(() => canActOnAsset('update_asset', asset.value));
 const canCreateAsset = computed(() => canActOnAsset('create_asset', asset.value));
 const canDeleteAsset = computed(() => canActOnAsset('delete_asset', asset.value));
+const canManageDependencies = computed(() => canActOnAsset('manage_dependencies', asset.value));
 
 // Checks if the asset can be copied to other projects.
 const canCopyToOtherProject = computed(() => {
@@ -296,6 +297,7 @@ const copyAssetUrl = async () => {
 
 // Deletes the selected asset.
 const deleteAsset = async () => {
+  if (!canDeleteAsset.value) return;
   let assetId = assetStore.selectedAsset.id;
   let longMessage = t('notifications.movedToTrash', { item: assetStore.selectedAsset.name });
   panes.setPaneVisibility('projectDetails', true);
@@ -316,6 +318,7 @@ const deleteAsset = async () => {
 
 // Duplicates the selected asset.
 const duplicateAsset = async () => {
+  if (!canCreateAsset.value) return;
   menu.hideContextMenu();
   
   try {
@@ -351,6 +354,7 @@ const duplicateAsset = async () => {
 
 // Opens the edit asset modal.
 const editAsset = () => {
+  if (!canUpdateAsset.value) return;
   modals.setModalVisibility('editAssetModal', true);
   menu.hideContextMenu();
 };
@@ -413,6 +417,7 @@ const getAppIcon = (iconName) => {
 
 // Opens the dependency graph modal.
 const goToDependencyGraph = () => {
+  if (!canManageDependencies.value) return;
   modals.setModalVisibility('dependencyGraphModal', true);
   menu.hideContextMenu();
 };
@@ -486,6 +491,7 @@ const launchAssetWithCommand = async () => {
 
 // Shows the move to collection sub-menu.
 const moveToCollection = () => {
+  if (!canUpdateAsset.value) return;
   menu.subMenuState.selectedAssetIds = [assetStore.selectedAsset.id];
   menu.subMenuState.startingCollectionId = assetStore.selectedAsset.collection_id || '';
   menu.showSubMenu('assetMenu', {
@@ -506,6 +512,7 @@ const prepFreeUpSpacePopUpModal = () => {
 
 // Emits event to rename the asset.
 const renameAsset = () => {
+  if (!canUpdateAsset.value) return;
   emitter.emit('renameAsset');
   menu.hideContextMenu();
 };
@@ -580,8 +587,3 @@ onBeforeUnmount(() => {
 @import "@/assets/menu.css";
 
 </style>
-
-
-
-
-

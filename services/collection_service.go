@@ -66,6 +66,38 @@ type PurgeRecursiveUntrackedItemsResult struct {
 type CollectionService struct {
 }
 
+func authorizeCreateCollectionTx(tx *sqlx.Tx, parentId string) error {
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	user, err := repository.GetUser(tx, activeUser.Id)
+	if err != nil {
+		return err
+	}
+	role, err := repository.GetRole(tx, user.RoleId)
+	if err != nil {
+		return err
+	}
+	if !role.CreateCollection {
+		return errors.New("user does not have create_collection permission")
+	}
+	if role.Name == "admin" {
+		return nil
+	}
+	if parentId == "" {
+		return errors.New("user cannot create collections at project root")
+	}
+	canModifyIds, err := repository.GetUserCanModifyCollectionIds(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	if _, allowed := canModifyIds[parentId]; !allowed {
+		return errors.New("user cannot create collections outside assigned collection scope")
+	}
+	return nil
+}
+
 type untrackedCanModifyContext struct {
 	allowAll            bool
 	canModifyIds        map[string]struct{}
@@ -243,6 +275,9 @@ func (e *CollectionService) CreateCollection(projectPath, name, description, col
 		return models.Collection{}, err
 	}
 	defer tx.Rollback()
+	if err := authorizeCreateCollectionTx(tx, parentId); err != nil {
+		return models.Collection{}, err
+	}
 
 	previewId := ""
 	if previewPath != "" {

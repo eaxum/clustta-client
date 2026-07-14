@@ -81,6 +81,21 @@ export const useUserStore = defineStore("users", {
         return false;
       }
     },
+    async reloadCurrentUser() {
+      const projectStore = useProjectStore();
+      if (!projectStore.activeProject?.uri || !this.user?.id) return;
+
+      const user = await UserService.GetUser(projectStore.activeProject.uri, this.user.id);
+      if (user.photo) {
+        user.photo = "data:image/png;base64," + user.photo;
+      }
+      this.user = user;
+
+      const userIndex = this.users.findIndex(projectUser => projectUser.id === user.id);
+      if (userIndex !== -1) {
+        this.users[userIndex] = user;
+      }
+    },
     async reloadUsers() {
       const projectStore = useProjectStore();
       if (!projectStore.activeProject?.uri) return;

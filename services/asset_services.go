@@ -35,25 +35,126 @@ import (
 type AssetService struct {
 }
 
-// requireAssetUpdatePermission prevents UI shortcuts or direct service calls
-// from bypassing the active user's update_asset role permission.
-func requireAssetUpdatePermission(tx *sqlx.Tx) error {
+type assetAction string
+
+const (
+	assetActionCreate             assetAction = "create_asset"
+	assetActionUpdate             assetAction = "update_asset"
+	assetActionDelete             assetAction = "delete_asset"
+	assetActionAssign             assetAction = "assign_asset"
+	assetActionUnassign           assetAction = "unassign_asset"
+	assetActionManageDependencies assetAction = "manage_dependencies"
+	assetActionChangeStatus       assetAction = "change_status"
+)
+
+func activeAssetRole(tx *sqlx.Tx) (models.User, models.Role, error) {
 	activeUser, err := auth_service.GetActiveUser()
 	if err != nil {
-		return err
+		return models.User{}, models.Role{}, err
 	}
 	user, err := repository.GetUser(tx, activeUser.Id)
 	if err != nil {
-		return err
+		return models.User{}, models.Role{}, err
 	}
 	role, err := repository.GetRole(tx, user.RoleId)
 	if err != nil {
+		return models.User{}, models.Role{}, err
+	}
+	return user, role, nil
+}
+
+func roleAllowsAssetAction(role models.Role, action assetAction) bool {
+	switch action {
+	case assetActionCreate:
+		return role.CreateAsset
+	case assetActionUpdate:
+		return role.UpdateAsset
+	case assetActionDelete:
+		return role.DeleteAsset
+	case assetActionAssign:
+		return role.AssignAsset
+	case assetActionUnassign:
+		return role.UnassignAsset
+	case assetActionManageDependencies:
+		return role.ManageDependencies
+	case assetActionChangeStatus:
+		return role.ChangeStatus
+	default:
+		return false
+	}
+}
+
+// authorizeAssetActionTx requires both the role capability and, for nested
+// assets, either direct assignment or modify scope inherited from the parent.
+func authorizeAssetActionTx(tx *sqlx.Tx, action assetAction, assetIds []string) error {
+	user, role, err := activeAssetRole(tx)
+	if err != nil {
 		return err
 	}
-	if !role.UpdateAsset {
-		return errors.New("user does not have permission to update assets")
+	if !roleAllowsAssetAction(role, action) {
+		return fmt.Errorf("user does not have %s permission", action)
+	}
+	if role.Name == "admin" {
+		return nil
+	}
+	allowedCollectionIds, err := repository.GetUserCanModifyCollectionIds(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	for _, assetId := range assetIds {
+		asset, err := repository.GetAsset(tx, assetId)
+		if err != nil {
+			return err
+		}
+		if action != assetActionCreate && asset.AssigneeId == user.Id {
+			continue
+		}
+		if asset.CollectionId == "" {
+			continue
+		}
+		if _, allowed := allowedCollectionIds[asset.CollectionId]; !allowed {
+			return fmt.Errorf("user cannot %s asset outside assigned collection scope", action)
+		}
 	}
 	return nil
+}
+
+func authorizeAssetCollectionTx(tx *sqlx.Tx, action assetAction, collectionId string) error {
+	user, role, err := activeAssetRole(tx)
+	if err != nil {
+		return err
+	}
+	if !roleAllowsAssetAction(role, action) {
+		return fmt.Errorf("user does not have %s permission", action)
+	}
+	if role.Name == "admin" {
+		return nil
+	}
+	if collectionId == "" {
+		return fmt.Errorf("user cannot %s assets at project root", action)
+	}
+	allowedCollectionIds, err := repository.GetUserCanModifyCollectionIds(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	if _, allowed := allowedCollectionIds[collectionId]; !allowed {
+		return fmt.Errorf("user cannot %s assets outside assigned collection scope", action)
+	}
+	return nil
+}
+
+func authorizeAssetAction(projectPath string, action assetAction, assetIds []string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	return authorizeAssetActionTx(tx, action, assetIds)
 }
 
 type ChangedFiles struct {
@@ -143,17 +244,8 @@ func (t *AssetService) CreateAsset(projectPath, name, description, assetTypeId, 
 	if err != nil {
 		return models.Asset{}, err
 	}
-
-	userData, err := repository.GetUser(tx, user.Id)
-	if err != nil {
+	if err := authorizeAssetCollectionTx(tx, assetActionCreate, collectionId); err != nil {
 		return models.Asset{}, err
-	}
-	userRole, err := repository.GetRole(tx, userData.RoleId)
-	if err != nil {
-		return models.Asset{}, err
-	}
-	if !userRole.CreateAsset {
-		return models.Asset{}, error_service.ErrNotUnauthorized
 	}
 
 	previewId := ""
@@ -262,6 +354,9 @@ func (t *AssetService) DuplicateAsset(projectPath, sourceAssetId, targetCollecti
 	destinationCollectionId := targetCollectionId
 	if destinationCollectionId == "" {
 		destinationCollectionId = sourceAsset.CollectionId
+	}
+	if err := authorizeAssetCollectionTx(tx, assetActionCreate, destinationCollectionId); err != nil {
+		return models.Asset{}, err
 	}
 
 	// Generate unique name by checking for conflicts in the destination collection
@@ -404,6 +499,9 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceAssetId, targ
 		return models.Asset{}, err
 	}
 	defer targetTx.Rollback()
+	if err := authorizeAssetCollectionTx(targetTx, assetActionCreate, targetCollectionId); err != nil {
+		return models.Asset{}, err
+	}
 
 	// Get the source asset
 	sourceAsset, err := repository.GetAsset(sourceTx, sourceAssetId)
@@ -648,6 +746,9 @@ func (t *AssetService) CopyAssetToProject(sourceProjectPath, sourceAssetId, targ
 // ChangeStatus updates asset statuses on the remote server first, then locally.
 // If no remote is configured, falls back to local-only update.
 func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statusId string) (MetadataUpdateResult, error) {
+	if err := authorizeAssetAction(projectPath, assetActionChangeStatus, assetIds); err != nil {
+		return MetadataUpdateResult{}, err
+	}
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
 		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
@@ -772,6 +873,12 @@ func (t *AssetService) ChangeAssetCollection(projectPath string, assetIds []stri
 		return err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, assetIds); err != nil {
+		return err
+	}
+	if err := authorizeAssetCollectionTx(tx, assetActionUpdate, collectionId); err != nil {
+		return err
+	}
 
 	var conflicts []string
 	for _, assetId := range assetIds {
@@ -830,29 +937,19 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 	}
 	defer tx.Rollback()
 
-	activeUser, err := auth_service.GetActiveUser()
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, assetIds); err != nil {
+		return err
+	}
+	_, role, err := activeAssetRole(tx)
 	if err != nil {
 		return err
 	}
-	user, err := repository.GetUser(tx, activeUser.Id)
-	if err != nil {
-		return err
+	if targetCollectionId == "" && role.Name != "admin" {
+		return errors.New("assets can only be moved to an assigned collection")
 	}
-	role, err := repository.GetRole(tx, user.RoleId)
-	if err != nil {
-		return err
-	}
-	allowedCollectionIds := map[string]struct{}{}
-	if role.Name != "admin" {
-		if targetCollectionId == "" {
-			return errors.New("assets can only be moved to an assigned collection")
-		}
-		allowedCollectionIds, err = repository.GetUserCanModifyCollectionIds(tx, activeUser.Id)
-		if err != nil {
+	if targetCollectionId != "" {
+		if err := authorizeAssetCollectionTx(tx, assetActionUpdate, targetCollectionId); err != nil {
 			return err
-		}
-		if _, allowed := allowedCollectionIds[targetCollectionId]; !allowed {
-			return errors.New("assets can only be moved to an assigned collection")
 		}
 	}
 
@@ -880,11 +977,6 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
 			return err
-		}
-		if role.Name != "admin" && !role.UpdateAsset {
-			if _, allowed := allowedCollectionIds[asset.CollectionId]; !allowed {
-				return errors.New("user cannot move one or more selected assets")
-			}
 		}
 		// Skip if already in target collection
 		if asset.CollectionId == targetCollectionId {
@@ -960,6 +1052,9 @@ func (t *AssetService) DeleteAsset(projectPath, assetId string, removeFiles bool
 		return err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionDelete, []string{assetId}); err != nil {
+		return err
+	}
 
 	err = repository.DeleteAsset(tx, assetId, removeFiles, true)
 	if err != nil {
@@ -984,7 +1079,7 @@ func (t *AssetService) UpdateAsset(projectPath, assetId, name, assetTypeId strin
 		return models.Asset{}, err
 	}
 	defer tx.Rollback()
-	if err := requireAssetUpdatePermission(tx); err != nil {
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, []string{assetId}); err != nil {
 		return models.Asset{}, err
 	}
 
@@ -1011,6 +1106,9 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 		return err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, []string{assetId}); err != nil {
+		return err
+	}
 
 	err = repository.ChangeAssetType(tx, assetId, assetTypeId)
 	if err != nil {
@@ -1035,6 +1133,9 @@ func (t *AssetService) ToggleIsTask(projectPath, assetId string, isTask bool) (M
 func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, isTask bool) (MetadataUpdateResult, error) {
 	if len(assetIds) == 0 {
 		return MetadataUpdateResult{}, nil
+	}
+	if err := authorizeAssetAction(projectPath, assetActionUpdate, assetIds); err != nil {
+		return MetadataUpdateResult{}, err
 	}
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
@@ -1115,7 +1216,7 @@ func (t *AssetService) RenameAsset(projectPath, assetId, name string) (models.As
 		return models.Asset{}, err
 	}
 	defer tx.Rollback()
-	if err := requireAssetUpdatePermission(tx); err != nil {
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, []string{assetId}); err != nil {
 		return models.Asset{}, err
 	}
 
@@ -1181,6 +1282,9 @@ func (t *AssetService) AssignAsset(projectPath, assetId, userId string) (Metadat
 func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userId string) (MetadataUpdateResult, error) {
 	if len(assetIds) == 0 {
 		return MetadataUpdateResult{}, nil
+	}
+	if err := authorizeAssetAction(projectPath, assetActionAssign, assetIds); err != nil {
+		return MetadataUpdateResult{}, err
 	}
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
@@ -1260,6 +1364,9 @@ func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userI
 	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
 func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdateResult, error) {
+	if err := authorizeAssetAction(projectPath, assetActionUnassign, []string{assetId}); err != nil {
+		return MetadataUpdateResult{}, err
+	}
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
 		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
@@ -1325,6 +1432,9 @@ func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdat
 func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (MetadataUpdateResult, error) {
 	if len(assetIds) == 0 {
 		return MetadataUpdateResult{}, nil
+	}
+	if err := authorizeAssetAction(projectPath, assetActionUnassign, assetIds); err != nil {
+		return MetadataUpdateResult{}, err
 	}
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
@@ -1523,6 +1633,9 @@ func (t *AssetService) AddCollectionDependency(projectPath, assetId, dependencyI
 		return models.AssetDependency{}, err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionManageDependencies, []string{assetId}); err != nil {
+		return models.AssetDependency{}, err
+	}
 	collectionDependency, err := repository.AddCollectionDependency(tx, "", assetId, dependencyId, dependencyTypeId)
 	if err != nil {
 		return models.AssetDependency{}, err
@@ -1545,6 +1658,9 @@ func (t *AssetService) RemoveCollectionDependency(projectPath, assetId, dependen
 		return err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionManageDependencies, []string{assetId}); err != nil {
+		return err
+	}
 	// Read the collection dependency row ID before deletion for tomb lookup
 	dep, err := repository.GetCollectionDependencyByKeys(tx, assetId, dependencyId)
 	if err != nil {
@@ -1576,6 +1692,9 @@ func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId, de
 		return models.AssetDependency{}, err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionManageDependencies, []string{assetId}); err != nil {
+		return models.AssetDependency{}, err
+	}
 
 	assetDependency, err := repository.AddDependency(tx, "", assetId, dependencyId, dependencyTypeId)
 	if err != nil {
@@ -1599,6 +1718,9 @@ func (t *AssetService) RemoveAssetDependency(projectPath, assetId, dependencyId 
 		return err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionManageDependencies, []string{assetId}); err != nil {
+		return err
+	}
 	err = repository.RemoveAssetDependency(tx, assetId, dependencyId)
 	if err != nil {
 		return err

@@ -10,7 +10,7 @@
     <span class="menu-divider"></span>
 
     <!-- Move here option -->
-    <ActionButton v-if="canMoveHere" :icon="getAppIcon('arrow-down-ramp')" :showLabel="true"
+    <ActionButton v-if="canMoveHere" :icon="getAppIcon('circle-check')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.moveHere')" :buttonFunction="() => moveToLocation(currentParentId)" />
 
     <!-- Administrators can move to project root when the assets started in a collection. -->

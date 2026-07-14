@@ -44,11 +44,13 @@ const navigatedCollectionCanModify = () => {
 
 // Returns whether the item's parent collection grants checkpoint scope.
 const itemParentCanModify = (item) => {
+  const collectionId = item?.collection_id || item?.parent_id;
   return !!item?.can_modify
     || !!item?.parent?.can_modify
     || !!item?.collection?.can_modify
-    || !!findRenderedCollection(item?.collection_id)?.can_modify
-    || canModifyCollection(item?.collection_id);
+    || !!findRenderedCollection(collectionId)?.can_modify
+    || !!useCollectionStore().findCollection(collectionId)?.can_modify
+    || canModifyCollection(collectionId);
 };
 
 // Gate for creating checkpoints on one item. The create_checkpoint role is
@@ -80,28 +82,42 @@ export const canCreateCheckpointInCollection = (collection) => {
   return !!collection?.can_modify;
 };
 
-// Gate for actions on a tracked asset. Role permission grants the action
-// globally; scoped users must be in collaborator scope.
+// Gate for actions on a tracked asset. The role permission is mandatory;
+// non-admin users additionally require direct assignment or parent collection scope.
 export const canActOnAsset = (action, asset) => {
   const userStore = useUserStore();
-  if (userStore.canDo(action)) return true;
-  return canModifyCollection(asset?.collection_id || asset?.parent_id);
+  if (!userStore.canDo(action) || !asset) return false;
+  if (isProjectAdmin()) return true;
+  if (action !== 'create_asset' && asset.assignee_id === userStore.user?.id) return true;
+  const collectionId = asset.collection_id || asset.parent_id;
+  if (!collectionId) return true;
+  return itemParentCanModify(asset);
+};
+
+// Bulk asset actions require permission and collection scope for every item.
+export const canActOnAssets = (action, assets) => {
+  return Array.isArray(assets)
+    && assets.length > 0
+    && assets.every(asset => canActOnAsset(action, asset));
 };
 
 // Gate for bulk/contextual actions in the currently navigated collection.
-// At project root, only users with the role permission pass.
+// Non-admin users require an actual collection with modify scope.
 export const canActInNavigatedCollection = (action) => {
   const collectionStore = useCollectionStore();
   const userStore = useUserStore();
-  if (userStore.canDo(action)) return true;
+  if (!userStore.canDo(action)) return false;
+  if (isProjectAdmin()) return true;
+  if (!collectionStore.navigatedCollection) return false;
   return !!collectionStore.navigatedCollection?.can_modify;
 };
 
 // Gate for actions scoped to a specific collection object.
-// Role permission grants the action globally; scoped users need can_modify.
+// The role permission is mandatory and scoped users also need can_modify.
 export const canActInCollection = (action, collection) => {
   const userStore = useUserStore();
-  if (userStore.canDo(action)) return true;
+  if (!userStore.canDo(action) || !collection) return false;
+  if (isProjectAdmin()) return true;
   return !!collection?.can_modify;
 };
 

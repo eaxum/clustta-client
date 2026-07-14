@@ -19,7 +19,7 @@
             :avatarColor="assignee.avatarColor"
           >
             <template #actions>
-              <span v-stop-propagation class="single-action-button" @click="unassignAsset()" v-tooltip="$t('common.unassign')">
+              <span v-if="canUnassignAssets" v-stop-propagation class="single-action-button" @click="unassignAsset()" v-tooltip="$t('common.unassign')">
                 <img class="small-icons" :src="getAppIcon('person-minus')">
               </span>
             </template>
@@ -28,7 +28,7 @@
       </div>
 
       <!-- Project Collaborators -->
-      <div v-if="collaboratorsList && collaboratorsList.length" class="assignee-list-container">
+      <div v-if="canAssignAssets && collaboratorsList && collaboratorsList.length" class="assignee-list-container">
         <AssigneeItem 
           v-stop-propagation
           v-for="(collaborator, index) in collaboratorsList" 
@@ -43,12 +43,12 @@
       </div>
 
       <!-- Studio Users Divider -->
-      <div v-if="searchUserTerm && filteredStudioUsers.length && collaboratorsList.length" class="studio-users-divider">
+      <div v-if="canAssignAssets && searchUserTerm && filteredStudioUsers.length && collaboratorsList.length" class="studio-users-divider">
         <span class="divider-text">{{ $t('menus.studioMembers') }}</span>
       </div>
 
       <!-- Studio Users (not in project) -->
-      <div v-if="searchUserTerm && filteredStudioUsers.length" class="assignee-list-container">
+      <div v-if="canAssignAssets && searchUserTerm && filteredStudioUsers.length" class="assignee-list-container">
         <AssigneeItem 
           v-stop-propagation
           v-for="(user, index) in filteredStudioUsers" 
@@ -75,6 +75,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
+import { canActOnAssets } from '@/lib/permissions';
 import utils from '@/services/utils';
 
 // components
@@ -170,10 +171,17 @@ const projectCollaborators = computed(() => userStore.getProjectCollaborators);
 
 // Returns the currently selected asset.
 const asset = computed(() => assetStore.selectedAsset);
+const targetAssets = computed(() => {
+  if (multipleAssets.value) return stage.selectedItems.filter(item => item.type === 'asset');
+  return asset.value ? [asset.value] : [];
+});
+const canAssignAssets = computed(() => canActOnAssets('assign_asset', targetAssets.value));
+const canUnassignAssets = computed(() => canActOnAssets('unassign_asset', targetAssets.value));
 
 // methods
 // Assigns a asset to a user, handling single or multiple selection.
 const assignAsset = (assigneeId) => {
+  if (!canAssignAssets.value) return;
   if (!multipleAssets.value) {
     assignSingleAsset(assigneeId);
   } else {
@@ -183,6 +191,7 @@ const assignAsset = (assigneeId) => {
 
 // Assigns multiple assets to a user.
 const assignMultipleAssets = async (assigneeId) => {
+  if (!canAssignAssets.value) return;
   let assetIds = stage.markedItems;
 
   return await AssetService.AssignAssets(projectStore.activeProject.uri, assetIds, assigneeId)
@@ -206,6 +215,7 @@ const assignMultipleAssets = async (assigneeId) => {
 
 // Assigns a single asset to a user.
 const assignSingleAsset = async (assigneeId) => {
+  if (!canAssignAssets.value) return;
   let selectedAsset = asset.value;
   let assetId = selectedAsset.id;
   let user = collaboratorsList.value.find((item) => item.id === assigneeId);
@@ -232,6 +242,7 @@ const assignSingleAsset = async (assigneeId) => {
 
 // Adds a studio user to the project and assigns the asset to them.
 const assignStudioUser = async (user) => {
+  if (!canAssignAssets.value) return;
   if (loadingUserIds.value.includes(user.id)) return;
   
   loadingUserIds.value.push(user.id);
@@ -288,6 +299,7 @@ const getAppIcon = (iconName) => {
 
 // Unassigns a asset, handling single or multiple selection.
 const unassignAsset = () => {
+  if (!canUnassignAssets.value) return;
   if (!multipleAssets.value) {
     unassignSingleAsset();
   } else {
@@ -297,6 +309,7 @@ const unassignAsset = () => {
 
 // Unassigns multiple assets.
 const unassignMultipleAssets = async () => {
+  if (!canUnassignAssets.value) return;
   let assetIds = stage.markedItems;
 
   await AssetService.UnassignAssets(projectStore.activeProject.uri, assetIds)
@@ -317,6 +330,7 @@ const unassignMultipleAssets = async () => {
 
 // Unassigns a single asset.
 const unassignSingleAsset = async () => {
+  if (!canUnassignAssets.value) return;
   let selectedAsset = asset.value;
   let assetId = selectedAsset.id;
   
@@ -450,7 +464,5 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 </style>
-
-
 
 

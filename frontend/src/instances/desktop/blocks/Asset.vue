@@ -53,7 +53,7 @@
         <!-- Asset assignee overlay in top right corner -->
         <div v-if="!isUntracked && (!asset.is_resource || isCurrentUser) && !isEditing" class="asset-item-grid-assignee-overlay-top-right">
           <!-- Show assignee profile picture if assigned -->
-          <div v-if="asset.assignee_id" @click="prepAssignAsset(index, asset, $event)" v-stop-propagation class="asset-item-assignee">
+          <div v-if="asset.assignee_id" @click="canManageAssetAssignment && prepAssignAsset(index, asset, $event)" v-stop-propagation class="asset-item-assignee">
             <span v-tooltip="userFullName" class="single-action-button">
               <div class="profile-picture-grid" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
                 <img v-if="userPhoto" class="profile-img-grid" :src="userPhoto">
@@ -108,7 +108,7 @@
               </div>
               
               <!-- Assign Asset button -->
-              <div v-if="!isUntracked && userStore.canDo('assign_asset')" class="asset-item-grid-assign-asset-button">
+              <div v-if="!isUntracked && canAssignAsset" class="asset-item-grid-assign-asset-button">
                 <ActionButton :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
               </div>
               
@@ -244,10 +244,10 @@
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
               :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
-            <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id"
+            <ActionButton class="asset-item-assignee-button" v-if="canAssignAsset && !statusMenuDisplayed && !asset.assignee_id"
               :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
 
-            <div v-else-if="asset.assignee_id" @click="prepAssignAsset(index, asset, $event)" v-stop-propagation
+            <div v-else-if="asset.assignee_id" @click="canManageAssetAssignment && prepAssignAsset(index, asset, $event)" v-stop-propagation
               class="asset-item-assignee">
               <span v-tooltip="userFullName" class="single-action-button">
                 <div class="profile-picture" :style="{ backgroundColor: profileColor(asset.assignee_id) }">
@@ -263,7 +263,7 @@
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
               :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
-            <ActionButton class="asset-item-assignee-button" v-if="userStore.canDo('assign_asset') && !statusMenuDisplayed && !asset.assignee_id && !isUntracked"
+            <ActionButton class="asset-item-assignee-button" v-if="canAssignAsset && !statusMenuDisplayed && !asset.assignee_id && !isUntracked"
               :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
           </div>
 
@@ -426,15 +426,19 @@ const assetTypeName = computed(() => {
   return utils.capitalizeStr(props.asset?.asset_type_name);
 });
 
-// Permission gates that honor recursive collection-collaborator override.
+// Asset actions require both the role capability and parent collection scope.
 const canCreateCheckpoint = computed(() => {
   // console.log(props.asset)
   return canCreateCheckpointForItem(props.asset)
 });
 const canUpdateAsset = computed(() => {
-  return userStore.canDo('update_asset') && canActOnAsset('update_asset', props.asset);
+  return canActOnAsset('update_asset', props.asset);
 });
 const canDeleteAsset = computed(() => canActOnAsset('delete_asset', props.asset));
+const canAssignAsset = computed(() => canActOnAsset('assign_asset', props.asset));
+const canUnassignAsset = computed(() => canActOnAsset('unassign_asset', props.asset));
+const canManageAssetAssignment = computed(() => canAssignAsset.value || canUnassignAsset.value);
+const canChangeAssetStatus = computed(() => canActOnAsset('change_status', props.asset));
 const canCreateFromUntracked = computed(() => canCreateCheckpoint.value);
 
 // Checks if assignment locking allows the current user to checkpoint this asset.
@@ -814,7 +818,7 @@ const launchAssetCommand = async () => {
 
 // Triggers rename from the menu.
 const menuRename = () => {
-  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
+  if (isAssetInFocus.value && canUpdateAsset.value) {
     startRename();
   }
 };
@@ -829,6 +833,7 @@ const openLink = () => {
 
 // Opens the grid status menu.
 const openGridStatusMenu = (event) => {
+  if (!canChangeAssetStatus.value) return;
   const id = props.asset.id;
   const asset = props.asset;
   assetStore.selectAsset(asset);
@@ -838,9 +843,7 @@ const openGridStatusMenu = (event) => {
 
 // Prepares to assign the asset to a user.
 const prepAssignAsset = (index, asset, event) => {
-  if (!userStore.canDo('assign_asset')) {
-    return;
-  }
+  if (!canManageAssetAssignment.value) return;
   handleClick(index, asset, event);
 
   const id = asset.id;
@@ -929,9 +932,7 @@ const toggleEditMode = (event) => {
 // Opens the status menu for changing asset status.
 const toggleDisplayStatusMenu = (index, asset, event) => {
   handleClick(index, asset, event);
-  if (!userStore.canDo('change_status')) {
-    return;
-  }
+  if (!canChangeAssetStatus.value) return;
   assetStore.isAssetAssetStatus = true;
   assetStore.selectAsset(asset);
   statusMenuDisplayed.value = true;
@@ -940,7 +941,7 @@ const toggleDisplayStatusMenu = (index, asset, event) => {
 // Triggers the rename operation if conditions are met.
 const triggerRename = () => {
   if (operationsActive.value) return;
-  if (isAssetInFocus.value && userStore.canDo('update_asset')) {
+  if (isAssetInFocus.value && canUpdateAsset.value) {
     startRename();
   }
 };

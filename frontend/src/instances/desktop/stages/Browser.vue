@@ -47,6 +47,7 @@ import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
+import { canCreateAssetHere, canCreateCollectionHere } from '@/lib/permissions';
 import { useDebounce } from '@/lib/debounce';
 import { useFsWatch } from '@/composables/useFsWatch';
 import { invalidateAssetThumbnailsForItems } from '@/composables/useAssetThumbnail';
@@ -367,13 +368,25 @@ const collapseAll = () => {
 };
 
 // Opens the application selection modal to create a new asset.
-const createAsset = () => { clearSelection(); modals.setModalVisibility('selectAppModal', true); };
+const createAsset = () => {
+	if (!canCreateInWorkspace.value || !canCreateAssetHere()) return;
+	clearSelection();
+	modals.setModalVisibility('selectAppModal', true);
+};
 
 // Opens the create collection modal.
-const createCollection = () => { if (!stage.groupItems) clearSelection(); modals.setModalVisibility('createCollectionModal', true); };
+const createCollection = () => {
+	if (!canCreateInWorkspace.value || !canCreateCollectionHere()) return;
+	if (!stage.groupItems) clearSelection();
+	modals.setModalVisibility('createCollectionModal', true);
+};
 
 // Opens the add web link modal.
-const createWebLink = () => { clearSelection(); modals.setModalVisibility('addWebLinkModal', true); };
+const createWebLink = () => {
+	if (!canCreateInWorkspace.value || !canCreateAssetHere()) return;
+	clearSelection();
+	modals.setModalVisibility('addWebLinkModal', true);
+};
 
 // Deletes all selected items including assets, collections, and untracked files.
 const deleteMultipleItems = async () => {
@@ -774,6 +787,7 @@ const isEditableElementFocused = () => {
 
 // Imports files or folders from the file system into the current directory.
 const importItems = async () => {
+	if (!canCreateInWorkspace.value || !canCreateAssetHere()) return;
 	try {
 		let selectedPaths;
 		try { selectedPaths = await DialogService.SelectFilesDialog(); } catch (error) { return; }

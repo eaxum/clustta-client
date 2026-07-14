@@ -61,6 +61,9 @@ func (t *TagService) AddTagToAsset(projectPath string, assetId string, tagName s
 		return []models.Tag{}, err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, []string{assetId}); err != nil {
+		return []models.Tag{}, err
+	}
 
 	err = repository.AddTagToAsset(tx, assetId, tagName)
 	if err != nil {
@@ -92,6 +95,9 @@ func (t *TagService) RemoveTagFromAsset(projectPath string, assetId string, tagI
 		return []models.Tag{}, err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, []string{assetId}); err != nil {
+		return []models.Tag{}, err
+	}
 
 	err = repository.RemoveTagFromAsset(tx, assetId, tagId)
 	if err != nil {
@@ -123,6 +129,9 @@ func (t *TagService) AddTagToAssets(projectPath string, assetIds []string, tagNa
 		return err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, assetIds); err != nil {
+		return err
+	}
 
 	for _, assetId := range assetIds {
 		existing, err := repository.GetAssetTags(tx, assetId)
@@ -160,6 +169,9 @@ func (t *TagService) RemoveTagFromAssets(projectPath string, assetIds []string, 
 		return err
 	}
 	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionUpdate, assetIds); err != nil {
+		return err
+	}
 
 	for _, assetId := range assetIds {
 		if err := repository.RemoveTagFromAsset(tx, assetId, tagId); err != nil {
