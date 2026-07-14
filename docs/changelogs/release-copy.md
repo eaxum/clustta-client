@@ -1,160 +1,163 @@
-# Clustta 0.4.36 Release Copy
+# Clustta 0.4.37 Release Copy
+
+## Release Inputs
+
+- Version: `0.4.37`
+- Previous version/tag: `v0.4.36`
+- New version/tag: `v0.4.37`
+- Compare range: `d82d1533048c05183440ea0d42f938b9a5d351ba...HEAD`
+- Release headline: `Faster collaboration with safer, smarter workflows`
+- Canny types: `new`, `improved`, `fixed`
 
 ## GitHub Release
 
-### Clustta 0.4.36
+### Clustta 0.4.37
 
 ## Improvements
 
-### Checkpoint Workflow
+### Faster Studio Collaboration
 
-Creating checkpoints is now smoother when you are working with several changes at once. You can create checkpoints from selected modified or new items, review what will be included, remove items from the list, and jump straight to the affected asset from the checkpoint flow.
+Changes to statuses, assignees, collection sharing, and task or resource state now reach Studio immediately when you are online. If the server cannot be reached, Clustta safely saves the change locally and tells you when a manual sync is needed.
 
-The single-asset checkpoint modal can also show existing checkpoints beside the new checkpoint form, making it easier to check recent history before saving another version.
+Bulk assignment, sharing, and task-state changes now update the current view in place, avoiding unnecessary browser refreshes while you work.
 
-### Safer File Drops
+### Clearer Role-Based Access
 
-File drops now handle common replacement workflows better. You can choose whether files dropped from your operating system overwrite matching files or create a numbered copy.
+Project roles and collection assignments now control actions more consistently throughout Clustta. Creating, editing, moving, assigning, tagging, changing status, managing dependencies, deleting, and creating checkpoints are available only when your role and assigned collection scope allow them.
 
-When a dropped file overwrites a tracked asset, Clustta can automatically create a checkpoint so the replacement is captured in history.
+Asset moves are limited to collections you can modify, and Project Settings now opens only for eligible collaborators and shows only the tabs their permissions allow. Updated roles are also reflected when project data refreshes, so access changes take effect without reopening the project.
 
-### Cleaner Asset Browsing
+### Smarter Kitsu Workflows
 
-Project browsing now gives you clearer control over what is visible. Tasks, resources, collections, assets, and untracked files are easier to show or hide, and "Only Assets" views now work better inside nested collections.
+Multiple Kitsu task types can now map to one Clustta asset and act as production steps instead of creating duplicate assets. Directory mappings include per-task output names and a new `<OutputName>` placeholder, giving each step a predictable output path.
 
-Untracked files are also handled more consistently across project and collection views, including a new purge action for cleaning untracked files while keeping tracked assets and collections.
+New assets created during Kitsu sync now inherit their mapped Kitsu status, keeping production state aligned from the start.
 
-### Studio Collaboration
+### Leaner Project Storage
 
-Studio permissions are now clearer and more consistent. Create and modify actions better reflect both a user's role and their assigned collection scope, so disabled actions are easier to understand.
+A new Metadata Only option in Advanced Settings reduces disk usage by not retaining downloaded file data inside `.clst` archives. Transferred chunks are cleaned up automatically and project archives are compacted, while files remain available to fetch again when needed.
 
-Private studios also get better profile handling, studio renaming support, usage information in settings, and smoother account switching.
+### Better Browsing and Filtering
 
-### Integrations & Links
+Browser filters now understand both asset and collection types, combine more reliably with search, and remain consistent when switching workspace tabs. Breadcrumbs show active filter context and accurate result or task counts, including in Kanban and My Assets views.
 
-Kitsu sync now follows directory mappings more closely when deciding asset names, especially when the mapping defines the final filename.
-
-Portfolio links are more flexible too, with support for YouTube, Vimeo, Google Drive, bit.ly, and TinyURL links. Linked assets also have a new Copy URL action.
-
-### Updates & Packaging
-
-Clustta now checks for updates from inside the app and routes users to the right destination for their install type, including website builds, Microsoft Store, Apple App Store, and Linux packages.
-
-This release also includes macOS signing and packaging improvements, refreshed macOS icon and thumbnail handling, and release manifest automation for published builds.
+Search also accepts asset and collection IDs, and the Details pane lets you view and copy those IDs. Asset and collection state loading has been streamlined so browsing and searching larger projects stays responsive.
 
 ### Smaller UX Polish
 
-- Large lists scroll more smoothly.
-- Collaborator and assignee menus now include search and clearer empty states.
-- Checkpoint timeline items are easier to scan and open.
-- Asset-template messaging is clearer when a project has no templates yet.
-- The app now uses "Fetch" language where it is restoring missing working files.
+- Revert is now available directly from the header when the current view has changes.
+- Collection parent names are shown correctly in the Details pane.
+- Assignees, collection states, collapsed collections, and other affected controls have more consistent spacing and alignment.
+- The dependency graph no longer shows a redundant sidebar filter when the same workflows are available from the Details pane.
+- Workspace tabs, asset-type filters, and other affected actions use clearer, current icons.
+- Update status text remains readable across themes and changes dynamically with the current update state.
 
 ## Bug Fixes
 
-- **Drag and drop** - Fixed stale root-drop hints, stuck drag previews, and several drop-target edge cases.
-- **Checkpoint navigation** - Fixed navigation from checkpoint timeline items back to the related asset.
-- **Thumbnails** - Fixed preview refreshes after asset changes so thumbnails stay current.
-- **Light mode** - Fixed icon contrast issues in affected menus and selectors.
-- **Asset tags** - Fixed tag updates so asset changes sync more reliably.
-- **Project refresh** - Fixed in-place refresh behavior and metadata loading for linked items.
-- **Studio roles** - Fixed newly added roles not appearing immediately.
-- **Kitsu setup** - Improved error display and cleanup while editing integration settings.
+- **Offline Studio changes** - Status, assignment, sharing, and task-state changes now fall back to a local update only when the server cannot be reached, with a clear manual-sync warning.
+- **Role permissions** - Fixed asset and collection actions appearing or running outside a collaborator's role or assigned collection scope.
+- **Asset moves** - Fixed scoped collaborators being able to choose destinations outside their assigned collections.
+- **Project Settings** - Fixed settings access and tabs not consistently following project-management permissions.
+- **Role refreshes** - Fixed updated roles not taking effect when project data refreshes.
+- **Workspace filters** - Fixed filters and search carrying incorrect results or behavior between workspace tabs.
+- **Search performance** - Fixed unnecessary asset, collection, and child-state loading during searches.
+- **Collection details** - Fixed incorrect parent names and inconsistent assignee or state alignment in expanded and collapsed layouts.
+- **Checkpoint permissions** - Fixed checkpoint actions appearing for assignment-scoped users who cannot modify the selected items.
+- **Kitsu sync** - Fixed newly created assets starting without their mapped Kitsu status.
+- **Linux updates** - Improved update metadata for DEB and RPM packages and corrected Flatpak release publishing paths.
 
-**Full Changelog**: `70b9920d16ac7da92f1fb11499020e908de2d719...HEAD`
+**Full Changelog**: `d82d1533048c05183440ea0d42f938b9a5d351ba...HEAD`
 
+## Canny Changelog
 
-Creating checkpoints is now smoother when you are working with several changes at once. This release also improves file drops, project browsing, studio collaboration, integrations, update checks, and a batch of workflow fixes.
+### Title
 
-**Checkpoint Workflow**
-Creating checkpoints is now smoother when you are working with several changes at once.
-You can create checkpoints from selected modified or new items, review what will be included, remove items from the list, and jump straight to the affected asset from the checkpoint flow.
+Clustta 0.4.37 : Faster collaboration with safer, smarter workflows
 
-The single-asset checkpoint modal can also show existing checkpoints beside the new checkpoint form, making it easier to check recent history before saving another version.
+### Types
 
-**Better File Drops(Experimental)**
-File drops now handle common replacement workflows better. You can choose whether files dropped from your operating system overwrite matching files or create a numbered copy.
+`new, improved, fixed`
 
-When a dropped file overwrites a tracked asset, Clustta can automatically create a checkpoint so the replacement is captured in history.
+### Body
 
-**Cleaner Asset Browsing**
-Project browsing now gives you clearer control over what is visible. Tasks, resources, collections, assets, and untracked files are easier to show or hide, and "Only Assets" views
-now work better inside nested collections.
+Clustta 0.4.37 makes Studio collaboration faster and safer, adds more flexible Kitsu production mappings, reduces optional project storage, and improves browsing across large projects.
 
-Untracked files are also handled more consistently across project and collection views, including a new purge action for cleaning untracked files while keeping tracked assets and collections.
+**Improved: Faster Studio Collaboration**
 
-**Improved: Studio Collaboration**
-Studio permissions are now clearer and more consistent. Create and modify actions better reflect both a user's role and their assigned collection scope, so disabled actions are easier to understand.
+Changes to statuses, assignees, collection sharing, and task or resource state now reach Studio immediately when you are online. If the server cannot be reached, Clustta safely saves the change locally and tells you when a manual sync is needed.
 
-Private studios also get better profile handling, studio renaming support, usage information in settings, and smoother account switching.
+Bulk changes also update the current view in place without an unnecessary browser refresh.
 
-**Improved: Integrations & Links**
-Kitsu sync now follows directory mappings more closely when deciding asset names, especially when the mapping defines the final filename.
+**Improved: Clearer Role-Based Access**
 
-Portfolio links are more flexible too, with support for YouTube, Vimeo, Google Drive, bit.ly, and TinyURL links. Linked assets also have a new Copy URL action.
+Project roles and collection assignments now consistently control which actions are available. Collaborators see only the creation, editing, moving, assignment, status, tagging, dependency, deletion, and checkpoint actions allowed within their assigned scope.
 
-**Improved: Updates & Packaging**
-Clustta now checks for updates from inside the app and routes users to the right destination for their install type, including website builds, Microsoft Store, Apple App Store, and Linux packages.
+Asset destinations are limited to collections collaborators can modify, while Project Settings shows only the permitted tabs. Role changes are reflected when project data refreshes.
 
-This release also includes macOS signing and packaging improvements, refreshed macOS icon and
-thumbnail handling, and release manifest automation for published builds.
+**New: Smarter Kitsu Workflows**
+
+Multiple Kitsu task types can now map to one Clustta asset as production steps. Configure an output name for each task type and use the new `<OutputName>` placeholder to create predictable paths without duplicating assets.
+
+New assets created during sync also inherit their mapped Kitsu status.
+
+**New: Metadata-Only Storage**
+
+Enable Metadata Only in Advanced Settings to reduce disk usage by leaving downloaded file data out of `.clst` archives. Clustta cleans up transferred chunks and compacts the archive automatically, while keeping files available to fetch again.
+
+**Improved: Browsing and Filtering**
+
+Filter assets and collections by type, combine filters with search more reliably, and keep the same behavior across workspace tabs. Breadcrumbs now show filter context and accurate result counts in browser, Kanban, and My Assets views.
+
+You can also search by asset or collection ID, then view and copy the ID from the Details pane.
 
 **Improved: Smaller UX Polish**
 
-- Large lists scroll more smoothly.
-- Collaborator and assignee menus now include search and clearer empty states.
-- Checkpoint timeline items are easier to scan and open.
-- Asset-template messaging is clearer when a project has no templates yet.
-- The app now uses "Fetch" language where it is restoring missing working files.
+- Revert is available directly from the header when changes are present.
+- Large-project browsing and search avoid unnecessary state loading.
+- Collection layouts and affected controls have clearer alignment and icons.
+- Update status text is clearer and responds to the current update state.
 
 **Fixed**
 
-- **Drag and drop** - Fixed stale root-drop hints, stuck drag previews, and several drop-target edge cases.
-- **Checkpoint navigation** - Fixed navigation from checkpoint timeline items back to the related asset.
-- **Thumbnails** - Fixed preview refreshes after asset changes so thumbnails stay current.
-- **Light mode** - Fixed icon contrast issues in affected menus and selectors.
-- **Asset tags** - Fixed tag updates so asset changes sync more reliably.
-- **Project refresh** - Fixed in-place refresh behavior and metadata loading for linked items.
-- **Studio roles** - Fixed newly added roles not appearing immediately.
-- **Kitsu setup** - Improved error display and cleanup while editing integration settings.
+- **Role permissions** - Fixed actions appearing or running outside a collaborator's role or assigned collection scope.
+- **Asset moves** - Fixed destination choices outside a scoped collaborator's assigned collections.
+- **Project Settings** - Fixed settings access and tabs not consistently following project-management permissions.
+- **Workspace filters** - Fixed inconsistent filter and search behavior when moving between workspace tabs.
+- **Collection details** - Fixed incorrect parent names and inconsistent assignee or state layouts.
+- **Checkpoint permissions** - Fixed checkpoint actions for assignment-scoped collaborators.
+- **Kitsu sync** - Fixed new assets not receiving their mapped Kitsu status.
+- **Linux updates** - Improved DEB, RPM, and Flatpak release metadata handling.
 
 ## Apple App Store
 
 ### What's New in This Version
 
-Clustta 0.4.36 improves checkpoints, file drops, asset browsing, studio collaboration, integrations,
-and update checks.
+Clustta 0.4.37 improves Studio collaboration, role-based access, Kitsu workflows, project storage, and browsing.
 
-- Create checkpoints from selected modified or new items.
-- View existing checkpoints while creating a new checkpoint.
-- Choose whether dropped files overwrite matching files or create numbered copies.
-- Automatically checkpoint tracked assets when a dropped file overwrites them.
-- Browse projects with clearer controls for tasks, resources, collections, assets, and untracked files.
-- Use improved "Only Assets" views inside nested collections.
-- Purge untracked files from projects or collections while keeping tracked work intact.
-- Check for updates from inside the app.
-- Use more portfolio link types, including Google Drive, bit.ly, and TinyURL.
-- Improved Kitsu sync naming, studio permissions, collaborator search, thumbnails, scrolling, and drag-and-drop behavior.
+- Apply status, assignment, sharing, and task-state changes to Studio immediately when online, with safe local fallback when offline.
+- Work with clearer role-based actions, collection-scoped asset moves, and permission-aware Project Settings.
+- See bulk assignment, sharing, and task-state changes update without refreshing the browser.
+- Map multiple Kitsu task types to one asset, configure per-step output names, and carry mapped statuses into new assets.
+- Reduce disk usage with the new Metadata Only storage option.
+- Filter and search assets and collections more consistently across workspaces.
+- Search by asset or collection ID, then view and copy IDs from the Details pane.
+- Access Revert from the header and enjoy clearer counts, layouts, icons, and update messages.
 
 ## Microsoft Store
 
 ### Release Notes
 
-Clustta 0.4.36 improves checkpoints, file drops, asset browsing, studio collaboration, integrations,
-and update checks.
+Clustta 0.4.37 improves Studio collaboration, role-based access, Kitsu workflows, project storage, and browsing.
 
-- Create checkpoints from selected modified or new items.
-- View existing checkpoints while creating a new checkpoint.
-- Choose whether dropped files overwrite matching files or create numbered copies.
-- Automatically checkpoint tracked assets when a dropped file overwrites them.
-- Browse projects with clearer controls for tasks, resources, collections, assets, and untracked files.
-- Use improved "Only Assets" views inside nested collections.
-- Purge untracked files from projects or collections while keeping tracked work intact.
-- Check for updates from inside the app with Microsoft Store-aware routing.
-- Use more portfolio link types, including Google Drive, bit.ly, and TinyURL.
-- Improved Kitsu sync naming, studio permissions, collaborator search, thumbnails, scrolling, and drag-and-drop behavior.
+- Apply status, assignment, sharing, and task-state changes to Studio immediately when online, with safe local fallback when offline.
+- Work with clearer role-based actions, collection-scoped asset moves, and permission-aware Project Settings.
+- See bulk assignment, sharing, and task-state changes update without refreshing the browser.
+- Map multiple Kitsu task types to one asset, configure per-step output names, and carry mapped statuses into new assets.
+- Reduce disk usage with the new Metadata Only storage option.
+- Filter and search assets and collections more consistently across workspaces.
+- Search by asset or collection ID, then view and copy IDs from the Details pane.
+- Access Revert from the header and enjoy clearer counts, layouts, icons, and update messages.
 
 ## Short Store Summary
 
-Better checkpoints, safer file drops, cleaner asset browsing, improved studio collaboration, expanded
-portfolio links, and built-in update checks.
+Faster Studio updates, safer role-based access, multi-step Kitsu mappings, and metadata-only storage.

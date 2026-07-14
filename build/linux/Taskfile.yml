@@ -4,7 +4,7 @@ includes:
   common: ../Taskfile.yml
 
 vars:
-  APP_VERSION: "0.4.36"
+  APP_VERSION: "0.4.37"
 
 tasks:
   build:

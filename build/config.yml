@@ -11,7 +11,7 @@ info:
   description: "Clustta"
   copyright: "(c) 2026, Eaxum"
   comments: "Clustta"
-  version: "0.4.36"
+  version: "0.4.37"
 
 # Dev mode configuration
 dev_mode:
