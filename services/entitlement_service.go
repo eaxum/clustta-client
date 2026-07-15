@@ -29,12 +29,13 @@ type EntitlementUsage struct {
 
 // EntitlementBundle is the complete entitlement state for an entity.
 type EntitlementBundle struct {
-	Plan     string            `json:"plan"`
-	PlanType string            `json:"plan_type"`
-	Status   string            `json:"status"`
-	Limits   EntitlementLimits `json:"limits"`
-	Usage    EntitlementUsage  `json:"usage"`
-	Features []string          `json:"features"`
+	Plan              string            `json:"plan"`
+	PlanType          string            `json:"plan_type"`
+	Status            string            `json:"status"`
+	Limits            EntitlementLimits `json:"limits"`
+	Usage             EntitlementUsage  `json:"usage"`
+	Features          []string          `json:"features"`
+	EffectiveFeatures []string          `json:"effective_features,omitempty"`
 }
 
 // privateServerEntitlements returns a default entitlement bundle for private studio servers.
@@ -50,8 +51,9 @@ func privateServerEntitlements() EntitlementBundle {
 			MaxCollaborators:  -1,
 			AICreditsMonthly:  0,
 		},
-		Usage:    EntitlementUsage{},
-		Features: []string{"sync", "collaboration"},
+		Usage:             EntitlementUsage{},
+		Features:          []string{"sync", "collaboration"},
+		EffectiveFeatures: []string{"sync", "collaboration"},
 	}
 }
 

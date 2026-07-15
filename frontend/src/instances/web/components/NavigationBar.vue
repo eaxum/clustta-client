@@ -121,7 +121,7 @@ const screenWidth = ref(window.innerWidth);
 
 const isWideScreen = computed(() => screenWidth.value >= 500);
 
-const canDiscoverTalent = computed(() => entitlementStore.hasFeature('talent_discovery'));
+const canDiscoverTalent = computed(() => entitlementStore.hasEffectiveFeature('talent_discovery'));
 
 const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);

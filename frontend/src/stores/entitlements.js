@@ -3,6 +3,8 @@ import { EntitlementService, StudioService } from "@/services";
 import { useProjectStore } from "@/stores/projects";
 import utils from "@/services/utils";
 
+let entitlementFetchPromise = null;
+
 // Builds a synthetic bundle for self-hosted (private) studios.
 function createPrivateStudioBundle(usage = {}, usageUnavailable = false) {
   return {
@@ -61,6 +63,7 @@ export const useEntitlementStore = defineStore("entitlements", {
       ai_credits_used: 0,
     },
     features: [],
+    effectiveFeatures: [],
     plans: [],
     studioEntitlements: {},
     lastFetched: null,
@@ -92,7 +95,7 @@ export const useEntitlementStore = defineStore("entitlements", {
       if (limits.max_remote_projects === -1) return true;
       return usage.project_count < limits.max_remote_projects;
     },
-    canDiscoverTalent() { return this.activeFeatures.includes('talent_discovery'); },
+    canDiscoverTalent() { return this.effectiveFeatures.includes('talent_discovery'); },
     canShareLink() { return this.activeFeatures.includes('share_link'); },
     hasCustomRoles() { return this.activeFeatures.includes('custom_roles'); },
     hasIntegrations() { return this.activeFeatures.includes('integrations'); },
@@ -130,16 +133,27 @@ export const useEntitlementStore = defineStore("entitlements", {
   actions: {
     // Fetches the current user's entitlements from the server.
     async fetchEntitlements() {
-      if (this.isLoading) return;
-      this.isLoading = true;
+      if (entitlementFetchPromise) return entitlementFetchPromise;
+
+      entitlementFetchPromise = (async () => {
+        this.isLoading = true;
+        try {
+          const bundle = await EntitlementService.GetEntitlements();
+          this.applyBundle(bundle);
+          this.lastFetched = Date.now();
+          return bundle;
+        } catch (error) {
+          console.error('Failed to fetch entitlements:', error);
+          return null;
+        } finally {
+          this.isLoading = false;
+        }
+      })();
+
       try {
-        const bundle = await EntitlementService.GetEntitlements();
-        this.applyBundle(bundle);
-        this.lastFetched = Date.now();
-      } catch (error) {
-        console.error('Failed to fetch entitlements:', error);
+        return await entitlementFetchPromise;
       } finally {
-        this.isLoading = false;
+        entitlementFetchPromise = null;
       }
     },
 
@@ -180,6 +194,7 @@ export const useEntitlementStore = defineStore("entitlements", {
       this.limits = bundle.limits || this.limits;
       this.usage = bundle.usage || this.usage;
       this.features = bundle.features || [];
+      this.effectiveFeatures = bundle.effective_features || bundle.features || [];
     },
 
     // Returns studio entitlements, fetching if not cached.
@@ -206,6 +221,11 @@ export const useEntitlementStore = defineStore("entitlements", {
       );
     },
 
+    // Checks account-wide access granted by the user's plan or studio memberships.
+    hasEffectiveFeature(feature) {
+      return this.effectiveFeatures.includes(feature);
+    },
+
     // Resets entitlements to default free-tier state.
     reset() {
       this.plan = 'free';
@@ -214,6 +234,7 @@ export const useEntitlementStore = defineStore("entitlements", {
       this.limits = { storage_bytes: 0, max_remote_projects: 1, max_collaborators: 0, ai_credits_monthly: 0 };
       this.usage = { storage_bytes: 0, project_count: 0, ai_credits_used: 0 };
       this.features = [];
+      this.effectiveFeatures = [];
       this.plans = [];
       this.studioEntitlements = {};
       this.lastFetched = null;

@@ -273,7 +273,7 @@ export const useAccountStore = defineStore('accounts', {
           await projectStore.loadStudios();
           
           // Fetch entitlements for the switched user
-          entitlementStore.fetchEntitlements();
+          await entitlementStore.fetchEntitlements();
           
           // Check if project directory exists before loading projects
           const projectDirectoryExists = await SettingsService.GetProjectDirectory();

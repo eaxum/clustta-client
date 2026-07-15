@@ -137,6 +137,7 @@ import { AuthService, SettingsService, StudioService } from '@/services';
 // store imports
 import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
@@ -148,6 +149,7 @@ import { markStoresInitialized } from '@/router';
 
 // stores
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -257,6 +259,7 @@ const handleSSOSuccess = async (data) => {
     const savedIntent = accountStore.onboardingIntent;
     loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
+    await entitlementStore.fetchEntitlements();
 
     loadingStatus.value = t('auth.login.applyingTheme');
     await themeStore.initializeTheme();
@@ -323,6 +326,7 @@ const handleLogin = async () => {
     const savedIntent = accountStore.onboardingIntent;
     loadingStatus.value = t('auth.login.loadingAccount');
     await accountStore.initialize();
+    await entitlementStore.fetchEntitlements();
 
     loadingStatus.value = t('auth.login.applyingTheme');
     await themeStore.initializeTheme();

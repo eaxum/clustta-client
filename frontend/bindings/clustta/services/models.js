@@ -992,6 +992,13 @@ export class EntitlementBundle {
              */
             this["features"] = [];
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string[] | undefined}
+             */
+            this["effective_features"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }
@@ -1005,6 +1012,7 @@ export class EntitlementBundle {
         const $$createField3_0 = $$createType6;
         const $$createField4_0 = $$createType7;
         const $$createField5_0 = $$createType8;
+        const $$createField6_0 = $$createType8;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("limits" in $$parsedSource) {
             $$parsedSource["limits"] = $$createField3_0($$parsedSource["limits"]);
@@ -1014,6 +1022,9 @@ export class EntitlementBundle {
         }
         if ("features" in $$parsedSource) {
             $$parsedSource["features"] = $$createField5_0($$parsedSource["features"]);
+        }
+        if ("effective_features" in $$parsedSource) {
+            $$parsedSource["effective_features"] = $$createField6_0($$parsedSource["effective_features"]);
         }
         return new EntitlementBundle(/** @type {Partial<EntitlementBundle>} */($$parsedSource));
     }

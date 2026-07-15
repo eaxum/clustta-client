@@ -82,9 +82,12 @@ const routes = [
     name: 'discover',
     component: () => import('@/instances/web/DiscoverPage.vue'),
     meta: { requiresAuth: true },
-    beforeEnter: (to, from, next) => {
+    beforeEnter: async (to, from, next) => {
       const entitlementStore = useEntitlementStore();
-      if (entitlementStore.hasFeature('talent_discovery')) {
+      if (!entitlementStore.lastFetched) {
+        await entitlementStore.fetchEntitlements();
+      }
+      if (entitlementStore.hasEffectiveFeature('talent_discovery')) {
         next();
       } else {
         next('/profile');
@@ -243,7 +246,7 @@ router.beforeEach(async (to, from, next) => {
 
       // Fetch user entitlements
       const entitlementStore = useEntitlementStore();
-      entitlementStore.fetchEntitlements();
+      await entitlementStore.fetchEntitlements();
       
       setLoaderStatus('Applying theme...');
       await themeStore.initializeTheme();
