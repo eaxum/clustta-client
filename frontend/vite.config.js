@@ -25,6 +25,10 @@ const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
 const PACKAGE_ROOT = __dirname;
+const WEB_ADAPTERS_ROOT = join(
+  PACKAGE_ROOT,
+  "../../clustta-app/packages/web-adapters/src",
+).replace(/\\/g, "/");
 
 // Check if we're building for web mode
 const isWebMode = process.env.VITE_PLATFORM === 'web';
@@ -57,13 +61,20 @@ export default defineConfig(async () => {
   // Resolve `@/services/adapters/*` to @clustta/web-adapters in both modes.
   // In web mode the real package is used; in desktop mode the stub plugin above
   // returns an empty module so the build doesn't need the package installed.
-  aliases.push({ find: /^@\/services\/adapters\/(.+?)(\.js)?$/, replacement: "@clustta/web-adapters/$1" });
+  aliases.push({
+    find: /^@\/services\/adapters\/(.+?)(\.js)?$/,
+    replacement: isWebMode ? `${WEB_ADAPTERS_ROOT}/$1` : "@clustta/web-adapters/$1",
+  });
 
   // In web mode, also redirect the bare `@/services` import and mock
   // @wailsio/runtime so we can run without the desktop bindings.
   if (isWebMode) {
-    aliases.push({ find: /^@\/services$/, replacement: "@clustta/web-adapters" });
-    aliases.push({ find: '@wailsio/runtime', replacement: "@clustta/web-adapters/runtime/index.js" });
+    // Resolve the app-owned adapters directly instead of Yarn's copied file:
+    // dependency so edits in clustta-app are visible on the next page load.
+    aliases.push({ find: /^@\/services$/, replacement: `${WEB_ADAPTERS_ROOT}/index.js` });
+    aliases.push({ find: /^@clustta\/web-adapters$/, replacement: `${WEB_ADAPTERS_ROOT}/index.js` });
+    aliases.push({ find: /^@clustta\/web-adapters\/(.+)$/, replacement: `${WEB_ADAPTERS_ROOT}/$1` });
+    aliases.push({ find: '@wailsio/runtime', replacement: `${WEB_ADAPTERS_ROOT}/runtime/index.js` });
   }
 
   // The @ alias should come after more specific aliases
@@ -82,6 +93,9 @@ export default defineConfig(async () => {
       port: 1420,
       strictPort: true,
       host: host || false,
+      fs: {
+        allow: [PACKAGE_ROOT, WEB_ADAPTERS_ROOT],
+      },
       hmr: host
         ? {
             protocol: "ws",
