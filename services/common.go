@@ -3,6 +3,7 @@ package services
 import (
 	"clustta/internal/repository"
 	"clustta/internal/settings"
+	"clustta/internal/utils"
 	"clustta/output"
 	"context"
 	"log"
@@ -61,6 +62,14 @@ func clearChunkCacheIfEnabled(projectPath string, dbConn *sqlx.DB) error {
 		return err
 	}
 	defer tx.Rollback()
+
+	remoteUrl, err := utils.GetRemoteUrl(tx)
+	if err != nil {
+		return err
+	}
+	if !utils.IsValidURL(remoteUrl) && !utils.FileExists(remoteUrl) {
+		return nil
+	}
 
 	if err = repository.ClearSyncedChunkCache(tx); err != nil {
 		return err

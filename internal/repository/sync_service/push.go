@@ -77,7 +77,7 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		return err
 	}
 	if data.IsEmpty() {
-		if metadataOnlyStorage {
+		if metadataOnlyStorage && (utils.IsValidURL(remoteUrl) || utils.FileExists(remoteUrl)) {
 			if err = repository.ClearChunkCache(tx); err != nil {
 				return err
 			}
