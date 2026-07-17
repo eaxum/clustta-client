@@ -289,7 +289,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: row;
   width: 100%;
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   height: 35px;
   align-items: center;
   padding: 6px;
@@ -353,7 +353,7 @@ onUnmounted(() => {
   color: var(--text);
   box-sizing: border-box;
   z-index: 100000;
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   min-height: 32px;
   line-height: 1.4 !important;
   background-color: var(--surface-2);
@@ -392,7 +392,7 @@ onUnmounted(() => {
 .listbox-list-items {
   color: var(--text);
   box-sizing: border-box;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   min-height: min-content;
   /* background-color: #2e2e2e; */
   overflow: hidden;
@@ -413,7 +413,7 @@ onUnmounted(() => {
   cursor: pointer;
   background-color: transparent;
   transition: background-color 0.2s ease-in-out;
-  border-radius: 8px;
+  border-radius: var(--normal-radius);
   width: max-content;
   width: 100%;
   /* height: 50px; */

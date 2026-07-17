@@ -85,9 +85,10 @@ const triggerAction = () => {
   justify-content: space-between;
   gap: .5rem;
   width: 96%;
-  height: 40px;
+  height: 35px;
   overflow: hidden;
   padding: 0 .2rem;
+  border-radius: var(--large-radius) !important;
 }
 
 .assignee-list-item:hover {

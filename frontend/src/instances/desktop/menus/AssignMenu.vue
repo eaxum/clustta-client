@@ -364,6 +364,10 @@ onBeforeUnmount(() => {
 @import "@/assets/desktop.css";
 @import "@/assets/menu.css";
 
+.filter-menu-container{
+  border-radius: 50px !important;
+}
+
 .input-section {
   min-height: min-content;
 }

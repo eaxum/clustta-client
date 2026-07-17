@@ -443,7 +443,7 @@ onUnmounted(() => {
   height: min-content;
   padding: .2rem .2rem .2rem .4rem;
   background-color: var(--surface-3);
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
 }
 
 .user-item-suggestion {
@@ -457,7 +457,7 @@ onUnmounted(() => {
   height: min-content;
   padding: .4rem .8rem .4rem .4rem;
   /* background-color: var(--surface-3); */
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
 }
 
 .user-item-suggestion:hover {
@@ -546,7 +546,7 @@ onUnmounted(() => {
   display: flex;
   flex-wrap: wrap;
   /* padding: .2rem .4rem; */
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   gap: .4rem;
 }
 
@@ -555,7 +555,7 @@ onUnmounted(() => {
   min-height: 35px;
   background-color: hotpink;
   /* padding: .2rem .4rem; */
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
 }
 
 /* Tag Styles */
@@ -569,7 +569,7 @@ onUnmounted(() => {
   padding: .3rem;
   box-sizing: border-box;
   background-color: var(--surface-2);
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
   overflow-y: auto;
@@ -595,7 +595,7 @@ onUnmounted(() => {
   padding: 10px;
   color: var(--text);
   outline: solid 1px #2e2e2e;
-  border-radius: var(--small-radius);
+  border-radius: var(--large-radius);
   box-sizing: border-box;
 }
 
