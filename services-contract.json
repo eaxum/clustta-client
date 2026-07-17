@@ -396,6 +396,7 @@
           "assetTypeId:string"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -1360,6 +1361,7 @@
           "collectionTypeId:string"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },

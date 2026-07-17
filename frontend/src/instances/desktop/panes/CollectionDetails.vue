@@ -313,6 +313,7 @@ const changeCollectionType = async (collectionTypeName) => {
 
   await CollectionService.ChangeType(projectPath, collection.id, newCollectionType.id)
     .then((result) => {
+      notificationStore.notifyMetadataUpdate(result, t('notifications.collectionTypeUpdated'), false);
       // Update local collection data
       collection.collection_type_name = newCollectionType.name;
       collection.collection_type_icon = newCollectionType.icon;

@@ -227,8 +227,23 @@ const updateAsset = async () => {
     notificationStore.addNotification('Asset name cant be empty', 'Asset name cant be empty', 'error');
     return;
   }
-  await AssetService.UpdateAsset(projectStore.activeProject.uri, assetId, assetName.value, assetTypeId.value, isResource.value, assetWebLink.value, newAssetTags)
-    .then(() => {
+  const typeChanged = currentAsset.asset_type_id !== assetTypeId.value;
+  const tagsUnchanged = newAssetTags.length === currentAsset.tags.length &&
+    newAssetTags.every(tag => currentAsset.tags.includes(tag));
+  const onlyTypeChanged = typeChanged && assetName.value === currentAsset.name &&
+    assetWebLink.value === currentAsset.pointer && tagsUnchanged;
+  const update = onlyTypeChanged
+    ? AssetService.ChangeAssetType(projectStore.activeProject.uri, assetId, assetTypeId.value)
+    : AssetService.UpdateAsset(projectStore.activeProject.uri, assetId, assetName.value, assetTypeId.value, isResource.value, assetWebLink.value, newAssetTags)
+      .then(() => ({ requires_sync: projectStore.activeProject?.has_remote === true }));
+
+  await update
+    .then((result) => {
+      notificationStore.notifyMetadataUpdate(
+        result,
+        typeChanged ? t('notifications.assetTypeUpdated') : t('notifications.itemsUpdatedSuccessfully', 1),
+        false
+      );
       currentAsset.name = assetName.value;
       currentAsset.pointer = assetWebLink.value;
       currentAsset.is_resource = isResource.value;

@@ -74,6 +74,59 @@ func TestPatchMetadataRemoteClassifiesTransportFailure(t *testing.T) {
 	}
 }
 
+func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPut || !strings.HasPrefix(r.URL.Path, "/asset-types/") {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+		var body struct {
+			Name string `json:"name"`
+			Icon string `json:"icon"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Error(err)
+		}
+		requests++
+		id := strings.TrimPrefix(r.URL.Path, "/asset-types/")
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"asset_type": map[string]any{"id": id, "mtime": requests, "name": body.Name, "icon": body.Icon, "synced": true},
+			"sync_token": "token",
+		})
+	}))
+	defer server.Close()
+
+	projectPath := filepath.Join(t.TempDir(), "project.clst")
+	db, err := sqlx.Open("sqlite3", projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(repository.ProjectSchema); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1)", server.URL); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+
+	service := services.AssetService{}
+	created, err := service.CreateAssetType(projectPath, "Animation", "animation")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !created.Synced || created.Name != "Animation" {
+		t.Fatalf("unexpected created type: %#v", created)
+	}
+	updated, err := service.UpdateAssetType(projectPath, created.Id, "Layout", "layout")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if requests != 2 || !updated.Synced || updated.Name != "Layout" {
+		t.Fatalf("unexpected updated type: requests=%d type=%#v", requests, updated)
+	}
+}
+
 func TestSyncedTombDoesNotDirtyProject(t *testing.T) {
 	db, err := sqlx.Open("sqlite3", filepath.Join(t.TempDir(), "project.clst"))
 	if err != nil {

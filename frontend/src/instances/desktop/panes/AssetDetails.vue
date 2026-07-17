@@ -448,8 +448,9 @@ const changeAssetType = async (assetTypeName) => {
   const projectPath = projectStore.activeProject.uri;
   let asset = assetStore.selectedAsset;
 
-  await AssetService.UpdateAsset(projectPath, asset.id, asset.name, newAssetType.id, asset.is_resource, '', asset.tags)
-    .then(() => {
+  await AssetService.ChangeAssetType(projectPath, asset.id, newAssetType.id)
+    .then((result) => {
+      notificationStore.notifyMetadataUpdate(result, t('notifications.assetTypeUpdated'), false);
       asset.asset_type_name = newAssetType.name;
       asset.asset_type_icon = newAssetType.icon;
       asset.asset_type_id = newAssetType.id;

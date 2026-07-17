@@ -61,10 +61,12 @@ export function ChangeIsShared(projectPath, collectionId, isShared) {
  * @param {string} projectPath
  * @param {string} collectionId
  * @param {string} collectionTypeId
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function ChangeType(projectPath, collectionId, collectionTypeId) {
-    return $Call.ByID(489875783, projectPath, collectionId, collectionTypeId);
+    return $Call.ByID(489875783, projectPath, collectionId, collectionTypeId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
 }
 
 /**

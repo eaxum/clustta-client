@@ -1062,30 +1062,85 @@ func (t *AssetService) UpdateAsset(projectPath, assetId, name, assetTypeId strin
 	return updatedAsset, nil
 }
 
-func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string) error {
+func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string) (MetadataUpdateResult, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		dbConn.Close()
+		return MetadataUpdateResult{}, err
 	}
-	defer tx.Rollback()
 	if err := authorizeAssetActionTx(tx, assetActionUpdate, []string{assetId}); err != nil {
-		return err
+		tx.Rollback()
+		dbConn.Close()
+		return MetadataUpdateResult{}, err
+	}
+	assetType, err := repository.GetAssetType(tx, assetTypeId)
+	if err != nil {
+		tx.Rollback()
+		dbConn.Close()
+		return MetadataUpdateResult{}, err
+	}
+	tx.Rollback()
+	dbConn.Close()
+
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	requiresSync := remoteURL != "" && !assetType.Synced
+	if remoteURL != "" && assetType.Synced {
+		response, patchErr := patchAssetsRemote(remoteURL, []assetPatch{{Id: assetId, AssetTypeId: &assetTypeId}})
+		if patchErr != nil {
+			if !IsMetadataTransportFailure(patchErr) {
+				return MetadataUpdateResult{}, patchErr
+			}
+			requiresSync = true
+		} else {
+			for _, asset := range response.Assets {
+				if asset.Id == assetId && asset.AssetTypeId == assetTypeId {
+					db, openErr := utils.OpenDb(projectPath)
+					if openErr != nil {
+						return MetadataUpdateResult{}, openErr
+					}
+					defer db.Close()
+					canonicalTx, beginErr := db.Beginx()
+					if beginErr != nil {
+						return MetadataUpdateResult{}, beginErr
+					}
+					defer canonicalTx.Rollback()
+					if err = applyCanonicalAssets(canonicalTx, response.Assets); err != nil {
+						return MetadataUpdateResult{}, err
+					}
+					if err = canonicalTx.Commit(); err != nil {
+						return MetadataUpdateResult{}, err
+					}
+					return MetadataUpdateResult{RemoteApplied: true}, nil
+				}
+			}
+			requiresSync = true
+		}
 	}
 
-	err = repository.ChangeAssetType(tx, assetId, assetTypeId)
+	dbConn, err = utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	err = tx.Commit()
+	defer dbConn.Close()
+	tx, err = dbConn.Beginx()
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	return nil
+	defer tx.Rollback()
+	if err = repository.ChangeAssetType(tx, assetId, assetTypeId); err != nil {
+		return MetadataUpdateResult{}, err
+	}
+	if err = tx.Commit(); err != nil {
+		return MetadataUpdateResult{}, err
+	}
+	return MetadataUpdateResult{RequiresSync: requiresSync}, nil
 }
 
 func (t *AssetService) ToggleIsTask(projectPath, assetId string, isTask bool) (MetadataUpdateResult, error) {
@@ -2188,6 +2243,41 @@ func (t *AssetService) DeleteAssetType(projectPath, id string) error {
 }
 
 func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.AssetType, error) {
+	id := uuid.New().String()
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return models.AssetType{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	if remoteURL != "" {
+		response, remoteErr := putAssetTypeRemote(remoteURL, id, name, icon)
+		if remoteErr == nil {
+			if response.AssetType.Id != id {
+				return models.AssetType{}, errors.New("remote asset type response did not contain the requested type")
+			}
+			dbConn, openErr := sqlx.Connect("sqlite3", projectPath)
+			if openErr != nil {
+				return models.AssetType{}, openErr
+			}
+			defer dbConn.Close()
+			tx, beginErr := dbConn.Beginx()
+			if beginErr != nil {
+				return models.AssetType{}, beginErr
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalAssetType(tx, response.AssetType); err != nil {
+				return models.AssetType{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return models.AssetType{}, err
+			}
+			response.AssetType.Synced = true
+			return response.AssetType, nil
+		}
+		if !IsMetadataTransportFailure(remoteErr) {
+			return models.AssetType{}, remoteErr
+		}
+	}
+
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return models.AssetType{}, err
@@ -2199,7 +2289,7 @@ func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.A
 	}
 	defer tx.Rollback()
 
-	assetTypes, err := repository.CreateAssetType(tx, "", name, icon)
+	assetTypes, err := repository.CreateAssetType(tx, id, name, icon)
 	if err != nil {
 		return models.AssetType{}, err
 	}
@@ -2212,6 +2302,40 @@ func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.A
 }
 
 func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (models.AssetType, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return models.AssetType{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	if remoteURL != "" {
+		response, remoteErr := putAssetTypeRemote(remoteURL, id, name, icon)
+		if remoteErr == nil {
+			if response.AssetType.Id != id {
+				return models.AssetType{}, errors.New("remote asset type response did not contain the requested type")
+			}
+			dbConn, openErr := sqlx.Connect("sqlite3", projectPath)
+			if openErr != nil {
+				return models.AssetType{}, openErr
+			}
+			defer dbConn.Close()
+			tx, beginErr := dbConn.Beginx()
+			if beginErr != nil {
+				return models.AssetType{}, beginErr
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalAssetType(tx, response.AssetType); err != nil {
+				return models.AssetType{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return models.AssetType{}, err
+			}
+			response.AssetType.Synced = true
+			return response.AssetType, nil
+		}
+		if !IsMetadataTransportFailure(remoteErr) {
+			return models.AssetType{}, remoteErr
+		}
+	}
+
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return models.AssetType{}, err

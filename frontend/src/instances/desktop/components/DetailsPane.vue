@@ -487,10 +487,27 @@ const changeCollectionType = async (collectionTypeName) => {
   stage.operationActive = true;
   const newCollectionType = collectionStore.getCollectionTypes.find((item) => item.name === collectionTypeName);
   collectionType.value = collectionTypeName;
+  let requiresSync = false;
+  const itemUpdates = [];
   for (const collectionId of stage.markedItems) {
-    await CollectionService.ChangeType(projectStore.activeProject.uri, collectionId, newCollectionType.id).catch((error) => console.error('Error:', error));
+    await CollectionService.ChangeType(projectStore.activeProject.uri, collectionId, newCollectionType.id)
+      .then((result) => {
+        requiresSync ||= result?.requires_sync === true;
+        itemUpdates.push({
+          itemId: collectionId,
+          updates: [
+            { property: 'collection_type_name', value: newCollectionType.name },
+            { property: 'collection_type_icon', value: newCollectionType.icon },
+            { property: 'collection_type_id', value: newCollectionType.id }
+          ]
+        });
+      })
+      .catch((error) => console.error('Error:', error));
   }
-  emitter.emit('refresh-browser');
+  if (itemUpdates.length) {
+    emitBatchItemUpdates(itemUpdates);
+    notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, t('notifications.collectionTypeUpdated'), false);
+  }
   stage.operationActive = false;
 };
 
@@ -531,10 +548,27 @@ const changeAssetType = async (assetTypeName) => {
   stage.operationActive = true;
   const newAssetType = assetStore.getAssetTypes.find((item) => item.name === assetTypeName);
   assetType.value = assetTypeName;
+  let requiresSync = false;
+  const itemUpdates = [];
   for (const assetId of stage.markedItems) {
-    await AssetService.ChangeAssetType(projectStore.activeProject.uri, assetId, newAssetType.id).catch((error) => console.error('Error:', error));
+    await AssetService.ChangeAssetType(projectStore.activeProject.uri, assetId, newAssetType.id)
+      .then((result) => {
+        requiresSync ||= result?.requires_sync === true;
+        itemUpdates.push({
+          itemId: assetId,
+          updates: [
+            { property: 'asset_type_name', value: newAssetType.name },
+            { property: 'asset_type_icon', value: newAssetType.icon },
+            { property: 'asset_type_id', value: newAssetType.id }
+          ]
+        });
+      })
+      .catch((error) => console.error('Error:', error));
   }
-  emitter.emit('refresh-browser');
+  if (itemUpdates.length) {
+    emitBatchItemUpdates(itemUpdates);
+    notificationStore.notifyMetadataUpdate({ requires_sync: requiresSync }, t('notifications.assetTypeUpdated'), false);
+  }
   stage.operationActive = false;
 };
 

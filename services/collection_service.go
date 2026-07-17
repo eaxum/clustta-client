@@ -20,6 +20,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -94,6 +95,31 @@ func authorizeCreateCollectionTx(tx *sqlx.Tx, parentId string) error {
 	}
 	if _, allowed := canModifyIds[parentId]; !allowed {
 		return errors.New("user cannot create collections outside assigned collection scope")
+	}
+	return nil
+}
+
+func authorizeUpdateCollectionTx(tx *sqlx.Tx, collectionId string) error {
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	user, err := repository.GetUser(tx, activeUser.Id)
+	if err != nil {
+		return err
+	}
+	if !user.Role.UpdateCollection {
+		return errors.New("user does not have update_collection permission")
+	}
+	if user.Role.Name == "admin" {
+		return nil
+	}
+	canModifyIds, err := repository.GetUserCanModifyCollectionIds(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	if _, allowed := canModifyIds[collectionId]; !allowed {
+		return errors.New("user cannot update collection outside assigned collection scope")
 	}
 	return nil
 }
@@ -2271,27 +2297,85 @@ func (e *CollectionService) ChangeCollectionParent(projectPath string, collectio
 
 // ChangeType changes the type of a collection.
 // Returns an error if the operation fails.
-func (e *CollectionService) ChangeType(projectPath, collectionId, collectionTypeId string) error {
+func (e *CollectionService) ChangeType(projectPath, collectionId, collectionTypeId string) (MetadataUpdateResult, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return MetadataUpdateResult{}, err
 	}
-	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		dbConn.Close()
+		return MetadataUpdateResult{}, err
+	}
+	if err = authorizeUpdateCollectionTx(tx, collectionId); err != nil {
+		tx.Rollback()
+		dbConn.Close()
+		return MetadataUpdateResult{}, err
+	}
+	collectionType, err := repository.GetCollectionType(tx, collectionTypeId)
+	if err != nil {
+		tx.Rollback()
+		dbConn.Close()
+		return MetadataUpdateResult{}, err
+	}
+	tx.Rollback()
+	dbConn.Close()
+
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	requiresSync := remoteURL != "" && !collectionType.Synced
+	if remoteURL != "" && collectionType.Synced {
+		response, patchErr := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, CollectionTypeId: &collectionTypeId}})
+		if patchErr != nil {
+			if !IsMetadataTransportFailure(patchErr) {
+				return MetadataUpdateResult{}, patchErr
+			}
+			requiresSync = true
+		} else {
+			for _, collection := range response.Collections {
+				if collection.Id == collectionId && collection.CollectionTypeId == collectionTypeId {
+					db, openErr := utils.OpenDb(projectPath)
+					if openErr != nil {
+						return MetadataUpdateResult{}, openErr
+					}
+					defer db.Close()
+					canonicalTx, beginErr := db.Beginx()
+					if beginErr != nil {
+						return MetadataUpdateResult{}, beginErr
+					}
+					defer canonicalTx.Rollback()
+					if err = applyCanonicalCollections(canonicalTx, response.Collections); err != nil {
+						return MetadataUpdateResult{}, err
+					}
+					if err = canonicalTx.Commit(); err != nil {
+						return MetadataUpdateResult{}, err
+					}
+					return MetadataUpdateResult{RemoteApplied: true}, nil
+				}
+			}
+			requiresSync = true
+		}
+	}
+
+	dbConn, err = utils.OpenDb(projectPath)
+	if err != nil {
+		return MetadataUpdateResult{}, err
+	}
+	defer dbConn.Close()
+	tx, err = dbConn.Beginx()
+	if err != nil {
+		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
-
-	err = repository.ChangeCollectionType(tx, collectionId, collectionTypeId)
-	if err != nil {
-		return err
+	if err = repository.ChangeCollectionType(tx, collectionId, collectionTypeId); err != nil {
+		return MetadataUpdateResult{}, err
 	}
-	err = tx.Commit()
-	if err != nil {
-		return err
+	if err = tx.Commit(); err != nil {
+		return MetadataUpdateResult{}, err
 	}
-	return nil
+	return MetadataUpdateResult{RequiresSync: requiresSync}, nil
 }
 
 // ChangeIsShared toggles the shared flag on a collection.
@@ -2579,6 +2663,41 @@ func (e *CollectionService) UnassignCollections(projectPath string, collectionId
 // CreateCollectionType creates a new collection type in the project.
 // Returns an error if a type with the same name already exists.
 func (e *CollectionService) CreateCollectionType(projectPath, collectionTypeName, collectionTypeIcon string) (models.CollectionType, error) {
+	id := uuid.New().String()
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return models.CollectionType{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	if remoteURL != "" {
+		response, remoteErr := putCollectionTypeRemote(remoteURL, id, collectionTypeName, collectionTypeIcon)
+		if remoteErr == nil {
+			if response.CollectionType.Id != id {
+				return models.CollectionType{}, errors.New("remote collection type response did not contain the requested type")
+			}
+			dbConn, openErr := utils.OpenDb(projectPath)
+			if openErr != nil {
+				return models.CollectionType{}, openErr
+			}
+			defer dbConn.Close()
+			tx, beginErr := dbConn.Beginx()
+			if beginErr != nil {
+				return models.CollectionType{}, beginErr
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalCollectionType(tx, response.CollectionType); err != nil {
+				return models.CollectionType{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return models.CollectionType{}, err
+			}
+			response.CollectionType.Synced = true
+			return response.CollectionType, nil
+		}
+		if !IsMetadataTransportFailure(remoteErr) {
+			return models.CollectionType{}, remoteErr
+		}
+	}
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.CollectionType{}, err
@@ -2590,7 +2709,7 @@ func (e *CollectionService) CreateCollectionType(projectPath, collectionTypeName
 	}
 	defer tx.Rollback()
 
-	collectionType, err := repository.CreateCollectionType(tx, "", collectionTypeName, collectionTypeIcon)
+	collectionType, err := repository.CreateCollectionType(tx, id, collectionTypeName, collectionTypeIcon)
 	if err != nil {
 		if err.Error() == "UNIQUE constraint failed: collection_type.name" {
 			tx.Rollback()
@@ -2606,6 +2725,40 @@ func (e *CollectionService) CreateCollectionType(projectPath, collectionTypeName
 // UpdateCollectionType updates an existing collection type.
 // Returns an error if a type with the new name already exists.
 func (e *CollectionService) UpdateCollectionType(projectPath, id, collectionTypeName, collectionTypeIcon string) (models.CollectionType, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return models.CollectionType{}, fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	if remoteURL != "" {
+		response, remoteErr := putCollectionTypeRemote(remoteURL, id, collectionTypeName, collectionTypeIcon)
+		if remoteErr == nil {
+			if response.CollectionType.Id != id {
+				return models.CollectionType{}, errors.New("remote collection type response did not contain the requested type")
+			}
+			dbConn, openErr := utils.OpenDb(projectPath)
+			if openErr != nil {
+				return models.CollectionType{}, openErr
+			}
+			defer dbConn.Close()
+			tx, beginErr := dbConn.Beginx()
+			if beginErr != nil {
+				return models.CollectionType{}, beginErr
+			}
+			defer tx.Rollback()
+			if err = applyCanonicalCollectionType(tx, response.CollectionType); err != nil {
+				return models.CollectionType{}, err
+			}
+			if err = tx.Commit(); err != nil {
+				return models.CollectionType{}, err
+			}
+			response.CollectionType.Synced = true
+			return response.CollectionType, nil
+		}
+		if !IsMetadataTransportFailure(remoteErr) {
+			return models.CollectionType{}, remoteErr
+		}
+	}
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.CollectionType{}, err

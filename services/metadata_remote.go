@@ -35,10 +35,11 @@ func IsMetadataTransportFailure(err error) bool {
 }
 
 type assetPatch struct {
-	Id         string  `json:"id"`
-	StatusId   *string `json:"status_id,omitempty"`
-	AssigneeId *string `json:"assignee_id,omitempty"`
-	IsTask     *bool   `json:"is_task,omitempty"`
+	Id          string  `json:"id"`
+	StatusId    *string `json:"status_id,omitempty"`
+	AssigneeId  *string `json:"assignee_id,omitempty"`
+	IsTask      *bool   `json:"is_task,omitempty"`
+	AssetTypeId *string `json:"asset_type_id,omitempty"`
 }
 type assetPatchResponse struct {
 	Assets    []models.Asset `json:"assets"`
@@ -47,6 +48,7 @@ type assetPatchResponse struct {
 type collectionPatch struct {
 	Id                string   `json:"id"`
 	IsShared          *bool    `json:"is_shared,omitempty"`
+	CollectionTypeId  *string  `json:"collection_type_id,omitempty"`
 	AddAssigneeIds    []string `json:"add_assignee_ids,omitempty"`
 	RemoveAssigneeIds []string `json:"remove_assignee_ids,omitempty"`
 }
@@ -56,14 +58,33 @@ type collectionPatchResponse struct {
 	SyncToken           string                      `json:"sync_token"`
 }
 
+type typePutRequest struct {
+	Name string `json:"name"`
+	Icon string `json:"icon"`
+}
+
+type assetTypePutResponse struct {
+	AssetType models.AssetType `json:"asset_type"`
+	SyncToken string           `json:"sync_token"`
+}
+
+type collectionTypePutResponse struct {
+	CollectionType models.CollectionType `json:"collection_type"`
+	SyncToken      string                `json:"sync_token"`
+}
+
 // PatchMetadataRemote sends an authenticated typed metadata PATCH request.
 // It is exported so the sibling services_test package can verify the wire contract.
 func PatchMetadataRemote(remoteURL, path string, payload, result any) error {
+	return metadataRemoteRequest(http.MethodPatch, remoteURL, path, payload, result)
+}
+
+func metadataRemoteRequest(method, remoteURL, path string, payload, result any) error {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest(http.MethodPatch, remoteURL+path, bytes.NewReader(body))
+	req, err := http.NewRequest(method, remoteURL+path, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
@@ -80,6 +101,18 @@ func PatchMetadataRemote(remoteURL, path string, payload, result any) error {
 		return fmt.Errorf("remote metadata update failed (%d): %s", resp.StatusCode, string(message))
 	}
 	return json.NewDecoder(resp.Body).Decode(result)
+}
+
+func putAssetTypeRemote(remoteURL, id, name, icon string) (assetTypePutResponse, error) {
+	var out assetTypePutResponse
+	err := metadataRemoteRequest(http.MethodPut, remoteURL, "/asset-types/"+id, typePutRequest{Name: name, Icon: icon}, &out)
+	return out, err
+}
+
+func putCollectionTypeRemote(remoteURL, id, name, icon string) (collectionTypePutResponse, error) {
+	var out collectionTypePutResponse
+	err := metadataRemoteRequest(http.MethodPut, remoteURL, "/collection-types/"+id, typePutRequest{Name: name, Icon: icon}, &out)
+	return out, err
 }
 func patchAssetsRemote(remoteURL string, patches []assetPatch) (assetPatchResponse, error) {
 	var out assetPatchResponse
@@ -114,6 +147,20 @@ func applyCanonicalCollections(tx *sqlx.Tx, collections []models.Collection) err
 		ids = append(ids, collection.Id)
 	}
 	return utils.SetRowsSynced(tx, "collection", ids)
+}
+
+func applyCanonicalAssetType(tx *sqlx.Tx, assetType models.AssetType) error {
+	_, err := tx.Exec(`INSERT INTO asset_type(id,mtime,name,icon,synced) VALUES(?,?,?,?,1)
+		ON CONFLICT(id) DO UPDATE SET mtime=excluded.mtime,name=excluded.name,icon=excluded.icon,synced=1`,
+		assetType.Id, assetType.MTime, assetType.Name, assetType.Icon)
+	return err
+}
+
+func applyCanonicalCollectionType(tx *sqlx.Tx, collectionType models.CollectionType) error {
+	_, err := tx.Exec(`INSERT INTO collection_type(id,mtime,name,icon,synced) VALUES(?,?,?,?,1)
+		ON CONFLICT(id) DO UPDATE SET mtime=excluded.mtime,name=excluded.name,icon=excluded.icon,synced=1`,
+		collectionType.Id, collectionType.MTime, collectionType.Name, collectionType.Icon)
+	return err
 }
 
 func applyCanonicalCollectionAssignees(tx *sqlx.Tx, assignees []models.CollectionAssignee) error {

@@ -126,10 +126,12 @@ export function ChangeAssetCollection(projectPath, assetIds, collectionId) {
  * @param {string} projectPath
  * @param {string} assetId
  * @param {string} assetTypeId
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */
 export function ChangeAssetType(projectPath, assetId, assetTypeId) {
-    return $Call.ByID(568329317, projectPath, assetId, assetTypeId);
+    return $Call.ByID(568329317, projectPath, assetId, assetTypeId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**

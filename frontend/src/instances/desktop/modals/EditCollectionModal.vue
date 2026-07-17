@@ -271,7 +271,8 @@ const updateCollectionMeta = async () => {
   }
   if (currentCollection.collectionTypeId != collectionTypeId.value) {
     await CollectionService.ChangeType(projectStore.activeProject.uri, collectionId, collectionTypeId.value)
-      .then(() => {
+      .then((result) => {
+        notificationStore.notifyMetadataUpdate(result, t('notifications.collectionTypeUpdated'), false);
         currentCollection.collection_type_name = collectionType.value;
         currentCollection.collection_type_icon = collectionTypeIcon.value;
         currentCollection.collection_type_id = collectionTypeId.value;
