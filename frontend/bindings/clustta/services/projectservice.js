@@ -31,7 +31,7 @@ export function AddUser(projectPath, email, roleName) {
 
 /**
  * AddUserSynced adds a user to the local project and marks them as synced.
- * Used when the server already has the user data via write-through.
+ * Used when the server already has the user data via its collaborator endpoint.
  * @param {string} projectPath
  * @param {string} email
  * @param {string} roleName
@@ -166,15 +166,6 @@ export function GetTemplates() {
 }
 
 /**
- * GetWriteThroughEnabled returns whether write-through sync is enabled for the project.
- * @param {string} projectPath
- * @returns {$CancellablePromise<boolean>}
- */
-export function GetWriteThroughEnabled(projectPath) {
-    return $Call.ByID(433223359, projectPath);
-}
-
-/**
  * InspectClusttaFile opens a .clst file and extracts its metadata.
  * If the file is outside Clustta's known project directories, updates the
  * working directory in the database to a sibling folder of the .clst file.
@@ -299,16 +290,6 @@ export function ResetDefaultTemplates() {
  */
 export function SetIgnoreList(projectUri, studioName, ignoreList) {
     return $Call.ByID(610021480, projectUri, studioName, ignoreList);
-}
-
-/**
- * SetWriteThroughEnabled enables or disables write-through sync for the project.
- * @param {string} projectPath
- * @param {boolean} enabled
- * @returns {$CancellablePromise<void>}
- */
-export function SetWriteThroughEnabled(projectPath, enabled) {
-    return $Call.ByID(132884547, projectPath, enabled);
 }
 
 /**

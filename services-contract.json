@@ -349,6 +349,31 @@
           "userId:string"
         ],
         "returns": [
+          "MetadataUpdateResult",
+          "error"
+        ]
+      },
+      {
+        "name": "AssignAssets",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "userId:string"
+        ],
+        "returns": [
+          "MetadataUpdateResult",
+          "error"
+        ]
+      },
+      {
+        "name": "BulkToggleIsTask",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string",
+          "isTask:bool"
+        ],
+        "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -382,6 +407,7 @@
           "statusId:string"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -724,6 +750,7 @@
           "isTask:bool"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -734,6 +761,7 @@
           "assetId:string"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -744,6 +772,7 @@
           "assetIds:[]string"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -1296,6 +1325,7 @@
           "userId:string"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -1318,6 +1348,7 @@
           "isShared:bool"
         ],
         "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -1617,6 +1648,18 @@
           "userId:string"
         ],
         "returns": [
+          "MetadataUpdateResult",
+          "error"
+        ]
+      },
+      {
+        "name": "UnassignCollections",
+        "params": [
+          "projectPath:string",
+          "collectionIds:[]string"
+        ],
+        "returns": [
+          "MetadataUpdateResult",
           "error"
         ]
       },
@@ -2822,16 +2865,6 @@
         ]
       },
       {
-        "name": "GetWriteThroughEnabled",
-        "params": [
-          "projectPath:string"
-        ],
-        "returns": [
-          "bool",
-          "error"
-        ]
-      },
-      {
         "name": "InspectClusttaFile",
         "params": [
           "filePath:string"
@@ -2951,16 +2984,6 @@
           "projectUri:string",
           "studioName:string",
           "ignoreList:[]string"
-        ],
-        "returns": [
-          "error"
-        ]
-      },
-      {
-        "name": "SetWriteThroughEnabled",
-        "params": [
-          "projectPath:string",
-          "enabled:bool"
         ],
         "returns": [
           "error"
@@ -3310,6 +3333,14 @@
         ]
       },
       {
+        "name": "GetOverwriteDroppedFiles",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
         "name": "GetPinnedProjects",
         "params": [
           "studioName:string"
@@ -3622,6 +3653,15 @@
       },
       {
         "name": "SetMinimizeOnClose",
+        "params": [
+          "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetOverwriteDroppedFiles",
         "params": [
           "enabled:bool"
         ],

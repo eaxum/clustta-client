@@ -127,7 +127,6 @@ export function ResolveConflicts(projectPath, conflictsJSON) {
 
 /**
  * SyncAsset pushes a single asset and its checkpoints (including chunks and previews) to the server.
- * This is a user-initiated action that bypasses the write-through gate.
  * @param {string} projectPath
  * @param {string} remoteURL
  * @param {string} assetId

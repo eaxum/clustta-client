@@ -303,15 +303,10 @@ func (e *CollectionService) CreateCollection(projectPath, name, description, col
 		tx.Rollback()
 		return models.Collection{}, err
 	}
-	simpleCollection, err := repository.GetSimpleCollection(tx, createdCollection.Id)
-	if err != nil {
-		return models.Collection{}, err
-	}
 	err = tx.Commit()
 	if err != nil {
 		return models.Collection{}, err
 	}
-	enqueueCollectionWriteThrough(projectPath, simpleCollection)
 	return createdCollection, nil
 }
 
@@ -339,7 +334,6 @@ func (e *CollectionService) RenameCollection(projectPath, collectionId, newName 
 	if err != nil {
 		return models.Collection{}, err
 	}
-	enqueueCollectionWriteThrough(projectPath, updatedCollection)
 	return updatedCollection, nil
 }
 
@@ -2262,25 +2256,15 @@ func (e *CollectionService) ChangeCollectionParent(projectPath string, collectio
 		return fmt.Errorf("collections with the same name already exist in the target location: %s", strings.Join(conflicts, ", "))
 	}
 
-	var movedCollections []models.Collection
 	for _, collectionId := range collectionIds {
 		err = repository.ChangeParent(tx, collectionId, parentId)
 		if err != nil {
 			return err
 		}
 	}
-	for _, collectionId := range collectionIds {
-		collection, err := repository.GetSimpleCollection(tx, collectionId)
-		if err == nil {
-			movedCollections = append(movedCollections, collection)
-		}
-	}
 	err = tx.Commit()
 	if err != nil {
 		return err
-	}
-	for _, collection := range movedCollections {
-		enqueueCollectionWriteThrough(projectPath, collection)
 	}
 	return nil
 }
@@ -2303,15 +2287,10 @@ func (e *CollectionService) ChangeType(projectPath, collectionId, collectionType
 	if err != nil {
 		return err
 	}
-	collection, err := repository.GetSimpleCollection(tx, collectionId)
-	if err != nil {
-		return err
-	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
-	enqueueCollectionWriteThrough(projectPath, collection)
 	return nil
 }
 
@@ -2365,16 +2344,9 @@ func (e *CollectionService) ChangeIsShared(projectPath, collectionId string, isS
 	if err != nil {
 		return MetadataUpdateResult{}, err
 	}
-	collection, err := repository.GetSimpleCollection(tx, collectionId)
-	if err != nil {
-		return MetadataUpdateResult{}, err
-	}
 	err = tx.Commit()
 	if err != nil {
 		return MetadataUpdateResult{}, err
-	}
-	if remoteFailure == nil {
-		enqueueCollectionWriteThrough(projectPath, collection)
 	}
 	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
@@ -2433,16 +2405,9 @@ func (e *CollectionService) Assign(projectPath, collectionId, userId string) (Me
 		tx.Rollback()
 		return MetadataUpdateResult{}, err
 	}
-	collection, err := repository.GetSimpleCollection(tx, collectionId)
-	if err != nil {
-		return MetadataUpdateResult{}, err
-	}
 	err = tx.Commit()
 	if err != nil {
 		return MetadataUpdateResult{}, err
-	}
-	if remoteFailure == nil {
-		enqueueCollectionWriteThrough(projectPath, collection)
 	}
 	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
@@ -2508,16 +2473,9 @@ func (e *CollectionService) Unassign(projectPath, collectionId, userId string) (
 		tx.Rollback()
 		return MetadataUpdateResult{}, err
 	}
-	collection, err := repository.GetSimpleCollection(tx, collectionId)
-	if err != nil {
-		return MetadataUpdateResult{}, err
-	}
 	err = tx.Commit()
 	if err != nil {
 		return MetadataUpdateResult{}, err
-	}
-	if remoteFailure == nil {
-		enqueueCollectionWriteThrough(projectPath, collection)
 	}
 	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
@@ -2605,26 +2563,15 @@ func (e *CollectionService) UnassignCollections(projectPath string, collectionId
 		return MetadataUpdateResult{}, err
 	}
 	defer tx.Rollback()
-	collections := make([]models.Collection, 0, len(patches))
 	for _, patch := range patches {
 		for _, userId := range patch.RemoveAssigneeIds {
 			if err = repository.UnAssignCollection(tx, patch.Id, userId); err != nil {
 				return MetadataUpdateResult{}, err
 			}
 		}
-		collection, getErr := repository.GetSimpleCollection(tx, patch.Id)
-		if getErr != nil {
-			return MetadataUpdateResult{}, getErr
-		}
-		collections = append(collections, collection)
 	}
 	if err = tx.Commit(); err != nil {
 		return MetadataUpdateResult{}, err
-	}
-	if remoteFailure == nil {
-		for _, collection := range collections {
-			enqueueCollectionWriteThrough(projectPath, collection)
-		}
 	}
 	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
 }
@@ -2653,7 +2600,6 @@ func (e *CollectionService) CreateCollectionType(projectPath, collectionTypeName
 		return models.CollectionType{}, err
 	}
 	tx.Commit()
-	enqueueCollectionTypeWriteThrough(projectPath, collectionType)
 	return collectionType, nil
 }
 
@@ -2684,7 +2630,6 @@ func (e *CollectionService) UpdateCollectionType(projectPath, id, collectionType
 	if err != nil {
 		return models.CollectionType{}, err
 	}
-	enqueueCollectionTypeWriteThrough(projectPath, collectionType)
 	return collectionType, nil
 }
 
@@ -2706,15 +2651,10 @@ func (e *CollectionService) DeleteCollectionType(projectPath, id string) error {
 	if err != nil {
 		return err
 	}
-	tomb, err := repository.GetTomb(tx, id)
-	if err != nil {
-		return err
-	}
 	err = tx.Commit()
 	if err != nil {
 		return err
 	}
-	enqueueTombWriteThrough(projectPath, tomb)
 	return nil
 }
 

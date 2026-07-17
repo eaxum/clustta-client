@@ -73,27 +73,6 @@
         </div>
       </div>
 
-      <!-- Experimental Features Card -->
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.experimentalFeatures') }}</h2>
-        </div>
-        <div class="settings-section-card-content">
-
-          <div class="settings-item" @click="toggleWriteThrough">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('arrow-big-up-lines')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.writeThroughSync') }}</div>
-              <div class="settings-body">{{ $t('settings.writeThroughDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width">
-              <ToggleSwitch :switchValueProp="writeThroughEnabled" />
-            </div>
-          </div>
-
-        </div>
-      </div>
-
     </div>
     </div>
   </div>
@@ -101,33 +80,24 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
-
-// services
-import { ProjectService } from '@/services';
+import { computed, onMounted } from 'vue';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
-import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useEntitlementStore } from '@/stores/entitlements';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // refs
 const desktopModals = useDesktopModalStore();
 const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
-const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const writeThroughEnabled = ref(false);
-const { t } = useI18n();
 
 // computed
 const linkedIntegration = computed(() => integrationStore.linkedIntegration);
@@ -157,31 +127,11 @@ const openStatusMapping = () => {
   desktopModals.setModalVisibility('statusMappingModal', true);
 };
 
-// Toggles the write-through sync experimental feature for the active project.
-const toggleWriteThrough = () => {
-  const projectUri = projectStore.activeProject?.uri;
-  if (!projectUri) return;
-
-  const newValue = !writeThroughEnabled.value;
-  ProjectService.SetWriteThroughEnabled(projectUri, newValue).then(() => {
-    writeThroughEnabled.value = newValue;
-    notificationStore.addNotification(
-      t('settings.writeThroughSync'),
-      t('notifications.writeThroughToggled', { status: newValue ? 'enabled' : 'disabled' }),
-      "success"
-    );
-  }).catch((error) => {
-    console.log(error);
-    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateWriteThrough'), "error");
-  });
-};
-
 // lifecycle hooks
 onMounted(async () => {
   try {
     const projectUri = projectStore.activeProject?.uri;
     if (projectUri) {
-      writeThroughEnabled.value = await ProjectService.GetWriteThroughEnabled(projectUri);
       await integrationStore.loadLinkedIntegration();
     }
   } catch (error) {

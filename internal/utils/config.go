@@ -232,7 +232,7 @@ func GetRemoteUrl(tx *sqlx.Tx) (string, error) {
 }
 
 // ResolveProjectRemoteURL resolves a project's configured remote without coupling
-// callers to synchronization or write-through services.
+// callers to synchronization services.
 func ResolveProjectRemoteURL(projectPath string) (string, error) {
 	dbConn, err := OpenDb(projectPath)
 	if err != nil {
@@ -254,34 +254,6 @@ func ResolveProjectRemoteURL(projectPath string) (string, error) {
 // SetRemoteUrl writes the remote project URL to the config table.
 func SetRemoteUrl(tx *sqlx.Tx, remoteUrl string) error {
 	_, err := tx.Exec("UPDATE config SET value = ?, mtime = ? WHERE name = 'remote'", remoteUrl, GetEpochTime())
-	return err
-}
-
-// GetWriteThroughEnabled reads the write_through_enabled config value for a project.
-// Returns false if the key is missing (default off).
-func GetWriteThroughEnabled(tx *sqlx.Tx) (bool, error) {
-	var value string
-	err := tx.Get(&value, "SELECT value FROM config WHERE name='write_through_enabled'")
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, err
-	}
-	return value == "true", nil
-}
-
-// SetWriteThroughEnabled writes the write_through_enabled config value for a project.
-func SetWriteThroughEnabled(tx *sqlx.Tx, enabled bool) error {
-	val := "false"
-	if enabled {
-		val = "true"
-	}
-	_, err := tx.Exec(`
-		INSERT INTO config (name, value, mtime)
-		VALUES ('write_through_enabled', ?, ?)
-		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value, mtime = EXCLUDED.mtime
-	`, val, GetEpochTime())
 	return err
 }
 

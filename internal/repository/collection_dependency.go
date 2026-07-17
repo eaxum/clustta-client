@@ -13,7 +13,7 @@ func AddCollectionDependency(tx *sqlx.Tx, id string, assetId string, dependencyI
 	assetDependency := models.AssetDependency{}
 	params := map[string]any{
 		"id":                 id,
-		"asset_id":            assetId,
+		"asset_id":           assetId,
 		"dependency_id":      dependencyId,
 		"dependency_type_id": dependencyTypeId,
 	}
@@ -22,7 +22,7 @@ func AddCollectionDependency(tx *sqlx.Tx, id string, assetId string, dependencyI
 		return assetDependency, err
 	}
 	conditions := map[string]any{
-		"asset_id":       assetId,
+		"asset_id":      assetId,
 		"dependency_id": dependencyId,
 	}
 	err = base_service.GetBy(tx, "collection_dependency", conditions, &assetDependency)
@@ -41,17 +41,6 @@ func GetCollectionDependency(tx *sqlx.Tx, id string) (models.AssetDependency, er
 	return dependency, nil
 }
 
-// GetCollectionDependencyByKeys looks up an collection dependency by its composite key.
-func GetCollectionDependencyByKeys(tx *sqlx.Tx, assetId, dependencyId string) (models.AssetDependency, error) {
-	dep := models.AssetDependency{}
-	conditions := map[string]any{
-		"asset_id":       assetId,
-		"dependency_id": dependencyId,
-	}
-	err := base_service.GetBy(tx, "collection_dependency", conditions, &dep)
-	return dep, err
-}
-
 func GetCollectionDependencies(tx *sqlx.Tx, assetId string) ([]models.AssetDependency, error) {
 	assetDependencies := []models.AssetDependency{}
 	conditions := map[string]interface{}{
@@ -67,7 +56,7 @@ func GetCollectionDependencies(tx *sqlx.Tx, assetId string) ([]models.AssetDepen
 func RemoveCollectionDependency(tx *sqlx.Tx, assetId string, dependencyId string) error {
 	assetDependency := models.AssetDependency{}
 	conditions := map[string]interface{}{
-		"asset_id":       assetId,
+		"asset_id":      assetId,
 		"dependency_id": dependencyId,
 	}
 	err := base_service.DeleteBy(tx, "collection_dependency", conditions)

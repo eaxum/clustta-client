@@ -97,7 +97,7 @@ func ToPbCollections(collections []models.Collection) []*repositorypb.Collection
 			ParentId:         e.ParentId,
 			PreviewId:        e.PreviewId,
 			Synced:           e.Synced,
-			IsShared:        e.IsShared,
+			IsShared:         e.IsShared,
 		}
 	}
 	return pb
@@ -396,20 +396,6 @@ func ToPbChunkInfos(chunkInfos []chunk_service.ChunkInfo) []*repositorypb.ChunkI
 	return pb
 }
 
-// LegacyTableNames maps new client table names to legacy server table names.
-// Remove this once the server has been updated to use the new names.
-var LegacyTableNames = map[string]string{
-	"asset":                 "task",
-	"asset_type":            "task_type",
-	"asset_checkpoint":      "task_checkpoint",
-	"asset_dependency":      "task_dependency",
-	"asset_tag":             "task_tag",
-	"collection":            "entity",
-	"collection_type":       "entity_type",
-	"collection_assignee":   "entity_assignee",
-	"collection_dependency": "entity_dependency",
-}
-
 func ToPbTombs(tombs []Tomb) []*repositorypb.Tomb {
 	pb := make([]*repositorypb.Tomb, len(tombs))
 	for i, t := range tombs {
@@ -421,16 +407,6 @@ func ToPbTombs(tombs []Tomb) []*repositorypb.Tomb {
 		}
 	}
 	return pb
-}
-
-// RemapTombsToLegacyNames replaces new table names with legacy server names.
-// Call this on the protobuf tombs before pushing to servers that haven't been updated.
-func RemapTombsToLegacyNames(tombs []*repositorypb.Tomb) {
-	for _, t := range tombs {
-		if legacy, ok := LegacyTableNames[t.TableName]; ok {
-			t.TableName = legacy
-		}
-	}
 }
 
 func ToPbFullAssets(assets []models.Asset) []*repositorypb.FullAsset {
@@ -601,7 +577,7 @@ func FromPbCollection(pb *repositorypb.Collection) models.Collection {
 		ParentId:         pb.ParentId,
 		PreviewId:        pb.PreviewId,
 		Synced:           pb.Synced,
-		IsShared:        pb.IsShared,
+		IsShared:         pb.IsShared,
 	}
 }
 

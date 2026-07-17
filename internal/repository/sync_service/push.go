@@ -8,7 +8,6 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/repository/repositorypb"
 	"clustta/internal/settings"
-	"clustta/internal/studio_service"
 	"clustta/internal/utils"
 	"context"
 	"encoding/json"
@@ -23,22 +22,6 @@ import (
 	kzstd "github.com/klauspost/compress/zstd"
 	"google.golang.org/protobuf/proto"
 )
-
-// legacyServerVersion is the version threshold below which the server uses legacy table names.
-const legacyServerVersion = "0.4.25"
-
-// shouldUseLegacyNames checks the server version and returns true if tomb table names
-// need to be remapped to legacy names (task/entity instead of asset/collection).
-func shouldUseLegacyNames(remoteUrl string) bool {
-	if !utils.IsValidURL(remoteUrl) {
-		return false
-	}
-	version, err := studio_service.GetServerVersion(remoteUrl)
-	if err != nil || version == "" {
-		return true // default to legacy if we can't determine
-	}
-	return version != legacyServerVersion
-}
 
 func PushData(ctx context.Context, projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
 	if ctx.Err() != nil {
@@ -125,10 +108,6 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
 		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
 	}
-
-	// if shouldUseLegacyNames(remoteUrl) {
-	// 	repository.RemapTombsToLegacyNames(pdData.Tomb)
-	// }
 
 	dataByte, err := proto.Marshal(&pdData)
 	if err != nil {
@@ -328,107 +307,6 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	} else {
 		return fmt.Errorf("invalid url:%s", remoteUrl)
 	}
-}
-
-// PushPartialData pushes a pre-built ProjectData to the server without loading from the DB.
-// It marks only the specified row IDs as synced on success. On failure it returns silently
-// so the rows stay unsynced and get picked up by the next full sync.
-func PushPartialData(projectPath, remoteUrl, userId string, data ProjectData, syncTargets map[string][]string) error {
-	if data.IsEmpty() {
-		return nil
-	}
-	if !utils.IsValidURL(remoteUrl) {
-		return nil
-	}
-
-	pdData := repositorypb.ProjectData{
-		ProjectPreview:      data.ProjectPreview,
-		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
-		Collections:         repository.ToPbCollections(data.Collections),
-		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
-
-		AssetTypes:             repository.ToPbAssetTypes(data.AssetTypes),
-		Assets:                 repository.ToPbAssets(data.Assets),
-		AssetCheckpoints:       repository.ToPbCheckpoints(data.AssetCheckpoints),
-		AssetDependencies:      repository.ToPbAssetDependencies(data.AssetDependencies),
-		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
-
-		Statuses:        repository.ToPbStatuses(data.Statuses),
-		DependencyTypes: repository.ToPbDependencyTypes(data.DependencyTypes),
-
-		Users: repository.ToPbUsers(data.Users),
-		Roles: repository.ToPbRoles(data.Roles),
-
-		Templates: repository.ToPbTemplates(data.Templates),
-
-		Workflows:           repository.ToPbWorkflows(data.Workflows),
-		WorkflowLinks:       repository.ToPbWorkflowLinks(data.WorkflowLinks),
-		WorkflowCollections: repository.ToPbWorkflowCollections(data.WorkflowCollections),
-		WorkflowAssets:      repository.ToPbWorkflowAssets(data.WorkflowAssets),
-
-		Tags:      repository.ToPbTags(data.Tags),
-		AssetTags: repository.ToPbAssetTags(data.AssetTags),
-
-		Tomb: repository.ToPbTombs(data.Tombs),
-
-		IntegrationProjects:           repository.ToPbIntegrationProjects(data.IntegrationProjects),
-		IntegrationCollectionMappings: repository.ToPbIntegrationCollectionMappings(data.IntegrationCollectionMappings),
-		IntegrationAssetMappings:      repository.ToPbIntegrationAssetMappings(data.IntegrationAssetMappings),
-	}
-
-	if shouldUseLegacyNames(remoteUrl) {
-		repository.RemapTombsToLegacyNames(pdData.Tomb)
-	}
-
-	dataByte, err := proto.Marshal(&pdData)
-	if err != nil {
-		return err
-	}
-	encoder, err := kzstd.NewWriter(nil, kzstd.WithEncoderLevel(kzstd.SpeedDefault))
-	if err != nil {
-		return err
-	}
-	compressedData := encoder.EncodeAll(dataByte, nil)
-	encoder.Close()
-
-	dataUrl := remoteUrl + "/data"
-	req, err := http.NewRequest("POST", dataUrl, bytes.NewBuffer(compressedData))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-	auth_service.AttachBearerToken(req)
-
-	client := &http.Client{Timeout: 30 * time.Second}
-	response, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-
-	if response.StatusCode != 200 {
-		return fmt.Errorf("write-through push returned %d", response.StatusCode)
-	}
-
-	// Mark only the specific rows as synced
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	for table, ids := range syncTargets {
-		err = utils.SetRowsSynced(tx, table, ids)
-		if err != nil {
-			return err
-		}
-	}
-	return tx.Commit()
 }
 
 // PushAssetData loads a single asset and its checkpoints, uploads their chunks and previews,

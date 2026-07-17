@@ -458,27 +458,6 @@ func GetSimpleAsset(tx *sqlx.Tx, id string) (models.Asset, error) {
 	return asset, nil
 }
 
-func GetSimpleAssetsByIds(tx *sqlx.Tx, assetIds []string) ([]models.Asset, error) {
-	if len(assetIds) == 0 {
-		return []models.Asset{}, nil
-	}
-
-	assets := []models.Asset{}
-	assetIdsJSON, err := json.Marshal(assetIds)
-	if err != nil {
-		return []models.Asset{}, err
-	}
-
-	query := "SELECT * FROM asset WHERE id IN (SELECT value FROM json_each(?)) AND trashed = 0"
-	err = tx.Select(&assets, query, string(assetIdsJSON))
-	if err != nil && err == sql.ErrNoRows {
-		return []models.Asset{}, nil
-	} else if err != nil {
-		return []models.Asset{}, err
-	}
-	return assets, nil
-}
-
 func GetAssetByName(tx *sqlx.Tx, name, collectionId string, extension string) (models.Asset, error) {
 	asset := models.Asset{}
 	query := "SELECT * FROM full_asset WHERE name = ? AND collection_id = ? AND extension = ?"

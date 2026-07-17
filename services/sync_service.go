@@ -374,7 +374,6 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 	}
 
 	close(progressChan)
-	InvalidateRemoteCache(projectPath)
 	return nil
 }
 
@@ -513,7 +512,6 @@ func (s *SyncService) UpdateProject(projectPath string, remoteURL string) error 
 		}
 		return err
 	}
-	InvalidateRemoteCache(projectPath)
 	return nil
 }
 
@@ -562,7 +560,6 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 	progress.Current = 1
 	progress.Percentage = 100
 	app.Event.Emit("progress-update", progress)
-	InvalidateRemoteCache(projectPath)
 	return nil
 }
 
@@ -883,7 +880,6 @@ func (s *SyncService) DiscardAllChanges(projectPath, remoteURL string) error {
 }
 
 // SyncAsset pushes a single asset and its checkpoints (including chunks and previews) to the server.
-// This is a user-initiated action that bypasses the write-through gate.
 func (s *SyncService) SyncAsset(projectPath, remoteURL, assetId string) error {
 	defer reset()
 
