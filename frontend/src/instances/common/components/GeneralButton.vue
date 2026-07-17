@@ -2,6 +2,7 @@
   <button class="general-button" :class="{ 'item-inactive' : !isActive, 'colored' : colored, 'full-width' : fullWidth, 'loading' : loading }"
     @click="buttonFunction" v-stop-propagation>
     <div v-if="!loading" class="general-button-text">
+      <img v-if="icon" class="general-button-icon" :src="icon" alt="" aria-hidden="true" />
       <div v-if="label">{{ label }}</div>
     </div>
     <div v-else class="general-button-loading-icon" :class="{ 'inverted-icon' : !colored }" >
@@ -91,7 +92,18 @@ const props = defineProps({
 }
 
 .general-button-text{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   font-size: 16px;
+}
+
+.general-button-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 @keyframes loadingRotate {

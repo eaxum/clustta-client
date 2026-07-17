@@ -1,19 +1,21 @@
 <template>
   <div class="modal-container cloud-modal" v-stop-propagation>
-    <HeaderArea title="ClusttaCloud" icon="clustta" :notModal="false" />
+    <HeaderArea title="ClusttaCloud" icon="clustta" :notModal="false">
+      <template v-if="canManageBilling" #actions>
+        <GeneralButton class="billing-header-button" label="Manage Billing" :icon="getAppIcon('square-arrow-right-up')" :colored="false" :fullWidth="false" :buttonFunction="openBillingPortal" />
+      </template>
+    </HeaderArea>
 
     <div class="cloud-modal-body">
       <div v-if="isLoadingPlans" class="cloud-loading">Loading plans...</div>
 
-      <div v-else class="plan-cards">
-        <div v-for="plan in filteredPlans" :key="plan.id" class="plan-card" :class="{ 'plan-card-current': plan.name === currentPlanName, 'plan-card-highlighted': isRecommended(plan) }">
+      <div v-else class="plan-cards" :class="`plan-cards-${comparisonPlans.length}`">
+        <div v-for="plan in comparisonPlans" :key="plan.id" class="plan-card" :class="{ 'plan-card-current': plan.name === currentPlanName, 'plan-card-highlighted': isRecommended(plan) }">
 
           <div class="plan-card-header">
             <span class="plan-card-name">{{ formatPlanName(plan.name) }}</span>
             <span v-if="isRecommended(plan)" class="plan-badge">Recommended</span>
           </div>
-
-          <div class="plan-card-tagline">{{ planTagline(plan) }}</div>
 
           <div class="plan-card-price">
             <template v-if="plan.price_cents > 0">
@@ -28,20 +30,46 @@
             </template>
           </div>
 
-          <GeneralButton :label="planButtonLabel(plan)" :colored="plan.name !== currentPlanName" :isActive="plan.name !== currentPlanName && !isChanging" :loading="isChanging && changingPlanId === plan.id" :fullWidth="true" :buttonFunction="() => selectPlan(plan)" />
+          <GeneralButton :class="{ 'plan-button-current': plan.name === currentPlanName }" :label="planButtonLabel(plan)" :colored="plan.name !== currentPlanName" :isActive="plan.name !== currentPlanName && !isChanging" :loading="isChanging && changingPlanId === plan.id" :fullWidth="true" :buttonFunction="() => selectPlan(plan)" />
 
           <div class="plan-card-features">
-            <div class="plan-feature" v-for="feature in planFeatures(plan)" :key="feature.key" v-tooltip="feature.tooltip">
-              <span class="feature-check">✓</span>
-              <span>{{ feature.label }}</span>
+            <div class="plan-feature" v-for="feature in planCardFeatures(plan)" :key="feature.key" v-tooltip="feature.tooltip">
+              <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
+              <span>
+                {{ feature.label }}
+                <a v-if="feature.comingSoon" href="#cloud-coming-soon-features" class="coming-soon-indicator" :aria-label="`${feature.label} is coming soon`" @click.stop>Coming soon</a>
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-if="entitlementStore.isPaidPlan || isCloudStudio" class="billing-portal-row">
-        <GeneralButton label="Manage Billing" :colored="false" :fullWidth="false" :buttonFunction="openBillingPortal" />
-      </div>
+      <section v-if="commonPlanFeatures.length" class="common-features">
+        <h3 class="common-features-title">Every plan includes</h3>
+        <div class="common-features-grid">
+          <div v-for="feature in commonPlanFeatures" :key="feature.key" class="plan-feature" v-tooltip="feature.tooltip">
+            <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
+            <span>
+              {{ feature.label }}
+              <a v-if="feature.comingSoon" href="#cloud-coming-soon-features" class="coming-soon-indicator" :aria-label="`${feature.label} is coming soon`" @click.stop>Coming soon</a>
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section v-if="enterprisePlan" class="enterprise-section">
+        <h3 class="enterprise-title">Enterprise</h3>
+        <p class="enterprise-price">Contact us for pricing</p>
+        <p class="enterprise-description">
+          Customize Clustta for your studio with enterprise-grade security, dedicated infrastructure, custom integrations, and priority support from our team.
+        </p>
+        <GeneralButton class="enterprise-button" label="Contact us" :colored="false" :fullWidth="false" :buttonFunction="() => selectPlan(enterprisePlan)" />
+      </section>
+
+      <p v-if="showComingSoonFootnote" id="cloud-coming-soon-features" class="coming-soon-footnote" role="note">
+        <span class="coming-soon-footnote-mark">Coming soon</span>
+        These features are currently in development and will be available in a future release.
+      </p>
     </div>
   </div>
 </template>
@@ -58,10 +86,12 @@ import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 
 const entitlementStore = useEntitlementStore();
+const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
@@ -93,6 +123,8 @@ const featureTooltips = {
   ai_credits: 'Monthly credits for AI-assisted features',
   custom_roles: 'Define custom permission roles beyond the defaults',
   integrations: 'Connect third-party services like Slack, Jira, and more',
+  talent_discovery: 'Find creators and review their work from Clustta profiles',
+  web_dashboard: 'Manage your studio and projects from the web',
   discord_support: 'Community support through the Clustta Discord server',
   audit_log: 'Track all user actions and changes for compliance and accountability',
   priority_support: 'Dedicated priority support channel with faster response times',
@@ -103,6 +135,44 @@ const featureTooltips = {
   unlimited_users: 'No limit on the number of collaborators across all projects',
   unlimited_projects: 'No limit on the number of remote projects',
 };
+
+const featureIcons = {
+  storage: 'drive',
+  remote_projects: 'folder-arrow-up-right',
+  collaborators: 'two-persons',
+  checkpoints: 'checkpoint-stone',
+  workflows: 'workflow-arrow',
+  status: 'status-ready',
+  share_link: 'link',
+  dependencies: 'dependency',
+  sync: 'cloud-sync',
+  resumable_transfers: 'arrow-up-ramp',
+  project_templates: 'layers',
+  kanban: 'kanban',
+  tags: 'tag',
+  interactive_console: 'console',
+  ignore_list: 'eye-cancel',
+  integrations: 'plug',
+  custom_roles: 'key',
+  talent_discovery: 'person-search',
+  web_dashboard: 'website',
+  discord_support: 'two-persons',
+  audit_log: 'clipboard',
+  priority_support: 'bell',
+  dedicated_vm: 'stall-cog',
+  sso_saml: 'key',
+  two_factor_auth: 'lock-closed',
+  custom_branding: 'palette',
+  ai: 'sparkles',
+  ai_credits: 'diamond',
+};
+
+const comingSoonFeatureKeys = new Set([
+  'audit_log',
+  'sso_saml',
+  'two_factor_auth',
+  'custom_branding',
+]);
 
 // computed
 // Returns whether the selected studio is a cloud studio.
@@ -122,7 +192,23 @@ const currentPlanName = computed(() => {
 // Returns plans filtered by the active tab category.
 const filteredPlans = computed(() => {
   const type = activeTab.value === 'individual' ? 'individual' : 'studio';
-  return entitlementStore.plans.filter(p => p.type === type);
+  return entitlementStore.plans
+    .filter(p => p.type === type)
+    .sort((a, b) => a.display_order - b.display_order);
+});
+
+// Keeps enterprise as a dedicated section, matching the website pricing page.
+const comparisonPlans = computed(() => {
+  return filteredPlans.value.filter(plan => plan.name !== 'studio_enterprise');
+});
+
+const enterprisePlan = computed(() => {
+  return filteredPlans.value.find(plan => plan.name === 'studio_enterprise') || null;
+});
+
+// Returns whether the user can open the billing portal for the current context.
+const canManageBilling = computed(() => {
+  return entitlementStore.isPaidPlan || isCloudStudio.value;
 });
 
 // methods
@@ -130,6 +216,9 @@ const filteredPlans = computed(() => {
 const closeModal = () => {
   modals.disableAllModals();
 };
+
+// Returns an icon from the user's selected app icon scheme.
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Returns a human-readable plan name.
 const formatPlanName = (name) => {
@@ -202,31 +291,27 @@ const planFeatures = (plan) => {
     ignore_list: 'Ignore list',
     integrations: 'Integrations',
     custom_roles: 'Custom roles',
+    talent_discovery: 'Talent discovery',
+    web_dashboard: 'Web dashboard',
     discord_support: 'Discord support',
     audit_log: 'Audit log',
     priority_support: 'Priority support',
     dedicated_vm: 'Dedicated/Managed VM',
     sso_saml: 'SSO / SAML',
-    two_factor_auth: '2FA authentication',
+    two_factor_auth: 'Enforced 2FA',
     custom_branding: 'Custom branding',
   };
 
-  // Ordered display of boolean features
+  // Match the feature sequence used on the website pricing page.
   const orderedKeys = [
     'checkpoints', 'workflows', 'status', 'share_link', 'dependencies',
     'sync', 'resumable_transfers', 'project_templates', 'kanban', 'tags',
-    'interactive_console', 'ignore_list', 'integrations', 'custom_roles',
-    'discord_support', 'audit_log', 'priority_support',
+    'interactive_console', 'ignore_list', 'custom_roles', 'integrations',
+    'talent_discovery', 'web_dashboard', 'discord_support', 'audit_log', 'priority_support',
     'dedicated_vm', 'sso_saml', 'two_factor_auth', 'custom_branding',
   ];
 
-  for (const key of orderedKeys) {
-    if (keys.includes(key)) {
-      features.push({ key, label: featureLabels[key], tooltip: featureTooltips[key] });
-    }
-  }
-
-  // AI features from plan columns
+  // The website places the AI allowance before the capability list.
   if (plan.has_ai) {
     features.push({ key: 'ai', label: 'AI assistant', tooltip: featureTooltips.ai });
   }
@@ -234,27 +319,47 @@ const planFeatures = (plan) => {
     features.push({ key: 'ai_credits', label: plan.ai_credits_monthly.toLocaleString() + ' AI credits/mo', tooltip: featureTooltips.ai_credits });
   }
 
-  return features;
+  for (const key of orderedKeys) {
+    if (keys.includes(key)) {
+      features.push({ key, label: featureLabels[key], tooltip: featureTooltips[key], comingSoon: comingSoonFeatureKeys.has(key) });
+    }
+  }
+
+  return features.map(feature => ({
+    ...feature,
+    icon: featureIcons[feature.key] || 'circle-check',
+  }));
 };
 
-// Returns the tagline for a plan.
-const planTagline = (plan) => {
-  const taglines = {
-    free: 'Get started with Clustta',
-    starter: 'For creators who need remote sync',
-    pro: 'Full power for professionals',
-    studio_cloud: 'For teams collaborating on creative work',
-    studio_pro: 'For studios at scale',
-    studio_enterprise: 'Custom infrastructure for large studios',
-  };
-  return taglines[plan.name] || '';
+// Returns features whose label and value are identical across every visible plan.
+const commonPlanFeatures = computed(() => {
+  if (comparisonPlans.value.length < 2) return [];
+
+  const featureLists = comparisonPlans.value.map(planFeatures);
+  return featureLists[0].filter(feature => {
+    return featureLists.slice(1).every(features => {
+      return features.some(candidate => candidate.key === feature.key && candidate.label === feature.label);
+    });
+  });
+});
+
+const showComingSoonFootnote = computed(() => {
+  return comparisonPlans.value
+    .flatMap(planFeatures)
+    .some(feature => feature.comingSoon);
+});
+
+// Keeps plan-specific limits and capabilities in each card.
+const planCardFeatures = (plan) => {
+  const commonFeatureKeys = new Set(commonPlanFeatures.value.map(feature => feature.key));
+  return planFeatures(plan).filter(feature => !commonFeatureKeys.has(feature.key));
 };
 
 // Handles clicking a plan button to change plans.
 const selectPlan = async (plan) => {
   if (plan.name === currentPlanName.value || isChanging.value) return;
   if (!plan.price_cents && plan.type === 'studio') {
-    Browser.OpenURL('mailto:sales@clustta.com?subject=Enterprise%20Studio%20Inquiry');
+    Browser.OpenURL('https://www.clustta.com/contact');
     closeModal();
     return;
   }
@@ -318,19 +423,43 @@ onMounted(async () => {
 @import "@/assets/desktop.css";
 
 .cloud-modal {
-  max-width: 820px;
+  max-width: 96%;
   min-width: 600px;
-  width: 820px;
+  width: 1200px;
+  max-height: 86vh;
 }
 
 .cloud-modal-body {
+  flex: 1;
+  min-height: 0;
   width: 100%;
   padding: 0 1.5rem 1.5rem;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.5rem;
   padding-top: 1rem;
+  overflow-y: auto;
+  scrollbar-color: var(--surface-4) transparent;
+  scrollbar-width: thin;
+}
+
+.cloud-modal-body::-webkit-scrollbar,
+.plan-cards::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.cloud-modal-body::-webkit-scrollbar-thumb,
+.plan-cards::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: var(--surface-4);
+}
+
+.cloud-modal-body::-webkit-scrollbar-track,
+.plan-cards::-webkit-scrollbar-track {
+  border-radius: 10px;
+  background-color: transparent;
 }
 
 .cloud-modal-tabs {
@@ -351,20 +480,39 @@ onMounted(async () => {
 }
 
 .plan-cards {
-  display: flex;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 280px));
+  align-items: stretch;
+  justify-content: center;
+  gap: 1rem;
   width: 100%;
 }
 
+.plan-cards-2 {
+  grid-template-columns: repeat(2, minmax(0, 280px));
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.plan-cards-4 {
+  grid-template-columns: repeat(4, minmax(0, 260px));
+}
+
+.plan-cards-4 .plan-card {
+  max-width: 260px;
+}
+
 .plan-card {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 1.2rem;
+  height: 100%;
+  gap: 1rem;
+  padding: 1.25rem;
   border-radius: var(--very-large-radius);
   background-color: var(--surface-2);
   transition: all 0.2s ease-out;
+  width: 100%;
+  max-width: 280px;
   min-width: 0;
   outline: var(--transparent-line);
   box-sizing: border-box;
@@ -376,12 +524,12 @@ onMounted(async () => {
   background-color: var(--surface-3);
 }
 
-.plan-card-current {
-  border-color: var(--grape);
+.plan-card-highlighted {
+  outline-color: var(--surface-4);
 }
 
-.plan-card-highlighted {
-  border-color: var(--surface-4);
+.plan-card-current {
+  outline-color: var(--attention);
 }
 
 .plan-card-header {
@@ -391,25 +539,18 @@ onMounted(async () => {
 }
 
 .plan-card-name {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 19px;
+  font-weight: 700;
   color: var(--text);
 }
 
 .plan-badge {
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 600;
   padding: 2px 8px;
   border-radius: var(--small-radius);
-  background-color: var(--grape);
-  color: white;
-}
-
-.plan-card-tagline {
-  font-size: 12px;
-  color: var(--text);
-  opacity: 0.5;
-  min-height: 32px;
+  background-color: rgba(155, 89, 208, 0.14);
+  color: var(--grape);
 }
 
 .plan-card-price {
@@ -419,13 +560,14 @@ onMounted(async () => {
 }
 
 .price-amount {
-  font-size: 28px;
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 36px;
   font-weight: 700;
   color: var(--text);
 }
 
 .price-period {
-  font-size: 13px;
+  font-size: 16px;
   color: var(--text);
   opacity: 0.5;
 }
@@ -433,31 +575,15 @@ onMounted(async () => {
 .plan-card-features {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 4px;
-  border-top: 1px solid var(--surface-4);
-  padding-top: 10px;
-  max-height: 280px;
-  overflow-y: auto;
-}
-
-.plan-card-features::-webkit-scrollbar {
-  width: 4px;
-}
-
-.plan-card-features::-webkit-scrollbar-thumb {
-  border-radius: var(--small-radius);
-  background-color: var(--surface-4);
-}
-
-.plan-card-features::-webkit-scrollbar-track {
-  border-radius: var(--small-radius);
+  gap: 1rem;
+  margin-top: 0;
+  flex: 1;
 }
 
 .plan-feature {
   display: flex;
-  align-items: flex-start;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
   color: var(--text);
   opacity: 0.75;
@@ -468,33 +594,211 @@ onMounted(async () => {
   opacity: 1;
 }
 
-.feature-check {
-  color: var(--grape);
-  font-weight: 600;
+.feature-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
   flex-shrink: 0;
+}
+
+.common-features {
+  padding: 2rem;
+  border-radius: var(--very-large-radius);
+  background-color: var(--surface-2);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
+
+.common-features-title {
+  margin: 0 0 1.5rem;
+  color: var(--text);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.common-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem 2rem;
+}
+
+.common-features .plan-feature {
+  font-size: 14px;
+}
+
+.coming-soon-indicator {
+  display: inline-flex;
+  margin-left: 5px;
+  padding: 1px 6px;
+  border-radius: var(--small-radius);
+  background-color: color-mix(in srgb, var(--attention) 14%, transparent);
+  color: var(--attention);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+  vertical-align: 1px;
+}
+
+.coming-soon-indicator:hover {
+  background-color: color-mix(in srgb, var(--attention) 22%, transparent);
+  text-decoration: underline;
+}
+
+.enterprise-section {
+  padding: 2rem;
+  border-radius: var(--very-large-radius);
+  background-color: var(--surface-2);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
+
+.enterprise-title {
+  margin: 0 0 8px;
+  color: var(--text);
+  font-family: 'Bricolage Grotesque', sans-serif;
+  font-size: 28px;
+  line-height: 1.1;
+}
+
+.enterprise-price {
+  margin: 0 0 1.25rem;
+  color: var(--text);
+  opacity: 0.65;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.enterprise-description {
+  max-width: 760px;
+  margin: 0 0 1.25rem;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.enterprise-button {
+  min-width: 150px;
+  height: 38px;
+  border-radius: var(--normal-radius);
+  background-color: var(--surface-3);
+  color: var(--text);
+}
+
+.enterprise-button:hover {
+  background-color: var(--surface-4);
+}
+
+.coming-soon-footnote {
+  scroll-margin-top: 1rem;
+  margin: -0.25rem 0 0;
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.coming-soon-footnote-mark {
+  margin-right: 5px;
+  color: var(--attention);
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .cloud-modal {
+    width: 720px;
+  }
+
+  .plan-cards-4 {
+    grid-template-columns: repeat(2, minmax(0, 280px));
+  }
+
+  .plan-cards-4 .plan-card {
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 700px) {
+  .cloud-modal {
+    min-width: 0;
+    width: calc(100vw - 32px);
+  }
+
+  .plan-cards-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .common-features-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .plan-card :deep(.general-button) {
   background-color: var(--grape);
-  border-radius: var(--small-radius);
-  height: 32px;
-  font-size: 13px;
+  border-radius: var(--normal-radius);
+  width: 100%;
+  height: 40px;
+  font-size: 15px;
+  font-weight: 600;
   min-width: unset;
-  padding: 8px 12px;
+  padding: 11px 16px;
+}
+
+@media (max-width: 480px) {
+  .common-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .common-features,
+  .enterprise-section {
+    padding: 1.25rem;
+  }
+}
+
+.plan-card :deep(.general-button-text) {
+  font-size: 15px;
+}
+
+.plan-card :deep(.general-button.plan-button-current) {
+  background-color: var(--surface-3);
+  color: var(--text);
+  opacity: 1;
+  cursor: default;
+  outline: 1px solid var(--surface-4);
+}
+
+.plan-card :deep(.general-button.plan-button-current:hover) {
+  background-color: var(--surface-3);
+  border-radius: var(--small-radius);
 }
 
 .plan-card :deep(.general-button:hover) {
   background-color: hsl(270, 50%, 38%);
 }
 
-.plan-card :deep(.general-button.item-inactive) {
+.plan-card :deep(.general-button.item-inactive:not(.plan-button-current)) {
   background-color: var(--surface-3);
   opacity: 0.5;
 }
 
-.billing-portal-row {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 4px;
+.billing-header-button {
+  height: 30px;
+  min-width: max-content;
+  padding: 7px 12px;
+  border-radius: var(--small-radius);
+  background-color: var(--surface-2);
+  color: var(--text);
+}
+
+.billing-header-button:hover {
+  background-color: var(--surface-3);
+  border-radius: var(--small-radius);
+}
+
+.billing-header-button :deep(.general-button-text) {
+  font-size: 13px;
 }
 </style>

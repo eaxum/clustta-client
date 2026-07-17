@@ -14,16 +14,19 @@
 
       <span class="page-header-title" :class="{ 'mini-display': miniDisplay }">{{ title }}</span>
     </div>
-    <span v-if="showMeta" class="single-action-button" @click="toggleMeta" v-tooltip="$t('components.headerArea.toggleMetadata')"><img
-        class="large-icons" src="/icons/info.svg"></span>
-    <span v-if="showSearch" class="single-action-button" @click="toggleSearch" v-tooltip="$t('components.headerArea.toggleSearch')"><img
-        class="large-icons" src="/icons/search.svg"></span>
-    <span v-if="showPin" class="single-action-button"
-      :class="{ 'single-action-button-pressed': trayStates.keepModalOpen === true }" @click="trayStates.toggleKeepModal"
-      v-tooltip="trayStates.keepModalOpen ? $t('components.headerArea.unpin') : $t('components.headerArea.pin')">
-      <img v-if="!trayStates.keepModalOpen" class="large-icons" src="/icons/pin.svg">
-      <img v-else class="large-icons" src="/icons/unpin.svg">
-    </span>
+    <div class="page-header-actions">
+      <slot name="actions"></slot>
+      <span v-if="showMeta" class="single-action-button" @click="toggleMeta" v-tooltip="$t('components.headerArea.toggleMetadata')"><img
+          class="large-icons" src="/icons/info.svg"></span>
+      <span v-if="showSearch" class="single-action-button" @click="toggleSearch" v-tooltip="$t('components.headerArea.toggleSearch')"><img
+          class="large-icons" src="/icons/search.svg"></span>
+      <span v-if="showPin" class="single-action-button"
+        :class="{ 'single-action-button-pressed': trayStates.keepModalOpen === true }" @click="trayStates.toggleKeepModal"
+        v-tooltip="trayStates.keepModalOpen ? $t('components.headerArea.unpin') : $t('components.headerArea.pin')">
+        <img v-if="!trayStates.keepModalOpen" class="large-icons" src="/icons/pin.svg">
+        <img v-else class="large-icons" src="/icons/unpin.svg">
+      </span>
+    </div>
   </div>
   <div v-if="displaySearchBar" class="page-header-area-container">
     <!-- <span><img class="large-icons" :src="icon"></span> -->
@@ -153,6 +156,19 @@ onMounted(() => {
   border-radius: var(--small-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
+}
+
+.page-header-area-container-title {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+}
+
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
 }
 
 .not-modal{
