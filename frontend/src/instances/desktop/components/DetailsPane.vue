@@ -926,8 +926,20 @@ const setMultipleStatus = async (statusName) => {
   if (!selectedAssetsCanChangeStatus.value) return;
   stage.operationActive = true;
   const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
-  await assetStore.setMultipleStatus(status, stage.markedItems);
-  defaultStatus.value = statusName.toUpperCase();
+  const assetIds = stage.selectedItems.filter(item => item.type === 'asset').map(item => item.id);
+  await AssetService.ChangeStatus(projectStore.activeProject.uri, assetIds, status.id)
+    .then((result) => {
+      emitBatchItemUpdates(assetIds.map(itemId => ({
+        itemId,
+        updates: [
+          { property: 'status_short_name', value: status.short_name },
+          { property: 'status', value: status }
+        ]
+      })));
+      notificationStore.notifyMetadataUpdate(result, 'Statuses updated successfully', false);
+      defaultStatus.value = statusName.toUpperCase();
+    })
+    .catch((error) => console.error('Error:', error));
   stage.operationActive = false;
 };
 
