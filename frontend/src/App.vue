@@ -401,6 +401,10 @@ function startCheckSycnTokenInterval() {
                 let syncToken = projectStore.activeProject.sync_token
                 if (syncToken == token) return
 
+                const localToken = await ProjectService.GetSyncToken(projectStore.activeProject.uri)
+                projectStore.activeProject.sync_token = localToken
+                if (localToken == token) return
+
                 await projectStore.refreshActiveProject()
                 if (!projectStore.getActiveProject.is_downloaded) return
 

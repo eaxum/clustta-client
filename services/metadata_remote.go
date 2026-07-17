@@ -5,6 +5,7 @@ import (
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
 	"clustta/internal/repository/models"
+	repositorysync "clustta/internal/repository/sync_service"
 	"clustta/internal/utils"
 	"encoding/json"
 	"errors"
@@ -42,8 +43,9 @@ type assetPatch struct {
 	AssetTypeId *string `json:"asset_type_id,omitempty"`
 }
 type assetPatchResponse struct {
-	Assets    []models.Asset `json:"assets"`
-	SyncToken string         `json:"sync_token"`
+	Assets            []models.Asset `json:"assets"`
+	PreviousSyncToken *string        `json:"previous_sync_token"`
+	SyncToken         string         `json:"sync_token"`
 }
 type collectionPatch struct {
 	Id                string   `json:"id"`
@@ -55,6 +57,7 @@ type collectionPatch struct {
 type collectionPatchResponse struct {
 	Collections         []models.Collection         `json:"collections"`
 	CollectionAssignees []models.CollectionAssignee `json:"collection_assignees"`
+	PreviousSyncToken   *string                     `json:"previous_sync_token"`
 	SyncToken           string                      `json:"sync_token"`
 }
 
@@ -64,13 +67,15 @@ type typePutRequest struct {
 }
 
 type assetTypePutResponse struct {
-	AssetType models.AssetType `json:"asset_type"`
-	SyncToken string           `json:"sync_token"`
+	AssetType         models.AssetType `json:"asset_type"`
+	PreviousSyncToken *string          `json:"previous_sync_token"`
+	SyncToken         string           `json:"sync_token"`
 }
 
 type collectionTypePutResponse struct {
-	CollectionType models.CollectionType `json:"collection_type"`
-	SyncToken      string                `json:"sync_token"`
+	CollectionType    models.CollectionType `json:"collection_type"`
+	PreviousSyncToken *string               `json:"previous_sync_token"`
+	SyncToken         string                `json:"sync_token"`
 }
 
 // PatchMetadataRemote sends an authenticated typed metadata PATCH request.
@@ -100,7 +105,10 @@ func metadataRemoteRequest(method, remoteURL, path string, payload, result any) 
 		message, _ := io.ReadAll(resp.Body)
 		return fmt.Errorf("remote metadata update failed (%d): %s", resp.StatusCode, string(message))
 	}
-	return json.NewDecoder(resp.Body).Decode(result)
+	if err = json.NewDecoder(resp.Body).Decode(result); err != nil {
+		return err
+	}
+	return nil
 }
 
 func putAssetTypeRemote(remoteURL, id, name, icon string) (assetTypePutResponse, error) {
@@ -125,42 +133,107 @@ func patchCollectionsRemote(remoteURL string, patches []collectionPatch) (collec
 	return out, err
 }
 
-func applyCanonicalAssets(tx *sqlx.Tx, assets []models.Asset) error {
+func applyCanonicalAssets(tx *sqlx.Tx, assets []models.Asset) (bool, error) {
 	ids := make([]string, 0, len(assets))
 	for _, asset := range assets {
-		_, err := tx.Exec(`UPDATE asset SET mtime=?, name=?, description=?, is_resource=?, status_id=?, asset_type_id=?, collection_id=?, assignee_id=?, assigner_id=?, is_link=?, pointer=?, preview_id=?, trashed=? WHERE id=?`, asset.MTime, asset.Name, asset.Description, asset.IsResource, asset.StatusId, asset.AssetTypeId, asset.CollectionId, asset.AssigneeId, asset.AssignerId, asset.IsLink, asset.Pointer, asset.PreviewId, asset.Trashed, asset.Id)
-		if err != nil {
-			return err
-		}
 		ids = append(ids, asset.Id)
 	}
-	return utils.SetRowsSynced(tx, "asset", ids)
+	clean, err := metadataRowsAreSynced(tx, "asset", ids)
+	if err != nil || !clean {
+		return clean, err
+	}
+	for _, asset := range assets {
+		_, err = tx.Exec(`UPDATE asset SET mtime=?, name=?, description=?, is_resource=?, status_id=?, asset_type_id=?, collection_id=?, assignee_id=?, assigner_id=?, is_link=?, pointer=?, preview_id=?, trashed=? WHERE id=?`, asset.MTime, asset.Name, asset.Description, asset.IsResource, asset.StatusId, asset.AssetTypeId, asset.CollectionId, asset.AssigneeId, asset.AssignerId, asset.IsLink, asset.Pointer, asset.PreviewId, asset.Trashed, asset.Id)
+		if err != nil {
+			return false, err
+		}
+	}
+	if err = utils.SetRowsSynced(tx, "asset", ids); err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
-func applyCanonicalCollections(tx *sqlx.Tx, collections []models.Collection) error {
+func applyCanonicalCollections(tx *sqlx.Tx, collections []models.Collection) (bool, error) {
 	ids := make([]string, 0, len(collections))
 	for _, collection := range collections {
-		_, err := tx.Exec(`UPDATE collection SET mtime=?, name=?, description=?, collection_type_id=?, parent_id=?, preview_id=?, is_shared=?, trashed=? WHERE id=?`, collection.MTime, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsShared, collection.Trashed, collection.Id)
-		if err != nil {
-			return err
-		}
 		ids = append(ids, collection.Id)
 	}
-	return utils.SetRowsSynced(tx, "collection", ids)
+	clean, err := metadataRowsAreSynced(tx, "collection", ids)
+	if err != nil || !clean {
+		return clean, err
+	}
+	for _, collection := range collections {
+		_, err = tx.Exec(`UPDATE collection SET mtime=?, name=?, description=?, collection_type_id=?, parent_id=?, preview_id=?, is_shared=?, trashed=? WHERE id=?`, collection.MTime, collection.Name, collection.Description, collection.CollectionTypeId, collection.ParentId, collection.PreviewId, collection.IsShared, collection.Trashed, collection.Id)
+		if err != nil {
+			return false, err
+		}
+	}
+	if err = utils.SetRowsSynced(tx, "collection", ids); err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
+func metadataRowsAreSynced(tx *sqlx.Tx, table string, ids []string) (bool, error) {
+	if len(ids) == 0 {
+		return true, nil
+	}
+	query, args, err := sqlx.In(fmt.Sprintf("SELECT COUNT(*) FROM %s WHERE id IN (?) AND synced=0", table), ids)
+	if err != nil {
+		return false, err
+	}
+	var count int
+	if err = tx.Get(&count, tx.Rebind(query), args...); err != nil {
+		return false, err
+	}
+	return count == 0, nil
+}
+
+// applyReturnedSyncToken advances the local token only when the response is
+// continuous with the local state and no pending local data remains.
+func applyReturnedSyncToken(tx *sqlx.Tx, previous *string, next string) error {
+	if previous == nil || next == "" {
+		return nil
+	}
+	unsynced, err := repositorysync.IsUnsynced(tx)
+	if err != nil {
+		return err
+	}
+	current, err := utils.GetProjectSyncToken(tx)
+	if err != nil {
+		return err
+	}
+	if unsynced {
+		return nil
+	}
+	if current != *previous {
+		return nil
+	}
+	if err = utils.SetProjectSyncToken(tx, next); err != nil {
+		return err
+	}
+	return nil
 }
 
 func applyCanonicalAssetType(tx *sqlx.Tx, assetType models.AssetType) error {
 	_, err := tx.Exec(`INSERT INTO asset_type(id,mtime,name,icon,synced) VALUES(?,?,?,?,1)
 		ON CONFLICT(id) DO UPDATE SET mtime=excluded.mtime,name=excluded.name,icon=excluded.icon,synced=1`,
 		assetType.Id, assetType.MTime, assetType.Name, assetType.Icon)
-	return err
+	if err != nil {
+		return err
+	}
+	return utils.SetRowsSynced(tx, "asset_type", []string{assetType.Id})
 }
 
 func applyCanonicalCollectionType(tx *sqlx.Tx, collectionType models.CollectionType) error {
 	_, err := tx.Exec(`INSERT INTO collection_type(id,mtime,name,icon,synced) VALUES(?,?,?,?,1)
 		ON CONFLICT(id) DO UPDATE SET mtime=excluded.mtime,name=excluded.name,icon=excluded.icon,synced=1`,
 		collectionType.Id, collectionType.MTime, collectionType.Name, collectionType.Icon)
-	return err
+	if err != nil {
+		return err
+	}
+	return utils.SetRowsSynced(tx, "collection_type", []string{collectionType.Id})
 }
 
 func applyCanonicalCollectionAssignees(tx *sqlx.Tx, assignees []models.CollectionAssignee) error {

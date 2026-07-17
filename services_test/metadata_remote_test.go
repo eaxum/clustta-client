@@ -5,6 +5,7 @@ import (
 	repositorysync "clustta/internal/repository/sync_service"
 	"clustta/services"
 	"encoding/json"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"net/http"
 	"net/http/httptest"
@@ -33,16 +34,17 @@ func TestPatchMetadataRemoteUsesTypedPatchEndpoint(t *testing.T) {
 			t.Errorf("unexpected payload: %#v", body)
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write([]byte(`{"assets":[{"id":"asset-1","status_id":"review"}],"sync_token":"token"}`))
+		_, _ = w.Write([]byte(`{"assets":[{"id":"asset-1","status_id":"review"}],"previous_sync_token":"previous","sync_token":"token"}`))
 	}))
 	defer server.Close()
 	var response struct {
-		SyncToken string `json:"sync_token"`
+		PreviousSyncToken string `json:"previous_sync_token"`
+		SyncToken         string `json:"sync_token"`
 	}
 	if err := services.PatchMetadataRemote(server.URL, "/assets", payload, &response); err != nil {
 		t.Fatal(err)
 	}
-	if response.SyncToken != "token" {
+	if response.PreviousSyncToken != "previous" || response.SyncToken != "token" {
 		t.Fatalf("unexpected response: %#v", response)
 	}
 }
@@ -91,8 +93,9 @@ func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
 		id := strings.TrimPrefix(r.URL.Path, "/asset-types/")
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(map[string]any{
-			"asset_type": map[string]any{"id": id, "mtime": requests, "name": body.Name, "icon": body.Icon, "synced": true},
-			"sync_token": "token",
+			"asset_type":          map[string]any{"id": id, "mtime": requests, "name": body.Name, "icon": body.Icon, "synced": true},
+			"previous_sync_token": fmt.Sprintf("token-%d", requests-1),
+			"sync_token":          fmt.Sprintf("token-%d", requests),
 		})
 	}))
 	defer server.Close()
@@ -106,6 +109,9 @@ func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1)", server.URL); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('sync_token','token-0',1)"); err != nil {
 		t.Fatal(err)
 	}
 	db.Close()
@@ -124,6 +130,18 @@ func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
 	}
 	if requests != 2 || !updated.Synced || updated.Name != "Layout" {
 		t.Fatalf("unexpected updated type: requests=%d type=%#v", requests, updated)
+	}
+	db, err = sqlx.Open("sqlite3", projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	var syncToken string
+	if err = db.Get(&syncToken, "SELECT value FROM config WHERE name='sync_token'"); err != nil {
+		t.Fatal(err)
+	}
+	if syncToken != "token-2" {
+		t.Fatalf("expected direct mutations to advance the token, got %q", syncToken)
 	}
 }
 

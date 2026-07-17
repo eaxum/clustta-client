@@ -251,7 +251,20 @@ const updateAsset = async () => {
       currentAsset.asset_type_name = newAssetType.name;
       currentAsset.asset_type_icon = newAssetType.icon;
       currentAsset.asset_type_id = newAssetType.id;
-      emitter.emit('refresh-browser');
+      const updateData = {
+        itemId: assetId,
+        updates: [
+          { property: 'name', value: assetName.value },
+          { property: 'pointer', value: assetWebLink.value },
+          { property: 'is_resource', value: isResource.value },
+          { property: 'tags', value: newAssetTags },
+          { property: 'asset_type_name', value: newAssetType.name },
+          { property: 'asset_type_icon', value: newAssetType.icon },
+          { property: 'asset_type_id', value: newAssetType.id }
+        ]
+      };
+      emitter.emit('update-root-data', updateData);
+      emitter.emit('update-children', updateData);
       isAwaitingResponse.value = false;
     })
     .catch((error) => {

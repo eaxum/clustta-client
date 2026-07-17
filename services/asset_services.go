@@ -747,6 +747,8 @@ func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statu
 	remoteConfirmed := false
 	var remoteFailure error
 	var remoteAssets []models.Asset
+	var previousSyncToken *string
+	var nextSyncToken string
 	if remoteURL != "" {
 		patches := make([]assetPatch, 0, len(assetIds))
 		for _, assetId := range assetIds {
@@ -761,6 +763,8 @@ func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statu
 			remoteFailure = err
 		} else {
 			remoteAssets = response.Assets
+			previousSyncToken = response.PreviousSyncToken
+			nextSyncToken = response.SyncToken
 			remoteConfirmed = true
 		}
 	}
@@ -777,17 +781,28 @@ func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statu
 	}
 	defer tx.Rollback()
 
-	if !remoteConfirmed {
+	requiresSync := remoteFailure != nil
+	applyLocal := !remoteConfirmed
+	if remoteConfirmed {
+		clean, applyErr := applyCanonicalAssets(tx, remoteAssets)
+		if applyErr != nil {
+			return MetadataUpdateResult{}, applyErr
+		}
+		if clean {
+			if err = applyReturnedSyncToken(tx, previousSyncToken, nextSyncToken); err != nil {
+				return MetadataUpdateResult{}, err
+			}
+		} else {
+			applyLocal = true
+			requiresSync = true
+		}
+	}
+	if applyLocal {
 		for _, assetId := range assetIds {
 			err = repository.UpdateStatus(tx, assetId, statusId)
 			if err != nil {
 				return MetadataUpdateResult{}, err
 			}
-		}
-	}
-	if remoteConfirmed {
-		if err = applyCanonicalAssets(tx, remoteAssets); err != nil {
-			return MetadataUpdateResult{}, err
 		}
 	}
 	err = tx.Commit()
@@ -803,7 +818,7 @@ func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statu
 		}
 	}()
 
-	return MetadataUpdateResult{RemoteApplied: remoteConfirmed, RequiresSync: remoteFailure != nil}, nil
+	return MetadataUpdateResult{RemoteApplied: remoteConfirmed, RequiresSync: requiresSync}, nil
 }
 
 // postStatusChangeRemote sends a status change request to the remote server.
@@ -1091,6 +1106,7 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
 	}
 	requiresSync := remoteURL != "" && !assetType.Synced
+	remoteApplied := false
 	if remoteURL != "" && assetType.Synced {
 		response, patchErr := patchAssetsRemote(remoteURL, []assetPatch{{Id: assetId, AssetTypeId: &assetTypeId}})
 		if patchErr != nil {
@@ -1101,6 +1117,7 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 		} else {
 			for _, asset := range response.Assets {
 				if asset.Id == assetId && asset.AssetTypeId == assetTypeId {
+					remoteApplied = true
 					db, openErr := utils.OpenDb(projectPath)
 					if openErr != nil {
 						return MetadataUpdateResult{}, openErr
@@ -1111,7 +1128,16 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 						return MetadataUpdateResult{}, beginErr
 					}
 					defer canonicalTx.Rollback()
-					if err = applyCanonicalAssets(canonicalTx, response.Assets); err != nil {
+					clean, applyErr := applyCanonicalAssets(canonicalTx, response.Assets)
+					if applyErr != nil {
+						return MetadataUpdateResult{}, applyErr
+					}
+					if !clean {
+						canonicalTx.Rollback()
+						requiresSync = true
+						break
+					}
+					if err = applyReturnedSyncToken(canonicalTx, response.PreviousSyncToken, response.SyncToken); err != nil {
 						return MetadataUpdateResult{}, err
 					}
 					if err = canonicalTx.Commit(); err != nil {
@@ -1140,7 +1166,7 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 	if err = tx.Commit(); err != nil {
 		return MetadataUpdateResult{}, err
 	}
-	return MetadataUpdateResult{RequiresSync: requiresSync}, nil
+	return MetadataUpdateResult{RemoteApplied: remoteApplied, RequiresSync: requiresSync}, nil
 }
 
 func (t *AssetService) ToggleIsTask(projectPath, assetId string, isTask bool) (MetadataUpdateResult, error) {
@@ -1159,6 +1185,7 @@ func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, i
 		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
 	}
 	var remoteFailure error
+	remoteApplied := false
 	if remoteURL != "" {
 		patches := make([]assetPatch, 0, len(assetIds))
 		for _, assetId := range assetIds {
@@ -1172,6 +1199,7 @@ func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, i
 			}
 			remoteFailure = err
 		} else {
+			remoteApplied = true
 			db, err := utils.OpenDb(projectPath)
 			if err != nil {
 				return MetadataUpdateResult{}, err
@@ -1182,13 +1210,21 @@ func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, i
 				return MetadataUpdateResult{}, err
 			}
 			defer tx.Rollback()
-			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
-				return MetadataUpdateResult{}, err
+			clean, applyErr := applyCanonicalAssets(tx, response.Assets)
+			if applyErr != nil {
+				return MetadataUpdateResult{}, applyErr
 			}
-			if err = tx.Commit(); err != nil {
-				return MetadataUpdateResult{}, err
+			if clean {
+				if err = applyReturnedSyncToken(tx, response.PreviousSyncToken, response.SyncToken); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				if err = tx.Commit(); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				return MetadataUpdateResult{RemoteApplied: true}, nil
 			}
-			return MetadataUpdateResult{RemoteApplied: true}, nil
+			tx.Rollback()
+			remoteFailure = errors.New("patched asset has pre-existing unsynced changes")
 		}
 	}
 
@@ -1212,7 +1248,7 @@ func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, i
 		return MetadataUpdateResult{}, err
 	}
 
-	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
+	return MetadataUpdateResult{RemoteApplied: remoteApplied, RequiresSync: remoteFailure != nil}, nil
 }
 
 func (t *AssetService) RenameAsset(projectPath, assetId, name string) (models.Asset, error) {
@@ -1296,6 +1332,7 @@ func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userI
 		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
 	}
 	var remoteFailure error
+	remoteApplied := false
 	if remoteURL != "" {
 		uid := userId
 		patches := make([]assetPatch, 0, len(assetIds))
@@ -1309,6 +1346,7 @@ func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userI
 			}
 			remoteFailure = err
 		} else {
+			remoteApplied = true
 			db, err := utils.OpenDb(projectPath)
 			if err != nil {
 				return MetadataUpdateResult{}, err
@@ -1319,13 +1357,21 @@ func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userI
 				return MetadataUpdateResult{}, err
 			}
 			defer tx.Rollback()
-			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
-				return MetadataUpdateResult{}, err
+			clean, applyErr := applyCanonicalAssets(tx, response.Assets)
+			if applyErr != nil {
+				return MetadataUpdateResult{}, applyErr
 			}
-			if err = tx.Commit(); err != nil {
-				return MetadataUpdateResult{}, err
+			if clean {
+				if err = applyReturnedSyncToken(tx, response.PreviousSyncToken, response.SyncToken); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				if err = tx.Commit(); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				return MetadataUpdateResult{RemoteApplied: true}, nil
 			}
-			return MetadataUpdateResult{RemoteApplied: true}, nil
+			tx.Rollback()
+			remoteFailure = errors.New("patched asset has pre-existing unsynced changes")
 		}
 	}
 	dbConn, err := utils.OpenDb(projectPath)
@@ -1357,7 +1403,7 @@ func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userI
 	if err != nil {
 		return MetadataUpdateResult{}, err
 	}
-	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
+	return MetadataUpdateResult{RemoteApplied: remoteApplied, RequiresSync: remoteFailure != nil}, nil
 }
 func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdateResult, error) {
 	if err := authorizeAssetAction(projectPath, assetActionUnassign, []string{assetId}); err != nil {
@@ -1368,6 +1414,7 @@ func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdat
 		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
 	}
 	var remoteFailure error
+	remoteApplied := false
 	if remoteURL != "" {
 		empty := ""
 		response, err := patchAssetsRemote(remoteURL, []assetPatch{{Id: assetId, AssigneeId: &empty}})
@@ -1377,6 +1424,7 @@ func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdat
 			}
 			remoteFailure = err
 		} else {
+			remoteApplied = true
 			db, err := utils.OpenDb(projectPath)
 			if err != nil {
 				return MetadataUpdateResult{}, err
@@ -1387,13 +1435,21 @@ func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdat
 				return MetadataUpdateResult{}, err
 			}
 			defer tx.Rollback()
-			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
-				return MetadataUpdateResult{}, err
+			clean, applyErr := applyCanonicalAssets(tx, response.Assets)
+			if applyErr != nil {
+				return MetadataUpdateResult{}, applyErr
 			}
-			if err = tx.Commit(); err != nil {
-				return MetadataUpdateResult{}, err
+			if clean {
+				if err = applyReturnedSyncToken(tx, response.PreviousSyncToken, response.SyncToken); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				if err = tx.Commit(); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				return MetadataUpdateResult{RemoteApplied: true}, nil
 			}
-			return MetadataUpdateResult{RemoteApplied: true}, nil
+			tx.Rollback()
+			remoteFailure = errors.New("patched asset has pre-existing unsynced changes")
 		}
 	}
 	dbConn, err := utils.OpenDb(projectPath)
@@ -1416,7 +1472,7 @@ func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdat
 	if err != nil {
 		return MetadataUpdateResult{}, err
 	}
-	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
+	return MetadataUpdateResult{RemoteApplied: remoteApplied, RequiresSync: remoteFailure != nil}, nil
 }
 func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (MetadataUpdateResult, error) {
 	if len(assetIds) == 0 {
@@ -1430,6 +1486,7 @@ func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (Me
 		return MetadataUpdateResult{}, fmt.Errorf("failed to resolve project remote: %w", err)
 	}
 	var remoteFailure error
+	remoteApplied := false
 	if remoteURL != "" {
 		empty := ""
 		patches := make([]assetPatch, 0, len(assetIds))
@@ -1443,6 +1500,7 @@ func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (Me
 			}
 			remoteFailure = err
 		} else {
+			remoteApplied = true
 			db, err := utils.OpenDb(projectPath)
 			if err != nil {
 				return MetadataUpdateResult{}, err
@@ -1453,13 +1511,21 @@ func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (Me
 				return MetadataUpdateResult{}, err
 			}
 			defer tx.Rollback()
-			if err = applyCanonicalAssets(tx, response.Assets); err != nil {
-				return MetadataUpdateResult{}, err
+			clean, applyErr := applyCanonicalAssets(tx, response.Assets)
+			if applyErr != nil {
+				return MetadataUpdateResult{}, applyErr
 			}
-			if err = tx.Commit(); err != nil {
-				return MetadataUpdateResult{}, err
+			if clean {
+				if err = applyReturnedSyncToken(tx, response.PreviousSyncToken, response.SyncToken); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				if err = tx.Commit(); err != nil {
+					return MetadataUpdateResult{}, err
+				}
+				return MetadataUpdateResult{RemoteApplied: true}, nil
 			}
-			return MetadataUpdateResult{RemoteApplied: true}, nil
+			tx.Rollback()
+			remoteFailure = errors.New("patched asset has pre-existing unsynced changes")
 		}
 	}
 	dbConn, err := utils.OpenDb(projectPath)
@@ -1482,7 +1548,7 @@ func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (Me
 	if err != nil {
 		return MetadataUpdateResult{}, err
 	}
-	return MetadataUpdateResult{RequiresSync: remoteFailure != nil}, nil
+	return MetadataUpdateResult{RemoteApplied: remoteApplied, RequiresSync: remoteFailure != nil}, nil
 }
 func (t *AssetService) AssetFileStatus(projectPath, assetId string) (string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
@@ -2267,6 +2333,9 @@ func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.A
 			if err = applyCanonicalAssetType(tx, response.AssetType); err != nil {
 				return models.AssetType{}, err
 			}
+			if err = applyReturnedSyncToken(tx, response.PreviousSyncToken, response.SyncToken); err != nil {
+				return models.AssetType{}, err
+			}
 			if err = tx.Commit(); err != nil {
 				return models.AssetType{}, err
 			}
@@ -2323,6 +2392,9 @@ func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (mode
 			}
 			defer tx.Rollback()
 			if err = applyCanonicalAssetType(tx, response.AssetType); err != nil {
+				return models.AssetType{}, err
+			}
+			if err = applyReturnedSyncToken(tx, response.PreviousSyncToken, response.SyncToken); err != nil {
 				return models.AssetType{}, err
 			}
 			if err = tx.Commit(); err != nil {
