@@ -36,6 +36,31 @@ type CompatTimeline struct {
 	Preview    []byte   `db:"preview" json:"preview"`
 }
 
+// nextCheckpointTime keeps checkpoint creation monotonic even when the system
+// clock is moved backwards. Checkpoints use second precision, so advancing by
+// one second also gives checkpoints created in the same second a stable order.
+func nextCheckpointTime(tx *sqlx.Tx, currentTime int64) (int64, error) {
+	var latestTime sql.NullInt64
+	err := tx.Get(&latestTime, `
+		SELECT MAX(
+			CASE
+				WHEN typeof(created_at) IN ('integer', 'real') THEN CAST(created_at AS INTEGER)
+				ELSE unixepoch(created_at)
+			END
+		)
+		FROM asset_checkpoint
+		WHERE trashed = 0
+	`)
+	if err != nil {
+		return 0, err
+	}
+
+	if latestTime.Valid && latestTime.Int64 >= currentTime {
+		return latestTime.Int64 + 1, nil
+	}
+	return currentTime, nil
+}
+
 func CreateNewAssetCheckpoint(
 	tx *sqlx.Tx, assetId, message, chunkSequence, checksum string, timeModified int, fileSize int, filePath, author_id, previewId, groupId string,
 	callback func(int, int, string, string)) error {
@@ -101,9 +126,13 @@ func CreateNewAssetCheckpoint(
 		timeModified = int(fileInfo.ModTime().Unix())
 		fileSize = int(fileInfo.Size())
 	}
+	createdAt, err := nextCheckpointTime(tx, utils.GetEpochTime())
+	if err != nil {
+		return err
+	}
 
 	params := map[string]interface{}{
-		"created_at":      utils.GetEpochTime(),
+		"created_at":      createdAt,
 		"asset_id":        assetId,
 		"xxhash_checksum": checkpointChecksum,
 		"time_modified":   timeModified,
@@ -114,7 +143,7 @@ func CreateNewAssetCheckpoint(
 		"preview_id":      previewId,
 		"group_id":        groupId,
 	}
-	err := base_service.Create(tx, "asset_checkpoint", params)
+	err = base_service.Create(tx, "asset_checkpoint", params)
 	if err != nil {
 		return err
 	}
@@ -195,9 +224,13 @@ func CreateCheckpoint(
 		timeModified = int(fileInfo.ModTime().Unix())
 		fileSize = int(fileInfo.Size())
 	}
+	createdAt, err := nextCheckpointTime(tx, utils.GetEpochTime())
+	if err != nil {
+		return models.Checkpoint{}, err
+	}
 
 	params := map[string]interface{}{
-		"created_at":      utils.GetEpochTime(),
+		"created_at":      createdAt,
 		"asset_id":        assetId,
 		"xxhash_checksum": checkpointChecksum,
 		"time_modified":   timeModified,

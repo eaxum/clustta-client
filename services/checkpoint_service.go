@@ -13,7 +13,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -1336,43 +1335,7 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 		}
 	}
 
-	// Step 3: Fix checkpoint timestamps so they sort correctly (first=oldest, last=newest)
-	tx, err = dbConn.Beginx()
-	if err != nil {
-		return models.Asset{}, err
-	}
-	checkpoints, err := repository.GetCheckpoints(tx, assetId, false)
-	if err != nil {
-		tx.Rollback()
-		return models.Asset{}, fmt.Errorf("failed to fetch checkpoints for reordering: %w", err)
-	}
-
-	// Build a lookup from comment to desired order index
-	commentOrder := map[string]int{}
-	for i, c := range checkpointComments {
-		commentOrder[c] = i
-	}
-
-	// Sort checkpoints by their intended order (matching checkpointComments array)
-	sort.Slice(checkpoints, func(i, j int) bool {
-		return commentOrder[checkpoints[i].Comment] < commentOrder[checkpoints[j].Comment]
-	})
-
-	baseEpoch := time.Now().Unix() - int64(len(checkpoints))
-	for i, cp := range checkpoints {
-		newTime := baseEpoch + int64(i)
-		_, err = tx.Exec("UPDATE asset_checkpoint SET created_at = ? WHERE id = ?", newTime, cp.Id)
-		if err != nil {
-			tx.Rollback()
-			return models.Asset{}, fmt.Errorf("failed to update checkpoint timestamp: %w", err)
-		}
-	}
-	err = tx.Commit()
-	if err != nil {
-		return models.Asset{}, err
-	}
-
-	// Step 4: Rename/copy the latest file to the asset's working path
+	// Step 3: Rename/copy the latest file to the asset's working path
 	latestFilePath := filePaths[len(filePaths)-1]
 	if latestFilePath != assetAbsPath {
 		assetDir := filepath.Dir(assetAbsPath)
