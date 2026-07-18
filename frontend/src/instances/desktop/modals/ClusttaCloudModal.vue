@@ -37,7 +37,7 @@
               <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
               <span>
                 {{ feature.label }}
-                <a v-if="feature.comingSoon" href="#cloud-coming-soon-features" class="coming-soon-indicator" :aria-label="`${feature.label} is coming soon`" @click.stop>Coming soon</a>
+                <ComingSoonBadge v-if="feature.comingSoon" class="feature-coming-soon-badge" />
               </span>
             </div>
           </div>
@@ -51,7 +51,7 @@
             <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
             <span>
               {{ feature.label }}
-              <a v-if="feature.comingSoon" href="#cloud-coming-soon-features" class="coming-soon-indicator" :aria-label="`${feature.label} is coming soon`" @click.stop>Coming soon</a>
+              <ComingSoonBadge v-if="feature.comingSoon" class="feature-coming-soon-badge" />
             </span>
           </div>
         </div>
@@ -67,7 +67,7 @@
       </section>
 
       <p v-if="showComingSoonFootnote" id="cloud-coming-soon-features" class="coming-soon-footnote" role="note">
-        <span class="coming-soon-footnote-mark">Coming soon</span>
+        <ComingSoonBadge class="coming-soon-footnote-badge" />
         These features are currently in development and will be available in a future release.
       </p>
     </div>
@@ -80,6 +80,7 @@ import { computed, onMounted, ref } from 'vue';
 import { Browser } from '@wailsio/runtime';
 
 // components
+import ComingSoonBadge from '@/instances/common/components/ComingSoonBadge.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
@@ -628,23 +629,9 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-.coming-soon-indicator {
-  display: inline-flex;
+.feature-coming-soon-badge {
   margin-left: 5px;
-  padding: 1px 6px;
-  border-radius: var(--small-radius);
-  background-color: color-mix(in srgb, var(--attention) 14%, transparent);
-  color: var(--attention);
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.35;
-  text-decoration: none;
   vertical-align: 1px;
-}
-
-.coming-soon-indicator:hover {
-  background-color: color-mix(in srgb, var(--attention) 22%, transparent);
-  text-decoration: underline;
 }
 
 .enterprise-section {
@@ -701,10 +688,8 @@ onMounted(async () => {
   text-align: center;
 }
 
-.coming-soon-footnote-mark {
+.coming-soon-footnote-badge {
   margin-right: 5px;
-  color: var(--attention);
-  font-weight: 700;
 }
 
 @media (max-width: 1100px) {
