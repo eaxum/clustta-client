@@ -101,15 +101,6 @@ const collectionsToCreate = computed(() => collections.value.filter(c => c.actio
 // Checks if there are items to create.
 const hasItemsToCreate = computed(() => collectionsToCreate.value > 0 || assetsToCreate.value > 0);
 
-// Returns the integration name.
-const integrationName = computed(() => {
-  const id = integrationStore.linkedIntegrationId;
-  const integration = integrationStore.getIntegration(id);
-  return integration?.name || id;
-});
-
-
-
 // Returns the hierarchical tree for sync preview.
 const syncPreviewTree = computed(() => integrationStore.syncPreviewTree);
 
@@ -142,55 +133,14 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Loads sync preview, auto-creating type mappings.
+// Loads the sync preview without changing project data.
 const loadSyncPreview = async () => {
   isLoading.value = true;
   loadingMessage.value = 'Loading...';
   error.value = null;
 
   try {
-    // Load external types from the integration
-    loadingMessage.value = 'Fetching types from ' + integrationName.value + '...';
-    await integrationStore.getExternalTypes();
-
-    // Load existing type mappings
-    await integrationStore.loadTypeMappings();
-
-    // Auto-generate 1:1 type mappings for any unmapped types
-    const collectionTypeMappingsMap = { ...(integrationStore.typeMappings?.collection_type_mappings || {}) };
-    for (const type of integrationStore.externalCollectionTypes) {
-      if (!collectionTypeMappingsMap[type.name]) {
-        collectionTypeMappingsMap[type.name] = {
-          external_name: type.name,
-          external_id: type.id,
-          clustta_name: type.name,
-          clustta_icon: 'folder',
-        };
-      }
-    }
-
-    const assetTypeMappingsMap = { ...(integrationStore.typeMappings?.asset_type_mappings || {}) };
-    for (const type of integrationStore.externalAssetTypes) {
-      if (!assetTypeMappingsMap[type.name]) {
-        assetTypeMappingsMap[type.name] = {
-          external_name: type.name,
-          external_id: type.id,
-          clustta_name: type.name,
-          clustta_icon: 'generic',
-        };
-      }
-    }
-
-    // Save auto-generated mappings (preserving existing directory_structure and asset_type_templates)
-    loadingMessage.value = 'Saving type mappings...';
-    await integrationStore.saveTypeMappings({
-      ...integrationStore.typeMappings,
-      collection_type_mappings: collectionTypeMappingsMap,
-      asset_type_mappings: assetTypeMappingsMap,
-    });
-
-    // Load the sync preview (missing types are auto-created during ExecuteSync)
-    loadingMessage.value = 'Fetching data from ' + integrationName.value + '...';
+    loadingMessage.value = 'Fetching integration data...';
     await integrationStore.getSyncPreview();
 
     // Load templates for extension display

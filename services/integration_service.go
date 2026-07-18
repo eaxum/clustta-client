@@ -298,6 +298,8 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			collectionTypeName = typeMapping.ClustttaName
 			collectionTypeIcon = typeMapping.ClustttaIcon
 		} else {
+			collectionTypeName = collection.Type
+			collectionTypeIcon = "folder"
 			// Track missing type
 			missingCollectionTypes[collection.Type] = true
 		}
@@ -369,6 +371,8 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			assetTypeName = typeMapping.ClustttaName
 			assetTypeIcon = typeMapping.ClustttaIcon
 		} else if asset.AssetType != "" {
+			assetTypeName = asset.AssetType
+			assetTypeIcon = "generic"
 			// Track missing type
 			missingAssetTypes[asset.AssetType] = true
 		}
@@ -1226,7 +1230,23 @@ func (s *IntegrationService) ensureTypesExist(tx *sqlx.Tx, preview integrations.
 		}
 
 		mapping, exists := syncOptions.CollectionTypeMappings[coll.ExternalType]
-		if !exists || mapping.ClustttaName == "" {
+		if !exists {
+			if strings.TrimSpace(coll.ExternalType) == "" {
+				continue
+			}
+			mapping = integrations.TypeMapping{
+				ExternalName: coll.ExternalType,
+				ExternalID:   coll.ExternalType,
+				ClustttaName: coll.CollectionTypeName,
+				ClustttaIcon: coll.CollectionTypeIcon,
+			}
+			if mapping.ClustttaName == "" {
+				mapping.ClustttaName = coll.ExternalType
+			}
+			syncOptions.CollectionTypeMappings[coll.ExternalType] = mapping
+			modified = true
+		}
+		if mapping.ClustttaName == "" {
 			continue
 		}
 
@@ -1263,7 +1283,23 @@ func (s *IntegrationService) ensureTypesExist(tx *sqlx.Tx, preview integrations.
 		}
 
 		mapping, exists := syncOptions.AssetTypeMappings[asset.ExternalType]
-		if !exists || mapping.ClustttaName == "" {
+		if !exists {
+			if strings.TrimSpace(asset.ExternalType) == "" {
+				continue
+			}
+			mapping = integrations.TypeMapping{
+				ExternalName: asset.ExternalType,
+				ExternalID:   asset.ExternalTypeID,
+				ClustttaName: asset.AssetTypeName,
+				ClustttaIcon: asset.AssetTypeIcon,
+			}
+			if mapping.ClustttaName == "" {
+				mapping.ClustttaName = asset.ExternalType
+			}
+			syncOptions.AssetTypeMappings[asset.ExternalType] = mapping
+			modified = true
+		}
+		if mapping.ClustttaName == "" {
 			continue
 		}
 
