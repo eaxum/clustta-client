@@ -17,8 +17,8 @@
       <div v-if="isExpanded" v-stop-propagation class="listbox-list-items-root"
         :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px', width: listItemsWidth + 'px', maxHeight: listItemMaxHeight + 'px' }">
         <div class="listbox-list-items">
-          <div v-for="(item, index) in filteredItems" :key="getItemKey(item, index)" :value="getItemValue(item)" @click="selectItem(item, items)"
-            class="listbox-item" :class="{ 'listbox-item-closed': isUnique(getItemValue(item)) === true, 'listbox-item-selected': getItemValue(item) === props.selectedItem }">
+          <div v-for="(item, index) in filteredItems" :key="getItemKey(item, index)" :value="getItemValue(item)" @click="selectItem(item)"
+            class="listbox-item" :aria-disabled="isItemDisabled(item)" :class="{ 'listbox-item-closed': isUnique(getItemValue(item)) === true, 'listbox-item-selected': getItemValue(item) === props.selectedItem, 'listbox-item-disabled': isItemDisabled(item) }">
             <div class="listbox-item-text-mask" @mouseenter="startScrollText($event, index)"
               @mouseleave="stopScrollText($event)">
               <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -74,6 +74,10 @@ const getItemIcon = (item) => {
     return null;
   }
   return item.icon || null;
+};
+
+const isItemDisabled = (item) => {
+  return typeof item === 'object' && item !== null && item.disabled === true;
 };
 
 const getItemKey = (item, index) => {
@@ -199,7 +203,8 @@ const toggleList = () => {
   }
 };
 
-const selectItem = (item, items) => {
+const selectItem = (item) => {
+  if (isItemDisabled(item)) return;
   const itemValue = getItemValue(item);
   props.onSelect(itemValue, props.extraData);
   isExpanded.value = false;
@@ -447,6 +452,15 @@ onUnmounted(() => {
 
 .listbox-item-closed {
   opacity: .5;
+}
+
+.listbox-item-disabled {
+  cursor: default;
+  opacity: .5;
+}
+
+.listbox-item-disabled:hover {
+  background-color: transparent;
 }
 
 .listbox-item-text-mask {

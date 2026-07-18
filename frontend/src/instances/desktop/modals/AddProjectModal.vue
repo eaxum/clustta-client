@@ -38,6 +38,16 @@
         </div>
       </div>
 
+      <div v-if="isPrivateStudio" class="input-section drop-down-box-section">
+        <span class="input-label">{{ $t('modals.blobStorage') }}</span>
+        <DropDownBox :items="blobStorageOptions" :selectedItem="selectedBlobStorageLabel"
+          :onSelect="selectBlobStorage">
+          <template #itemAction="{ item }">
+            <ComingSoonBadge v-if="item.comingSoon" />
+          </template>
+        </DropDownBox>
+      </div>
+
       <div v-if="projectTemplateStore.projectTemplates.length" class="input-section drop-down-box-section">
         <DropDownBox :items="projectTemplateNames" :selectedItem="selectedProjectTemplate"
           :onSelect="selectProjectTemplate" />
@@ -66,6 +76,7 @@ import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
+import ComingSoonBadge from '@/instances/common/components/ComingSoonBadge.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -117,15 +128,26 @@ const projectLocations = ref([]);
 const projectName = ref('');
 const projectNameInput = ref(null);
 const selectedLocation = ref(null);
+const selectedBlobStorageMode = ref('compact');
 const selectedProjectTemplate = ref(t('modals.noTemplate'));
 
 // constants
 const title = computed(() => t('modals.addProject'));
 
+const blobStorageOptions = computed(() => [
+  { id: 'compact', name: t('modals.compactStorage') },
+  { id: 'deflated', name: t('modals.deflatedStorage'), disabled: true, comingSoon: true },
+  { id: 'object_storage', name: t('modals.objectStorage'), disabled: true, comingSoon: true },
+]);
+
 // computed
 // Returns whether form values are valid for submission.
 const isValueChanged = computed(() => {
   return !projectNameEmpty.value && !projectNameInUse.value;
+});
+
+const isPrivateStudio = computed(() => {
+  return projectStore.selectedStudio?.hosting_mode === 'private';
 });
 
 // Returns display names for location dropdown.
@@ -157,6 +179,10 @@ const restrictedNames = computed(() => {
 const selectedLocationDisplay = computed(() => {
   if (!selectedLocation.value) return '';
   return `${selectedLocation.value.name}`;
+});
+
+const selectedBlobStorageLabel = computed(() => {
+  return blobStorageOptions.value.find(option => option.id === selectedBlobStorageMode.value)?.name || '';
 });
 
 // Returns whether the remote toggle should be shown.
@@ -262,6 +288,11 @@ const selectLocation = (displayName) => {
   if (location) {
     selectedLocation.value = location;
   }
+};
+
+const selectBlobStorage = (label) => {
+  const option = blobStorageOptions.value.find(item => item.name === label);
+  if (option && !option.disabled) selectedBlobStorageMode.value = option.id;
 };
 
 // Selects a project template from the dropdown.
