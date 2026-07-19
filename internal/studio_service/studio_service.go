@@ -15,10 +15,21 @@ import (
 
 // StudioInfo represents metadata returned by a studio server's /studio-info endpoint
 type StudioInfo struct {
-	Id     string `json:"id"`
-	Name   string `json:"name"`
-	Url    string `json:"url"`
-	AltUrl string `json:"alt_url"`
+	Id           string             `json:"id"`
+	Name         string             `json:"name"`
+	Url          string             `json:"url"`
+	AltUrl       string             `json:"alt_url"`
+	HostingMode  string             `json:"hosting_mode"`
+	Capabilities StudioCapabilities `json:"capabilities"`
+}
+
+type StudioCapabilities struct {
+	ProjectStorage ProjectStorageCapabilities `json:"project_storage"`
+}
+
+type ProjectStorageCapabilities struct {
+	SupportedModes []string `json:"supported_modes"`
+	AvailableModes []string `json:"available_modes"`
 }
 
 // StudioUsage represents VM-local usage metrics returned by a private studio server.

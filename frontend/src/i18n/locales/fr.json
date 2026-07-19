@@ -718,7 +718,7 @@
     "updateStudio": "Mettre à jour le studio",
     "studioKeyLabel": "Clé du studio",
     "addProject": "Ajouter un projet",
-    "blobStorage": "Stockage des blobs",
+    "storage": "Stockage",
     "compactStorage": "Compact (blobs dans l’archive .clst)",
     "deflatedStorage": "Décompressé (blobs sur le disque serveur)",
     "objectStorage": "Stockage objet (S3, R2, etc.)",

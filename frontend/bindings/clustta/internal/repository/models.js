@@ -234,6 +234,13 @@ export class ProjectInfo {
              */
             this["ignore_list"] = [];
         }
+        if (!("storage_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["storage_mode"] = "";
+        }
         if (/** @type {any} */(false)) {
             /**
              * @member

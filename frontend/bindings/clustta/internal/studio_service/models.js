@@ -6,6 +6,81 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class ProjectStorageCapabilities {
+    /**
+     * Creates a new ProjectStorageCapabilities instance.
+     * @param {Partial<ProjectStorageCapabilities>} [$$source = {}] - The source object to create the ProjectStorageCapabilities.
+     */
+    constructor($$source = {}) {
+        if (!("supported_modes" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["supported_modes"] = [];
+        }
+        if (!("available_modes" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["available_modes"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ProjectStorageCapabilities instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ProjectStorageCapabilities}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType0;
+        const $$createField1_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("supported_modes" in $$parsedSource) {
+            $$parsedSource["supported_modes"] = $$createField0_0($$parsedSource["supported_modes"]);
+        }
+        if ("available_modes" in $$parsedSource) {
+            $$parsedSource["available_modes"] = $$createField1_0($$parsedSource["available_modes"]);
+        }
+        return new ProjectStorageCapabilities(/** @type {Partial<ProjectStorageCapabilities>} */($$parsedSource));
+    }
+}
+
+export class StudioCapabilities {
+    /**
+     * Creates a new StudioCapabilities instance.
+     * @param {Partial<StudioCapabilities>} [$$source = {}] - The source object to create the StudioCapabilities.
+     */
+    constructor($$source = {}) {
+        if (!("project_storage" in $$source)) {
+            /**
+             * @member
+             * @type {ProjectStorageCapabilities}
+             */
+            this["project_storage"] = (new ProjectStorageCapabilities());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new StudioCapabilities instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {StudioCapabilities}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("project_storage" in $$parsedSource) {
+            $$parsedSource["project_storage"] = $$createField0_0($$parsedSource["project_storage"]);
+        }
+        return new StudioCapabilities(/** @type {Partial<StudioCapabilities>} */($$parsedSource));
+    }
+}
+
 /**
  * StudioInfo represents metadata returned by a studio server's /studio-info endpoint
  */
@@ -43,6 +118,20 @@ export class StudioInfo {
              */
             this["alt_url"] = "";
         }
+        if (!("hosting_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["hosting_mode"] = "";
+        }
+        if (!("capabilities" in $$source)) {
+            /**
+             * @member
+             * @type {StudioCapabilities}
+             */
+            this["capabilities"] = (new StudioCapabilities());
+        }
 
         Object.assign(this, $$source);
     }
@@ -53,7 +142,11 @@ export class StudioInfo {
      * @returns {StudioInfo}
      */
     static createFrom($$source = {}) {
+        const $$createField5_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("capabilities" in $$parsedSource) {
+            $$parsedSource["capabilities"] = $$createField5_0($$parsedSource["capabilities"]);
+        }
         return new StudioInfo(/** @type {Partial<StudioInfo>} */($$parsedSource));
     }
 }
@@ -109,3 +202,8 @@ export class StudioUsage {
         return new StudioUsage(/** @type {Partial<StudioUsage>} */($$parsedSource));
     }
 }
+
+// Private type creation functions
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = ProjectStorageCapabilities.createFrom;
+const $$createType2 = StudioCapabilities.createFrom;

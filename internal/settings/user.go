@@ -68,14 +68,15 @@ func (b flexBool) MarshalJSON() ([]byte, error) {
 }
 
 type Studio struct {
-	Id          string   `json:"id"`
-	Name        string   `json:"name"`
-	Active      flexBool `json:"active"`
-	AltUrl      string   `json:"alt_url"`
-	Url         string   `json:"url"`
-	Usage       string   `json:"usage"`
-	HostingMode string   `json:"hosting_mode"`
-	Users       []models.StudioUserInfo
+	Id           string                            `json:"id"`
+	Name         string                            `json:"name"`
+	Active       flexBool                          `json:"active"`
+	AltUrl       string                            `json:"alt_url"`
+	Url          string                            `json:"url"`
+	Usage        string                            `json:"usage"`
+	HostingMode  string                            `json:"hosting_mode"`
+	Capabilities studio_service.StudioCapabilities `json:"capabilities"`
+	Users        []models.StudioUserInfo
 }
 
 type ProjectLocation struct {
@@ -1118,12 +1119,13 @@ func GetStudios() ([]Studio, error) {
 			settings.Studios = []Studio{privateStudio}
 		} else {
 			privateStudio := Studio{
-				Id:          studioInfo.Id,
-				Name:        studioInfo.Name,
-				Url:         studioInfo.Url,
-				AltUrl:      studioInfo.AltUrl,
-				Active:      true,
-				HostingMode: "private",
+				Id:           studioInfo.Id,
+				Name:         studioInfo.Name,
+				Url:          studioInfo.Url,
+				AltUrl:       studioInfo.AltUrl,
+				Active:       true,
+				HostingMode:  "private",
+				Capabilities: studioInfo.Capabilities,
 			}
 			// If name is empty, use a default
 			if privateStudio.Name == "" {

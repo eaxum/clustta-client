@@ -720,7 +720,7 @@
     "studioUrlLabel": "URL студии",
     "alternateUrlLabel": "Альтернативный URL",
     "addProject": "Добавить проект",
-    "blobStorage": "Хранилище блобов",
+    "storage": "Хранилище",
     "compactStorage": "Компактное (блобы в архиве .clst)",
     "deflatedStorage": "Распакованное (блобы на диске сервера)",
     "objectStorage": "Объектное хранилище (S3, R2 и др.)",

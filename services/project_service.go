@@ -32,6 +32,14 @@ type UntrackedItems struct {
 }
 
 func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId string) (repository.ProjectInfo, error) {
+	return p.createProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId, "")
+}
+
+func (p *ProjectService) CreateProjectWithStorageMode(projectUri, studioName, workingDir, templateName, hostingMode, studioId, storageMode string) (repository.ProjectInfo, error) {
+	return p.createProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId, storageMode)
+}
+
+func (p *ProjectService) createProject(projectUri, studioName, workingDir, templateName, hostingMode, studioId, storageMode string) (repository.ProjectInfo, error) {
 	if studioName == "" {
 		return repository.ProjectInfo{}, errors.New("studio name can't be empty")
 	}
@@ -48,7 +56,7 @@ func (p *ProjectService) CreateProject(projectUri, studioName, workingDir, templ
 	}
 
 	fmt.Println(user)
-	projectInfo, err := repository.CreateProject(projectUri, studioName, workingDir, templateName, "", user)
+	projectInfo, err := repository.CreateProjectWithStorageMode(projectUri, studioName, workingDir, templateName, "", storageMode, user)
 	if err != nil {
 		if !utils.IsValidURL(projectUri) &&
 			utils.FileExists(projectUri) &&

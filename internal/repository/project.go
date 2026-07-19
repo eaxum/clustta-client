@@ -58,6 +58,7 @@ type ProjectInfo struct {
 	IsTracked        bool     `json:"is_tracked"`
 	IsOffline        bool     `json:"is_offline"`
 	IgnoreList       []string `json:"ignore_list"`
+	StorageMode      string   `json:"storage_mode"`
 	Role             string   `json:"role,omitempty"`
 	OwnerName        string   `json:"owner_name,omitempty"`
 }
@@ -990,6 +991,10 @@ func UpdateProject(projectPath string) error {
 }
 
 func CreateProject(projectUri, studioName, workingDir, templateName, projectId string, user auth_service.User) (ProjectInfo, error) {
+	return CreateProjectWithStorageMode(projectUri, studioName, workingDir, templateName, projectId, "", user)
+}
+
+func CreateProjectWithStorageMode(projectUri, studioName, workingDir, templateName, projectId, storageMode string, user auth_service.User) (ProjectInfo, error) {
 	projectInfo := ProjectInfo{}
 	if templateName == "" {
 		templateName = "No Template"
@@ -997,8 +1002,15 @@ func CreateProject(projectUri, studioName, workingDir, templateName, projectId s
 
 	if utils.IsValidURL(projectUri) {
 		var reqBody io.Reader
+		payload := map[string]string{}
 		if projectId != "" {
-			bodyBytes, _ := json.Marshal(map[string]string{"project_id": projectId})
+			payload["project_id"] = projectId
+		}
+		if storageMode != "" {
+			payload["storage_mode"] = storageMode
+		}
+		if len(payload) > 0 {
+			bodyBytes, _ := json.Marshal(payload)
 			reqBody = bytes.NewReader(bodyBytes)
 		}
 		req, err := http.NewRequest("POST", projectUri, reqBody)
@@ -1013,6 +1025,9 @@ func CreateProject(projectUri, studioName, workingDir, templateName, projectId s
 		req.Header.Set("UserData", string(userJson))
 		req.Header.Set("UserId", user.Id)
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+		if reqBody != nil {
+			req.Header.Set("Content-Type", "application/json")
+		}
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}

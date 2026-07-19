@@ -9,6 +9,9 @@ import { Create as $Create } from "@wailsio/runtime";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as models$0 from "../server/models/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as studio_service$0 from "../studio_service/models.js";
 
 /**
  * IntegrationCredential stores user credentials for external integrations.
@@ -291,6 +294,13 @@ export class Studio {
              */
             this["hosting_mode"] = "";
         }
+        if (!("capabilities" in $$source)) {
+            /**
+             * @member
+             * @type {studio_service$0.StudioCapabilities}
+             */
+            this["capabilities"] = (new studio_service$0.StudioCapabilities());
+        }
         if (!("Users" in $$source)) {
             /**
              * @member
@@ -308,10 +318,14 @@ export class Studio {
      * @returns {Studio}
      */
     static createFrom($$source = {}) {
-        const $$createField7_0 = $$createType2;
+        const $$createField7_0 = $$createType1;
+        const $$createField8_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("capabilities" in $$parsedSource) {
+            $$parsedSource["capabilities"] = $$createField7_0($$parsedSource["capabilities"]);
+        }
         if ("Users" in $$parsedSource) {
-            $$parsedSource["Users"] = $$createField7_0($$parsedSource["Users"]);
+            $$parsedSource["Users"] = $$createField8_0($$parsedSource["Users"]);
         }
         return new Studio(/** @type {Partial<Studio>} */($$parsedSource));
     }
@@ -363,5 +377,6 @@ export class SystemBookmarksHealth {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = models$0.StudioUserInfo.createFrom;
-const $$createType2 = $Create.Array($$createType1);
+const $$createType1 = studio_service$0.StudioCapabilities.createFrom;
+const $$createType2 = models$0.StudioUserInfo.createFrom;
+const $$createType3 = $Create.Array($$createType2);

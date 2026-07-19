@@ -720,7 +720,7 @@
     "studioUrlLabel": "Studio-URL",
     "alternateUrlLabel": "Alternative URL",
     "addProject": "Projekt hinzufügen",
-    "blobStorage": "Blob-Speicher",
+    "storage": "Speicher",
     "compactStorage": "Kompakt (Blobs im .clst-Archiv)",
     "deflatedStorage": "Entpackt (Blobs auf Serverdatenträger)",
     "objectStorage": "Objektspeicher (S3, R2 usw.)",

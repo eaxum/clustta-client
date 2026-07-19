@@ -39,11 +39,11 @@
       </div>
 
       <div v-if="isPrivateStudio" class="input-section drop-down-box-section">
-        <span class="input-label">{{ $t('modals.blobStorage') }}</span>
-        <DropDownBox :items="blobStorageOptions" :selectedItem="selectedBlobStorageLabel"
-          :onSelect="selectBlobStorage">
+        <span class="input-label">{{ $t('modals.storage') }}</span>
+        <DropDownBox :items="storageOptions" :selectedItem="selectedStorageLabel"
+          :onSelect="selectStorage">
           <template #itemAction="{ item }">
-            <ComingSoonBadge v-if="item.comingSoon" />
+            <StatusBadge v-if="item.statusText" :text="item.statusText" />
           </template>
         </DropDownBox>
       </div>
@@ -76,7 +76,7 @@ import { computed, onMounted, ref, watchEffect } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
-import ComingSoonBadge from '@/instances/common/components/ComingSoonBadge.vue';
+import StatusBadge from '@/instances/common/components/StatusBadge.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -85,7 +85,7 @@ import ProgressSection from '@/instances/common/components/ProgressSection.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
-import { DialogService, ProjectService, SettingsService, SyncService } from '@/services';
+import { DialogService, ProjectService, SettingsService, StudioService, SyncService } from '@/services';
 
 // stores
 const accountStore = useAccountStore();
@@ -128,16 +128,35 @@ const projectLocations = ref([]);
 const projectName = ref('');
 const projectNameInput = ref(null);
 const selectedLocation = ref(null);
-const selectedBlobStorageMode = ref('compact');
+const selectedStorageMode = ref('compact');
 const selectedProjectTemplate = ref(t('modals.noTemplate'));
 
 // constants
 const title = computed(() => t('modals.addProject'));
 
-const blobStorageOptions = computed(() => [
-  { id: 'compact', name: t('modals.compactStorage') },
-  { id: 'deflated', name: t('modals.deflatedStorage'), disabled: true, comingSoon: true },
-  { id: 'object_storage', name: t('modals.objectStorage'), disabled: true, comingSoon: true },
+const supportedStorageModes = computed(() => {
+  return projectStore.selectedStudio?.capabilities?.project_storage?.supported_modes || ['compact'];
+});
+
+const availableStorageModes = computed(() => {
+  return projectStore.selectedStudio?.capabilities?.project_storage?.available_modes || ['compact'];
+});
+
+const createStorageOption = (id, name) => {
+  const available = availableStorageModes.value.includes(id);
+  const supported = supportedStorageModes.value.includes(id);
+  return {
+    id,
+    name,
+    disabled: !available,
+    statusText: available ? '' : t(supported ? 'settings.unavailable' : 'settings.comingSoon'),
+  };
+};
+
+const storageOptions = computed(() => [
+  createStorageOption('compact', t('modals.compactStorage')),
+  createStorageOption('deflated', t('modals.deflatedStorage')),
+  createStorageOption('object_storage', t('modals.objectStorage')),
 ]);
 
 // computed
@@ -181,8 +200,8 @@ const selectedLocationDisplay = computed(() => {
   return `${selectedLocation.value.name}`;
 });
 
-const selectedBlobStorageLabel = computed(() => {
-  return blobStorageOptions.value.find(option => option.id === selectedBlobStorageMode.value)?.name || '';
+const selectedStorageLabel = computed(() => {
+  return storageOptions.value.find(option => option.id === selectedStorageMode.value)?.name || '';
 });
 
 // Returns whether the remote toggle should be shown.
@@ -290,9 +309,9 @@ const selectLocation = (displayName) => {
   }
 };
 
-const selectBlobStorage = (label) => {
-  const option = blobStorageOptions.value.find(item => item.name === label);
-  if (option && !option.disabled) selectedBlobStorageMode.value = option.id;
+const selectStorage = (label) => {
+  const option = storageOptions.value.find(item => item.name === label);
+  if (option && !option.disabled) selectedStorageMode.value = option.id;
 };
 
 // Selects a project template from the dropdown.
@@ -338,7 +357,11 @@ const createProject = async () => {
   
   const templateName = selectedProjectTemplate.value === t('modals.noTemplate') ? 'No Template' : selectedProjectTemplate.value;
 
-  ProjectService.CreateProject(path, studio.name, workingDirectory.value, templateName, studio.hosting_mode || '', studio.id || '').then(async (project) => {
+  const createRequest = isPrivateStudio.value
+    ? ProjectService.CreateProjectWithStorageMode(path, studio.name, workingDirectory.value, templateName, studio.hosting_mode || '', studio.id || '', selectedStorageMode.value)
+    : ProjectService.CreateProject(path, studio.name, workingDirectory.value, templateName, studio.hosting_mode || '', studio.id || '');
+
+  createRequest.then(async (project) => {
 
     projectIsCreated.value = true;
 
@@ -488,6 +511,14 @@ watchEffect(() => {
 onMounted(async () => {
   await loadProjectLocations();
   await projectTemplateStore.loadProjectTemplates();
+  if (isPrivateStudio.value && projectStore.selectedStudio?.url) {
+    try {
+      const info = await StudioService.GetStudioInfo(projectStore.selectedStudio.url);
+      projectStore.selectedStudio.capabilities = info.capabilities;
+    } catch (error) {
+      console.warn('Could not load private Studio storage capabilities:', error);
+    }
+  }
 });
 
 </script>

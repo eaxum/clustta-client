@@ -720,7 +720,7 @@
     "studioUrlLabel": "工作室 URL",
     "alternateUrlLabel": "备用 URL",
     "addProject": "添加项目",
-    "blobStorage": "Blob 存储",
+    "storage": "存储",
     "compactStorage": "紧凑（Blob 存于 .clst 归档）",
     "deflatedStorage": "展开（Blob 存于服务器磁盘）",
     "objectStorage": "对象存储（S3、R2 等）",

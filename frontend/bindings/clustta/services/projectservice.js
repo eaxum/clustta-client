@@ -86,6 +86,22 @@ export function CreateProject(projectUri, studioName, workingDir, templateName, 
 }
 
 /**
+ * @param {string} projectUri
+ * @param {string} studioName
+ * @param {string} workingDir
+ * @param {string} templateName
+ * @param {string} hostingMode
+ * @param {string} studioId
+ * @param {string} storageMode
+ * @returns {$CancellablePromise<repository$0.ProjectInfo>}
+ */
+export function CreateProjectWithStorageMode(projectUri, studioName, workingDir, templateName, hostingMode, studioId, storageMode) {
+    return $Call.ByID(1419090011, projectUri, studioName, workingDir, templateName, hostingMode, studioId, storageMode).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * DeleteRemoteProject permanently deletes a project from the studio server.
  * This requires admin permissions and cannot be undone.
  * @param {string} projectUri

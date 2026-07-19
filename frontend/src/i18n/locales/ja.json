@@ -718,7 +718,7 @@
     "updateStudio": "スタジオを更新",
     "studioKeyLabel": "スタジオキー",
     "addProject": "プロジェクトを追加",
-    "blobStorage": "Blobストレージ",
+    "storage": "ストレージ",
     "compactStorage": "コンパクト（.clstアーカイブ内のBlob）",
     "deflatedStorage": "展開（サーバーディスク上のBlob）",
     "objectStorage": "オブジェクトストレージ（S3、R2など）",

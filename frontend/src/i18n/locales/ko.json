@@ -739,7 +739,7 @@
     "studioUrlLabel": "스튜디오 URL",
     "alternateUrlLabel": "대체 URL",
     "addProject": "프로젝트 추가",
-    "blobStorage": "Blob 저장소",
+    "storage": "저장소",
     "compactStorage": "컴팩트(.clst 아카이브 내 Blob)",
     "deflatedStorage": "확장형(서버 디스크의 Blob)",
     "objectStorage": "오브젝트 스토리지(S3, R2 등)",
