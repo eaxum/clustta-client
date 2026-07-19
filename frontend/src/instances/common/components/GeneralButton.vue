@@ -2,7 +2,7 @@
   <button class="general-button" :class="{ 'item-inactive' : !isActive, 'colored' : colored, 'full-width' : fullWidth, 'loading' : loading }"
     @click="buttonFunction" v-stop-propagation>
     <div v-if="!loading" class="general-button-text">
-      <img v-if="icon" class="general-button-icon" :src="icon" alt="" aria-hidden="true" />
+      <img v-if="icon" class="general-button-icon small-icons" :src="icon" alt="" aria-hidden="true" />
       <div v-if="label">{{ label }}</div>
     </div>
     <div v-else class="general-button-loading-icon" :class="{ 'inverted-icon' : !colored }" >

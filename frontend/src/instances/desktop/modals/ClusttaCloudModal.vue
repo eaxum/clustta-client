@@ -34,7 +34,7 @@
 
           <div class="plan-card-features">
             <div class="plan-feature" v-for="feature in planCardFeatures(plan)" :key="feature.key" v-tooltip="feature.tooltip">
-              <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
+              <img class="feature-icon small-icons" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
               <span>
                 {{ feature.label }}
                 <StatusBadge v-if="feature.comingSoon" :text="$t('settings.comingSoon')" class="feature-coming-soon-badge" />
@@ -48,7 +48,7 @@
         <h3 class="common-features-title">Every plan includes</h3>
         <div class="common-features-grid">
           <div v-for="feature in commonPlanFeatures" :key="feature.key" class="plan-feature" v-tooltip="feature.tooltip">
-            <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
+            <img class="feature-icon small-icons" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
             <span>
               {{ feature.label }}
               <StatusBadge v-if="feature.comingSoon" :text="$t('settings.comingSoon')" class="feature-coming-soon-badge" />
