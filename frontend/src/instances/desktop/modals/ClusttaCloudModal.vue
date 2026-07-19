@@ -37,7 +37,7 @@
               <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
               <span>
                 {{ feature.label }}
-                <ComingSoonBadge v-if="feature.comingSoon" class="feature-coming-soon-badge" />
+                <StatusBadge v-if="feature.comingSoon" :text="$t('settings.comingSoon')" class="feature-coming-soon-badge" />
               </span>
             </div>
           </div>
@@ -51,7 +51,7 @@
             <img class="feature-icon" :src="getAppIcon(feature.icon)" alt="" aria-hidden="true" />
             <span>
               {{ feature.label }}
-              <ComingSoonBadge v-if="feature.comingSoon" class="feature-coming-soon-badge" />
+              <StatusBadge v-if="feature.comingSoon" :text="$t('settings.comingSoon')" class="feature-coming-soon-badge" />
             </span>
           </div>
         </div>
@@ -67,7 +67,7 @@
       </section>
 
       <p v-if="showComingSoonFootnote" id="cloud-coming-soon-features" class="coming-soon-footnote" role="note">
-        <ComingSoonBadge class="coming-soon-footnote-badge" />
+        <StatusBadge :text="$t('settings.comingSoon')" class="coming-soon-footnote-badge" />
         These features are currently in development and will be available in a future release.
       </p>
     </div>
@@ -80,7 +80,7 @@ import { computed, onMounted, ref } from 'vue';
 import { Browser } from '@wailsio/runtime';
 
 // components
-import ComingSoonBadge from '@/instances/common/components/ComingSoonBadge.vue';
+import StatusBadge from '@/instances/common/components/StatusBadge.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 

@@ -1,9 +1,18 @@
 <template>
-  <span class="coming-soon-badge">{{ $t('settings.comingSoon') }}</span>
+  <span class="status-badge">{{ text }}</span>
 </template>
 
+<script setup>
+defineProps({
+  text: {
+    type: String,
+    required: true,
+  },
+});
+</script>
+
 <style scoped>
-.coming-soon-badge {
+.status-badge {
   display: inline-flex;
   align-items: center;
   border-radius: var(--small-radius);
