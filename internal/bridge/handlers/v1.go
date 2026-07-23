@@ -26,6 +26,20 @@ type capabilitiesResponse struct {
 	Operations []string `json:"operations"`
 }
 
+type bootstrapResponse struct {
+	APIVersion    string               `json:"api_version"`
+	Accounts      []accountResponse    `json:"accounts"`
+	Studios       []studioResponse     `json:"studios"`
+	Projects      []dccProjectResponse `json:"projects"`
+	ActiveAccount *accountResponse     `json:"active_account,omitempty"`
+	ActiveStudio  string               `json:"active_studio"`
+}
+
+type workspaceResponse struct {
+	Statuses []models.Status `json:"statuses"`
+	Assets   []assetResponse `json:"assets"`
+}
+
 type contextResponse struct {
 	Project dccProjectResponse `json:"project"`
 	Asset   assetResponse      `json:"asset"`
@@ -60,6 +74,8 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 	jsonResponse(w, http.StatusOK, capabilitiesResponse{
 		APIVersion: bridgeAPIVersion,
 		Operations: []string{
+			"dcc.bootstrap",
+			"project.workspace",
 			"assets.list",
 			"assets.context",
 			"assets.status",
@@ -74,8 +90,61 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 	})
 }
 
-func V1ListProjects(w http.ResponseWriter, _ *http.Request) {
-	projects, err := listStudioProjects()
+func V1Bootstrap(w http.ResponseWriter, r *http.Request) {
+	refresh := refreshRequested(r)
+	accounts, err := auth_service.GetAllAccounts()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	accountItems := make([]accountResponse, 0, len(accounts))
+	for id, token := range accounts {
+		accountItems = append(accountItems, accountResponse{
+			ID:        id,
+			Email:     token.User.Email,
+			Username:  token.User.Username,
+			FirstName: token.User.FirstName,
+			LastName:  token.User.LastName,
+		})
+	}
+
+	studios, err := listStudiosCached(refresh)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	projects, err := getStudioProjects(refresh)
+	if err != nil {
+		projects = nil
+	}
+	projectItems := make([]dccProjectResponse, 0, len(projects))
+	for _, project := range projects {
+		projectItems = append(projectItems, projectToDCCResponse(project))
+	}
+
+	var activeAccount *accountResponse
+	if token, activeErr := auth_service.GetActiveAccount(); activeErr == nil {
+		activeAccount = &accountResponse{
+			ID:        token.User.Id,
+			Email:     token.User.Email,
+			Username:  token.User.Username,
+			FirstName: token.User.FirstName,
+			LastName:  token.User.LastName,
+		}
+	}
+	activeStudio, _ := settings.GetLastStudio()
+	jsonResponse(w, http.StatusOK, bootstrapResponse{
+		APIVersion:    bridgeAPIVersion,
+		Accounts:      accountItems,
+		Studios:       studiosToResponse(studios),
+		Projects:      projectItems,
+		ActiveAccount: activeAccount,
+		ActiveStudio:  activeStudio,
+	})
+}
+
+func V1ListProjects(w http.ResponseWriter, r *http.Request) {
+	projects, err := getStudioProjects(refreshRequested(r))
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -86,6 +155,65 @@ func V1ListProjects(w http.ResponseWriter, _ *http.Request) {
 		result = append(result, projectToDCCResponse(project))
 	}
 	jsonResponse(w, http.StatusOK, result)
+}
+
+func V1ProjectWorkspace(w http.ResponseWriter, r *http.Request) {
+	project, ok := requestProject(w, r)
+	if !ok {
+		return
+	}
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		jsonError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+	workspace, err := loadProjectWorkspace(
+		project,
+		user.Id,
+		strings.ToLower(r.URL.Query().Get("ext")),
+	)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, workspace)
+}
+
+func loadProjectWorkspace(
+	project repository.ProjectInfo,
+	userID string,
+	extension string,
+) (workspaceResponse, error) {
+	dbConn, err := sqlx.Connect("sqlite3", project.Uri)
+	if err != nil {
+		return workspaceResponse{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return workspaceResponse{}, err
+	}
+	defer tx.Rollback()
+
+	statuses, err := repository.GetStatuses(tx)
+	if err != nil {
+		return workspaceResponse{}, err
+	}
+	assets, err := repository.GetUserAssets(tx, userID)
+	if err != nil {
+		return workspaceResponse{}, err
+	}
+	result := make([]assetResponse, 0, len(assets))
+	for _, asset := range assets {
+		if asset.AssigneeId != userID {
+			continue
+		}
+		if extension != "" && strings.ToLower(asset.Extension) != extension {
+			continue
+		}
+		result = append(result, assetToResponse(asset))
+	}
+	return workspaceResponse{Statuses: statuses, Assets: result}, nil
 }
 
 func V1ResolveContext(w http.ResponseWriter, r *http.Request) {
@@ -184,24 +312,40 @@ func V1ListStatuses(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1ListDependencies(w http.ResponseWriter, r *http.Request) {
-	project, asset, ok := requestAsset(w, r)
+	project, ok := requestProject(w, r)
 	if !ok {
 		return
 	}
+	dbConn, err := sqlx.Connect("sqlite3", project.Uri)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer tx.Rollback()
 
-	assetService := &services.AssetService{}
-	assetIDs, err := assetService.ResolveBuildDependencies(project.Uri, asset.Id)
+	assetID := r.PathValue("assetId")
+	if _, err = repository.GetSimpleAsset(tx, assetID); err != nil {
+		jsonError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	assetIDs, err := repository.ResolveBuildDependencies(tx, assetID)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	result := make([]assetResponse, 0, len(assetIDs))
-	for _, assetID := range assetIDs {
-		if assetID == asset.Id {
+	for _, dependencyID := range assetIDs {
+		if dependencyID == assetID {
 			continue
 		}
-		dependency, getErr := assetService.GetAssetByID(project.Uri, assetID)
+		dependency, getErr := repository.GetAsset(tx, dependencyID)
 		if getErr != nil {
 			jsonError(w, http.StatusInternalServerError, getErr.Error())
 			return
@@ -212,13 +356,29 @@ func V1ListDependencies(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1ListCheckpoints(w http.ResponseWriter, r *http.Request) {
-	project, asset, ok := requestAsset(w, r)
+	project, ok := requestProject(w, r)
 	if !ok {
 		return
 	}
+	dbConn, err := sqlx.Connect("sqlite3", project.Uri)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	defer tx.Rollback()
 
-	checkpointService := &services.CheckpointService{}
-	checkpoints, err := checkpointService.GetCheckpoints(project.Uri, asset.Id)
+	assetID := r.PathValue("assetId")
+	if _, err = repository.GetSimpleAsset(tx, assetID); err != nil {
+		jsonError(w, http.StatusNotFound, err.Error())
+		return
+	}
+	checkpoints, err := repository.GetCheckpoints(tx, assetID, false)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return

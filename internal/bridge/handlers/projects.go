@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"sync"
+	"time"
 
 	"clustta/internal/auth_service"
 	"clustta/internal/repository"
@@ -12,6 +13,13 @@ import (
 )
 
 var errProjectNotFound = errors.New("project not found")
+
+const projectCacheTTL = 5 * time.Minute
+
+type projectCacheEntry struct {
+	expiresAt time.Time
+	projects  []repository.ProjectInfo
+}
 
 // projectResponse is the JSON shape returned for each project.
 type projectResponse struct {
@@ -27,11 +35,15 @@ type projectResponse struct {
 var (
 	activeProjectMu sync.RWMutex
 	activeProject   *repository.ProjectInfo
+
+	projectCacheMu        sync.RWMutex
+	projectCacheRefreshMu sync.Mutex
+	projectCacheItems     = map[string]projectCacheEntry{}
 )
 
 // ListProjects returns projects for the active studio.
 func ListProjects(w http.ResponseWriter, r *http.Request) {
-	projects, err := listStudioProjects()
+	projects, err := getStudioProjects(refreshRequested(r))
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -112,6 +124,10 @@ func SwitchProject(w http.ResponseWriter, r *http.Request) {
 }
 
 func listStudioProjects() ([]repository.ProjectInfo, error) {
+	return getStudioProjects(false)
+}
+
+func getStudioProjects(force bool) ([]repository.ProjectInfo, error) {
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return nil, err
@@ -124,11 +140,25 @@ func listStudioProjects() ([]repository.ProjectInfo, error) {
 	if studioName == "" {
 		return nil, errors.New("no active studio selected")
 	}
+	key := user.Id + "\x00" + studioName
+	if !force {
+		if projects, ok := readProjectCache(key); ok {
+			return projects, nil
+		}
+	}
+
+	projectCacheRefreshMu.Lock()
+	defer projectCacheRefreshMu.Unlock()
+	if !force {
+		if projects, ok := readProjectCache(key); ok {
+			return projects, nil
+		}
+	}
 
 	studioURL := ""
 	hostingMode := ""
 	studioID := ""
-	studios, err := settings.GetStudios()
+	studios, err := listStudiosCached(false)
 	if err != nil {
 		return nil, err
 	}
@@ -142,7 +172,50 @@ func listStudioProjects() ([]repository.ProjectInfo, error) {
 		break
 	}
 
-	return sync_service.GetStudioProjects(user, studioURL, studioName, hostingMode, studioID)
+	projects, err := sync_service.GetStudioProjects(
+		user,
+		studioURL,
+		studioName,
+		hostingMode,
+		studioID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	projectCacheMu.Lock()
+	projectCacheItems[key] = projectCacheEntry{
+		expiresAt: time.Now().Add(projectCacheTTL),
+		projects:  append([]repository.ProjectInfo(nil), projects...),
+	}
+	projectCacheMu.Unlock()
+	return append([]repository.ProjectInfo(nil), projects...), nil
+}
+
+func readProjectCache(key string) ([]repository.ProjectInfo, bool) {
+	projectCacheMu.RLock()
+	defer projectCacheMu.RUnlock()
+	entry, ok := projectCacheItems[key]
+	if !ok || time.Now().After(entry.expiresAt) {
+		return nil, false
+	}
+	return append([]repository.ProjectInfo(nil), entry.projects...), true
+}
+
+func invalidateProjectCache() {
+	projectCacheMu.Lock()
+	projectCacheItems = map[string]projectCacheEntry{}
+	projectCacheMu.Unlock()
+}
+
+// WarmDCCCache prepares project context before a DCC requests it.
+func WarmDCCCache() {
+	_, _ = getStudioProjects(false)
+}
+
+// ResetDCCCache clears account-scoped Bridge data.
+func ResetDCCCache() {
+	invalidateStudioCache()
+	invalidateProjectCache()
 }
 
 func resolveProject(projectID string) (repository.ProjectInfo, error) {

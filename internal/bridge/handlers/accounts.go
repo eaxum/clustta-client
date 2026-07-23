@@ -72,6 +72,8 @@ func SwitchAccount(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	invalidateStudioCache()
+	invalidateProjectCache()
 
 	jsonResponse(w, http.StatusOK, map[string]string{"status": "ok"})
 }

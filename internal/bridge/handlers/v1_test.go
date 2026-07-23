@@ -2,12 +2,43 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http/httptest"
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"clustta/internal/repository"
 )
+
+func TestRefreshRequested(t *testing.T) {
+	request := httptest.NewRequest("GET", "/v1/bootstrap?refresh=true", nil)
+	if !refreshRequested(request) {
+		t.Fatal("expected refresh query to be recognized")
+	}
+}
+
+func TestProjectCacheReturnsSnapshot(t *testing.T) {
+	invalidateProjectCache()
+	t.Cleanup(invalidateProjectCache)
+
+	projectCacheMu.Lock()
+	projectCacheItems["user\x00studio"] = projectCacheEntry{
+		expiresAt: time.Now().Add(time.Minute),
+		projects:  []repository.ProjectInfo{{Id: "project-id", Name: "Project"}},
+	}
+	projectCacheMu.Unlock()
+
+	projects, ok := readProjectCache("user\x00studio")
+	if !ok || len(projects) != 1 {
+		t.Fatal("expected a cached project")
+	}
+	projects[0].Name = "Changed"
+	projects, ok = readProjectCache("user\x00studio")
+	if !ok || projects[0].Name != "Project" {
+		t.Fatal("expected callers to receive a cache snapshot")
+	}
+}
 
 func TestPathWithin(t *testing.T) {
 	root := filepath.Join("C:", "projects", "example")

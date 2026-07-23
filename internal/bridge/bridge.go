@@ -74,8 +74,10 @@ func Start() {
 
 	// Versioned DCC API
 	mux.HandleFunc("GET /v1/capabilities", handlers.V1Capabilities)
+	mux.HandleFunc("GET /v1/bootstrap", handlers.V1Bootstrap)
 	mux.HandleFunc("GET /v1/context", handlers.V1ResolveContext)
 	mux.HandleFunc("GET /v1/projects", handlers.V1ListProjects)
+	mux.HandleFunc("GET /v1/projects/{projectId}/workspace", handlers.V1ProjectWorkspace)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets", handlers.V1ListAssignedAssets)
 	mux.HandleFunc("GET /v1/projects/{projectId}/statuses", handlers.V1ListStatuses)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1ListDependencies)
@@ -103,6 +105,7 @@ func Start() {
 			log.Printf("Bridge server error: %v", err)
 		}
 	}()
+	go handlers.WarmDCCCache()
 }
 
 // Stop gracefully shuts down the bridge server.
@@ -123,6 +126,7 @@ func Stop() {
 		os.Remove(tokenPath)
 	}
 	bridgeToken = ""
+	handlers.ResetDCCCache()
 
 	log.Println("Clustta Bridge stopped.")
 }

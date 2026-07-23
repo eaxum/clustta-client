@@ -10,18 +10,28 @@ the project database URI.
 ## Discovery
 
 - `GET /v1/capabilities`
+- `GET /v1/bootstrap`
 - `GET /v1/context?filePath=<absolute-path>`
 - `GET /v1/projects`
 
+Bootstrap returns the API version, accounts, studios, local projects, active
+account, and active studio in one request. Add `?refresh=true` to refresh the
+cached studio and project catalog.
+
 ## Project data
 
+- `GET /v1/projects/{projectId}/workspace?ext=.blend`
 - `GET /v1/projects/{projectId}/assets?ext=.blend`
 - `GET /v1/projects/{projectId}/statuses`
 - `GET /v1/projects/{projectId}/assets/{assetId}/dependencies`
 - `GET /v1/projects/{projectId}/assets/{assetId}/checkpoints`
 
-The assets endpoint returns only assets assigned directly to the active user.
-The extension filter is optional and case-insensitive.
+Workspace returns statuses and directly assigned assets in one response and one
+project database transaction. Asset extension filters are optional and
+case-insensitive.
+
+Project metadata is cached by active account and studio. Account and studio
+switches invalidate the appropriate cache automatically.
 
 ## Operations
 
