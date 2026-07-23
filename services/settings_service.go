@@ -1,13 +1,26 @@
 package services
 
 import (
-	"clustta/internal/bridge"
 	"clustta/internal/settings"
 	"os"
 	"strings"
+	"sync"
 )
 
 type SettingsService struct{}
+
+var (
+	bridgeLifecycleMu sync.RWMutex
+	startBridge       = func() {}
+	stopBridge        = func() {}
+)
+
+func ConfigureBridgeLifecycle(start, stop func()) {
+	bridgeLifecycleMu.Lock()
+	defer bridgeLifecycleMu.Unlock()
+	startBridge = start
+	stopBridge = stop
+}
 
 // GetStudios retrieves all configured studios from user settings.
 func (s *SettingsService) GetStudios(path string) ([]settings.Studio, error) {
@@ -576,10 +589,14 @@ func (s *SettingsService) SetBridgeEnabled(enabled bool) error {
 	if err != nil {
 		return err
 	}
+	bridgeLifecycleMu.RLock()
+	start := startBridge
+	stop := stopBridge
+	bridgeLifecycleMu.RUnlock()
 	if enabled {
-		bridge.Start()
+		start()
 	} else {
-		bridge.Stop()
+		stop()
 	}
 	return nil
 }

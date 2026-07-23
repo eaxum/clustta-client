@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"clustta/internal/repository"
+	"clustta/internal/repository/models"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -57,15 +58,19 @@ func ListCheckpoints(w http.ResponseWriter, r *http.Request) {
 
 	result := make([]checkpointResponse, 0, len(checkpoints))
 	for _, c := range checkpoints {
-		result = append(result, checkpointResponse{
-			ID:           c.Id,
-			Comment:      c.Comment,
-			AuthorUID:    c.AuthorUID,
-			CreatedAt:    c.CreatedAt,
-			FileSize:     c.FileSize,
-			IsDownloaded: c.IsDownloaded,
-		})
+		result = append(result, checkpointToResponse(c))
 	}
 
 	jsonResponse(w, http.StatusOK, result)
+}
+
+func checkpointToResponse(checkpoint models.Checkpoint) checkpointResponse {
+	return checkpointResponse{
+		ID:           checkpoint.Id,
+		Comment:      checkpoint.Comment,
+		AuthorUID:    checkpoint.AuthorUID,
+		CreatedAt:    checkpoint.CreatedAt,
+		FileSize:     checkpoint.FileSize,
+		IsDownloaded: checkpoint.IsDownloaded,
+	}
 }

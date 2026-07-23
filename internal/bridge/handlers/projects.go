@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"errors"
 	"net/http"
 	"sync"
 
@@ -9,6 +10,8 @@ import (
 	"clustta/internal/repository/sync_service"
 	"clustta/internal/settings"
 )
+
+var errProjectNotFound = errors.New("project not found")
 
 // projectResponse is the JSON shape returned for each project.
 type projectResponse struct {
@@ -28,35 +31,7 @@ var (
 
 // ListProjects returns projects for the active studio.
 func ListProjects(w http.ResponseWriter, r *http.Request) {
-	user, err := auth_service.GetActiveUser()
-	if err != nil {
-		jsonError(w, http.StatusUnauthorized, "no active account: "+err.Error())
-		return
-	}
-
-	studioName, err := settings.GetLastStudio()
-	if err != nil || studioName == "" {
-		jsonError(w, http.StatusBadRequest, "no active studio selected")
-		return
-	}
-
-	// Find the studio URL and hosting info
-	studioURL := ""
-	hostingMode := ""
-	studioId := ""
-	studios, err := settings.GetStudios()
-	if err == nil {
-		for _, s := range studios {
-			if s.Name == studioName {
-				studioURL = s.Url
-				hostingMode = s.HostingMode
-				studioId = s.Id
-				break
-			}
-		}
-	}
-
-	projects, err := sync_service.GetStudioProjects(user, studioURL, studioName, hostingMode, studioId)
+	projects, err := listStudioProjects()
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -111,35 +86,7 @@ func SwitchProject(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve the project from the current studio list
-	user, err := auth_service.GetActiveUser()
-	if err != nil {
-		jsonError(w, http.StatusUnauthorized, "no active account: "+err.Error())
-		return
-	}
-
-	studioName, err := settings.GetLastStudio()
-	if err != nil || studioName == "" {
-		jsonError(w, http.StatusBadRequest, "no active studio selected")
-		return
-	}
-
-	studioURL := ""
-	hostingMode := ""
-	studioId := ""
-	studios, err := settings.GetStudios()
-	if err == nil {
-		for _, s := range studios {
-			if s.Name == studioName {
-				studioURL = s.Url
-				hostingMode = s.HostingMode
-				studioId = s.Id
-				break
-			}
-		}
-	}
-
-	projects, err := sync_service.GetStudioProjects(user, studioURL, studioName, hostingMode, studioId)
+	projects, err := listStudioProjects()
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -162,4 +109,51 @@ func SwitchProject(w http.ResponseWriter, r *http.Request) {
 	activeProjectMu.Unlock()
 
 	jsonResponse(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func listStudioProjects() ([]repository.ProjectInfo, error) {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return nil, err
+	}
+
+	studioName, err := settings.GetLastStudio()
+	if err != nil {
+		return nil, err
+	}
+	if studioName == "" {
+		return nil, errors.New("no active studio selected")
+	}
+
+	studioURL := ""
+	hostingMode := ""
+	studioID := ""
+	studios, err := settings.GetStudios()
+	if err != nil {
+		return nil, err
+	}
+	for _, studio := range studios {
+		if studio.Name != studioName {
+			continue
+		}
+		studioURL = studio.Url
+		hostingMode = studio.HostingMode
+		studioID = studio.Id
+		break
+	}
+
+	return sync_service.GetStudioProjects(user, studioURL, studioName, hostingMode, studioID)
+}
+
+func resolveProject(projectID string) (repository.ProjectInfo, error) {
+	projects, err := listStudioProjects()
+	if err != nil {
+		return repository.ProjectInfo{}, err
+	}
+	for _, project := range projects {
+		if project.Id == projectID {
+			return project, nil
+		}
+	}
+	return repository.ProjectInfo{}, errProjectNotFound
 }

@@ -72,6 +72,21 @@ func Start() {
 	// Checkpoints
 	mux.HandleFunc("GET /assets/{assetId}/checkpoints", handlers.ListCheckpoints)
 
+	// Versioned DCC API
+	mux.HandleFunc("GET /v1/capabilities", handlers.V1Capabilities)
+	mux.HandleFunc("GET /v1/context", handlers.V1ResolveContext)
+	mux.HandleFunc("GET /v1/projects", handlers.V1ListProjects)
+	mux.HandleFunc("GET /v1/projects/{projectId}/assets", handlers.V1ListAssignedAssets)
+	mux.HandleFunc("GET /v1/projects/{projectId}/statuses", handlers.V1ListStatuses)
+	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1ListDependencies)
+	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/checkpoints", handlers.V1ListCheckpoints)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/checkpoints", handlers.V1CreateCheckpoint)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/status", handlers.V1ChangeStatus)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/build", handlers.V1BuildAsset)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/revert", handlers.V1RevertAsset)
+	mux.HandleFunc("GET /v1/jobs/{jobId}", handlers.V1GetJob)
+	mux.HandleFunc("POST /v1/jobs/{jobId}/cancel", handlers.V1CancelJob)
+
 	handler := corsMiddleware(mux)
 
 	server = &http.Server{

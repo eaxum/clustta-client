@@ -45,6 +45,8 @@ const (
 	assetActionUnassign           assetAction = "unassign_asset"
 	assetActionManageDependencies assetAction = "manage_dependencies"
 	assetActionChangeStatus       assetAction = "change_status"
+	assetActionCreateCheckpoint   assetAction = "create_checkpoint"
+	assetActionRevertCheckpoint   assetAction = "revert_checkpoint"
 )
 
 func activeAssetRole(tx *sqlx.Tx) (models.User, models.Role, error) {
@@ -79,6 +81,10 @@ func roleAllowsAssetAction(role models.Role, action assetAction) bool {
 		return role.ManageDependencies
 	case assetActionChangeStatus:
 		return role.ChangeStatus
+	case assetActionCreateCheckpoint:
+		return role.CreateCheckpoint
+	case assetActionRevertCheckpoint:
+		return role.ViewCheckpoint
 	default:
 		return false
 	}
@@ -155,6 +161,14 @@ func authorizeAssetAction(projectPath string, action assetAction, assetIds []str
 	}
 	defer tx.Rollback()
 	return authorizeAssetActionTx(tx, action, assetIds)
+}
+
+func (t *AssetService) AuthorizeCheckpoint(projectPath string, assetIds []string) error {
+	return authorizeAssetAction(projectPath, assetActionCreateCheckpoint, assetIds)
+}
+
+func (t *AssetService) AuthorizeRevert(projectPath string, assetIds []string) error {
+	return authorizeAssetAction(projectPath, assetActionRevertCheckpoint, assetIds)
 }
 
 type ChangedFiles struct {

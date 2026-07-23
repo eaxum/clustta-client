@@ -12,21 +12,23 @@ import (
 
 // assetResponse is the JSON shape returned for each asset.
 type assetResponse struct {
-	ID           string `json:"id"`
-	Name         string `json:"name"`
-	Extension    string `json:"extension"`
-	CollectionName   string `json:"collection_name"`
-	CollectionPath   string `json:"collection_path"`
-	AssetPath     string `json:"asset_path"`
-	FilePath     string `json:"file_path"`
-	AssigneeId   string `json:"assignee_id"`
-	AssigneeName string `json:"assignee_name"`
-	StatusName   string `json:"status_short_name"`
-	AssetTypeName string `json:"asset_type_name"`
-	AssetTypeIcon string `json:"asset_type_icon"`
-	FileStatus   string `json:"file_status"`
-	IsResource   bool   `json:"is_resource"`
-	PreviewId    string `json:"preview_id"`
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	Extension      string `json:"extension"`
+	CollectionName string `json:"collection_name"`
+	CollectionPath string `json:"collection_path"`
+	AssetPath      string `json:"asset_path"`
+	FilePath       string `json:"file_path"`
+	AssigneeID     string `json:"assignee_id"`
+	AssigneeName   string `json:"assignee_name"`
+	StatusID       string `json:"status_id"`
+	StatusName     string `json:"status_short_name"`
+	AssetTypeID    string `json:"asset_type_id"`
+	AssetTypeName  string `json:"asset_type_name"`
+	AssetTypeIcon  string `json:"asset_type_icon"`
+	FileStatus     string `json:"file_status"`
+	IsResource     bool   `json:"is_resource"`
+	PreviewID      string `json:"preview_id"`
 }
 
 // ListAssets returns assets for the active project, filtered to the active user.
@@ -93,24 +95,30 @@ func ListAssets(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		result = append(result, assetResponse{
-			ID:           t.Id,
-			Name:         t.Name,
-			Extension:    t.Extension,
-			CollectionName:   t.CollectionName,
-			CollectionPath:   t.CollectionPath,
-			AssetPath:     t.AssetPath,
-			FilePath:     t.GetFilePath(),
-			AssigneeId:   t.AssigneeId,
-			AssigneeName: t.AssigneeName,
-			StatusName:   t.StatusShortName,
-			AssetTypeName: t.AssetTypeName,
-			AssetTypeIcon: t.AssetTypeIcon,
-			FileStatus:   t.FileStatus,
-			IsResource:   t.IsResource,
-			PreviewId:    t.PreviewId,
-		})
+		result = append(result, assetToResponse(t))
 	}
 
 	jsonResponse(w, http.StatusOK, result)
+}
+
+func assetToResponse(asset models.Asset) assetResponse {
+	return assetResponse{
+		ID:             asset.Id,
+		Name:           asset.Name,
+		Extension:      asset.Extension,
+		CollectionName: asset.CollectionName,
+		CollectionPath: asset.CollectionPath,
+		AssetPath:      asset.AssetPath,
+		FilePath:       asset.GetFilePath(),
+		AssigneeID:     asset.AssigneeId,
+		AssigneeName:   asset.AssigneeName,
+		StatusID:       asset.StatusId,
+		StatusName:     asset.StatusShortName,
+		AssetTypeID:    asset.AssetTypeId,
+		AssetTypeName:  asset.AssetTypeName,
+		AssetTypeIcon:  asset.AssetTypeIcon,
+		FileStatus:     asset.FileStatus,
+		IsResource:     asset.IsResource,
+		PreviewID:      asset.PreviewId,
+	}
 }

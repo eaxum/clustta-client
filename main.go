@@ -101,6 +101,8 @@ func createFSService() *services.FSService {
 
 func main() {
 
+	services.ConfigureBridgeLifecycle(bridge.Start, bridge.Stop)
+
 	logFile, err := settings.GetLogPath()
 	if err != nil {
 		log.Fatal(err)
