@@ -74,6 +74,43 @@ export const useBrowserTreeStore = defineStore('browserTree', {
       return item;
     },
 
+    patchItemsById(itemId, updates = {}) {
+      if (!itemId) return 0;
+
+      let updatedItemCount = 0;
+      for (const item of Object.values(this.itemsByKey)) {
+        if (item.id !== itemId) continue;
+
+        Object.assign(item, updates);
+        updatedItemCount++;
+      }
+      return updatedItemCount;
+    },
+
+    applyItemUpdates(eventData) {
+      const itemUpdates = Array.isArray(eventData) ? eventData : [eventData];
+      let updatedItemCount = 0;
+
+      for (const itemUpdate of itemUpdates) {
+        if (!itemUpdate?.itemId) continue;
+
+        const updates = {};
+        if (itemUpdate.property && itemUpdate.value !== undefined) {
+          updates[itemUpdate.property] = itemUpdate.value;
+        }
+        if (Array.isArray(itemUpdate.updates)) {
+          for (const update of itemUpdate.updates) {
+            if (update?.property && update.value !== undefined) {
+              updates[update.property] = update.value;
+            }
+          }
+        }
+        updatedItemCount += this.patchItemsById(itemUpdate.itemId, updates);
+      }
+
+      return updatedItemCount;
+    },
+
     beginParentRefresh(parentKey) {
       const refreshVersion = (this.refreshVersions[parentKey] || 0) + 1;
       this.refreshVersions[parentKey] = refreshVersion;

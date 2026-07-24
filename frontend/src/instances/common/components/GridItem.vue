@@ -15,10 +15,12 @@
 
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
+import { getBrowserItemKey } from '@/lib/browserTree';
 
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
 import { useAssetStore } from '@/stores/assets';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useStageStore } from '@/stores/stages';
 import { useCollectionStore } from '@/stores/collections';
 import { useScrollStore } from '@/stores/scroll';
@@ -26,12 +28,12 @@ import { useUntrackedItemStore } from '@/stores/untracked';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { AssetService, CollectionService } from '@/services';
-import emitter from '@/lib/mitt';
 
 const menu = useMenu();
 const stage = useStageStore();
 const dndStore = useDndStore();
 const assetStore = useAssetStore();
+const browserTreeStore = useBrowserTreeStore();
 const scrollStore = useScrollStore();
 const collectionStore = useCollectionStore();
 const untrackedItemStore = useUntrackedItemStore();
@@ -114,6 +116,8 @@ const isExpanded = computed(() => {
   return props.child.id in stage.expandedCollections;
 });
 
+const itemKey = computed(() => getBrowserItemKey(props.child));
+
 const calculateRelativePosition = () => {
   const itemRect = virtuaItemRef.value.getBoundingClientRect();
   const scrollRect = scrollStore.scrollRoot.getBoundingClientRect();
@@ -176,11 +180,11 @@ const loadAssetState = async () => {
     );
 
     if (props.isFilteredView) return;
-    props.child.file_status = fileStatus;
+    browserTreeStore.patchItem(itemKey.value, { file_status: fileStatus });
   } catch (error) {
     if (props.isFilteredView) return;
     console.error(`Error loading asset state for ${asset.id}:`, error);
-    asset.file_status = 'fetchable';
+    browserTreeStore.patchItem(itemKey.value, { file_status: 'fetchable' });
   } finally {
     clearTimeout(loadingTimer);
     loadingAssetState.value = false;
@@ -194,7 +198,9 @@ const loadCollectionState = async () => {
   if (collection.type !== 'collection') return;
   if (props.isFilteredView) {
     loadingCollectionState.value = false;
-    props.child.collectionStateFlags = emptyCollectionStateFlags();
+    browserTreeStore.patchItem(itemKey.value, {
+      collectionStateFlags: emptyCollectionStateFlags()
+    });
     return;
   }
 
@@ -211,14 +217,18 @@ const loadCollectionState = async () => {
     );
 
     if (props.isFilteredView) {
-      props.child.collectionStateFlags = emptyCollectionStateFlags();
+      browserTreeStore.patchItem(itemKey.value, {
+        collectionStateFlags: emptyCollectionStateFlags()
+      });
       return;
     }
-    props.child.collectionStateFlags = flags;
+    browserTreeStore.patchItem(itemKey.value, { collectionStateFlags: flags });
   } catch (error) {
     if (props.isFilteredView) return;
     console.error(`Error loading collection state for ${collection.id}:`, error);
-    props.child.collectionStateFlags = emptyCollectionStateFlags();
+    browserTreeStore.patchItem(itemKey.value, {
+      collectionStateFlags: emptyCollectionStateFlags()
+    });
   } finally {
     clearTimeout(loadingTimer);
     loadingCollectionState.value = false;
@@ -231,7 +241,9 @@ watch(() => props.isFilteredView, async (filtered) => {
 
   if (filtered) {
     if (props.child.type === 'collection') {
-      props.child.collectionStateFlags = emptyCollectionStateFlags();
+      browserTreeStore.patchItem(itemKey.value, {
+        collectionStateFlags: emptyCollectionStateFlags()
+      });
     }
     return;
   }

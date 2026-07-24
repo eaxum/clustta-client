@@ -648,23 +648,9 @@ const handleClickOutside = (event, rightClick = false) => {
 	}
 };
 
-// Handles root data updates from emitter events for individual item property changes.
+// Applies item property updates across the normalized browser tree.
 const handleUpdateRootData = (eventData) => {
-	if (Array.isArray(eventData)) {
-		eventData.forEach(({ itemId, updates }) => {
-			const itemIndex = rootData.value.findIndex(item => item.id === itemId);
-			if (itemIndex !== -1 && updates && Array.isArray(updates)) {
-				updates.forEach(update => { if (update.property && update.value !== undefined) rootData.value[itemIndex][update.property] = update.value; });
-			}
-		});
-	} else {
-		const { itemId, property, value, updates } = eventData;
-		const itemIndex = rootData.value.findIndex(item => item.id === itemId);
-		if (itemIndex !== -1) {
-			if (property && value !== undefined) rootData.value[itemIndex][property] = value;
-			if (updates && Array.isArray(updates)) updates.forEach(update => { rootData.value[itemIndex][update.property] = update.value; });
-		}
-	}
+	browserTreeStore.applyItemUpdates(eventData);
 	emitter.emit('get-project-data');
 	loadStateBarFlags();
 	refreshUnsyncedState();

@@ -32,6 +32,7 @@
 // imports
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import emitter from '@/lib/mitt';
+import { getBrowserItemKey } from '@/lib/browserTree';
 import utils from '@/services/utils';
 
 // components
@@ -45,11 +46,11 @@ import { AssetService, CollectionService } from '@/services';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useDndStore } from '@/stores/dnd';
-import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useProjectStore } from '@/stores/projects';
 import { useScrollStore } from '@/stores/scroll';
@@ -57,10 +58,10 @@ import { useStageStore } from '@/stores/stages';
 import { useUntrackedItemStore } from '@/stores/untracked';
 
 const assetStore = useAssetStore();
+const browserTreeStore = useBrowserTreeStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
-const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
@@ -87,9 +88,7 @@ const props = defineProps({
 const emit = defineEmits(['refreshData']);
 
 // refs
-const collectionChildren = ref([]);
 const collectionItemRef = ref(null);
-const hasChildren = ref(false);
 const indentPadding = ref(4);
 const isEditing = ref(false);
 const loadingAssetState = ref(false);
@@ -104,6 +103,10 @@ const virtuaChildrenRef = ref(null);
 const virtuaItemRef = ref(null);
 
 // computed
+const itemKey = computed(() => getBrowserItemKey(props.child));
+const collectionChildren = computed(() => browserTreeStore.getChildren(itemKey.value));
+const hasChildren = computed(() => collectionChildren.value.length > 0);
+
 // Checks if any filters are currently active.
 const filtersActive = computed(() => {
   const assigneeFilters = commonStore.hasAssignees || commonStore.noAssignees;
@@ -226,6 +229,10 @@ const composeVisibleChildren = (children = {}) => {
   return [...collections, ...untrackedCollections, ...assets, ...untrackedAssets];
 };
 
+const replaceCollectionChildren = (items) => {
+  return browserTreeStore.replaceChildren(itemKey.value, items);
+};
+
 // Handles keyboard arrow key navigation for expanding/collapsing items.
 const handleKeyArrowKeys = async (event) => {
   if (modals.activeModal) {
@@ -302,34 +309,8 @@ const handleToggle = async () => {
 // Handles updates to children from events.
 const handleUpdateChildren = (eventData) => {
   if (!isExpanded.value) return;
-  let loadFlags = true;
-
-  if (Array.isArray(eventData)) {
-    loadFlags = false;
-    eventData.forEach(({ itemId, updates }) => {
-      const itemIndex = collectionChildren.value.findIndex(item => item.id === itemId);
-      if (itemIndex !== -1 && updates && Array.isArray(updates)) {
-        updates.forEach(update => {
-          if (update.property && update.value !== undefined) {
-            collectionChildren.value[itemIndex][update.property] = update.value;
-          }
-        });
-      }
-    });
-  } else {
-    const { itemId, property, value, updates } = eventData;
-    const itemIndex = collectionChildren.value.findIndex(item => item.id === itemId);
-    if (itemIndex !== -1) {
-      if (property && value !== undefined) {
-        collectionChildren.value[itemIndex][property] = value;
-      }
-      if (updates && Array.isArray(updates)) {
-        updates.forEach(update => {
-          collectionChildren.value[itemIndex][update.property] = update.value;
-        });
-      }
-    }
-  }
+  const loadFlags = !Array.isArray(eventData);
+  browserTreeStore.applyItemUpdates(eventData);
   
   emitter.emit('get-project-data');
   if (loadFlags) {
@@ -349,13 +330,12 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
   const untrackedCollections = untrackedItems.filter(item => item.type === 'untracked_collection');
   const untrackedAssets = untrackedItems.filter(item => item.type === 'untracked_asset');
 
-  collectionChildren.value = composeVisibleChildren({
+  replaceCollectionChildren(composeVisibleChildren({
     collections: trackedCollections,
     assets: trackedAssets,
     untracked_collections: untrackedCollections,
     untracked_assets: untrackedAssets
-  });
-  hasChildren.value = collectionChildren.value.length > 0;
+  }));
 
   if (!hasChildren.value && isExpanded.value) {
     const isUntracked = props.child.type === 'untracked_collection';
@@ -371,8 +351,7 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 // Clears nested collection state when search/filter results are being shown.
 const clearCollectionChildren = () => {
   clearTimeout(loadingChildrenTimer);
-  collectionChildren.value = [];
-  hasChildren.value = false;
+  replaceCollectionChildren([]);
   loadingChildren.value = false;
   loadingChildrenSkeleton.value = false;
 
@@ -411,10 +390,10 @@ const loadAssetState = async () => {
 
     if (!shouldLoadAssetState.value) return;
 
-    props.child.file_status = fileStatus;
+    browserTreeStore.patchItem(itemKey.value, { file_status: fileStatus });
   } catch (error) {
     console.error(`Error loading asset state for ${asset.id}:`, error);
-    asset.file_status = 'fetchable';
+    browserTreeStore.patchItem(itemKey.value, { file_status: 'fetchable' });
   } finally {
     clearTimeout(loadingTimer);
     loadingAssetState.value = false;
@@ -429,7 +408,9 @@ const loadCollectionState = async () => {
 
   if (isFilteredView.value) {
     loadingCollectionState.value = false;
-    props.child.collectionStateFlags = emptyCollectionStateFlags();
+    browserTreeStore.patchItem(itemKey.value, {
+      collectionStateFlags: emptyCollectionStateFlags()
+    });
     return;
   }
 
@@ -446,14 +427,18 @@ const loadCollectionState = async () => {
     );
 
     if (isFilteredView.value) {
-      props.child.collectionStateFlags = emptyCollectionStateFlags();
+      browserTreeStore.patchItem(itemKey.value, {
+        collectionStateFlags: emptyCollectionStateFlags()
+      });
       return;
     }
 
-    props.child.collectionStateFlags = flags;
+    browserTreeStore.patchItem(itemKey.value, { collectionStateFlags: flags });
   } catch (error) {
     console.error(`Error loading collection state for ${collection.id}:`, error);
-    props.child.collectionStateFlags = emptyCollectionStateFlags();
+    browserTreeStore.patchItem(itemKey.value, {
+      collectionStateFlags: emptyCollectionStateFlags()
+    });
   } finally {
     clearTimeout(loadingTimer);
     loadingCollectionState.value = false;
@@ -462,6 +447,9 @@ const loadCollectionState = async () => {
 
 // Loads children for an collection or untracked collection.
 const loadCollectionChildren = async () => {
+  const collectionType = props.child.type;
+  if (collectionType !== 'collection' && collectionType !== 'untracked_collection') return;
+
   if (isFilteredView.value) {
     clearCollectionChildren();
     return;
@@ -478,10 +466,21 @@ const loadCollectionChildren = async () => {
     loadingChildren.value = true;
   }, loadingDelay);
 
-  if (props.child.type == "collection" || props.child.type == 'untracked_collection') {
-    let isUntracked = props.child.type == 'untracked_collection';
-    let project = projectStore.activeProject;
-    let children = await CollectionService.GetCollectionChildren(project.uri, props.child.id, project.working_directory, props.child.file_path, project.ignore_list, isUntracked);
+  const parentKey = itemKey.value;
+  const refreshVersion = browserTreeStore.beginParentRefresh(parentKey);
+  const isUntracked = collectionType === 'untracked_collection';
+  const project = projectStore.activeProject;
+
+  try {
+    const children = await CollectionService.GetCollectionChildren(
+      project.uri,
+      props.child.id,
+      project.working_directory,
+      props.child.file_path,
+      project.ignore_list,
+      isUntracked
+    );
+    if (!browserTreeStore.isCurrentRefresh(parentKey, refreshVersion)) return;
     if (isFilteredView.value) {
       clearCollectionChildren();
       return;
@@ -489,33 +488,47 @@ const loadCollectionChildren = async () => {
 
     await assetStore.processAssetsIconsAndPreviews(children.assets);
     await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
+    if (!browserTreeStore.isCurrentRefresh(parentKey, refreshVersion)) return;
     if (isFilteredView.value) {
       clearCollectionChildren();
       return;
     }
 
-    let childrenCollections = filtersActive.value ? await collectionStore.filterCollections(children.collections) : children.collections;
-    let childrenAssets = filtersActive.value ? await assetStore.filterAssets(children.assets) : children.assets;
+    const childrenCollections = filtersActive.value ? await collectionStore.filterCollections(children.collections) : children.collections;
+    const childrenAssets = filtersActive.value ? await assetStore.filterAssets(children.assets) : children.assets;
+    if (!browserTreeStore.isCurrentRefresh(parentKey, refreshVersion)) return;
     if (isFilteredView.value) {
       clearCollectionChildren();
       return;
     }
 
-    collectionChildren.value = composeVisibleChildren({
+    const visibleChildren = composeVisibleChildren({
       collections: childrenCollections,
       assets: childrenAssets,
       untracked_collections: children.untracked_collections,
       untracked_assets: children.untracked_assets
     });
-    hasChildren.value = collectionChildren.value.length > 0;
-    
-    if (!hasChildren.value && props.child.id in stage.expandedCollections) {
+    const reconciledChildren = browserTreeStore.replaceChildrenIfCurrent(
+      parentKey,
+      refreshVersion,
+      visibleChildren
+    );
+    if (!reconciledChildren) return;
+
+    if (reconciledChildren.length === 0 && props.child.id in stage.expandedCollections) {
       stage.expandCollection(props.child, isUntracked);
     }
+    await updateItemHeight();
+  } catch (error) {
+    browserTreeStore.failParentRefresh(parentKey, refreshVersion, error);
+    console.error(`Error loading collection children for ${props.child.id}:`, error);
+  } finally {
+    if (browserTreeStore.isCurrentRefresh(parentKey, refreshVersion)) {
+      clearTimeout(loadingChildrenTimer);
+      loadingChildren.value = false;
+      loadingChildrenSkeleton.value = false;
+    }
   }
-  clearTimeout(loadingChildrenTimer);
-  loadingChildren.value = false;
-  loadingChildrenSkeleton.value = false;
 };
 
 // Focuses a single item so right-click menu actions (e.g. rename) work.
@@ -605,7 +618,9 @@ watch(isFilteredView, async (filtered) => {
   if (filtered) {
     clearCollectionChildren();
     if (props.child.type === 'collection') {
-      props.child.collectionStateFlags = emptyCollectionStateFlags();
+      browserTreeStore.patchItem(itemKey.value, {
+        collectionStateFlags: emptyCollectionStateFlags()
+      });
       loadingCollectionState.value = false;
     }
     return;
@@ -632,13 +647,11 @@ onMounted(async () => {
   }
   
   window.addEventListener('keydown', handleKeyArrowKeys);
-  emitter.on('update-children', handleUpdateChildren);
 });
 
 onBeforeUnmount(() => {
   clearTimeout(loadingChildrenTimer);
   window.removeEventListener('keydown', handleKeyArrowKeys);
-  emitter.off('update-children', handleUpdateChildren);
 });
 </script>
 
