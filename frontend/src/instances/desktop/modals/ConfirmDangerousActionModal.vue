@@ -8,7 +8,7 @@
       </div>
 
       <FormInput v-if="trayStates.dangerousActionShowInput" v-model="inputValue" :placeholder="trayStates.dangerousActionConfirmText" :error="inputError"
-        :labelTop="true" :autofocus="true" @input="clearError" />
+        :labelTop="true" :autofocus="true" :isSecret="trayStates.dangerousActionInputSecret" @input="clearError" />
 
     <span v-if="trayStates.dangerousActionShowToggle" class="toggle-row" @click="toggleDeleteFiles">
         <div class="toggle-label">{{ trayStates.dangerousActionToggleLabel }}</div>
@@ -61,6 +61,7 @@ const activeToggleHint = computed(() => {
 // Checks if the input value matches the confirmation text.
 const isInputValid = computed(() => {
   if (!trayStates.dangerousActionShowInput) return true;
+  if (!trayStates.dangerousActionRequireExactInput) return inputValue.value.length > 0;
   return inputValue.value === trayStates.dangerousActionConfirmText;
 });
 
@@ -76,6 +77,8 @@ const closeModal = () => {
   inputValue.value = '';
   inputError.value = '';
   isLoading.value = false;
+  trayStates.dangerousActionInputSecret = false;
+  trayStates.dangerousActionRequireExactInput = true;
   modals.setModalVisibility('confirmDangerousActionModal', false);
 };
 
@@ -90,7 +93,10 @@ const confirmAction = async () => {
   inputError.value = '';
 
   try {
-    await trayStates.dangerousActionFunction({ deleteWorkingFiles: deleteWorkingFiles.value });
+    await trayStates.dangerousActionFunction({
+      deleteWorkingFiles: deleteWorkingFiles.value,
+      inputValue: inputValue.value,
+    });
     closeModal();
   } catch (error) {
     console.error(error);
@@ -110,6 +116,8 @@ onBeforeUnmount(() => {
   inputValue.value = '';
   inputError.value = '';
   isLoading.value = false;
+  trayStates.dangerousActionInputSecret = false;
+  trayStates.dangerousActionRequireExactInput = true;
 });
 </script>
 

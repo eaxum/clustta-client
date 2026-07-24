@@ -82,7 +82,7 @@
             <div class="storage-project-info">
               <div class="storage-project-title">
                 <span>{{ conversion.project_name }}</span>
-                <StatusBadge :text="storageStatusLabel(conversion)" />
+                <StatusBadge v-if="showStorageStatus(conversion)" :text="storageStatusLabel(conversion)" />
               </div>
               <div class="storage-project-meta">
                 {{ $t('settings.currentStorageMode', { mode: storageModeLabel(conversion.current_mode) }) }}
@@ -91,14 +91,16 @@
               <div v-if="conversion.status === 'running'" class="storage-progress-track">
                 <div class="storage-progress-value" :style="{ width: storageProgress(conversion) + '%' }"></div>
               </div>
+              <div v-if="conversion.status === 'running'" class="storage-progress-label">
+                {{ storageProgress(conversion).toFixed(0) }}%
+              </div>
               <div v-if="conversion.error" class="storage-error">{{ conversion.error }}</div>
             </div>
             <ActionButton
               :label="storageActionLabel(conversion)"
-              :showIcon="false"
-              :useBackground="true"
+              :icon="getAppIcon('refresh')"
               :isDisabled="!canConvertStorage(conversion)"
-              :buttonFunction="() => startStorageConversion(conversion)"
+              :buttonFunction="() => confirmStorageConversion(conversion)"
             />
           </div>
         </div>
@@ -141,6 +143,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const settings = useSettingsStore();
 const studioStore = useStudioStore();
+const trayStates = useTrayStates();
 const { t } = useI18n();
 
 // stores/state imports
@@ -151,12 +154,16 @@ import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
 import { useSettingsStore } from '@/stores/settings';
 import { useStudioStore } from '@/stores/studio';
+import { useTrayStates } from '@/stores/TrayStates';
 
 // refs
 const idCopied = ref(false);
 const serverVersion = ref("");
 const storageConversions = ref([]);
 let storagePoll = null;
+let storagePollingEnabled = true;
+const activeStoragePollInterval = 1000;
+const idleStoragePollInterval = 5000;
 
 // computed
 
@@ -312,6 +319,8 @@ const fetchStorageConversions = async () => {
     storageConversions.value = await StudioService.GetStorageConversions(studioInfo.value.url) || [];
   } catch (error) {
     console.error('Failed to load project storage conversions:', error);
+  } finally {
+    scheduleStoragePoll();
   }
 };
 
@@ -325,6 +334,9 @@ const storageStatusLabel = (conversion) => {
     completed: 'settings.storageCompleted',
   };
   return t(labels[conversion.status] || 'settings.storageReady');
+};
+const showStorageStatus = (conversion) => {
+  return ['running', 'failed', 'cleanup_failed'].includes(conversion.status);
 };
 const storageTargetMode = (conversion) => {
   if (conversion.status === 'failed' || conversion.status === 'cleanup_failed') return conversion.target_mode;
@@ -344,20 +356,43 @@ const storageProgress = (conversion) => {
   if (!conversion.total_chunks) return 0;
   return Math.min(100, (conversion.processed_chunks / conversion.total_chunks) * 100);
 };
-const startStorageConversion = async (conversion) => {
+const startStorageConversion = async (conversion, password) => {
   if (!canConvertStorage(conversion)) return;
   const target = storageTargetMode(conversion);
-  const confirmed = window.confirm(t('settings.confirmStorageConversion', {
+  await StudioService.StartStorageConversion(
+    studioInfo.value.url,
+    conversion.project_name,
+    target,
+    password,
+  );
+  await fetchStorageConversions();
+};
+const confirmStorageConversion = (conversion) => {
+  if (!canConvertStorage(conversion)) return;
+  const target = storageTargetMode(conversion);
+  trayStates.dangerousActionTitle = t('settings.storageConversionTitle', {
     project: conversion.project_name,
-    mode: storageModeLabel(target),
-  }));
-  if (!confirmed) return;
-  try {
-    await StudioService.StartStorageConversion(studioInfo.value.url, conversion.project_name, target);
-    await fetchStorageConversions();
-  } catch (error) {
-    notificationStore.addNotification(t('common.error'), String(error), 'error');
-  }
+  });
+  trayStates.dangerousActionMessage = t('settings.confirmStorageConversion', {
+    project: conversion.project_name,
+    source: storageModeLabel(conversion.current_mode),
+    target: storageModeLabel(target),
+  });
+  trayStates.dangerousActionIcon = 'refresh';
+  trayStates.dangerousActionConfirmText = t('auth.login.passwordPlaceholder');
+  trayStates.dangerousActionShowInput = true;
+  trayStates.dangerousActionInputSecret = true;
+  trayStates.dangerousActionRequireExactInput = false;
+  trayStates.dangerousActionShowToggle = false;
+  trayStates.dangerousActionFunction = ({ inputValue }) => startStorageConversion(conversion, inputValue);
+  modals.setModalVisibility('confirmDangerousActionModal', true);
+};
+const scheduleStoragePoll = () => {
+  if (!storagePollingEnabled) return;
+  if (storagePoll) window.clearTimeout(storagePoll);
+  const hasActiveConversion = storageConversions.value.some(({ status }) => status === 'running');
+  const interval = hasActiveConversion ? activeStoragePollInterval : idleStoragePollInterval;
+  storagePoll = window.setTimeout(fetchStorageConversions, interval);
 };
 
 // lifecycle hooks
@@ -375,11 +410,11 @@ onMounted(async () => {
     }
   }
   await fetchStorageConversions();
-  storagePoll = window.setInterval(fetchStorageConversions, 2000);
 });
 
 onBeforeUnmount(() => {
-  if (storagePoll) window.clearInterval(storagePoll);
+  storagePollingEnabled = false;
+  if (storagePoll) window.clearTimeout(storagePoll);
 });
 </script>
 
@@ -615,6 +650,7 @@ onBeforeUnmount(() => {
 .storage-project-meta { margin-top: .25rem; color: var(--text-muted); font-size: .75rem; }
 .storage-progress-track { height: 4px; margin-top: .6rem; overflow: hidden; border-radius: 4px; background: var(--surface-4); }
 .storage-progress-value { height: 100%; background: var(--accent); transition: width .2s ease; }
+.storage-progress-label { margin-top: .25rem; color: var(--text-muted); font-size: .7rem; text-align: right; }
 .storage-error { margin-top: .4rem; color: var(--warning); font-size: .72rem; }
 
 /* Danger Zone */

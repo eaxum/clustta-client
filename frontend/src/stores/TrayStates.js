@@ -99,6 +99,8 @@ export const useTrayStates = defineStore("useTrayStates", {
     dangerousActionConfirmText: "",
     dangerousActionFunction: null,
     dangerousActionShowInput: true,
+    dangerousActionInputSecret: false,
+    dangerousActionRequireExactInput: true,
     dangerousActionShowToggle: false,
     dangerousActionToggleLabel: "",
     dangerousActionToggleOffHint: "",

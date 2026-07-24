@@ -208,8 +208,11 @@ func GetStorageConversions(studioURL string) ([]StorageConversionState, error) {
 	return conversions, nil
 }
 
-func StartStorageConversion(studioURL, projectName, targetMode string) (StorageConversionState, error) {
-	payload, err := json.Marshal(map[string]string{"target_mode": targetMode})
+func StartStorageConversion(studioURL, projectName, targetMode, password string) (StorageConversionState, error) {
+	payload, err := json.Marshal(map[string]string{
+		"target_mode": targetMode,
+		"password":    password,
+	})
 	if err != nil {
 		return StorageConversionState{}, err
 	}

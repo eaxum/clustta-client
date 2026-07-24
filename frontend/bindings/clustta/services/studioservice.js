@@ -142,10 +142,11 @@ export function ResolveStudioUrl(url, altUrl) {
  * @param {string} studioUrl
  * @param {string} projectName
  * @param {string} targetMode
+ * @param {string} password
  * @returns {$CancellablePromise<studio_service$0.StorageConversionState>}
  */
-export function StartStorageConversion(studioUrl, projectName, targetMode) {
-    return $Call.ByID(182693000, studioUrl, projectName, targetMode).then(/** @type {($result: any) => any} */(($result) => {
+export function StartStorageConversion(studioUrl, projectName, targetMode, password) {
+    return $Call.ByID(182693000, studioUrl, projectName, targetMode, password).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
