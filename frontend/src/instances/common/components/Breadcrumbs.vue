@@ -110,6 +110,7 @@ const overflowPaths = ref([]);
 const resizeObserver = ref(null);
 const showEllipsis = ref(false);
 const visibleSegments = ref([]);
+const loadingBrowserRefreshMode = 'loading';
 
 // computed properties
 const listItemsAnchor = computed(() => {
@@ -410,7 +411,10 @@ const goUpALevel = async () => {
 const handleClickOutside = () => { if (displayOverflowItems.value) displayOverflowItems.value = false; };
 
 // Emits refresh event to reload the browser view and regenerate visible thumbnails.
-const refresh = () => emitter.emit('refresh-browser', { invalidateVisibleThumbnails: true });
+const refresh = () => emitter.emit('refresh-browser', {
+	mode: loadingBrowserRefreshMode,
+	invalidateVisibleThumbnails: true
+});
 
 // Opens the current directory in the system file explorer.
 const revealInExplorer = async () => {

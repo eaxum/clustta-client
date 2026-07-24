@@ -1045,6 +1045,7 @@ const browserScrollSelectors = [
 	'.virtua-scroll-container',
 	'.navigator-root-viewport'
 ];
+const silentBrowserRefreshMode = 'silent';
 
 const getBrowserScrollContainer = () => {
 	if (!browserRoot.value) return null;
@@ -1140,7 +1141,7 @@ const refresh = async () => {
 
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
 const softRefresh = async (options = {}) => {
-	const silent = options.mode === 'silent';
+	const silent = options.mode === silentBrowserRefreshMode;
 	const project = projectStore.activeProject;
 	if (!project) return;
 
@@ -1240,11 +1241,15 @@ const softRefresh = async (options = {}) => {
 };
 
 const handleBrowserRefresh = async (options = {}) => {
+	const refreshOptions = {
+		mode: silentBrowserRefreshMode,
+		...options
+	};
 	try {
-		await softRefresh(options);
+		await softRefresh(refreshOptions);
 	} catch (error) {
 		console.error('Error refreshing browser data:', error);
-		if (options.mode !== 'silent') assetStore.assetsLoaded = true;
+		if (refreshOptions.mode !== silentBrowserRefreshMode) assetStore.assetsLoaded = true;
 		notificationStore.errorNotification(
 			t('notifications.errorLoadingProjectData'),
 			error
