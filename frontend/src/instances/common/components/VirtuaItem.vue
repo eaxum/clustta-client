@@ -371,7 +371,7 @@ const emptyCollectionStateFlags = () => ({
 // Loads the file status state for an asset.
 const loadAssetState = async (options = {}) => {
   const asset = props.child;
-  const silent = options.silent === true;
+  const isSoftRefresh = options.softRefresh === true;
   
   if (asset.type !== 'asset' || asset.is_link) return;
   if (!shouldLoadAssetState.value) {
@@ -379,7 +379,7 @@ const loadAssetState = async (options = {}) => {
     return;
   }
 
-  const loadingTimer = silent ? null : setTimeout(() => {
+  const loadingTimer = isSoftRefresh ? null : setTimeout(() => {
     loadingAssetState.value = true;
   }, loadingDelay);
   
@@ -404,7 +404,7 @@ const loadAssetState = async (options = {}) => {
 // Loads the state flags for a collection.
 const loadCollectionState = async (options = {}) => {
   const collection = props.child;
-  const silent = options.silent === true;
+  const isSoftRefresh = options.softRefresh === true;
   
   if (collection.type !== 'collection') return;
 
@@ -416,7 +416,7 @@ const loadCollectionState = async (options = {}) => {
     return;
   }
 
-  const loadingTimer = silent ? null : setTimeout(() => {
+  const loadingTimer = isSoftRefresh ? null : setTimeout(() => {
     loadingCollectionState.value = true;
   }, loadingDelay);
 
@@ -450,7 +450,7 @@ const loadCollectionState = async (options = {}) => {
 // Loads children for an collection or untracked collection.
 const loadCollectionChildren = async (options = {}) => {
   const collectionType = props.child.type;
-  const silent = options.silent === true;
+  const isSoftRefresh = options.softRefresh === true;
   if (collectionType !== 'collection' && collectionType !== 'untracked_collection') return;
 
   if (isFilteredView.value) {
@@ -458,14 +458,14 @@ const loadCollectionChildren = async (options = {}) => {
     return;
   }
 
-  if (stage.operationActive && !silent) {
+  if (stage.operationActive && !isSoftRefresh) {
     loadingChildrenSkeleton.value = true;
     return;
   }
 
-  if (!silent) loadingChildrenSkeleton.value = true;
+  if (!isSoftRefresh) loadingChildrenSkeleton.value = true;
   clearTimeout(loadingChildrenTimer);
-  if (!silent) {
+  if (!isSoftRefresh) {
     loadingChildrenTimer = setTimeout(() => {
       loadingChildren.value = true;
     }, loadingDelay);
@@ -603,19 +603,19 @@ const updateItemHeight = async () => {
 
 const refreshCachedItem = async () => {
   if (props.child.type === 'asset') {
-    await loadAssetState({ silent: true });
+    await loadAssetState({ softRefresh: true });
     return;
   }
   if (props.child.type !== 'collection' && props.child.type !== 'untracked_collection') return;
 
-  const refreshTasks = [loadCollectionChildren({ silent: true })];
+  const refreshTasks = [loadCollectionChildren({ softRefresh: true })];
   if (props.child.type === 'collection') {
-    refreshTasks.push(loadCollectionState({ silent: true }));
+    refreshTasks.push(loadCollectionState({ softRefresh: true }));
   }
   await Promise.all(refreshTasks);
 };
 
-const handleSilentRefresh = (eventData = {}) => {
+const handleSoftRefresh = (eventData = {}) => {
   const refreshTask = refreshCachedItem();
   if (Array.isArray(eventData.tasks)) {
     eventData.tasks.push(refreshTask);
@@ -673,13 +673,13 @@ onMounted(async () => {
   }
   
   window.addEventListener('keydown', handleKeyArrowKeys);
-  emitter.on('silent-refresh-browser-items', handleSilentRefresh);
+  emitter.on('soft-refresh-browser-items', handleSoftRefresh);
 });
 
 onBeforeUnmount(() => {
   clearTimeout(loadingChildrenTimer);
   window.removeEventListener('keydown', handleKeyArrowKeys);
-  emitter.off('silent-refresh-browser-items', handleSilentRefresh);
+  emitter.off('soft-refresh-browser-items', handleSoftRefresh);
 });
 </script>
 

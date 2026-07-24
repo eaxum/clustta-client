@@ -110,7 +110,6 @@ const overflowPaths = ref([]);
 const resizeObserver = ref(null);
 const showEllipsis = ref(false);
 const visibleSegments = ref([]);
-const loadingBrowserRefreshMode = 'loading';
 
 // computed properties
 const listItemsAnchor = computed(() => {
@@ -364,7 +363,9 @@ const goHome = () => {
 // Exits kanban view and restores the previously active view mode.
 const exitKanbanView = () => {
 	commonStore.restorePreviousView();
-	emitter.emit('refresh-browser');
+	emitter.emit('refresh-browser', {
+		hardRefresh: true
+	});
 };
 
 // Navigates up one level in the breadcrumb hierarchy.
@@ -412,7 +413,7 @@ const handleClickOutside = () => { if (displayOverflowItems.value) displayOverfl
 
 // Emits refresh event to reload the browser view and regenerate visible thumbnails.
 const refresh = () => emitter.emit('refresh-browser', {
-	mode: loadingBrowserRefreshMode,
+	hardRefresh: true,
 	invalidateVisibleThumbnails: true
 });
 

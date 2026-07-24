@@ -55,28 +55,32 @@ const activeTooltip = computed(() => {
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
+const refreshView = () => emitter.emit('refresh-browser', {
+  hardRefresh: true
+});
+
 // Sets the view to dense list mode.
 const setDenseView = () => {
   commonStore.setDenseView();
-  emitter.emit('refresh-browser');
+  refreshView();
 };
 
 // Sets the view to grid mode.
 const setGridView = () => {
   commonStore.setGridView();
-  emitter.emit('refresh-browser');
+  refreshView();
 };
 
 // Sets the view to kanban mode.
 const setKanbanView = () => {
   commonStore.setKanbanView();
-  emitter.emit('refresh-browser');
+  refreshView();
 };
 
 // Sets the view to list mode.
 const setListView = () => {
   commonStore.setListView();
-  emitter.emit('refresh-browser');
+  refreshView();
 };
 </script>
 

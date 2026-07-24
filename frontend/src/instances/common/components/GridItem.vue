@@ -163,7 +163,7 @@ const emptyCollectionStateFlags = () => ({
 // Loads the file status state for an asset.
 const loadAssetState = async (options = {}) => {
   const asset = props.child;
-  const silent = options.silent === true;
+  const isSoftRefresh = options.softRefresh === true;
   
   if (asset.type !== 'asset' || asset.is_link) return;
   if (props.isFilteredView) {
@@ -171,7 +171,7 @@ const loadAssetState = async (options = {}) => {
     return;
   }
 
-  const loadingTimer = silent ? null : setTimeout(() => {
+  const loadingTimer = isSoftRefresh ? null : setTimeout(() => {
     loadingAssetState.value = true;
   }, loadingDelay);
   
@@ -196,7 +196,7 @@ const loadAssetState = async (options = {}) => {
 // Loads the state flags for a collection.
 const loadCollectionState = async (options = {}) => {
   const collection = props.child;
-  const silent = options.silent === true;
+  const isSoftRefresh = options.softRefresh === true;
   
   if (collection.type !== 'collection') return;
   if (props.isFilteredView) {
@@ -207,7 +207,7 @@ const loadCollectionState = async (options = {}) => {
     return;
   }
 
-  const loadingTimer = silent ? null : setTimeout(() => {
+  const loadingTimer = isSoftRefresh ? null : setTimeout(() => {
     loadingCollectionState.value = true;
   }, loadingDelay);
 
@@ -314,15 +314,15 @@ const handleKeyArrowKeys = (event) => {
 
 const refreshCachedItem = async () => {
   if (props.child.type === 'asset') {
-    await loadAssetState({ silent: true });
+    await loadAssetState({ softRefresh: true });
     return;
   }
   if (props.child.type === 'collection') {
-    await loadCollectionState({ silent: true });
+    await loadCollectionState({ softRefresh: true });
   }
 };
 
-const handleSilentRefresh = (eventData = {}) => {
+const handleSoftRefresh = (eventData = {}) => {
   const refreshTask = refreshCachedItem();
   if (Array.isArray(eventData.tasks)) {
     eventData.tasks.push(refreshTask);
@@ -343,12 +343,12 @@ onMounted(async () => {
   }
   
   window.addEventListener('keydown', handleKeyArrowKeys);
-  emitter.on('silent-refresh-browser-items', handleSilentRefresh);
+  emitter.on('soft-refresh-browser-items', handleSoftRefresh);
 });
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyArrowKeys);
-  emitter.off('silent-refresh-browser-items', handleSilentRefresh);
+  emitter.off('soft-refresh-browser-items', handleSoftRefresh);
 });
 
 

@@ -353,7 +353,7 @@ const changeAssetCollection = async (assetIds, collectionId) => {
 };
 
 // Clears the search query and refreshes the view.
-const clearSearch = async () => { commonStore.viewSearchQuery = ""; await softRefresh(); };
+const clearSearch = async () => { commonStore.viewSearchQuery = ""; await hardRefresh(); };
 
 // Clears all item selections and resets selection state.
 const clearSelection = () => {
@@ -433,7 +433,7 @@ const deleteMultipleCollections = async (collectionIds) => {
 const deleteMultipleAssets = async (assetIds) => {
 	for (let assetId of assetIds) {
 		await AssetService.DeleteAsset(projectStore.activeProject.uri, assetId, true)
-			.then(async () => { softRefresh(); notificationStore.addNotification(t('stages.assetsMovedToTrash'), '', "success", false); })
+			.then(async () => { hardRefresh(); notificationStore.addNotification(t('stages.assetsMovedToTrash'), '', "success", false); })
 			.catch((error) => { console.log(error); notificationStore.errorNotification(t('stages.assetsFailedToDelete'), error); });
 	}
 };
@@ -473,7 +473,7 @@ const duplicateAsset = async () => {
 			.then(async (duplicatedAsset) => {
 				try { await FSService.DuplicateFile(selectedItem.file_path, duplicatedAsset.file_path); }
 				catch (fileError) { console.warn('Physical file duplication failed (asset may be fetchable):', fileError); }
-				await refresh();
+				await fullRefresh();
 				assetStore.selectAsset(duplicatedAsset);
 				stage.selectedItem = duplicatedAsset;
 				stage.markedItems = [duplicatedAsset.id];
@@ -809,7 +809,6 @@ const importItems = async () => {
 		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? t('stages.itemFailedToImport') : t('stages.itemsFailedToImport', { count: failureCount }), errors.join("\n"));
 		if (successCount > 0) {
 			await softRefresh({
-				mode: silentBrowserRefreshMode,
 				invalidateVisibleThumbnails: true
 			});
 		}
@@ -955,7 +954,7 @@ const onDragStop = async (event) => {
 	dndStore.ghostCardStyle.transform = `scale(1) translate(${xOffset}px, ${yOffset}px)`;
 	stage.operationActive = false;
 	if (needsRefresh) {
-		await softRefresh({ mode: silentBrowserRefreshMode });
+		await softRefresh();
 	}
 };
 
@@ -1052,7 +1051,6 @@ const browserScrollSelectors = [
 	'.virtua-scroll-container',
 	'.navigator-root-viewport'
 ];
-const silentBrowserRefreshMode = 'silent';
 
 const getBrowserScrollContainer = () => {
 	if (!browserRoot.value) return null;
@@ -1098,8 +1096,8 @@ const restoreViewportAnchor = (anchor) => {
 	scrollStore.setScrollTop(scrollContainer.scrollTop);
 };
 
-// Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags.
-const refresh = async () => {
+// Full hard refresh: reloads project data, children, previews, and state flags.
+const fullRefresh = async () => {
 	if (kanbanView.value){
 		await trayStates.refreshData();
 		return;
@@ -1146,22 +1144,21 @@ const refresh = async () => {
 	dndStore.triggerDomUpdate();
 };
 
-// Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
-const softRefresh = async (options = {}) => {
-	const silent = options.mode === silentBrowserRefreshMode;
+// Fetches current browser data and applies the requested refresh mode.
+const refreshBrowserData = async (options = {}, isSoftRefresh = false) => {
 	const project = projectStore.activeProject;
 	if (!project) return;
 
-	const viewportAnchor = silent ? captureViewportAnchor() : null;
+	const viewportAnchor = isSoftRefresh ? captureViewportAnchor() : null;
 	const refreshVersion = browserTreeStore.beginRootRefresh(project.uri);
 	if (options.invalidateVisibleThumbnails) {
-		const thumbnailItems = silent
+		const thumbnailItems = isSoftRefresh
 			? Object.values(browserTreeStore.itemsByKey)
 			: (dndStore.allViewItems?.length ? dndStore.allViewItems : rootData.value);
 		invalidateAssetThumbnailsForItems(thumbnailItems);
 	}
 
-	if (!silent) {
+	if (!isSoftRefresh) {
 		scrollTop.value = scrollStore.scrollTop;
 		assetStore.assetsLoaded = false;
 	}
@@ -1231,14 +1228,14 @@ const softRefresh = async (options = {}) => {
 		composeVisibleItems(children)
 	);
 	if (reconciledItems === null) return;
-	if (!silent) assetStore.assetsLoaded = true;
+	if (!isSoftRefresh) assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	refreshUnsyncedState();
 	await nextTick();
 
-	if (silent) {
+	if (isSoftRefresh) {
 		const refreshTasks = [];
-		emitter.emit('silent-refresh-browser-items', { tasks: refreshTasks });
+		emitter.emit('soft-refresh-browser-items', { tasks: refreshTasks });
 		await Promise.allSettled(refreshTasks);
 		if (!browserTreeStore.isCurrentRootRefresh(refreshVersion)) return;
 		await nextTick();
@@ -1247,16 +1244,21 @@ const softRefresh = async (options = {}) => {
 	dndStore.triggerDomUpdate();
 };
 
+const hardRefresh = (options = {}) => refreshBrowserData(options);
+
+const softRefresh = (options = {}) => refreshBrowserData(options, true);
+
 const handleBrowserRefresh = async (options = {}) => {
-	const refreshOptions = {
-		mode: silentBrowserRefreshMode,
-		...options
-	};
+	const requiresHardRefresh = options.hardRefresh === true;
 	try {
-		await softRefresh(refreshOptions);
+		if (requiresHardRefresh) {
+			await hardRefresh(options);
+		} else {
+			await softRefresh(options);
+		}
 	} catch (error) {
 		console.error('Error refreshing browser data:', error);
-		if (refreshOptions.mode !== silentBrowserRefreshMode) assetStore.assetsLoaded = true;
+		if (requiresHardRefresh) assetStore.assetsLoaded = true;
 		notificationStore.errorNotification(
 			t('notifications.errorLoadingProjectData'),
 			error
@@ -1295,7 +1297,7 @@ const updateSearch = async (event) => {
 	if (scrollStore.scrollTop > 0) scrollStore.requestScroll(0);
 	if (collectionExpanded.value) collapseAll();
 	commonStore.viewSearchQuery = event.target.value.toLowerCase();
-	await softRefresh();
+	await hardRefresh();
 };
 
 // Updates the screen width and hides details pane on smaller screens.
@@ -1340,7 +1342,6 @@ const handleFileDrop = async (files, details) => {
 		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? t('stages.itemFailedToImport') : t('stages.itemsFailedToImport', { count: failureCount }), errors.join('\n'));
 		if (successCount > 0) {
 			await softRefresh({
-				mode: silentBrowserRefreshMode,
 				invalidateVisibleThumbnails: true
 			});
 		}
@@ -1357,7 +1358,7 @@ Events.On('files-dropped', async (event) => {
 
 Events.On('reload-view', async () => {
 	if (operationsActive.value) return
-	refresh();
+	fullRefresh();
 });
 
 Events.On('search', async () => {
@@ -1439,7 +1440,7 @@ Events.On('paste-items', async () => {
 	if (isEditableElementFocused()) return;
 	if (!userStore.canDo('update_collection')) return;
 	const result = await stage.pasteItems();
-	if (result.needsRefresh) await refresh();
+	if (result.needsRefresh) await fullRefresh();
 });
 
 Events.On('free-item-space', async () => {
@@ -1494,25 +1495,25 @@ watch(() => assetStore.assetsLoaded, async () => {
 
 watch(() => projectStore.activeProject, async () => {
 	if (projectStore.activeProject) {
-		await refresh();
+		await fullRefresh();
 		stage.copiedItems = [];
 		stage.cutItems = [];
 	}
 });
 
 watch(() => collectionStore.navigatedCollection, async () => {
-	await softRefresh();
+	await hardRefresh();
 });
 
 watch(() => commonStore.showAssets, async () => {
 	stage.operationActive = true
-	await softRefresh();
+	await hardRefresh();
 	stage.operationActive = false
 });
 
 watch(() => commonStore.navigatorMode, async () => {
 	stage.operationActive = true
-	await softRefresh();
+	await hardRefresh();
 	stage.operationActive = false
 });
 
@@ -1541,7 +1542,7 @@ onMounted(async () => {
 		await studioStore.getStudioUsers();
 	}
 
-	await refresh();
+	await fullRefresh();
 	dndStore.triggerDomUpdate();
 
 	trayStates.trashables = await TrashService.GetTrashs(projectStore.activeProject.uri);

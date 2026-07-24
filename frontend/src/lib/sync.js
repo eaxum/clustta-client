@@ -75,7 +75,6 @@ export async function syncData() {
       await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser', {
-        mode: 'silent',
         invalidateVisibleThumbnails: true,
       });
     })
@@ -111,7 +110,6 @@ export async function pullData() {
       await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser', {
-        mode: 'silent',
         invalidateVisibleThumbnails: true,
       });
     })
@@ -139,7 +137,6 @@ export async function updateProject() {
       await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser', {
-        mode: 'silent',
         invalidateVisibleThumbnails: true,
       });
     })
@@ -172,7 +169,6 @@ export async function syncFullData() {
       await userStore.reloadCurrentUser();
       refreshEntitlements();
       emitter.emit('refresh-browser', {
-        mode: 'silent',
         invalidateVisibleThumbnails: true,
       });
     })

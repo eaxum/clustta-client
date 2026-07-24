@@ -107,6 +107,10 @@ const getAppIcon = (iconName) => {
     return icon
 };
 
+const refreshWorkspace = () => emitter.emit('refresh-browser', {
+  hardRefresh: true
+});
+
 const isActiveTab = (workspace) => {
   return activeWorkspace.value === workspace.name
 };
@@ -134,7 +138,7 @@ const setWorkspace = (workspaceName) => {
   
   if (workspaceName === 'Default') {
     setDefaultWorkspace();
-    emitter.emit('refresh-browser');
+    refreshWorkspace();
     return
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
@@ -162,7 +166,7 @@ const setWorkspace = (workspaceName) => {
   }
   
   commonStore.setActiveWorkspace(workspace);
-  emitter.emit('refresh-browser');
+  refreshWorkspace();
 };
 
 const deleteWorkspace = async (workspaceName) => {
@@ -191,7 +195,7 @@ const resetWorkspace = () => {
   const workspaceName = commonStore.activeWorkspace;
   if (workspaceName === 'Default') {
     setDefaultWorkspace();
-    emitter.emit('refresh-browser');
+    refreshWorkspace();
     return;
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
@@ -204,7 +208,7 @@ const resetWorkspace = () => {
       collectionStore.navigatedCollection = null;
     }
     commonStore.setActiveWorkspace(workspace);
-    emitter.emit('refresh-browser');
+    refreshWorkspace();
   }
 };
 
