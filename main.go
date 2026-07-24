@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
-	"net/url"
 	"os"
 	"os/exec"
 	"os/user"
@@ -31,27 +30,10 @@ var trayIcon []byte
 
 var app *application.App
 
-// handleDeepLink processes a clustta:// URL and emits the appropriate event.
+// handleDeepLink preserves existing deep-link call sites through one dispatcher.
 func handleDeepLink(rawURL string) {
-	parsed, err := url.Parse(rawURL)
-	if err != nil {
-		log.Printf("Failed to parse deep link URL: %v", err)
-		return
-	}
-	if parsed.Scheme != "clustta" {
-		return
-	}
-	log.Printf("Deep link received: %s", rawURL)
-
-	if app != nil {
-		window, _ := application.Get().Window.GetByName("main")
-		if window != nil {
-			window.Show()
-			window.Focus()
-		}
-		app.Event.Emit("deep-link", rawURL)
-	} else {
-		services.SetPendingDeepLink(rawURL)
+	if err := services.DispatchDeepLink(rawURL); err != nil {
+		log.Printf("Failed to dispatch deep link: %v", err)
 	}
 }
 

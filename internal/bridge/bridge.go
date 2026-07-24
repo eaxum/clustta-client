@@ -84,6 +84,8 @@ func Start() {
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/checkpoints", handlers.V1ListCheckpoints)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/checkpoints", handlers.V1CreateCheckpoint)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/status", handlers.V1ChangeStatus)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/open", handlers.V1OpenAsset)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/reveal", handlers.V1RevealAsset)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/build", handlers.V1BuildAsset)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/revert", handlers.V1RevertAsset)
 	mux.HandleFunc("GET /v1/jobs/{jobId}", handlers.V1GetJob)
@@ -160,7 +162,10 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		w.Header().Set(
+			"Access-Control-Allow-Headers",
+			"Content-Type, Authorization, X-Clustta-Studio",
+		)
 
 		if r.Method == http.MethodOptions {
 			w.WriteHeader(http.StatusNoContent)

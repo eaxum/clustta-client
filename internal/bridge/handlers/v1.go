@@ -3,6 +3,7 @@ package handlers
 import (
 	"errors"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -79,6 +80,8 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"assets.list",
 			"assets.context",
 			"assets.status",
+			"assets.open",
+			"assets.reveal",
 			"assets.dependencies",
 			"assets.build",
 			"checkpoints.list",
@@ -113,7 +116,12 @@ func V1Bootstrap(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	projects, err := getStudioProjects(refresh)
+	activeStudio, err := studioForRequest(r)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	projects, err := getNamedStudioProjects(activeStudio, refresh)
 	if err != nil {
 		projects = nil
 	}
@@ -132,7 +140,6 @@ func V1Bootstrap(w http.ResponseWriter, r *http.Request) {
 			LastName:  token.User.LastName,
 		}
 	}
-	activeStudio, _ := settings.GetLastStudio()
 	jsonResponse(w, http.StatusOK, bootstrapResponse{
 		APIVersion:    bridgeAPIVersion,
 		Accounts:      accountItems,
@@ -144,7 +151,12 @@ func V1Bootstrap(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1ListProjects(w http.ResponseWriter, r *http.Request) {
-	projects, err := getStudioProjects(refreshRequested(r))
+	studio, err := studioForRequest(r)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	projects, err := getNamedStudioProjects(studio, refreshRequested(r))
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -223,7 +235,12 @@ func V1ResolveContext(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	projects, err := listStudioProjects()
+	studio, err := studioForRequest(r)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	projects, err := getNamedStudioProjects(studio, false)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -495,6 +512,39 @@ func V1ChangeStatus(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusAccepted, job)
 }
 
+func V1OpenAsset(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	studio, err := studioForRequest(r)
+	if err != nil || studio == "" {
+		jsonError(w, http.StatusConflict, "active studio is unavailable")
+		return
+	}
+	if err := services.DispatchDeepLink(
+		assetDeepLink(studio, project.Id, asset.Id),
+	); err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func V1RevealAsset(w http.ResponseWriter, r *http.Request) {
+	_, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	filePath := asset.GetFilePath()
+	if _, err := os.Stat(filePath); err != nil {
+		jsonError(w, http.StatusConflict, "asset file is not available on disk")
+		return
+	}
+	utils.RevealInExplorer(filePath)
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func V1BuildAsset(w http.ResponseWriter, r *http.Request) {
 	project, asset, ok := requestAsset(w, r)
 	if !ok {
@@ -596,7 +646,12 @@ func V1CancelJob(w http.ResponseWriter, r *http.Request) {
 }
 
 func requestProject(w http.ResponseWriter, r *http.Request) (repository.ProjectInfo, bool) {
-	project, err := resolveProject(r.PathValue("projectId"))
+	studio, err := studioForRequest(r)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return repository.ProjectInfo{}, false
+	}
+	project, err := resolveProject(r.PathValue("projectId"), studio)
 	if errors.Is(err, errProjectNotFound) {
 		jsonError(w, http.StatusNotFound, err.Error())
 		return repository.ProjectInfo{}, false
@@ -606,6 +661,14 @@ func requestProject(w http.ResponseWriter, r *http.Request) (repository.ProjectI
 		return repository.ProjectInfo{}, false
 	}
 	return project, true
+}
+
+func studioForRequest(r *http.Request) (string, error) {
+	studio := strings.TrimSpace(r.Header.Get("X-Clustta-Studio"))
+	if studio != "" {
+		return studio, nil
+	}
+	return settings.GetLastStudio()
 }
 
 func requestAsset(
@@ -687,6 +750,18 @@ func operationKey(r *http.Request, projectID, assetID, operation string) string 
 		return ""
 	}
 	return strings.Join([]string{projectID, assetID, operation, key}, ":")
+}
+
+func assetDeepLink(studio, projectID, assetID string) string {
+	query := url.Values{}
+	query.Set("studio", studio)
+	query.Set("project", projectID)
+	query.Set("asset", assetID)
+	return (&url.URL{
+		Scheme:   "clustta",
+		Host:     "open",
+		RawQuery: query.Encode(),
+	}).String()
 }
 
 func pathWithin(filePath, rootPath string) bool {

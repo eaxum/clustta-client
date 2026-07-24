@@ -5,7 +5,9 @@ must send the bearer token stored in Clustta's `.bridge-token` application-data
 file.
 
 All project and asset routes use stable IDs. DCC clients must not pass or retain
-the project database URI.
+the project database URI. DCC clients should send their selected studio in the
+`X-Clustta-Studio` header so project resolution is independent of the studio
+currently displayed in Clustta Desktop.
 
 ## Discovery
 
@@ -36,12 +38,18 @@ switches invalidate the appropriate cache automatically.
 ## Operations
 
 - `POST /v1/projects/{projectId}/assets/{assetId}/status`
+- `POST /v1/projects/{projectId}/assets/{assetId}/open`
+- `POST /v1/projects/{projectId}/assets/{assetId}/reveal`
 - `POST /v1/projects/{projectId}/assets/{assetId}/checkpoints`
 - `POST /v1/projects/{projectId}/assets/{assetId}/build`
 - `POST /v1/projects/{projectId}/assets/{assetId}/revert`
 
-Mutating requests should include a unique `Idempotency-Key` header. Operations
-return `202 Accepted` with a job object.
+Open focuses the tracked asset in Clustta Desktop. Reveal opens the system file
+manager with the tracked asset selected. Both return `204 No Content`.
+
+Checkpoint, status, build, and revert requests should include a unique
+`Idempotency-Key` header. These asynchronous operations return `202 Accepted`
+with a job object.
 
 Checkpoint requests accept:
 

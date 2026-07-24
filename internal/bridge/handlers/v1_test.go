@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http/httptest"
+	"net/url"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -58,6 +59,34 @@ func TestSamePathCleansSegments(t *testing.T) {
 	second := filepath.Join("project", "scene.blend")
 	if !samePath(first, second) {
 		t.Fatalf("expected %q and %q to resolve to the same path", first, second)
+	}
+}
+
+func TestAssetDeepLink(t *testing.T) {
+	deepLink, err := url.Parse(assetDeepLink("My Studio", "project-id", "asset-id"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deepLink.Scheme != "clustta" || deepLink.Host != "open" {
+		t.Fatalf("unexpected deep link target: %s", deepLink)
+	}
+	query := deepLink.Query()
+	if query.Get("studio") != "My Studio" ||
+		query.Get("project") != "project-id" ||
+		query.Get("asset") != "asset-id" {
+		t.Fatalf("unexpected deep link query: %s", query.Encode())
+	}
+}
+
+func TestStudioForRequestPrefersDCCContext(t *testing.T) {
+	request := httptest.NewRequest("GET", "/v1/projects/project-id", nil)
+	request.Header.Set("X-Clustta-Studio", "Addon Studio")
+	studio, err := studioForRequest(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if studio != "Addon Studio" {
+		t.Fatalf("expected addon studio, got %q", studio)
 	}
 }
 

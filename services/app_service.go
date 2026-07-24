@@ -3,6 +3,8 @@ package services
 import (
 	"context"
 	"fmt"
+	"log"
+	"net/url"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -183,6 +185,31 @@ func (s *AppService) Show() {
 			window.Focus()
 		}
 	}
+}
+
+// DispatchDeepLink validates and forwards a Clustta deep link.
+func DispatchDeepLink(deepLink string) error {
+	parsed, err := url.Parse(deepLink)
+	if err != nil {
+		return fmt.Errorf("parse deep link: %w", err)
+	}
+	if parsed.Scheme != "clustta" {
+		return fmt.Errorf("unsupported deep link scheme %q", parsed.Scheme)
+	}
+	log.Printf("Deep link received: %s", deepLink)
+
+	app := application.Get()
+	if app == nil {
+		SetPendingDeepLink(deepLink)
+		return nil
+	}
+	window, _ := app.Window.GetByName("main")
+	if window != nil {
+		window.Show()
+		window.Focus()
+	}
+	app.Event.Emit("deep-link", deepLink)
+	return nil
 }
 
 // Minimize minimizes the main application window.

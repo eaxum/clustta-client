@@ -128,17 +128,26 @@ func listStudioProjects() ([]repository.ProjectInfo, error) {
 }
 
 func getStudioProjects(force bool) ([]repository.ProjectInfo, error) {
-	user, err := auth_service.GetActiveUser()
-	if err != nil {
-		return nil, err
-	}
-
 	studioName, err := settings.GetLastStudio()
 	if err != nil {
 		return nil, err
 	}
 	if studioName == "" {
 		return nil, errors.New("no active studio selected")
+	}
+	return getNamedStudioProjects(studioName, force)
+}
+
+func getNamedStudioProjects(
+	studioName string,
+	force bool,
+) ([]repository.ProjectInfo, error) {
+	if studioName == "" {
+		return nil, errors.New("no active studio selected")
+	}
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return nil, err
 	}
 	key := user.Id + "\x00" + studioName
 	if !force {
@@ -218,8 +227,17 @@ func ResetDCCCache() {
 	invalidateProjectCache()
 }
 
-func resolveProject(projectID string) (repository.ProjectInfo, error) {
-	projects, err := listStudioProjects()
+func resolveProject(
+	projectID string,
+	studioName string,
+) (repository.ProjectInfo, error) {
+	var projects []repository.ProjectInfo
+	var err error
+	if studioName == "" {
+		projects, err = listStudioProjects()
+	} else {
+		projects, err = getNamedStudioProjects(studioName, false)
+	}
 	if err != nil {
 		return repository.ProjectInfo{}, err
 	}
