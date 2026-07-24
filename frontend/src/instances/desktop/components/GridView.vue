@@ -6,14 +6,14 @@
     <div v-else ref="navigatorRoot" class="navigator-root">
       
       <div v-if="collectionItems.length > 0" class="navigator-item-container" :style="gridStyles">
-          <GridItem v-for="(child, index) in collectionItems" :child="child" :key="child.index" :index="index"
+          <GridItem v-for="(child, index) in collectionItems" :child="child" :key="getBrowserItemKey(child)" :index="index"
           :isFilteredView="isFilteredView"
           @mousedown="onMouseDown($event, child, index)"
           @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
       </div>
       
       <div v-if="assetItems.length > 0" class="navigator-item-container" :style="gridStyles">
-          <GridItem v-for="(child, index) in assetItems" :child="child" :key="child.index" :index="index"
+          <GridItem v-for="(child, index) in assetItems" :child="child" :key="getBrowserItemKey(child)" :index="index"
           :isFilteredView="isFilteredView"
           @mousedown="onMouseDown($event, child, index)"
           @mouseup="onMouseUp($event, child, index)" :ref="el => handleRef(child.id, el?.$el || el)" />
@@ -26,6 +26,7 @@
 <script setup>
 // imports
 import { computed, ref, nextTick } from 'vue';
+import { getBrowserItemKey } from '@/lib/browserTree';
 
 // components
 import GridItem from '@/instances/common/components/GridItem.vue';

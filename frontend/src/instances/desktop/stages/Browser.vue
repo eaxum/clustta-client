@@ -46,7 +46,6 @@ import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
-import { browserRootParentKey } from '@/lib/browserTree';
 import { getRelativePath } from '@/lib/pathlib';
 import { canCreateAssetHere, canCreateCollectionHere } from '@/lib/permissions';
 import { useDebounce } from '@/lib/debounce';
@@ -122,7 +121,7 @@ const { t } = useI18n();
 const browserFilters = ref(null);
 const browserRoot = ref(null);
 const observer = ref(null);
-const rootData = ref([]);
+const rootData = computed(() => browserTreeStore.rootItems);
 const screenWidth = ref(window.innerWidth);
 const searchBar = ref(null);
 const showFilters = ref(false);
@@ -269,10 +268,9 @@ const composeVisibleItems = (children = {}) => {
 	return sortItems(collections, assets, untrackedCollections, untrackedAssets);
 };
 
-// Mirrors the current root view while existing components remain authoritative.
-const mirrorRootData = () => {
-	browserTreeStore.setProject(projectStore.activeProject?.uri);
-	browserTreeStore.replaceChildren(browserRootParentKey, rootData.value);
+// Reconciles the visible root while preserving existing item identities.
+const replaceRootData = (items) => {
+	browserTreeStore.replaceRootItems(projectStore.activeProject?.uri, items);
 };
 
 // Loads recursive tracked assets for a navigated tracked collection when only-assets mode is active.
@@ -667,7 +665,6 @@ const handleUpdateRootData = (eventData) => {
 			if (updates && Array.isArray(updates)) updates.forEach(update => { rootData.value[itemIndex][update.property] = update.value; });
 		}
 	}
-	mirrorRootData();
 	emitter.emit('get-project-data');
 	loadStateBarFlags();
 	refreshUnsyncedState();
@@ -772,13 +769,12 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 	const trackedAssets = rootData.value.filter(item => item.type === 'asset');
 	const untrackedCollections = untrackedItems.filter(item => item.type === 'untracked_collection');
 	const untrackedAssets = untrackedItems.filter(item => item.type === 'untracked_asset');
-	rootData.value = composeVisibleItems({
+	replaceRootData(composeVisibleItems({
 		collections: trackedCollections,
 		assets: trackedAssets,
 		untracked_collections: untrackedCollections,
 		untracked_assets: untrackedAssets
-	});
-	mirrorRootData();
+	}));
 	emitter.emit('get-project-data');
 	loadStateBarFlags();
 };
@@ -1094,8 +1090,7 @@ const refresh = async () => {
 	if (recursiveUntrackedAssets) children.untracked_assets = recursiveUntrackedAssets;
 	await assetStore.processAssetsIconsAndPreviews(children.assets);
 	await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
-	rootData.value = composeVisibleItems(children);
-	mirrorRootData();
+	replaceRootData(composeVisibleItems(children));
 	assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	await nextTick();
@@ -1172,8 +1167,7 @@ const softRefresh = async (options = {}) => {
 	}
 	if (children.assets) await assetStore.processAssetsIconsAndPreviews(children.assets);
 	if (children.untracked_assets) await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
-	rootData.value = composeVisibleItems(children);
-	mirrorRootData();
+	replaceRootData(composeVisibleItems(children));
 	assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	refreshUnsyncedState();
