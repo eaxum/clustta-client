@@ -1041,17 +1041,67 @@ const sortItems = (collections, assets, untrackedCollections, untrackedAssets) =
 	];
 };
 
+const browserScrollSelectors = [
+	'.virtua-scroll-container',
+	'.navigator-root-viewport'
+];
+
+const getBrowserScrollContainer = () => {
+	if (!browserRoot.value) return null;
+	return browserRoot.value.querySelector(browserScrollSelectors.join(', '));
+};
+
+const captureViewportAnchor = () => {
+	const scrollContainer = getBrowserScrollContainer();
+	if (!scrollContainer) return null;
+
+	const containerRect = scrollContainer.getBoundingClientRect();
+	const itemElements = Array.from(scrollContainer.querySelectorAll('.virtua-item-header'));
+	const anchorElement = itemElements.find((element) => {
+		const itemRect = element.getBoundingClientRect();
+		return itemRect.bottom > containerRect.top;
+	});
+
+	return {
+		itemId: anchorElement?.dataset.id || '',
+		offsetTop: anchorElement
+			? anchorElement.getBoundingClientRect().top - containerRect.top
+			: 0,
+		scrollTop: scrollContainer.scrollTop
+	};
+};
+
+const restoreViewportAnchor = (anchor) => {
+	if (!anchor) return;
+	const scrollContainer = getBrowserScrollContainer();
+	if (!scrollContainer) return;
+
+	const anchorElement = Array.from(
+		scrollContainer.querySelectorAll('.virtua-item-header')
+	).find((element) => element.dataset.id === anchor.itemId);
+
+	if (anchorElement) {
+		const containerRect = scrollContainer.getBoundingClientRect();
+		const currentOffset = anchorElement.getBoundingClientRect().top - containerRect.top;
+		scrollContainer.scrollTop += currentOffset - anchor.offsetTop;
+	} else {
+		scrollContainer.scrollTop = anchor.scrollTop;
+	}
+	scrollStore.setScrollTop(scrollContainer.scrollTop);
+};
+
 // Full refresh: reloads project data, fetches all children, processes icons/previews, and updates state flags.
 const refresh = async () => {
 	if (kanbanView.value){
 		await trayStates.refreshData();
 		return;
-	} 
+	}
+	const project = projectStore.activeProject;
+	const refreshVersion = browserTreeStore.beginRootRefresh(project.uri);
 	assetStore.assetsLoaded = false;
 	await projectStore.refreshActiveProject();
 	await trayStates.refreshData();
 	let children;
-	let project = projectStore.activeProject;
 	if (!commonStore.navigatorMode) {
 		children = await CollectionService.GetCollectionChildren(project.uri, "root", project.working_directory, project.working_directory, project.ignore_list, false);
 		if (commonStore.onlyCollections) {
@@ -1076,7 +1126,12 @@ const refresh = async () => {
 	if (recursiveUntrackedAssets) children.untracked_assets = recursiveUntrackedAssets;
 	await assetStore.processAssetsIconsAndPreviews(children.assets);
 	await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
-	replaceRootData(composeVisibleItems(children));
+	const reconciledItems = browserTreeStore.replaceRootItemsIfCurrent(
+		project.uri,
+		refreshVersion,
+		composeVisibleItems(children)
+	);
+	if (reconciledItems === null) return;
 	assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	await nextTick();
@@ -1085,15 +1140,24 @@ const refresh = async () => {
 
 // Lightweight refresh: fetches children with search/filter support, processes icons, updates root data and state flags.
 const softRefresh = async (options = {}) => {
+	const silent = options.mode === 'silent';
+	const project = projectStore.activeProject;
+	if (!project) return;
+
+	const viewportAnchor = silent ? captureViewportAnchor() : null;
+	const refreshVersion = browserTreeStore.beginRootRefresh(project.uri);
 	if (options.invalidateVisibleThumbnails) {
-		const visibleItems = dndStore.allViewItems?.length ? dndStore.allViewItems : rootData.value;
-		invalidateAssetThumbnailsForItems(visibleItems);
+		const thumbnailItems = silent
+			? Object.values(browserTreeStore.itemsByKey)
+			: (dndStore.allViewItems?.length ? dndStore.allViewItems : rootData.value);
+		invalidateAssetThumbnailsForItems(thumbnailItems);
 	}
 
-	scrollTop.value = scrollStore.scrollTop
-	assetStore.assetsLoaded = false;
+	if (!silent) {
+		scrollTop.value = scrollStore.scrollTop;
+		assetStore.assetsLoaded = false;
+	}
 	let children = {};
-	let project = projectStore.activeProject;
 	const searching = commonStore.viewSearchQuery.toLowerCase();
 	if (searching || filtersActive.value) {
 		let collections, assets, collectionItems;
@@ -1153,12 +1217,39 @@ const softRefresh = async (options = {}) => {
 	}
 	if (children.assets) await assetStore.processAssetsIconsAndPreviews(children.assets);
 	if (children.untracked_assets) await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
-	replaceRootData(composeVisibleItems(children));
-	assetStore.assetsLoaded = true;
+	const reconciledItems = browserTreeStore.replaceRootItemsIfCurrent(
+		project.uri,
+		refreshVersion,
+		composeVisibleItems(children)
+	);
+	if (reconciledItems === null) return;
+	if (!silent) assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	refreshUnsyncedState();
 	await nextTick();
+
+	if (silent) {
+		const refreshTasks = [];
+		emitter.emit('silent-refresh-browser-items', { tasks: refreshTasks });
+		await Promise.allSettled(refreshTasks);
+		if (!browserTreeStore.isCurrentRootRefresh(refreshVersion)) return;
+		await nextTick();
+		restoreViewportAnchor(viewportAnchor);
+	}
 	dndStore.triggerDomUpdate();
+};
+
+const handleBrowserRefresh = async (options = {}) => {
+	try {
+		await softRefresh(options);
+	} catch (error) {
+		console.error('Error refreshing browser data:', error);
+		if (options.mode !== 'silent') assetStore.assetsLoaded = true;
+		notificationStore.errorNotification(
+			t('notifications.errorLoadingProjectData'),
+			error
+		);
+	}
 };
 
 // Flips the sync indicator to unsynced after a local edit.
@@ -1423,7 +1514,7 @@ onMounted(async () => {
 	window.addEventListener('keydown', detectModifier);
 	window.addEventListener('keyup', detectModifier);
 	window.addEventListener('mouseup', onDragStop);
-	emitter.on('refresh-browser', softRefresh);
+	emitter.on('refresh-browser', handleBrowserRefresh);
 	emitter.on('update-root-data', handleUpdateRootData);
 	emitter.on('update-untracked-items', handleUpdateUntrackedItems);
 	emitter.on('expand-all', expandAll);
@@ -1441,7 +1532,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
 	assetStore.assetsLoaded = false;
-	emitter.off('refresh-browser', softRefresh);
+	emitter.off('refresh-browser', handleBrowserRefresh);
 	emitter.off('update-root-data', handleUpdateRootData);
 	emitter.off('update-untracked-items', handleUpdateUntrackedItems);
 	emitter.off('expand-all', expandAll);

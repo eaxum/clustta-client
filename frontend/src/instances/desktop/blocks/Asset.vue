@@ -709,7 +709,6 @@ const emitAssetUpdates = (assetId, updates) => {
   const updateData = { itemId: assetId, updates };
   
   emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
 };
 
 // Frees up disk space by deleting working files.

@@ -211,7 +211,6 @@ const isRemoteProject = computed(() => {
 const emitAssetUpdates = (assetId, updates) => {
   const updateData = { itemId: assetId, updates };
   emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
 };
 
 // Builds the asset with all its transitive dependencies (assets and collections),

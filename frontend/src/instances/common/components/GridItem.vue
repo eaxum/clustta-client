@@ -16,6 +16,7 @@
 <script setup>
 import { computed, ref, onMounted, onBeforeUnmount, nextTick, watch } from 'vue';
 import { getBrowserItemKey } from '@/lib/browserTree';
+import emitter from '@/lib/mitt';
 
 import { useMenu } from '@/stores/menu';
 import { useDndStore } from '@/stores/dnd';
@@ -160,8 +161,9 @@ const emptyCollectionStateFlags = () => ({
 });
 
 // Loads the file status state for an asset.
-const loadAssetState = async () => {
+const loadAssetState = async (options = {}) => {
   const asset = props.child;
+  const silent = options.silent === true;
   
   if (asset.type !== 'asset' || asset.is_link) return;
   if (props.isFilteredView) {
@@ -169,7 +171,7 @@ const loadAssetState = async () => {
     return;
   }
 
-  const loadingTimer = setTimeout(() => {
+  const loadingTimer = silent ? null : setTimeout(() => {
     loadingAssetState.value = true;
   }, loadingDelay);
   
@@ -192,8 +194,9 @@ const loadAssetState = async () => {
 };
 
 // Loads the state flags for a collection.
-const loadCollectionState = async () => {
+const loadCollectionState = async (options = {}) => {
   const collection = props.child;
+  const silent = options.silent === true;
   
   if (collection.type !== 'collection') return;
   if (props.isFilteredView) {
@@ -204,7 +207,7 @@ const loadCollectionState = async () => {
     return;
   }
 
-  const loadingTimer = setTimeout(() => {
+  const loadingTimer = silent ? null : setTimeout(() => {
     loadingCollectionState.value = true;
   }, loadingDelay);
 
@@ -309,6 +312,23 @@ const handleKeyArrowKeys = (event) => {
   }
 };
 
+const refreshCachedItem = async () => {
+  if (props.child.type === 'asset') {
+    await loadAssetState({ silent: true });
+    return;
+  }
+  if (props.child.type === 'collection') {
+    await loadCollectionState({ silent: true });
+  }
+};
+
+const handleSilentRefresh = (eventData = {}) => {
+  const refreshTask = refreshCachedItem();
+  if (Array.isArray(eventData.tasks)) {
+    eventData.tasks.push(refreshTask);
+  }
+};
+
 onMounted(async () => {
   if (props.child.collection_type_id) {
     collectionChildren.value = collectionItemRef.value.collectionData
@@ -323,10 +343,12 @@ onMounted(async () => {
   }
   
   window.addEventListener('keydown', handleKeyArrowKeys);
+  emitter.on('silent-refresh-browser-items', handleSilentRefresh);
 });
 
 onBeforeUnmount(() => {
-    window.removeEventListener('keydown', handleKeyArrowKeys);
+  window.removeEventListener('keydown', handleKeyArrowKeys);
+  emitter.off('silent-refresh-browser-items', handleSilentRefresh);
 });
 
 

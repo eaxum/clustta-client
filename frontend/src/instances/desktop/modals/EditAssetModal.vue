@@ -264,7 +264,6 @@ const updateAsset = async () => {
         ]
       };
       emitter.emit('update-root-data', updateData);
-      emitter.emit('update-children', updateData);
       isAwaitingResponse.value = false;
     })
     .catch((error) => {

@@ -207,7 +207,6 @@ const emitCollectionUpdates = (collectionId, updates) => {
   
   // Emit to both Browser and VirtuaItem components
   emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
 };
 
 const revealInExplorer = async () => {

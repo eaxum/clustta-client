@@ -513,7 +513,6 @@ const emitCollectionUpdates = (collectionId, updates) => {
   const updateData = { itemId: collectionId, updates };
   
   emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
 };
 
 // Expands or collapses the collection in the tree view.

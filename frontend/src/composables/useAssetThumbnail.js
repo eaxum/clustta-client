@@ -1,13 +1,15 @@
-import { computed, onMounted, ref, unref, watch } from 'vue';
+import { computed, onMounted, reactive, ref, unref, watch } from 'vue';
 import { FSService } from '@/services';
 import { useIconStore } from '@/stores/icons';
 
 // Module-scoped cache shared across all callers (key = file_path, value = base64 string).
 const thumbnailCache = new Map();
+const thumbnailRevisions = reactive(new Map());
 
 export function invalidateAssetThumbnail(filePath) {
   if (!filePath) return;
   thumbnailCache.delete(filePath);
+  thumbnailRevisions.set(filePath, (thumbnailRevisions.get(filePath) || 0) + 1);
 }
 
 export function invalidateAssetThumbnailsForItems(items = []) {
@@ -60,6 +62,7 @@ export function useAssetThumbnail(assetSource, options = {}) {
 
   const osThumbnail = ref('');
   const thumbnailLoading = ref(false);
+  let thumbnailRequestVersion = 0;
 
   const displayThumbnail = computed(() => {
     const asset = resolve(assetSource);
@@ -79,15 +82,21 @@ export function useAssetThumbnail(assetSource, options = {}) {
 
   // Loads OS-generated thumbnail for the asset's file when no embedded preview exists.
   const loadOSThumbnail = async () => {
+    const requestVersion = ++thumbnailRequestVersion;
     const asset = resolve(assetSource);
-    if (!asset) return;
+    if (!asset) {
+      thumbnailLoading.value = false;
+      return;
+    }
     const filePath = asset.file_path;
-    if (!resolve(enabled) || asset.preview || !filePath || asset.is_link || thumbnailLoading.value) {
+    if (!resolve(enabled) || asset.preview || !filePath || asset.is_link) {
+      thumbnailLoading.value = false;
       return;
     }
 
     if (thumbnailCache.has(filePath)) {
       osThumbnail.value = thumbnailCache.get(filePath);
+      thumbnailLoading.value = false;
       return;
     }
 
@@ -95,15 +104,23 @@ export function useAssetThumbnail(assetSource, options = {}) {
     try {
       fileExists = await FSService.Exists(filePath);
     } catch (error) {
+      if (requestVersion === thumbnailRequestVersion) {
+        thumbnailLoading.value = false;
+      }
       return;
     }
-    if (!fileExists) return;
+    if (requestVersion !== thumbnailRequestVersion) return;
+    if (!fileExists) {
+      thumbnailLoading.value = false;
+      return;
+    }
 
     thumbnailLoading.value = true;
 
     try {
       const size = 512;
       let thumbnail = await FSService.GetCachedOSThumbnail(filePath, size);
+      if (requestVersion !== thumbnailRequestVersion) return;
 
       if (thumbnail && thumbnail.length > 0) {
         osThumbnail.value = thumbnail;
@@ -115,6 +132,7 @@ export function useAssetThumbnail(assetSource, options = {}) {
       setTimeout(async () => {
         try {
           thumbnail = await FSService.GetOSThumbnail(filePath, size);
+          if (requestVersion !== thumbnailRequestVersion) return;
           if (thumbnail && thumbnail.length > 0) {
             osThumbnail.value = thumbnail;
             thumbnailCache.set(filePath, thumbnail);
@@ -122,12 +140,16 @@ export function useAssetThumbnail(assetSource, options = {}) {
         } catch (error) {
           console.debug('Thumbnail generation failed:', error);
         } finally {
-          thumbnailLoading.value = false;
+          if (requestVersion === thumbnailRequestVersion) {
+            thumbnailLoading.value = false;
+          }
         }
       }, 0);
     } catch (error) {
       console.debug('Thumbnail loading failed:', error);
-      thumbnailLoading.value = false;
+      if (requestVersion === thumbnailRequestVersion) {
+        thumbnailLoading.value = false;
+      }
     }
   };
 
@@ -137,7 +159,8 @@ export function useAssetThumbnail(assetSource, options = {}) {
 
   watch(() => {
     const asset = resolve(assetSource);
-    return [asset?.file_path, asset?.preview];
+    const filePath = asset?.file_path;
+    return [filePath, asset?.preview, thumbnailRevisions.get(filePath) || 0];
   }, () => {
     osThumbnail.value = '';
     loadOSThumbnail();

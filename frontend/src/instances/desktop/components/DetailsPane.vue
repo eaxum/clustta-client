@@ -653,7 +653,6 @@ const emitItemUpdates = (assetId, updates) => {
   }
   const updateData = { itemId: assetId, updates };
   emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
 };
 
 // Applies and emits multiple item updates without refreshing the browser.
@@ -666,7 +665,6 @@ const emitBatchItemUpdates = (itemUpdates) => {
     });
   });
   emitter.emit('update-root-data', itemUpdates);
-  emitter.emit('update-children', itemUpdates);
 };
 
 // Filters the detail pane tabs.

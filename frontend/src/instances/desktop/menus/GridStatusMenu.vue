@@ -76,7 +76,6 @@ const emitAssetUpdates = (assetId, updates) => {
   
   // Emit to both Browser and VirtuaItem components
   emitter.emit('update-root-data', updateData);
-  emitter.emit('update-children', updateData);
 };
 </script>
 

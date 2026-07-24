@@ -43,6 +43,24 @@ export const useBrowserTreeStore = defineStore('browserTree', {
       return this.replaceChildren(browserRootParentKey, incomingItems);
     },
 
+    beginRootRefresh(projectUri) {
+      this.setProject(projectUri);
+      return this.beginParentRefresh(browserRootParentKey);
+    },
+
+    isCurrentRootRefresh(refreshVersion) {
+      return this.isCurrentRefresh(browserRootParentKey, refreshVersion);
+    },
+
+    replaceRootItemsIfCurrent(projectUri, refreshVersion, incomingItems = []) {
+      if (this.projectUri !== projectUri) return null;
+      return this.replaceChildrenIfCurrent(
+        browserRootParentKey,
+        refreshVersion,
+        incomingItems
+      );
+    },
+
     replaceChildren(parentKey, incomingItems = []) {
       if (!parentKey) return [];
 

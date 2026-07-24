@@ -74,7 +74,10 @@ export async function syncData() {
       await projectStore.reloadActiveProject();
       await userStore.reloadCurrentUser();
       refreshEntitlements();
-      emitter.emit('refresh-browser')
+      emitter.emit('refresh-browser', {
+        mode: 'silent',
+        invalidateVisibleThumbnails: true,
+      });
     })
     .catch((error) => {
       console.error(error);
@@ -107,7 +110,10 @@ export async function pullData() {
       await projectStore.reloadActiveProject();
       await userStore.reloadCurrentUser();
       refreshEntitlements();
-      emitter.emit('refresh-browser')
+      emitter.emit('refresh-browser', {
+        mode: 'silent',
+        invalidateVisibleThumbnails: true,
+      });
     })
     .catch((error) => {
       console.error(error);
@@ -132,7 +138,10 @@ export async function updateProject() {
       await projectStore.reloadActiveProject();
       await userStore.reloadCurrentUser();
       refreshEntitlements();
-      emitter.emit('refresh-browser');
+      emitter.emit('refresh-browser', {
+        mode: 'silent',
+        invalidateVisibleThumbnails: true,
+      });
     })
     .catch((error) => {
       console.log(error);
@@ -162,7 +171,10 @@ export async function syncFullData() {
       await projectStore.reloadActiveProject();
       await userStore.reloadCurrentUser();
       refreshEntitlements();
-      emitter.emit('refresh-browser')
+      emitter.emit('refresh-browser', {
+        mode: 'silent',
+        invalidateVisibleThumbnails: true,
+      });
     })
     .catch((error) => {
       console.error(error);
