@@ -807,7 +807,12 @@ const importItems = async () => {
 		}
 		if (successCount > 0) notificationStore.addNotification(successCount === 1 ? t('stages.itemImportedSuccessfully') : t('stages.itemsImportedSuccessfully', { count: successCount }), "", "success");
 		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? t('stages.itemFailedToImport') : t('stages.itemsFailedToImport', { count: failureCount }), errors.join("\n"));
-		if (successCount > 0) await softRefresh();
+		if (successCount > 0) {
+			await softRefresh({
+				mode: silentBrowserRefreshMode,
+				invalidateVisibleThumbnails: true
+			});
+		}
 	} catch (error) { notificationStore.errorNotification(t('stages.errorImportingItems'), error.message || error); }
 	finally { stage.operationActive = false; }
 };
@@ -948,8 +953,10 @@ const onDragStop = async (event) => {
 	let xOffset = cardRect.x - dndStore.ghostCardStyle.pos.x;
 	let yOffset = cardRect.y - dndStore.ghostCardStyle.pos.y;
 	dndStore.ghostCardStyle.transform = `scale(1) translate(${xOffset}px, ${yOffset}px)`;
-	if (needsRefresh) softRefresh();
 	stage.operationActive = false;
+	if (needsRefresh) {
+		await softRefresh({ mode: silentBrowserRefreshMode });
+	}
 };
 
 // Opens the project context menu on right-click.
@@ -1331,7 +1338,12 @@ const handleFileDrop = async (files, details) => {
 		}
 		if (successCount > 0) notificationStore.addNotification(successCount === 1 ? t('stages.itemImportedSuccessfully') : t('stages.itemsImportedSuccessfully', { count: successCount }), '', 'success');
 		if (failureCount > 0) notificationStore.errorNotification(failureCount === 1 ? t('stages.itemFailedToImport') : t('stages.itemsFailedToImport', { count: failureCount }), errors.join('\n'));
-		if (successCount > 0) await softRefresh();
+		if (successCount > 0) {
+			await softRefresh({
+				mode: silentBrowserRefreshMode,
+				invalidateVisibleThumbnails: true
+			});
+		}
 	} catch (error) { notificationStore.errorNotification(t('stages.errorImportingItems'), error.message || error); }
 	finally { stage.operationActive = false; }
 };
