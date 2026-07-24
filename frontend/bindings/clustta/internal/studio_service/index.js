@@ -4,6 +4,7 @@
 
 export {
     ProjectStorageCapabilities,
+    StorageConversionState,
     StudioCapabilities,
     StudioInfo,
     StudioUsage

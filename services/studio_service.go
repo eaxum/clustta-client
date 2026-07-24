@@ -77,6 +77,14 @@ func (s *StudioService) GetStudioUsage(studioUrl string) (studio_service.StudioU
 	return usage, nil
 }
 
+func (s *StudioService) GetStorageConversions(studioUrl string) ([]studio_service.StorageConversionState, error) {
+	return studio_service.GetStorageConversions(studioUrl)
+}
+
+func (s *StudioService) StartStorageConversion(studioUrl, projectName, targetMode string) (studio_service.StorageConversionState, error) {
+	return studio_service.StartStorageConversion(studioUrl, projectName, targetMode)
+}
+
 // Registers a new studio with name, URL, and hosting mode.
 func (s *StudioService) RegisterStudio(name, studioUrl, hostingMode string) (interface{}, error) {
 	result, err := studio_service.RegisterStudio(name, studioUrl, hostingMode)

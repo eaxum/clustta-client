@@ -74,6 +74,36 @@
         </div>
       </ProfileCard>
 
+      <ProfileCard v-if="showStorageConversions" :title="$t('settings.projectStorage')">
+        <div class="storage-conversions">
+          <p class="storage-description">{{ $t('settings.projectStorageDescription') }}</p>
+          <div v-if="storageConversions.length === 0" class="storage-empty">{{ $t('settings.noStorageConversions') }}</div>
+          <div v-for="conversion in storageConversions" :key="conversion.project_name" class="storage-project">
+            <div class="storage-project-info">
+              <div class="storage-project-title">
+                <span>{{ conversion.project_name }}</span>
+                <StatusBadge :text="storageStatusLabel(conversion)" />
+              </div>
+              <div class="storage-project-meta">
+                {{ $t('settings.currentStorageMode', { mode: storageModeLabel(conversion.current_mode) }) }}
+                <span v-if="conversion.required_bytes > 0"> · {{ $t('settings.storageRequired', { size: utils.formatBytes(conversion.required_bytes, 1) }) }}</span>
+              </div>
+              <div v-if="conversion.status === 'running'" class="storage-progress-track">
+                <div class="storage-progress-value" :style="{ width: storageProgress(conversion) + '%' }"></div>
+              </div>
+              <div v-if="conversion.error" class="storage-error">{{ conversion.error }}</div>
+            </div>
+            <ActionButton
+              :label="storageActionLabel(conversion)"
+              :showIcon="false"
+              :useBackground="true"
+              :isDisabled="!canConvertStorage(conversion)"
+              :buttonFunction="() => startStorageConversion(conversion)"
+            />
+          </div>
+        </div>
+      </ProfileCard>
+
       <!-- Danger Zone -->
       <ProfileCard :title="$t('stages.dangerZone')">
         <div class="danger-zone">
@@ -89,7 +119,7 @@
 
 <script setup>
 // imports
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { useI18n } from 'vue-i18n';
 import { StudioService } from "@/services";
 import { Browser } from "@wailsio/runtime";
@@ -101,6 +131,7 @@ import utils from '@/services/utils';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import MetricCard from '@/instances/desktop/components/MetricCard.vue';
 import ProfileCard from '@/instances/desktop/components/ProfileCard.vue';
+import StatusBadge from '@/instances/common/components/StatusBadge.vue';
 
 // stores
 const entitlementStore = useEntitlementStore();
@@ -124,6 +155,8 @@ import { useStudioStore } from '@/stores/studio';
 // refs
 const idCopied = ref(false);
 const serverVersion = ref("");
+const storageConversions = ref([]);
+let storagePoll = null;
 
 // computed
 
@@ -156,6 +189,12 @@ const collaboratorsLabel = computed(() => {
 const isCloudHosted = computed(() => {
   return studioInfo.value?.hosting_mode === 'cloud';
 });
+
+const storageCapabilities = computed(() => studioInfo.value?.capabilities?.project_storage || null);
+const showStorageConversions = computed(() => {
+  return !isCloudHosted.value && studioStore.isStudioAdmin && storageCapabilities.value?.conversion_supported === true;
+});
+const deflatedAvailable = computed(() => storageCapabilities.value?.available_modes?.includes('deflated'));
 
 // Returns the project count.
 const projectsValue = computed(() => {
@@ -267,6 +306,60 @@ const prepDeleteStudio = () => {
   modals.setModalVisibility('deleteStudioModal', true);
 };
 
+const fetchStorageConversions = async () => {
+  if (!showStorageConversions.value || !studioInfo.value?.url) return;
+  try {
+    storageConversions.value = await StudioService.GetStorageConversions(studioInfo.value.url) || [];
+  } catch (error) {
+    console.error('Failed to load project storage conversions:', error);
+  }
+};
+
+const storageModeLabel = (mode) => mode === 'deflated' ? t('settings.deflatedMode') : t('settings.compactMode');
+const storageStatusLabel = (conversion) => {
+  const labels = {
+    idle: 'settings.storageReady',
+    running: 'settings.storageConverting',
+    failed: 'settings.storageFailed',
+    cleanup_failed: 'settings.storageCleanupFailed',
+    completed: 'settings.storageCompleted',
+  };
+  return t(labels[conversion.status] || 'settings.storageReady');
+};
+const storageTargetMode = (conversion) => {
+  if (conversion.status === 'failed' || conversion.status === 'cleanup_failed') return conversion.target_mode;
+  return conversion.current_mode === 'compact' ? 'deflated' : 'compact';
+};
+const storageActionLabel = (conversion) => {
+  if (conversion.status === 'running') return t('settings.storageConverting');
+  if (conversion.status === 'failed' || conversion.status === 'cleanup_failed') return t('common.retry');
+  return t('settings.convertStorageTo', { mode: storageModeLabel(storageTargetMode(conversion)) });
+};
+const canConvertStorage = (conversion) => {
+  if (conversion.status === 'running') return false;
+  const target = storageTargetMode(conversion);
+  return target === 'compact' || deflatedAvailable.value;
+};
+const storageProgress = (conversion) => {
+  if (!conversion.total_chunks) return 0;
+  return Math.min(100, (conversion.processed_chunks / conversion.total_chunks) * 100);
+};
+const startStorageConversion = async (conversion) => {
+  if (!canConvertStorage(conversion)) return;
+  const target = storageTargetMode(conversion);
+  const confirmed = window.confirm(t('settings.confirmStorageConversion', {
+    project: conversion.project_name,
+    mode: storageModeLabel(target),
+  }));
+  if (!confirmed) return;
+  try {
+    await StudioService.StartStorageConversion(studioInfo.value.url, conversion.project_name, target);
+    await fetchStorageConversions();
+  } catch (error) {
+    notificationStore.addNotification(t('common.error'), String(error), 'error');
+  }
+};
+
 // lifecycle hooks
 onMounted(async () => {
   if (!isCloudHosted.value) {
@@ -274,12 +367,19 @@ onMounted(async () => {
   }
   const studioId = studioInfo.value?.id;
   if (studioId) {
+    await studioStore.getStudioUsers();
     if (isCloudHosted.value) {
       await entitlementStore.fetchStudioEntitlements(studioId);
     } else {
       await entitlementStore.fetchPrivateStudioUsage(studioInfo.value);
     }
   }
+  await fetchStorageConversions();
+  storagePoll = window.setInterval(fetchStorageConversions, 2000);
+});
+
+onBeforeUnmount(() => {
+  if (storagePoll) window.clearInterval(storagePoll);
 });
 </script>
 
@@ -506,6 +606,16 @@ onMounted(async () => {
   height: 100%;
   width: max-content;
 }
+
+.storage-conversions { display: flex; flex-direction: column; gap: .75rem; }
+.storage-description, .storage-empty { margin: 0; color: var(--text-muted); font-size: .8rem; }
+.storage-project { display: flex; align-items: center; gap: 1rem; padding: .75rem; border-radius: var(--normal-radius); background: var(--surface-3); }
+.storage-project-info { flex: 1; min-width: 0; }
+.storage-project-title { display: flex; align-items: center; gap: .5rem; font-size: .9rem; }
+.storage-project-meta { margin-top: .25rem; color: var(--text-muted); font-size: .75rem; }
+.storage-progress-track { height: 4px; margin-top: .6rem; overflow: hidden; border-radius: 4px; background: var(--surface-4); }
+.storage-progress-value { height: 100%; background: var(--accent); transition: width .2s ease; }
+.storage-error { margin-top: .4rem; color: var(--warning); font-size: .72rem; }
 
 /* Danger Zone */
 .danger-zone {

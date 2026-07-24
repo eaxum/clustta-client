@@ -26,6 +26,13 @@ export class ProjectStorageCapabilities {
              */
             this["available_modes"] = [];
         }
+        if (!("conversion_supported" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["conversion_supported"] = false;
+        }
 
         Object.assign(this, $$source);
     }
@@ -46,6 +53,111 @@ export class ProjectStorageCapabilities {
             $$parsedSource["available_modes"] = $$createField1_0($$parsedSource["available_modes"]);
         }
         return new ProjectStorageCapabilities(/** @type {Partial<ProjectStorageCapabilities>} */($$parsedSource));
+    }
+}
+
+export class StorageConversionState {
+    /**
+     * Creates a new StorageConversionState instance.
+     * @param {Partial<StorageConversionState>} [$$source = {}] - The source object to create the StorageConversionState.
+     */
+    constructor($$source = {}) {
+        if (!("project_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["project_name"] = "";
+        }
+        if (!("current_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["current_mode"] = "";
+        }
+        if (!("source_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["source_mode"] = "";
+        }
+        if (!("target_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["target_mode"] = "";
+        }
+        if (!("status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["status"] = "";
+        }
+        if (!("total_chunks" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["total_chunks"] = 0;
+        }
+        if (!("processed_chunks" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["processed_chunks"] = 0;
+        }
+        if (!("required_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["required_bytes"] = 0;
+        }
+        if (!("processed_bytes" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["processed_bytes"] = 0;
+        }
+        if (!("error" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["error"] = "";
+        }
+        if (!("started_at" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["started_at"] = 0;
+        }
+        if (!("updated_at" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["updated_at"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new StorageConversionState instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {StorageConversionState}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new StorageConversionState(/** @type {Partial<StorageConversionState>} */($$parsedSource));
     }
 }
 

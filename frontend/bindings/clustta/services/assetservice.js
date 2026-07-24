@@ -100,6 +100,24 @@ export function AssignAssets(projectPath, assetIds, userId) {
 /**
  * @param {string} projectPath
  * @param {string[]} assetIds
+ * @returns {$CancellablePromise<void>}
+ */
+export function AuthorizeCheckpoint(projectPath, assetIds) {
+    return $Call.ByID(1869488836, projectPath, assetIds);
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string[]} assetIds
+ * @returns {$CancellablePromise<void>}
+ */
+export function AuthorizeRevert(projectPath, assetIds) {
+    return $Call.ByID(163199156, projectPath, assetIds);
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string[]} assetIds
  * @param {boolean} isTask
  * @returns {$CancellablePromise<$models.MetadataUpdateResult>}
  */

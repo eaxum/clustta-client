@@ -54,6 +54,16 @@ export function GetServerVersion(studioUrl) {
 }
 
 /**
+ * @param {string} studioUrl
+ * @returns {$CancellablePromise<studio_service$0.StorageConversionState[]>}
+ */
+export function GetStorageConversions(studioUrl) {
+    return $Call.ByID(792943745, studioUrl).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * GetStudioInfo fetches studio metadata from a private studio server.
  * Used when authenticated against a private server to discover its details.
  * @param {string} studioUrl
@@ -61,7 +71,7 @@ export function GetServerVersion(studioUrl) {
  */
 export function GetStudioInfo(studioUrl) {
     return $Call.ByID(1544643585, studioUrl).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType2($result);
     }));
 }
 
@@ -81,7 +91,7 @@ export function GetStudioStatus(studioUrl) {
  */
 export function GetStudioUsage(studioUrl) {
     return $Call.ByID(2079244172, studioUrl).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType3($result);
     }));
 }
 
@@ -92,7 +102,7 @@ export function GetStudioUsage(studioUrl) {
  */
 export function GetStudioUsers(studioId) {
     return $Call.ByID(3707174447, studioId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType5($result);
     }));
 }
 
@@ -129,6 +139,18 @@ export function ResolveStudioUrl(url, altUrl) {
 }
 
 /**
+ * @param {string} studioUrl
+ * @param {string} projectName
+ * @param {string} targetMode
+ * @returns {$CancellablePromise<studio_service$0.StorageConversionState>}
+ */
+export function StartStorageConversion(studioUrl, projectName, targetMode) {
+    return $Call.ByID(182693000, studioUrl, projectName, targetMode).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * Updates studio configuration including URLs, port, and key
  * @param {string} studioName
  * @param {string} url
@@ -153,7 +175,7 @@ export function UpdateStudio(studioName, url, altUrl, port, key) {
  */
 export function UpdateStudioInfo(studioUrl, name, url, altUrl, port) {
     return $Call.ByID(879178662, studioUrl, name, url, altUrl, port).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType2($result);
     }));
 }
 
@@ -167,7 +189,9 @@ export function VerifyDeploymentCode(code) {
 }
 
 // Private type creation functions
-const $$createType0 = studio_service$0.StudioInfo.createFrom;
-const $$createType1 = studio_service$0.StudioUsage.createFrom;
-const $$createType2 = models$0.StudioUserInfo.createFrom;
-const $$createType3 = $Create.Array($$createType2);
+const $$createType0 = studio_service$0.StorageConversionState.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = studio_service$0.StudioInfo.createFrom;
+const $$createType3 = studio_service$0.StudioUsage.createFrom;
+const $$createType4 = models$0.StudioUserInfo.createFrom;
+const $$createType5 = $Create.Array($$createType4);

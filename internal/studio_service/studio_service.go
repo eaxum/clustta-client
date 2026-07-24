@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -28,8 +29,24 @@ type StudioCapabilities struct {
 }
 
 type ProjectStorageCapabilities struct {
-	SupportedModes []string `json:"supported_modes"`
-	AvailableModes []string `json:"available_modes"`
+	SupportedModes      []string `json:"supported_modes"`
+	AvailableModes      []string `json:"available_modes"`
+	ConversionSupported bool     `json:"conversion_supported"`
+}
+
+type StorageConversionState struct {
+	ProjectName     string `json:"project_name"`
+	CurrentMode     string `json:"current_mode"`
+	SourceMode      string `json:"source_mode"`
+	TargetMode      string `json:"target_mode"`
+	Status          string `json:"status"`
+	TotalChunks     int64  `json:"total_chunks"`
+	ProcessedChunks int64  `json:"processed_chunks"`
+	RequiredBytes   int64  `json:"required_bytes"`
+	ProcessedBytes  int64  `json:"processed_bytes"`
+	Error           string `json:"error"`
+	StartedAt       int64  `json:"started_at"`
+	UpdatedAt       int64  `json:"updated_at"`
 }
 
 // StudioUsage represents VM-local usage metrics returned by a private studio server.
@@ -149,6 +166,76 @@ func UpdateStudioInfo(studioUrl, name, url, altUrl, port string) (StudioInfo, er
 		return StudioInfo{}, fmt.Errorf("failed to parse response: %v", err)
 	}
 	return info, nil
+}
+
+func attachPrivateStudioAuth(req *http.Request) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return fmt.Errorf("no active user: %v", err)
+	}
+	userJSON, err := json.Marshal(user)
+	if err != nil {
+		return err
+	}
+	auth_service.AttachBearerToken(req)
+	req.Header.Set("UserData", string(userJSON))
+	req.Header.Set("UserId", user.Id)
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+	return nil
+}
+
+func GetStorageConversions(studioURL string) ([]StorageConversionState, error) {
+	req, err := http.NewRequest(http.MethodGet, studioURL+"/storage-conversions", nil)
+	if err != nil {
+		return nil, err
+	}
+	if err := attachPrivateStudioAuth(req); err != nil {
+		return nil, err
+	}
+	response, err := (&http.Client{Timeout: 15 * time.Second}).Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+	body, _ := io.ReadAll(response.Body)
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("storage conversions request failed: code %d: %s", response.StatusCode, string(body))
+	}
+	var conversions []StorageConversionState
+	if err := json.Unmarshal(body, &conversions); err != nil {
+		return nil, err
+	}
+	return conversions, nil
+}
+
+func StartStorageConversion(studioURL, projectName, targetMode string) (StorageConversionState, error) {
+	payload, err := json.Marshal(map[string]string{"target_mode": targetMode})
+	if err != nil {
+		return StorageConversionState{}, err
+	}
+	endpoint := studioURL + "/" + url.PathEscape(projectName) + "/storage-conversion"
+	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(payload))
+	if err != nil {
+		return StorageConversionState{}, err
+	}
+	if err := attachPrivateStudioAuth(req); err != nil {
+		return StorageConversionState{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	response, err := (&http.Client{Timeout: 15 * time.Second}).Do(req)
+	if err != nil {
+		return StorageConversionState{}, err
+	}
+	defer response.Body.Close()
+	body, _ := io.ReadAll(response.Body)
+	if response.StatusCode != http.StatusAccepted {
+		return StorageConversionState{}, fmt.Errorf("storage conversion failed: code %d: %s", response.StatusCode, string(body))
+	}
+	var conversion StorageConversionState
+	if err := json.Unmarshal(body, &conversion); err != nil {
+		return StorageConversionState{}, err
+	}
+	return conversion, nil
 }
 
 // getEffectiveHost returns the appropriate API host based on auth mode.
