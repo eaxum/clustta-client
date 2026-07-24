@@ -46,6 +46,7 @@ import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
+import { browserRootParentKey } from '@/lib/browserTree';
 import { getRelativePath } from '@/lib/pathlib';
 import { canCreateAssetHere, canCreateCollectionHere } from '@/lib/permissions';
 import { useDebounce } from '@/lib/debounce';
@@ -72,6 +73,7 @@ import { AssetService, CheckpointService, CollectionService, DialogService, FSSe
 
 // store imports
 import { useAssetStore } from '@/stores/assets';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDependencyStore } from '@/stores/dependency';
@@ -94,6 +96,7 @@ import { useStatusStore } from '@/stores/status';
 
 // stores
 const assetStore = useAssetStore();
+const browserTreeStore = useBrowserTreeStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dependencyStore = useDependencyStore();
@@ -264,6 +267,12 @@ const composeVisibleItems = (children = {}) => {
 	const untrackedAssets = filterUntrackedAssets(children.untracked_assets || children.untracked_files || []);
 
 	return sortItems(collections, assets, untrackedCollections, untrackedAssets);
+};
+
+// Mirrors the current root view while existing components remain authoritative.
+const mirrorRootData = () => {
+	browserTreeStore.setProject(projectStore.activeProject?.uri);
+	browserTreeStore.replaceChildren(browserRootParentKey, rootData.value);
 };
 
 // Loads recursive tracked assets for a navigated tracked collection when only-assets mode is active.
@@ -658,6 +667,7 @@ const handleUpdateRootData = (eventData) => {
 			if (updates && Array.isArray(updates)) updates.forEach(update => { rootData.value[itemIndex][update.property] = update.value; });
 		}
 	}
+	mirrorRootData();
 	emitter.emit('get-project-data');
 	loadStateBarFlags();
 	refreshUnsyncedState();
@@ -768,6 +778,7 @@ const handleUpdateUntrackedItems = (untrackedItems) => {
 		untracked_collections: untrackedCollections,
 		untracked_assets: untrackedAssets
 	});
+	mirrorRootData();
 	emitter.emit('get-project-data');
 	loadStateBarFlags();
 };
@@ -1084,6 +1095,7 @@ const refresh = async () => {
 	await assetStore.processAssetsIconsAndPreviews(children.assets);
 	await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
 	rootData.value = composeVisibleItems(children);
+	mirrorRootData();
 	assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	await nextTick();
@@ -1161,6 +1173,7 @@ const softRefresh = async (options = {}) => {
 	if (children.assets) await assetStore.processAssetsIconsAndPreviews(children.assets);
 	if (children.untracked_assets) await assetStore.processUntrackedAssetsIcons(children.untracked_assets);
 	rootData.value = composeVisibleItems(children);
+	mirrorRootData();
 	assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	refreshUnsyncedState();
