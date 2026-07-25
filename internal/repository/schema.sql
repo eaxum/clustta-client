@@ -549,6 +549,36 @@ CREATE TABLE IF NOT EXISTS chunk (
     size INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS project_storage (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    mode TEXT NOT NULL CHECK (mode IN ('compact', 'deflated', 'object_storage')),
+    updated_at INTEGER NOT NULL
+);
+
+INSERT OR IGNORE INTO project_storage (id, mode, updated_at)
+VALUES (1, 'compact', unixepoch());
+
+CREATE TABLE IF NOT EXISTS project_storage_conversion (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    source_mode TEXT NOT NULL CHECK (source_mode IN ('compact', 'deflated')),
+    target_mode TEXT NOT NULL CHECK (target_mode IN ('compact', 'deflated')),
+    status TEXT NOT NULL CHECK (status IN ('running', 'failed', 'cleanup_failed', 'completed')),
+    total_chunks INTEGER NOT NULL DEFAULT 0,
+    processed_chunks INTEGER NOT NULL DEFAULT 0,
+    required_bytes INTEGER NOT NULL DEFAULT 0,
+    processed_bytes INTEGER NOT NULL DEFAULT 0,
+    error TEXT NOT NULL DEFAULT '',
+    started_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS chunk_ref (
+    hash TEXT PRIMARY KEY NOT NULL,
+    storage_key TEXT NOT NULL,
+    size INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS "role" (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
@@ -653,6 +683,107 @@ CREATE TABLE IF NOT EXISTS tomb (
     synced BOOLEAN DEFAULT 0 NOT NULL
 );
 
+-- Integration tables
+-- External integration mappings (Kitsu, ClickUp, ShotGrid, etc.)
+
+-- Project integration link: which external project is this Clustta project linked to?
+-- CONSTRAINT: Only ONE row allowed (one integration per project)
+CREATE TABLE IF NOT EXISTS integration_project (
+    id TEXT PRIMARY KEY,
+    mtime INTEGER NOT NULL,
+    integration_id TEXT NOT NULL,
+    external_project_id TEXT NOT NULL,
+    external_project_name TEXT DEFAULT '' NOT NULL,
+    api_url TEXT DEFAULT '' NOT NULL,
+    sync_options TEXT DEFAULT '{}' NOT NULL,
+    linked_by_user_id TEXT DEFAULT '' NOT NULL,
+    linked_at TEXT DEFAULT '' NOT NULL,
+    enabled INTEGER DEFAULT 1 NOT NULL,
+    synced BOOLEAN DEFAULT 0 NOT NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS integration_project_update AFTER UPDATE ON integration_project
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE integration_project SET synced = 0 WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS integration_project_delete AFTER DELETE ON integration_project
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_project', 0);
+END;
+
+-- Collection mappings: external hierarchy items to Clustta Collections
+CREATE TABLE IF NOT EXISTS integration_collection_mapping (
+    id TEXT PRIMARY KEY,
+    mtime INTEGER NOT NULL,
+    integration_id TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    external_type TEXT DEFAULT '' NOT NULL,
+    external_name TEXT DEFAULT '' NOT NULL,
+    external_parent_id TEXT DEFAULT '' NOT NULL,
+    external_path TEXT DEFAULT '' NOT NULL,
+    external_metadata TEXT DEFAULT '{}' NOT NULL,
+    collection_id TEXT DEFAULT '' NOT NULL,
+    synced_at TEXT DEFAULT '' NOT NULL,
+    synced BOOLEAN DEFAULT 0 NOT NULL,
+    UNIQUE(integration_id, external_id),
+    FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE SET NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS integration_collection_mapping_update AFTER UPDATE ON integration_collection_mapping
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE integration_collection_mapping SET synced = 0 WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS integration_collection_mapping_delete AFTER DELETE ON integration_collection_mapping
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_collection_mapping', 0);
+END;
+
+-- Asset mappings: external assets to Clustta Assets
+CREATE TABLE IF NOT EXISTS integration_asset_mapping (
+    id TEXT PRIMARY KEY,
+    mtime INTEGER NOT NULL,
+    integration_id TEXT NOT NULL,
+    external_id TEXT NOT NULL,
+    external_name TEXT DEFAULT '' NOT NULL,
+    external_parent_id TEXT DEFAULT '' NOT NULL,
+    external_type TEXT DEFAULT '' NOT NULL,
+    external_status TEXT DEFAULT '' NOT NULL,
+    external_assignees TEXT DEFAULT '[]' NOT NULL,
+    external_metadata TEXT DEFAULT '{}' NOT NULL,
+    asset_id TEXT DEFAULT '' NOT NULL,
+    last_pushed_checkpoint_id TEXT DEFAULT '' NOT NULL,
+    synced_at TEXT DEFAULT '' NOT NULL,
+    synced BOOLEAN DEFAULT 0 NOT NULL,
+    UNIQUE(integration_id, external_id),
+    FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE SET NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS integration_asset_mapping_update AFTER UPDATE ON integration_asset_mapping
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE integration_asset_mapping SET synced = 0 WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS integration_asset_mapping_delete AFTER DELETE ON integration_asset_mapping
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_asset_mapping', 0);
+END;
+
+CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_collection ON integration_collection_mapping(collection_id);
+CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_external ON integration_collection_mapping(integration_id, external_id);
+CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_asset ON integration_asset_mapping(asset_id);
+CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_external ON integration_asset_mapping(integration_id, external_id);
+
 DROP VIEW IF EXISTS collection_hierarchy;
 
 CREATE VIEW collection_hierarchy AS
@@ -741,34 +872,34 @@ GROUP BY
 DROP VIEW IF EXISTS asset_dependencies;
 CREATE VIEW asset_dependencies AS
 SELECT 
-    ad.asset_id,
+    td.asset_id,
     json_group_array(json_object(
-        'id', ad.dependency_id,
-        'type_id', ad.dependency_type_id,
+        'id', td.dependency_id,
+        'type_id', td.dependency_type_id,
         'type_name', dt.name
     )) AS dependencies
 FROM 
-    asset_dependency ad
+    asset_dependency td
 LEFT JOIN 
-    dependency_type dt ON ad.dependency_type_id = dt.id
+    dependency_type dt ON td.dependency_type_id = dt.id
 GROUP BY 
-    ad.asset_id;
+    td.asset_id;
 
 DROP VIEW IF EXISTS asset_collection_dependencies;
 CREATE VIEW asset_collection_dependencies AS
 SELECT 
-    cd.asset_id,
+    ed.asset_id,
     json_group_array(json_object(
-        'id', cd.dependency_id,
-        'type_id', cd.dependency_type_id,
+        'id', ed.dependency_id,
+        'type_id', ed.dependency_type_id,
         'type_name', dt.name
     )) AS collection_dependencies
 FROM 
-    collection_dependency cd
+    collection_dependency ed
 LEFT JOIN 
-    dependency_type dt ON cd.dependency_type_id = dt.id
+    dependency_type dt ON ed.dependency_type_id = dt.id
 GROUP BY 
-    cd.asset_id;
+    ed.asset_id;
 
 -- 2. Improved main full_asset view
 DROP VIEW IF EXISTS full_asset;
@@ -812,7 +943,7 @@ SELECT
     tb.*,
     IFNULL(tt.tags, '[]') as tags,
     IFNULL(td.dependencies, '[]') as dependencies,
-    IFNULL(tcd.collection_dependencies, '[]') as collection_dependencies
+    IFNULL(ted.collection_dependencies, '[]') as collection_dependencies
 FROM 
     asset_base tb
 LEFT JOIN 
@@ -820,7 +951,7 @@ LEFT JOIN
 LEFT JOIN 
     asset_dependencies td ON tb.id = td.asset_id
 LEFT JOIN 
-    asset_collection_dependencies tcd ON tb.id = tcd.asset_id;
+    asset_collection_dependencies ted ON tb.id = ted.asset_id;
 
 
 CREATE INDEX IF NOT EXISTS idx_asset_assignee ON asset(assignee_id);
@@ -833,107 +964,3 @@ CREATE INDEX IF NOT EXISTS idx_asset_tag_tag ON asset_tag(tag_id);
 CREATE INDEX IF NOT EXISTS idx_asset_dependency_asset ON asset_dependency(asset_id);
 CREATE INDEX IF NOT EXISTS idx_collection_dependency_asset ON collection_dependency(asset_id);
 CREATE INDEX IF NOT EXISTS idx_collection_parent ON collection(parent_id);
-
--- ═══════════════════════════════════════════════════════════════════════════
--- INTEGRATION TABLES
--- External integration mappings (Kitsu, ClickUp, ShotGrid, etc.)
--- ═══════════════════════════════════════════════════════════════════════════
-
--- Project integration link: which external project is this Clustta project linked to?
--- CONSTRAINT: Only ONE row allowed (one integration per project)
-CREATE TABLE IF NOT EXISTS integration_project (
-    id TEXT PRIMARY KEY,
-    mtime INTEGER NOT NULL,
-    integration_id TEXT NOT NULL,
-    external_project_id TEXT NOT NULL,
-    external_project_name TEXT DEFAULT '' NOT NULL,
-    api_url TEXT DEFAULT '' NOT NULL,
-    sync_options TEXT DEFAULT '{}' NOT NULL,
-    linked_by_user_id TEXT DEFAULT '' NOT NULL,
-    linked_at TEXT DEFAULT '' NOT NULL,
-    enabled INTEGER DEFAULT 1 NOT NULL,
-    synced BOOLEAN DEFAULT 0 NOT NULL
-);
-
--- Collection mappings: external hierarchy items → Clustta Collections
-CREATE TABLE IF NOT EXISTS integration_collection_mapping (
-    id TEXT PRIMARY KEY,
-    mtime INTEGER NOT NULL,
-    integration_id TEXT NOT NULL,
-    external_id TEXT NOT NULL,
-    external_type TEXT DEFAULT '' NOT NULL,
-    external_name TEXT DEFAULT '' NOT NULL,
-    external_parent_id TEXT DEFAULT '' NOT NULL,
-    external_path TEXT DEFAULT '' NOT NULL,
-    external_metadata TEXT DEFAULT '{}' NOT NULL,
-    collection_id TEXT DEFAULT '' NOT NULL,
-    synced_at TEXT DEFAULT '' NOT NULL,
-    synced BOOLEAN DEFAULT 0 NOT NULL,
-    UNIQUE(integration_id, external_id),
-    FOREIGN KEY (collection_id) REFERENCES collection(id) ON DELETE SET NULL
-);
-
--- Asset mappings: external assets → Clustta Assets
-CREATE TABLE IF NOT EXISTS integration_asset_mapping (
-    id TEXT PRIMARY KEY,
-    mtime INTEGER NOT NULL,
-    integration_id TEXT NOT NULL,
-    external_id TEXT NOT NULL,
-    external_name TEXT DEFAULT '' NOT NULL,
-    external_parent_id TEXT DEFAULT '' NOT NULL,
-    external_type TEXT DEFAULT '' NOT NULL,
-    external_status TEXT DEFAULT '' NOT NULL,
-    external_assignees TEXT DEFAULT '[]' NOT NULL,
-    external_metadata TEXT DEFAULT '{}' NOT NULL,
-    asset_id TEXT DEFAULT '' NOT NULL,
-    last_pushed_checkpoint_id TEXT DEFAULT '' NOT NULL,
-    synced_at TEXT DEFAULT '' NOT NULL,
-    synced BOOLEAN DEFAULT 0 NOT NULL,
-    UNIQUE(integration_id, external_id),
-    FOREIGN KEY (asset_id) REFERENCES asset(id) ON DELETE SET NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_collection ON integration_collection_mapping(collection_id);
-CREATE INDEX IF NOT EXISTS idx_integration_collection_mapping_external ON integration_collection_mapping(integration_id, external_id);
-CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_asset ON integration_asset_mapping(asset_id);
-CREATE INDEX IF NOT EXISTS idx_integration_asset_mapping_external ON integration_asset_mapping(integration_id, external_id);
-
--- Integration triggers to set synced = 0 on mtime change
-CREATE TRIGGER IF NOT EXISTS integration_project_update AFTER UPDATE ON integration_project
-FOR EACH ROW
-WHEN OLD.mtime != NEW.mtime
-BEGIN
-    UPDATE integration_project SET synced = 0 WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS integration_collection_mapping_update AFTER UPDATE ON integration_collection_mapping
-FOR EACH ROW
-WHEN OLD.mtime != NEW.mtime
-BEGIN
-    UPDATE integration_collection_mapping SET synced = 0 WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS integration_asset_mapping_update AFTER UPDATE ON integration_asset_mapping
-FOR EACH ROW
-WHEN OLD.mtime != NEW.mtime
-BEGIN
-    UPDATE integration_asset_mapping SET synced = 0 WHERE id = NEW.id;
-END;
-
-CREATE TRIGGER IF NOT EXISTS integration_project_delete AFTER DELETE ON integration_project
-FOR EACH ROW
-BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_project', 0);
-END;
-
-CREATE TRIGGER IF NOT EXISTS integration_collection_mapping_delete AFTER DELETE ON integration_collection_mapping
-FOR EACH ROW
-BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_collection_mapping', 0);
-END;
-
-CREATE TRIGGER IF NOT EXISTS integration_asset_mapping_delete AFTER DELETE ON integration_asset_mapping
-FOR EACH ROW
-BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'integration_asset_mapping', 0);
-END;
