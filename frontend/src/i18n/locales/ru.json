@@ -561,7 +561,7 @@
     "projectStorage": "Хранилище проекта",
     "projectStorageDescription": "Преобразуйте проекты между архивом и диском сервера. Во время преобразования они недоступны.",
     "noStorageConversions": "Нет доступных проектов.",
-    "currentStorageMode": "Текущий режим: {mode}",
+    "currentStorageMode": "Хранилище: {mode}",
     "storageRequired": "Требуется {size}",
     "compactMode": "Компактный",
     "deflatedMode": "Распакованный",

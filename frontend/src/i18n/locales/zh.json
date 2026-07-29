@@ -561,7 +561,7 @@
     "projectStorage": "项目存储",
     "projectStorageDescription": "在归档与服务器磁盘存储之间转换项目。转换期间项目不可用。",
     "noStorageConversions": "没有可用项目。",
-    "currentStorageMode": "当前：{mode}",
+    "currentStorageMode": "存储：{mode}",
     "storageRequired": "需要 {size}",
     "compactMode": "紧凑",
     "deflatedMode": "展开",

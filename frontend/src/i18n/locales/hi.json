@@ -562,7 +562,7 @@
     "projectStorage": "प्रोजेक्ट स्टोरेज",
     "projectStorageDescription": "प्रोजेक्ट को आर्काइव और सर्वर डिस्क स्टोरेज के बीच बदलें। रूपांतरण के दौरान प्रोजेक्ट उपलब्ध नहीं रहेगा।",
     "noStorageConversions": "कोई प्रोजेक्ट उपलब्ध नहीं है।",
-    "currentStorageMode": "वर्तमान: {mode}",
+    "currentStorageMode": "स्टोरेज: {mode}",
     "storageRequired": "{size} आवश्यक",
     "compactMode": "कॉम्पैक्ट",
     "deflatedMode": "डिफ्लेटेड",

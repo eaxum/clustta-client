@@ -563,7 +563,7 @@
     "projectStorage": "프로젝트 저장소",
     "projectStorageDescription": "프로젝트를 아카이브와 서버 디스크 저장소 간에 변환합니다. 변환 중에는 사용할 수 없습니다.",
     "noStorageConversions": "사용 가능한 프로젝트가 없습니다.",
-    "currentStorageMode": "현재: {mode}",
+    "currentStorageMode": "스토리지: {mode}",
     "storageRequired": "{size} 필요",
     "compactMode": "컴팩트",
     "deflatedMode": "디플레이트",

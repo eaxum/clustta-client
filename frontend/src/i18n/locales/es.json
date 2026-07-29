@@ -562,7 +562,7 @@
     "projectStorage": "Almacenamiento del proyecto",
     "projectStorageDescription": "Convierte proyectos entre archivo y disco del servidor. No estarán disponibles durante la conversión.",
     "noStorageConversions": "No hay proyectos disponibles.",
-    "currentStorageMode": "Actual: {mode}",
+    "currentStorageMode": "Almacenamiento: {mode}",
     "storageRequired": "Se requieren {size}",
     "compactMode": "Compacto",
     "deflatedMode": "Descomprimido",

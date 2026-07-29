@@ -43,9 +43,9 @@
 
       <!-- Metrics Row -->
       <div v-if="studioEntitlements" class="metrics-row">
-        <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="getAppIcon('two-persons')" />
+        <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="getAppIcon('two-persons')" clickable :cardFunction="() => openSettingsTab('studiocollaborators')" />
 
-        <MetricCard :title="$t('settings.remoteProjects')" :value="projectsValue" :subtitle="projectsLabel" :icon="getAppIcon('briefcase')" />
+        <MetricCard :title="$t('settings.remoteProjects')" :value="projectsValue" :subtitle="projectsLabel" :icon="getAppIcon('briefcase')" clickable :cardFunction="() => openSettingsTab('studioprojects')" />
 
         <MetricCard :title="$t('settings.storageUsed')" :value="storageValue" :subtitle="storageLabel" :icon="getAppIcon('floppy-disk')" :percent="storagePercent" :warning="storagePercent >= 90" />
 
@@ -74,38 +74,6 @@
         </div>
       </ProfileCard>
 
-      <ProfileCard v-if="showStorageConversions" :title="$t('settings.projectStorage')">
-        <div class="storage-conversions">
-          <p class="storage-description">{{ $t('settings.projectStorageDescription') }}</p>
-          <div v-if="storageConversions.length === 0" class="storage-empty">{{ $t('settings.noStorageConversions') }}</div>
-          <div v-for="conversion in storageConversions" :key="conversion.project_name" class="storage-project">
-            <div class="storage-project-info">
-              <div class="storage-project-title">
-                <span>{{ conversion.project_name }}</span>
-                <StatusBadge v-if="showStorageStatus(conversion)" :text="storageStatusLabel(conversion)" />
-              </div>
-              <div class="storage-project-meta">
-                {{ $t('settings.currentStorageMode', { mode: storageModeLabel(conversion.current_mode) }) }}
-                <span v-if="conversion.required_bytes > 0"> · {{ $t('settings.storageRequired', { size: utils.formatBytes(conversion.required_bytes, 1) }) }}</span>
-              </div>
-              <div v-if="conversion.status === 'running'" class="storage-progress-track">
-                <div class="storage-progress-value" :style="{ width: storageProgress(conversion) + '%' }"></div>
-              </div>
-              <div v-if="conversion.status === 'running'" class="storage-progress-label">
-                {{ storageProgress(conversion).toFixed(0) }}%
-              </div>
-              <div v-if="conversion.error" class="storage-error">{{ conversion.error }}</div>
-            </div>
-            <ActionButton
-              :label="storageActionLabel(conversion)"
-              :icon="getAppIcon('refresh')"
-              :isDisabled="!canConvertStorage(conversion)"
-              :buttonFunction="() => confirmStorageConversion(conversion)"
-            />
-          </div>
-        </div>
-      </ProfileCard>
-
       <!-- Danger Zone -->
       <ProfileCard :title="$t('stages.dangerZone')">
         <div class="danger-zone">
@@ -121,7 +89,7 @@
 
 <script setup>
 // imports
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useI18n } from 'vue-i18n';
 import { StudioService } from "@/services";
 import { Browser } from "@wailsio/runtime";
@@ -133,7 +101,6 @@ import utils from '@/services/utils';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import MetricCard from '@/instances/desktop/components/MetricCard.vue';
 import ProfileCard from '@/instances/desktop/components/ProfileCard.vue';
-import StatusBadge from '@/instances/common/components/StatusBadge.vue';
 
 // stores
 const entitlementStore = useEntitlementStore();
@@ -141,9 +108,8 @@ const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
-const settings = useSettingsStore();
 const studioStore = useStudioStore();
-const trayStates = useTrayStates();
+const settings = useSettingsStore();
 const { t } = useI18n();
 
 // stores/state imports
@@ -154,16 +120,10 @@ import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
 import { useSettingsStore } from '@/stores/settings';
 import { useStudioStore } from '@/stores/studio';
-import { useTrayStates } from '@/stores/TrayStates';
 
 // refs
 const idCopied = ref(false);
 const serverVersion = ref("");
-const storageConversions = ref([]);
-let storagePoll = null;
-let storagePollingEnabled = true;
-const activeStoragePollInterval = 1000;
-const idleStoragePollInterval = 5000;
 
 // computed
 
@@ -196,12 +156,6 @@ const collaboratorsLabel = computed(() => {
 const isCloudHosted = computed(() => {
   return studioInfo.value?.hosting_mode === 'cloud';
 });
-
-const storageCapabilities = computed(() => studioInfo.value?.capabilities?.project_storage || null);
-const showStorageConversions = computed(() => {
-  return !isCloudHosted.value && studioStore.isStudioAdmin && storageCapabilities.value?.conversion_supported === true;
-});
-const deflatedAvailable = computed(() => storageCapabilities.value?.available_modes?.includes('deflated'));
 
 // Returns the project count.
 const projectsValue = computed(() => {
@@ -313,99 +267,13 @@ const prepDeleteStudio = () => {
   modals.setModalVisibility('deleteStudioModal', true);
 };
 
-const fetchStorageConversions = async () => {
-  if (!showStorageConversions.value) return;
-  try {
-    const studioUrl = await projectStore.resolveStudioUrl();
-    storageConversions.value = await StudioService.GetStorageConversions(studioUrl) || [];
-  } catch (error) {
-    console.error('Failed to load project storage conversions:', error);
-  } finally {
-    scheduleStoragePoll();
-  }
-};
-
-const storageModeLabel = (mode) => mode === 'deflated' ? t('settings.deflatedMode') : t('settings.compactMode');
-const storageStatusLabel = (conversion) => {
-  const labels = {
-    idle: 'settings.storageReady',
-    running: 'settings.storageConverting',
-    failed: 'settings.storageFailed',
-    cleanup_failed: 'settings.storageCleanupFailed',
-    completed: 'settings.storageCompleted',
-  };
-  return t(labels[conversion.status] || 'settings.storageReady');
-};
-const showStorageStatus = (conversion) => {
-  return ['running', 'failed', 'cleanup_failed'].includes(conversion.status);
-};
-const storageTargetMode = (conversion) => {
-  if (conversion.status === 'failed' || conversion.status === 'cleanup_failed') return conversion.target_mode;
-  return conversion.current_mode === 'compact' ? 'deflated' : 'compact';
-};
-const storageActionLabel = (conversion) => {
-  if (conversion.status === 'running') return t('settings.storageConverting');
-  if (conversion.status === 'failed' || conversion.status === 'cleanup_failed') return t('common.retry');
-  return t('settings.convertStorageTo', { mode: storageModeLabel(storageTargetMode(conversion)) });
-};
-const canConvertStorage = (conversion) => {
-  if (conversion.status === 'running') return false;
-  const target = storageTargetMode(conversion);
-  return target === 'compact' || deflatedAvailable.value;
-};
-const storageProgress = (conversion) => {
-  if (!conversion.total_chunks) return 0;
-  return Math.min(100, (conversion.processed_chunks / conversion.total_chunks) * 100);
-};
-const startStorageConversion = async (conversion) => {
-  if (!canConvertStorage(conversion)) return;
-  const target = storageTargetMode(conversion);
-  const studioUrl = await projectStore.resolveStudioUrl();
-  await StudioService.StartStorageConversion(
-    studioUrl,
-    conversion.project_name,
-    target,
-    '',
-  );
-  await fetchStorageConversions();
-};
-const confirmStorageConversion = (conversion) => {
-  if (!canConvertStorage(conversion)) return;
-  const target = storageTargetMode(conversion);
-  trayStates.dangerousActionTitle = t('settings.storageConversionTitle', {
-    project: conversion.project_name,
-  });
-  trayStates.dangerousActionMessage = t('settings.confirmStorageConversion', {
-    project: conversion.project_name,
-    source: storageModeLabel(conversion.current_mode),
-    target: storageModeLabel(target),
-  });
-  trayStates.dangerousActionIcon = 'refresh';
-  trayStates.dangerousActionConfirmText = conversion.project_name;
-  trayStates.dangerousActionShowInput = true;
-  trayStates.dangerousActionInputSecret = false;
-  trayStates.dangerousActionRequireExactInput = true;
-  trayStates.dangerousActionShowToggle = false;
-  trayStates.dangerousActionFunction = () => startStorageConversion(conversion);
-  modals.setModalVisibility('confirmDangerousActionModal', true);
-};
-const scheduleStoragePoll = () => {
-  if (!storagePollingEnabled) return;
-  if (storagePoll) window.clearTimeout(storagePoll);
-  const hasActiveConversion = storageConversions.value.some(({ status }) => status === 'running');
-  const interval = hasActiveConversion ? activeStoragePollInterval : idleStoragePollInterval;
-  storagePoll = window.setTimeout(fetchStorageConversions, interval);
+// Navigates to another Studio Settings tab from a metric card.
+const openSettingsTab = (tab) => {
+  settings.setModalVisibility(tab, true);
 };
 
 // lifecycle hooks
 onMounted(async () => {
-  if (!isCloudHosted.value && studioInfo.value?.name !== 'Personal') {
-    try {
-      await projectStore.ensureStudioCapabilities();
-    } catch (error) {
-      console.warn('Could not load Studio capabilities:', error);
-    }
-  }
   if (!isCloudHosted.value) {
     await fetchServerVersion();
   }
@@ -418,12 +286,6 @@ onMounted(async () => {
       await entitlementStore.fetchPrivateStudioUsage(studioInfo.value);
     }
   }
-  await fetchStorageConversions();
-});
-
-onBeforeUnmount(() => {
-  storagePollingEnabled = false;
-  if (storagePoll) window.clearTimeout(storagePoll);
 });
 </script>
 
@@ -650,17 +512,6 @@ onBeforeUnmount(() => {
   height: 100%;
   width: max-content;
 }
-
-.storage-conversions { display: flex; flex-direction: column; gap: .75rem; }
-.storage-description, .storage-empty { margin: 0; color: var(--text-muted); font-size: .8rem; }
-.storage-project { display: flex; align-items: center; gap: 1rem; padding: .75rem; border-radius: var(--normal-radius); background: var(--surface-3); }
-.storage-project-info { flex: 1; min-width: 0; }
-.storage-project-title { display: flex; align-items: center; gap: .5rem; font-size: .9rem; }
-.storage-project-meta { margin-top: .25rem; color: var(--text-muted); font-size: .75rem; }
-.storage-progress-track { height: 4px; margin-top: .6rem; overflow: hidden; border-radius: 4px; background: var(--surface-4); }
-.storage-progress-value { height: 100%; background: var(--accent); transition: width .2s ease; }
-.storage-progress-label { margin-top: .25rem; color: var(--text-muted); font-size: .7rem; text-align: right; }
-.storage-error { margin-top: .4rem; color: var(--warning); font-size: .72rem; }
 
 /* Danger Zone */
 .danger-zone {

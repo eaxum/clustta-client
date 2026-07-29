@@ -562,7 +562,7 @@
     "projectStorage": "Projektspeicher",
     "projectStorageDescription": "Projekte zwischen Archiv- und Serverspeicher konvertieren. Währenddessen sind sie nicht verfügbar.",
     "noStorageConversions": "Keine Projekte verfügbar.",
-    "currentStorageMode": "Aktuell: {mode}",
+    "currentStorageMode": "Speicher: {mode}",
     "storageRequired": "{size} erforderlich",
     "compactMode": "Kompakt",
     "deflatedMode": "Entpackt",

@@ -562,7 +562,7 @@
     "projectStorage": "プロジェクトストレージ",
     "projectStorageDescription": "プロジェクトをアーカイブとサーバーディスク間で変換します。変換中は利用できません。",
     "noStorageConversions": "利用可能なプロジェクトがありません。",
-    "currentStorageMode": "現在: {mode}",
+    "currentStorageMode": "ストレージ: {mode}",
     "storageRequired": "{size} 必要",
     "compactMode": "コンパクト",
     "deflatedMode": "展開",
