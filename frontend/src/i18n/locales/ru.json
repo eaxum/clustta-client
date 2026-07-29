@@ -572,7 +572,7 @@
     "storageCompleted": "Завершено",
     "storageConversionTitle": "Преобразовать хранилище «{project}»",
     "convertStorageTo": "Преобразовать в {mode}",
-    "confirmStorageConversion": "Преобразовать {project} из {source} в {target}. Проект будет недоступен до завершения. Введите пароль для подтверждения.",
+    "confirmStorageConversion": "Преобразовать {project} из {source} в {target}. Проект будет недоступен до завершения. Введите название проекта для подтверждения.",
     "storageOf": "{used} из {limit}",
     "remoteProjects": "Удалённые проекты",
     "projectsOf": "{used} из {limit}",

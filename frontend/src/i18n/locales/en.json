@@ -583,7 +583,7 @@
     "storageCompleted": "Completed",
     "storageConversionTitle": "Convert storage for \"{project}\"",
     "convertStorageTo": "Convert to {mode}",
-    "confirmStorageConversion": "Convert {project} from {source} to {target}. The project will be unavailable until conversion finishes. Enter your password to confirm.",
+    "confirmStorageConversion": "Convert {project} from {source} to {target}. The project will be unavailable until conversion finishes. Type the project name to confirm.",
     "storageOf": "{used} of {limit}",
     "remoteProjects": "Remote Projects",
     "projectsOf": "{used} of {limit}",

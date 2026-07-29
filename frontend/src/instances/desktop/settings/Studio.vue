@@ -278,7 +278,7 @@ const copyStudioId = async () => {
 // Fetches the studio server version.
 const fetchServerVersion = async () => {
   try {
-    const studioUrl = studioInfo.value?.url;
+    const studioUrl = await projectStore.resolveStudioUrl();
     if (!studioUrl) {
       serverVersion.value = t('settings.noStudioConnected');
       return;
@@ -314,9 +314,10 @@ const prepDeleteStudio = () => {
 };
 
 const fetchStorageConversions = async () => {
-  if (!showStorageConversions.value || !studioInfo.value?.url) return;
+  if (!showStorageConversions.value) return;
   try {
-    storageConversions.value = await StudioService.GetStorageConversions(studioInfo.value.url) || [];
+    const studioUrl = await projectStore.resolveStudioUrl();
+    storageConversions.value = await StudioService.GetStorageConversions(studioUrl) || [];
   } catch (error) {
     console.error('Failed to load project storage conversions:', error);
   } finally {
@@ -356,14 +357,15 @@ const storageProgress = (conversion) => {
   if (!conversion.total_chunks) return 0;
   return Math.min(100, (conversion.processed_chunks / conversion.total_chunks) * 100);
 };
-const startStorageConversion = async (conversion, password) => {
+const startStorageConversion = async (conversion) => {
   if (!canConvertStorage(conversion)) return;
   const target = storageTargetMode(conversion);
+  const studioUrl = await projectStore.resolveStudioUrl();
   await StudioService.StartStorageConversion(
-    studioInfo.value.url,
+    studioUrl,
     conversion.project_name,
     target,
-    password,
+    '',
   );
   await fetchStorageConversions();
 };
@@ -379,12 +381,12 @@ const confirmStorageConversion = (conversion) => {
     target: storageModeLabel(target),
   });
   trayStates.dangerousActionIcon = 'refresh';
-  trayStates.dangerousActionConfirmText = t('auth.login.passwordPlaceholder');
+  trayStates.dangerousActionConfirmText = conversion.project_name;
   trayStates.dangerousActionShowInput = true;
-  trayStates.dangerousActionInputSecret = true;
-  trayStates.dangerousActionRequireExactInput = false;
+  trayStates.dangerousActionInputSecret = false;
+  trayStates.dangerousActionRequireExactInput = true;
   trayStates.dangerousActionShowToggle = false;
-  trayStates.dangerousActionFunction = ({ inputValue }) => startStorageConversion(conversion, inputValue);
+  trayStates.dangerousActionFunction = () => startStorageConversion(conversion);
   modals.setModalVisibility('confirmDangerousActionModal', true);
 };
 const scheduleStoragePoll = () => {
@@ -397,6 +399,13 @@ const scheduleStoragePoll = () => {
 
 // lifecycle hooks
 onMounted(async () => {
+  if (!isCloudHosted.value && studioInfo.value?.name !== 'Personal') {
+    try {
+      await projectStore.ensureStudioCapabilities();
+    } catch (error) {
+      console.warn('Could not load Studio capabilities:', error);
+    }
+  }
   if (!isCloudHosted.value) {
     await fetchServerVersion();
   }

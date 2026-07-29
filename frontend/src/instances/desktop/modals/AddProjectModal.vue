@@ -38,7 +38,7 @@
         </div>
       </div>
 
-      <div v-if="isPrivateStudio" class="input-section drop-down-box-section">
+      <div v-if="isHostedStudio" class="input-section drop-down-box-section">
         <span class="input-label">{{ $t('modals.storage') }}</span>
         <DropDownBox :items="storageOptions" :selectedItem="selectedStorageLabel"
           :onSelect="selectStorage">
@@ -85,7 +85,7 @@ import ProgressSection from '@/instances/common/components/ProgressSection.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
-import { DialogService, ProjectService, SettingsService, StudioService, SyncService } from '@/services';
+import { DialogService, ProjectService, SettingsService, SyncService } from '@/services';
 
 // stores
 const accountStore = useAccountStore();
@@ -135,11 +135,13 @@ const selectedProjectTemplate = ref(t('modals.noTemplate'));
 const title = computed(() => t('modals.addProject'));
 
 const supportedStorageModes = computed(() => {
-  return projectStore.selectedStudio?.capabilities?.project_storage?.supported_modes || ['compact'];
+  const modes = projectStore.selectedStudio?.capabilities?.project_storage?.supported_modes;
+  return modes?.length ? modes : ['compact'];
 });
 
 const availableStorageModes = computed(() => {
-  return projectStore.selectedStudio?.capabilities?.project_storage?.available_modes || ['compact'];
+  const modes = projectStore.selectedStudio?.capabilities?.project_storage?.available_modes;
+  return modes?.length ? modes : ['compact'];
 });
 
 const createStorageOption = (id, name) => {
@@ -165,8 +167,9 @@ const isValueChanged = computed(() => {
   return !projectNameEmpty.value && !projectNameInUse.value;
 });
 
-const isPrivateStudio = computed(() => {
-  return projectStore.selectedStudio?.hosting_mode === 'private';
+const isHostedStudio = computed(() => {
+  const studio = projectStore.selectedStudio;
+  return !!studio && studio.name !== 'Personal' && studio.hosting_mode !== 'cloud';
 });
 
 // Returns display names for location dropdown.
@@ -346,7 +349,9 @@ const createProject = async () => {
   isAwaitingResponse.value = true;
   
   let studio = projectStore.selectedStudio
-  let projectFilepath = studio.url
+  let projectFilepath = isHostedStudio.value
+    ? (projectStore.studioUrl || studio.url)
+    : studio.url
   let name = projectName.value;
   let path = projectFilepath + '/' + name;
   path = path.replace(/\\/g, '/');
@@ -357,7 +362,7 @@ const createProject = async () => {
   
   const templateName = selectedProjectTemplate.value === t('modals.noTemplate') ? 'No Template' : selectedProjectTemplate.value;
 
-  const createRequest = isPrivateStudio.value
+  const createRequest = isHostedStudio.value
     ? ProjectService.CreateProjectWithStorageMode(path, studio.name, workingDirectory.value, templateName, studio.hosting_mode || '', studio.id || '', selectedStorageMode.value)
     : ProjectService.CreateProject(path, studio.name, workingDirectory.value, templateName, studio.hosting_mode || '', studio.id || '');
 
@@ -511,12 +516,11 @@ watchEffect(() => {
 onMounted(async () => {
   await loadProjectLocations();
   await projectTemplateStore.loadProjectTemplates();
-  if (isPrivateStudio.value && projectStore.selectedStudio?.url) {
+  if (isHostedStudio.value && projectStore.selectedStudio?.url) {
     try {
-      const info = await StudioService.GetStudioInfo(projectStore.selectedStudio.url);
-      projectStore.selectedStudio.capabilities = info.capabilities;
+      await projectStore.ensureStudioCapabilities();
     } catch (error) {
-      console.warn('Could not load private Studio storage capabilities:', error);
+      console.warn('Could not load Studio storage capabilities:', error);
     }
   }
 });

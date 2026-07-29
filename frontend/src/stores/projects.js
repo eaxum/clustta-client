@@ -38,6 +38,33 @@ await SettingsService.GetLastStudio()
   })
   .catch((error) => console.log(error));
 
+const studioUrlRequests = new Map();
+const studioCapabilityRequests = new Map();
+
+const studioCacheKey = (studio) => [
+  studio?.id || "",
+  studio?.url || "",
+  studio?.alt_url || "",
+].join("|");
+
+const hasValidStudioCapabilities = (capabilities) => {
+  const storage = capabilities?.project_storage;
+  return (
+    Array.isArray(storage?.supported_modes) &&
+    storage.supported_modes.includes("compact") &&
+    Array.isArray(storage?.available_modes) &&
+    storage.available_modes.includes("compact") &&
+    typeof storage?.conversion_supported === "boolean"
+  );
+};
+
+const validateStudioCapabilities = (capabilities) => {
+  if (!hasValidStudioCapabilities(capabilities)) {
+    throw new Error("Studio returned an invalid project storage capability response");
+  }
+  return capabilities;
+};
+
 export const useProjectStore = defineStore("projects", {
   state: () => ({
     activeProject: null,
@@ -46,6 +73,7 @@ export const useProjectStore = defineStore("projects", {
     pinnedProjects: [],
     recentProjects: [],
     studioUrl: "",
+    studioUrlKey: "",
     isProjectGridView: isProjectGridView,
     showUntrackedProjects: showUntrackedProjects,
     lastStudio: lastStudio,
@@ -118,6 +146,59 @@ export const useProjectStore = defineStore("projects", {
 
   },
   actions: {
+    async resolveStudioUrl(studio = this.selectedStudio, { force = false } = {}) {
+      if (!studio || studio.name === "Personal") return studio?.url || "";
+
+      const key = studioCacheKey(studio);
+      if (!force && this.studioUrlKey === key && this.studioUrl) {
+        return this.studioUrl;
+      }
+      if (!force && studioUrlRequests.has(key)) {
+        return studioUrlRequests.get(key);
+      }
+
+      const request = StudioService.ResolveStudioUrl(studio.url, studio.alt_url || "")
+        .then((resolvedUrl) => {
+          if (studioCacheKey(this.selectedStudio) === key) {
+            this.studioUrl = resolvedUrl;
+            this.studioUrlKey = key;
+          }
+          return resolvedUrl;
+        })
+        .finally(() => studioUrlRequests.delete(key));
+
+      studioUrlRequests.set(key, request);
+      return request;
+    },
+    async ensureStudioCapabilities(studio = this.selectedStudio, { force = false } = {}) {
+      if (!studio || studio.name === "Personal" || studio.hosting_mode === "cloud") {
+        return studio?.capabilities || null;
+      }
+
+      const key = studioCacheKey(studio);
+      if (!force && hasValidStudioCapabilities(studio.capabilities)) {
+        return studio.capabilities;
+      }
+      if (!force && studioCapabilityRequests.has(key)) {
+        return studioCapabilityRequests.get(key);
+      }
+
+      const request = this.resolveStudioUrl(studio, { force })
+        .then((effectiveUrl) => StudioService.GetStudioInfo(effectiveUrl))
+        .then((info) => {
+          const capabilities = validateStudioCapabilities(info.capabilities);
+          const matchingStudio = this.studios.find((item) => studioCacheKey(item) === key);
+          if (matchingStudio) matchingStudio.capabilities = capabilities;
+          if (studioCacheKey(this.selectedStudio) === key) {
+            this.selectedStudio.capabilities = capabilities;
+          }
+          return capabilities;
+        })
+        .finally(() => studioCapabilityRequests.delete(key));
+
+      studioCapabilityRequests.set(key, request);
+      return request;
+    },
     async setActiveProject(project) {
       const commonStore = useCommonStore();
       this.activeProject = project;
@@ -371,13 +452,13 @@ export const useProjectStore = defineStore("projects", {
       this.projectsLoaded = false;
 
       let studio = this.selectedStudio;
-      let studioUrl;
       try {
-        studioUrl = await StudioService.ResolveStudioUrl(studio.url, studio.alt_url || "");
+        await this.resolveStudioUrl(studio);
       } catch {
-        studioUrl = studio.url;
+        this.studioUrl = studio.url;
+        this.studioUrlKey = studioCacheKey(studio);
       }
-      this.studioUrl = studioUrl;
+      const studioUrl = this.studioUrl;
 
       // Update studio reachability after URL resolution
       const { useStudioStore } = await import('./studio');
@@ -510,9 +591,20 @@ export const useProjectStore = defineStore("projects", {
       const notificationStore = useNotificationStore();
       await SettingsService.GetStudios()
         .then(async (data) => {
-          this.studios = data;
+          const previousStudios = new Map(
+            this.studios.map((studio) => [studioCacheKey(studio), studio])
+          );
+          this.studios = data.map((studio) => {
+            const previous = previousStudios.get(studioCacheKey(studio));
+            if (hasValidStudioCapabilities(previous?.capabilities)) {
+              studio.capabilities = previous.capabilities;
+            }
+            return studio;
+          });
           let lastSelectedStudio = this.studios.find((item) => item.name === lastStudio)
-          this.selectedStudio = lastSelectedStudio ? lastSelectedStudio: data[0] ;
+          this.selectedStudio = lastSelectedStudio ? lastSelectedStudio: this.studios[0] ;
+          this.studioUrl = "";
+          this.studioUrlKey = "";
 
           // Fetch studio users for non-Personal studios so permissions are available immediately
           if (this.selectedStudio?.name !== 'Personal') {
@@ -531,6 +623,8 @@ export const useProjectStore = defineStore("projects", {
       this.activeProject = null;
       this.projects = [];
       this.selectedStudio = studio;
+      this.studioUrl = "";
+      this.studioUrlKey = "";
       this.clearProjectSelection();
       commonStore.resetFilters();
       commonStore.snapshotWorkspace();

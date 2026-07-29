@@ -573,7 +573,7 @@
     "storageCompleted": "完了",
     "storageConversionTitle": "「{project}」のストレージを変換",
     "convertStorageTo": "{mode} に変換",
-    "confirmStorageConversion": "{project} を {source} から {target} に変換します。完了までプロジェクトは利用できません。確認のためパスワードを入力してください。",
+    "confirmStorageConversion": "{project} を {source} から {target} に変換します。完了までプロジェクトは利用できません。確認のためプロジェクト名を入力してください。",
     "storageOf": "{limit}中{used}",
     "remoteProjects": "リモートプロジェクト",
     "projectsOf": "{limit}中{used}",

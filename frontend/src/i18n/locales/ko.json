@@ -574,7 +574,7 @@
     "storageCompleted": "완료",
     "storageConversionTitle": "\"{project}\" 저장소 변환",
     "convertStorageTo": "{mode}(으)로 변환",
-    "confirmStorageConversion": "{project}을(를) {source}에서 {target}(으)로 변환합니다. 완료될 때까지 사용할 수 없습니다. 확인하려면 비밀번호를 입력하세요.",
+    "confirmStorageConversion": "{project}을(를) {source}에서 {target}(으)로 변환합니다. 완료될 때까지 사용할 수 없습니다. 확인하려면 프로젝트 이름을 입력하세요.",
     "storageOf": "{limit} 중 {used}",
     "remoteProjects": "원격 프로젝트",
     "projectsOf": "{limit} 중 {used}",

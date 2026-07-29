@@ -173,7 +173,9 @@ export const useEntitlementStore = defineStore("entitlements", {
     async fetchPrivateStudioUsage(studio) {
       if (!studio?.id) return null;
       try {
-        const usage = await StudioService.GetStudioUsage(studio.url);
+        const projectStore = useProjectStore();
+        const studioUrl = await projectStore.resolveStudioUrl(studio);
+        const usage = await StudioService.GetStudioUsage(studioUrl);
         const bundle = createPrivateStudioBundle(usage, false);
         this.studioEntitlements[studio.id] = bundle;
         return bundle;
