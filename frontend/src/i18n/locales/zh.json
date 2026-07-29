@@ -565,6 +565,7 @@
     "storageRequired": "需要 {size}",
     "compactMode": "紧凑",
     "deflatedMode": "展开",
+    "objectStorageMode": "对象存储",
     "storageReady": "就绪",
     "storageConverting": "转换中",
     "storageFailed": "失败",

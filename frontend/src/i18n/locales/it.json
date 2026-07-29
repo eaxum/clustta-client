@@ -565,6 +565,7 @@
     "storageRequired": "{size} richiesti",
     "compactMode": "Compatto",
     "deflatedMode": "Decompresso",
+    "objectStorageMode": "Archiviazione oggetti",
     "storageReady": "Pronto",
     "storageConverting": "Conversione",
     "storageFailed": "Non riuscita",

@@ -2,15 +2,23 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
       <div class="asset-header">
+        <div class="quick-filters">
+          <PaneHeaderTabs
+            :dataTypes="quickFilters"
+            :selectedTab="selectedFilter"
+            :useSelected="true"
+            :fullWidth="true"
+            @filter="selectedFilter = $event"
+          />
+        </div>
         <ActionButton
           :icon="getAppIcon(refreshing ? 'loading' : 'refresh')"
           :isLoading="refreshing"
-          :label="$t('common.refresh')"
           :buttonFunction="refresh"
           v-tooltip="$t('common.refresh')"
         />
         <div class="search-bar">
-          <SearchBar v-model="searchQuery" :placeholder="$t('settings.searchProjects')" @clear="searchQuery = ''" />
+          <SearchBar v-model="searchQuery" :placeholder="$t('placeholders.searchProjects')" @clear="searchQuery = ''" />
         </div>
       </div>
 
@@ -50,7 +58,7 @@
                 <div class="project-item-actions">
                   <ActionButton
                     v-if="canShowConversion(project)"
-                    :icon="getAppIcon('refresh')"
+                    :icon="getAppIcon('switch')"
                     :isDisabled="!canConvertStorage(conversionFor(project))"
                     @click="confirmStorageConversion(conversionFor(project))"
                     v-tooltip="storageActionLabel(conversionFor(project))"
@@ -73,12 +81,14 @@
           </div>
         </div>
       </div>
-      <PageState v-else :message="searchQuery ? $t('settings.noProjectsMatch') : $t('settings.noStorageConversions')" :illustration="'/page-states/resources.png'" />
+      <PageState v-else :message="emptyStateMessage" :illustration="'/page-states/resources.png'" />
     </div>
   </div>
 </template>
 
 <script setup>
+defineOptions({ name: 'ProjectStorage' });
+
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ProjectService, StudioService } from '@/services';
@@ -88,6 +98,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetListSkeleton from '@/instances/desktop/components/AssetListSkeleton.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 import PageState from '@/instances/common/components/PageState.vue';
+import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
@@ -104,6 +115,7 @@ const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 
 const searchQuery = ref('');
+const selectedFilter = ref('compact');
 const refreshing = ref(false);
 const storageConversions = ref([]);
 let storagePoll = null;
@@ -112,10 +124,13 @@ let pollingEnabled = true;
 const projects = computed(() => projectStore.projects || []);
 const filteredProjects = computed(() => {
   const query = searchQuery.value.trim().toLowerCase();
-  if (!query) return projects.value;
-  return projects.value.filter((project) =>
-    [project.name, project.id, project.uri].some((value) => String(value || '').toLowerCase().includes(query))
-  );
+  return projects.value.filter((project) => {
+    const conversion = conversionFor(project);
+    const matchesQuickFilter = conversion?.current_mode === selectedFilter.value;
+    const matchesSearch = !query || [project.name, project.id, project.uri]
+      .some((value) => String(value || '').toLowerCase().includes(query));
+    return matchesQuickFilter && matchesSearch;
+  });
 });
 const storageCapabilities = computed(() => projectStore.selectedStudio?.capabilities?.project_storage || null);
 const conversionSupported = computed(() =>
@@ -125,13 +140,27 @@ const conversionSupported = computed(() =>
   storageCapabilities.value?.conversion_supported === true
 );
 const deflatedAvailable = computed(() => storageCapabilities.value?.available_modes?.includes('deflated'));
+const quickFilters = computed(() => [
+  { id: 'compact', nameKey: 'settings.compactMode', name: 'Compact', icon: 'clustta' },
+  { id: 'deflated', nameKey: 'settings.deflatedMode', name: 'Deflated', icon: 'two-drives' },
+  { id: 'object_storage', nameKey: 'settings.objectStorageMode', name: 'Object storage', icon: 'website' },
+]);
+const emptyStateMessage = computed(() => {
+  if (!projects.value.length) return t('stages.noProjects');
+  if (searchQuery.value) return t('stages.noProjectsMatchSearch');
+  return t('stages.noResultsMatchFilters');
+});
 
 const getAppIcon = (name) => iconStore.getAppIcon(name);
 const conversionFor = (project) => storageConversions.value.find((item) =>
   item.project_name === project.name || item.project_id === project.id
 );
 const canShowConversion = (project) => conversionSupported.value && !!conversionFor(project);
-const storageModeLabel = (mode) => mode === 'deflated' ? t('settings.deflatedMode') : t('settings.compactMode');
+const storageModeLabel = (mode) => {
+  if (mode === 'deflated') return t('settings.deflatedMode');
+  if (mode === 'object_storage') return t('settings.objectStorageMode');
+  return t('settings.compactMode');
+};
 const storageTargetMode = (conversion) =>
   ['failed', 'cleanup_failed'].includes(conversion.status)
     ? conversion.target_mode
@@ -288,6 +317,7 @@ onBeforeUnmount(() => {
 .settings-component-root { width: 100%; height: 100%; overflow: hidden; display: flex; }
 .settings-component-container { display: flex; flex-direction: column; width: 96%; height: 100%; margin: auto; padding: 1rem; gap: .5rem; box-sizing: border-box; overflow: hidden; color: var(--text); border-radius: var(--gigantic-radius); background: var(--surface-1); }
 .asset-header { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 1rem; padding: .2rem; box-sizing: border-box; }
+.quick-filters { display: flex; flex: 0 1 auto; min-width: 0; overflow: hidden; }
 .search-bar { display: flex; flex: 1; max-width: 40%; min-width: 240px; padding: .2rem; }
 .project-list-container { width: 100%; height: 100%; overflow-y: auto; padding: .4rem; box-sizing: border-box; }
 .project-list-container::-webkit-scrollbar { width: 8px; }

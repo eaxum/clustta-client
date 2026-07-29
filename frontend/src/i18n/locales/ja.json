@@ -566,6 +566,7 @@
     "storageRequired": "{size} 必要",
     "compactMode": "コンパクト",
     "deflatedMode": "展開",
+    "objectStorageMode": "オブジェクトストレージ",
     "storageReady": "準備完了",
     "storageConverting": "変換中",
     "storageFailed": "失敗",

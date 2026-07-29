@@ -565,6 +565,7 @@
     "storageRequired": "Требуется {size}",
     "compactMode": "Компактный",
     "deflatedMode": "Распакованный",
+    "objectStorageMode": "Объектное хранилище",
     "storageReady": "Готово",
     "storageConverting": "Преобразование",
     "storageFailed": "Ошибка",

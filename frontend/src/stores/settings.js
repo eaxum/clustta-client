@@ -65,7 +65,7 @@ export const useSettingsStore = defineStore("settings", {
       { id: "advanced", nameKey: "settings.advanced", name: "Advanced", icon: "skull" },
 
       { id: "studio", nameKey: "settings.studio", name: "Studio", icon: "stall" },
-      { id: "studioprojects", nameKey: "settings.projects", name: "Projects", icon: "briefcase" },
+      { id: "studioprojects", nameKey: "settings.projectStorage", name: "Project Storage", icon: "briefcase" },
       { id: "studiocollaborators", nameKey: "settings.studioCollaborators", name: "Studio Collaborators", icon: "person" },
       { id: "studiointegrations", nameKey: "settings.studioIntegrations", name: "Integrations", icon: "plug" },
     ],

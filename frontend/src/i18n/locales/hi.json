@@ -566,6 +566,7 @@
     "storageRequired": "{size} आवश्यक",
     "compactMode": "कॉम्पैक्ट",
     "deflatedMode": "डिफ्लेटेड",
+    "objectStorageMode": "ऑब्जेक्ट स्टोरेज",
     "storageReady": "तैयार",
     "storageConverting": "रूपांतरण जारी",
     "storageFailed": "विफल",

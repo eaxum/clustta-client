@@ -567,6 +567,7 @@
     "storageRequired": "{size} 필요",
     "compactMode": "컴팩트",
     "deflatedMode": "디플레이트",
+    "objectStorageMode": "오브젝트 스토리지",
     "storageReady": "준비됨",
     "storageConverting": "변환 중",
     "storageFailed": "실패",
