@@ -6,6 +6,8 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/utils"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -136,7 +138,7 @@ func metadataCommand(name, description, valueKey, action string, types []scope.E
 func typeCommand() Definition {
 	return Definition{
 		Name:        "batch_change_type",
-		Description: "Change asset and/or collection types in a structured scope. Provide the target ID for every included entity type. Local-only; manual sync required.",
+		Description: "Change asset and/or collection types in one structured batch. Use asset_type_rules to map asset-name suffixes to different type IDs in a single call. Local-only; manual sync required.",
 		Permission:  "update_asset", Risk: "destructive",
 		Parameters: map[string]interface{}{
 			"type": "object",
@@ -144,22 +146,49 @@ func typeCommand() Definition {
 				"scope":              ScopeSchema([]string{"asset", "collection"}),
 				"asset_type_id":      map[string]interface{}{"type": "string"},
 				"collection_type_id": map[string]interface{}{"type": "string"},
+				"asset_type_rules": map[string]interface{}{
+					"type":        "array",
+					"description": "Optional suffix-to-type mappings. Resolve the full scope once and apply the matching target to each asset. Prefer this over separate calls per suffix.",
+					"items": map[string]interface{}{
+						"type": "object",
+						"properties": map[string]interface{}{
+							"suffix":        map[string]interface{}{"type": "string"},
+							"asset_type_id": map[string]interface{}{"type": "string"},
+						},
+						"required": []string{"suffix", "asset_type_id"},
+					},
+				},
 			},
 			"required": []string{"scope"},
 		},
 		Plan: func(projectPath string, args map[string]interface{}) (planning.Plan, error) {
+			assetTypeID := stringArg(args, "asset_type_id")
+			collectionTypeID := stringArg(args, "collection_type_id")
+			assetRules, err := parseAssetTypeRules(args["asset_type_rules"])
+			if err != nil {
+				return planning.Plan{}, err
+			}
+			if assetTypeID == "" && collectionTypeID == "" && len(assetRules) == 0 {
+				return planning.Plan{}, fmt.Errorf("asset_type_id, collection_type_id, or asset_type_rules is required")
+			}
 			req, err := ParseScope(args, []scope.EntityType{scope.TypeAsset, scope.TypeCollection})
 			if err != nil {
+				return planning.Plan{}, err
+			}
+			// A single target type determines the only compatible entity kind.
+			// Do not allow an omitted or malformed scope.types field to pull the
+			// opposite kind into the plan and invalidate the whole operation.
+			if (assetTypeID != "" || len(assetRules) > 0) && collectionTypeID == "" {
+				req.Types = []scope.EntityType{scope.TypeAsset}
+			} else if collectionTypeID != "" && assetTypeID == "" {
+				req.Types = []scope.EntityType{scope.TypeCollection}
+			}
+			if err := validateScopeFilters(req); err != nil {
 				return planning.Plan{}, err
 			}
 			resolved, err := scope.Resolve(projectPath, req)
 			if err != nil {
 				return planning.Plan{}, err
-			}
-			assetTypeID := stringArg(args, "asset_type_id")
-			collectionTypeID := stringArg(args, "collection_type_id")
-			if assetTypeID == "" && collectionTypeID == "" {
-				return planning.Plan{}, fmt.Errorf("asset_type_id or collection_type_id is required")
 			}
 			if assetTypeID != "" {
 				if err := validateMetadataTarget(projectPath, "batch_change_type", []scope.Entity{{Type: scope.TypeAsset}}, assetTypeID); err != nil {
@@ -181,6 +210,17 @@ func typeCommand() Definition {
 					return planning.Plan{}, err
 				}
 			}
+			ruleTargets := make(map[string]typeTarget, len(assetRules))
+			for _, rule := range assetRules {
+				if _, ok := ruleTargets[rule.AssetTypeID]; ok {
+					continue
+				}
+				label, icon, targetErr := metadataTargetType(projectPath, scope.TypeAsset, rule.AssetTypeID)
+				if targetErr != nil {
+					return planning.Plan{}, fmt.Errorf("target asset type for suffix %q not found", rule.Suffix)
+				}
+				ruleTargets[rule.AssetTypeID] = typeTarget{Label: label, Icon: icon}
+			}
 			if collectionTypeID != "" {
 				collectionTypeLabel, collectionTypeIcon, err = metadataTargetType(projectPath, scope.TypeCollection, collectionTypeID)
 				if err != nil {
@@ -191,21 +231,35 @@ func typeCommand() Definition {
 			plan.Options = map[string]interface{}{"asset_type_id": assetTypeID, "collection_type_id": collectionTypeID}
 			for _, entity := range resolved.Entities {
 				key, target := "asset_type_id", assetTypeID
+				targetLabel, targetIcon := assetTypeLabel, assetTypeIcon
+				matchedRule := true
 				if entity.Type == scope.TypeCollection {
 					key, target = "collection_type_id", collectionTypeID
+					targetLabel, targetIcon = collectionTypeLabel, collectionTypeIcon
+				} else if target == "" && len(assetRules) > 0 {
+					var matched assetTypeRule
+					matched, matchedRule = matchAssetTypeRule(entity.Name, assetRules)
+					if matchedRule {
+						target = matched.AssetTypeID
+						targetLabel = ruleTargets[target].Label
+						targetIcon = ruleTargets[target].Icon
+					}
 				}
-				labelKey, targetLabel := "asset_type", assetTypeLabel
-				iconKey, targetIcon := "asset_type_icon", assetTypeIcon
+				labelKey := "asset_type"
+				iconKey := "asset_type_icon"
 				if entity.Type == scope.TypeCollection {
-					labelKey, targetLabel = "collection_type", collectionTypeLabel
-					iconKey, targetIcon = "collection_type_icon", collectionTypeIcon
+					labelKey = "collection_type"
+					iconKey = "collection_type_icon"
 				}
 				change := planning.Change{
 					Entity: entity, Action: "Change Type", Valid: true,
 					Before: map[string]interface{}{key: entity.Metadata[key], labelKey: entity.Metadata[labelKey], iconKey: entity.Metadata[iconKey]},
 					After:  map[string]interface{}{key: target, labelKey: targetLabel, iconKey: targetIcon},
 				}
-				if target == "" {
+				if !matchedRule {
+					change.Valid = false
+					change.Warnings = append(change.Warnings, "no asset type rule matched the name suffix")
+				} else if target == "" {
 					change.Valid = false
 					change.Errors = append(change.Errors, key+" is required for the resolved scope")
 				} else if entity.Metadata[key] == target {
@@ -238,10 +292,10 @@ func typeCommand() Definition {
 					continue
 				}
 				if change.Entity.Type == scope.TypeAsset {
-					value, _ := plan.Options["asset_type_id"].(string)
+					value, _ := change.After["asset_type_id"].(string)
 					err = repository.ChangeAssetType(tx, change.Entity.ID, value)
 				} else {
-					value, _ := plan.Options["collection_type_id"].(string)
+					value, _ := change.After["collection_type_id"].(string)
 					err = repository.ChangeCollectionType(tx, change.Entity.ID, value)
 				}
 				if err != nil {
@@ -256,6 +310,55 @@ func typeCommand() Definition {
 			return result, nil
 		},
 	}
+}
+
+type assetTypeRule struct {
+	Suffix      string
+	AssetTypeID string
+}
+
+type typeTarget struct {
+	Label string
+	Icon  string
+}
+
+func parseAssetTypeRules(value interface{}) ([]assetTypeRule, error) {
+	if value == nil {
+		return nil, nil
+	}
+	items, ok := value.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("asset_type_rules must be an array")
+	}
+	rules := make([]assetTypeRule, 0, len(items))
+	for index, item := range items {
+		raw, ok := item.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("asset_type_rules[%d] must be an object", index)
+		}
+		rule := assetTypeRule{
+			Suffix:      strings.TrimSpace(stringArg(raw, "suffix")),
+			AssetTypeID: strings.TrimSpace(stringArg(raw, "asset_type_id")),
+		}
+		if rule.Suffix == "" || rule.AssetTypeID == "" {
+			return nil, fmt.Errorf("asset_type_rules[%d] requires suffix and asset_type_id", index)
+		}
+		rules = append(rules, rule)
+	}
+	sort.SliceStable(rules, func(i, j int) bool {
+		return len(rules[i].Suffix) > len(rules[j].Suffix)
+	})
+	return rules, nil
+}
+
+func matchAssetTypeRule(name string, rules []assetTypeRule) (assetTypeRule, bool) {
+	lowerName := strings.ToLower(strings.TrimSpace(name))
+	for _, rule := range rules {
+		if strings.HasSuffix(lowerName, strings.ToLower(rule.Suffix)) {
+			return rule, true
+		}
+	}
+	return assetTypeRule{}, false
 }
 
 func metadataTargetType(projectPath string, entityType scope.EntityType, value string) (string, string, error) {

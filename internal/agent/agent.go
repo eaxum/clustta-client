@@ -418,6 +418,7 @@ func buildSystemPrompt(projectContext string) string {
 - batch_* commands resolve scope, compute a deterministic local plan, show an approval preview, revalidate it, and apply locally. The user must manually sync afterward.
 - Use entity type values exactly as provided: asset, collection, untracked_asset, untracked_collection.
 - Status changes only support asset. Type changes support asset and collection. Assignment supports tracked asset and collection with their different semantics.
+- When asset types should match asset-name suffixes, call batch_change_type once with asset_type_rules containing every suffix-to-type-ID mapping. Never emit a separate batch_change_type call for each suffix.
 - If a rename request does not provide either a naming format or one explicit new name, ask for the missing rule.
 
 ## Citing entities in your replies

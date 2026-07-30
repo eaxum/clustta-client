@@ -38,6 +38,18 @@ func applyAuthoritativeScope(args map[string]interface{}, context turnContext) {
 	if !ok {
 		return
 	}
+	// Some providers occasionally place scope members beside `scope` even
+	// though the generated schema nests them. Normalize those fields before
+	// parsing so intent such as asset-only scope cannot be silently ignored.
+	for _, key := range []string{"types", "type", "filters", "recursive", "limit"} {
+		if _, nested := scopeArgs[key]; nested {
+			continue
+		}
+		if value, misplaced := args[key]; misplaced {
+			scopeArgs[key] = value
+			delete(args, key)
+		}
+	}
 	normalizeScopeTypes(scopeArgs)
 	source, _ := scopeArgs["source"].(string)
 	switch source {
@@ -50,6 +62,12 @@ func applyAuthoritativeScope(args map[string]interface{}, context turnContext) {
 		}
 		if path := contextString(context.HereScope, "path"); path != "" {
 			scopeArgs["path"] = path
+		}
+		// Browser asset-only mode presents descendant assets as the effective
+		// contents of "here". Preserve an explicitly recursive model request,
+		// and otherwise promote the scope when the browser context is recursive.
+		if contextBool(context.HereScope, "recursive") {
+			scopeArgs["recursive"] = true
 		}
 	case "selection":
 		scopeArgs["selection"] = context.Selection
@@ -73,4 +91,9 @@ func normalizeScopeTypes(scopeArgs map[string]interface{}) {
 func contextString(values map[string]interface{}, key string) string {
 	value, _ := values[key].(string)
 	return strings.TrimSpace(value)
+}
+
+func contextBool(values map[string]interface{}, key string) bool {
+	value, _ := values[key].(bool)
+	return value
 }

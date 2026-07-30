@@ -11,6 +11,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/google/uuid"
@@ -265,7 +266,46 @@ func ParseScope(args map[string]interface{}, defaultTypes []scope.EntityType) (s
 	if len(req.Types) == 0 {
 		req.Types = append([]scope.EntityType(nil), defaultTypes...)
 	}
+	if err := validateScopeFilters(req); err != nil {
+		return scope.Request{}, err
+	}
 	return req, nil
+}
+
+func validateScopeFilters(req scope.Request) error {
+	if len(req.Filters) == 0 || len(req.Types) == 0 {
+		return nil
+	}
+	hasAsset, hasCollection := false, false
+	for _, entityType := range req.Types {
+		hasAsset = hasAsset || entityType == scope.TypeAsset || entityType == scope.TypeUntrackedAsset
+		hasCollection = hasCollection || entityType == scope.TypeCollection || entityType == scope.TypeUntrackedCollection
+	}
+	if hasAsset && !hasCollection {
+		for _, key := range []string{"collection_type", "collection_type_id"} {
+			if value, exists := req.Filters[key]; exists && scopeFilterHasValue(value) {
+				return fmt.Errorf("filter %q is incompatible with asset scope", key)
+			}
+		}
+	}
+	if hasCollection && !hasAsset {
+		for _, key := range []string{"asset_type", "asset_type_id", "status", "status_id"} {
+			if value, exists := req.Filters[key]; exists && scopeFilterHasValue(value) {
+				return fmt.Errorf("filter %q is incompatible with collection scope", key)
+			}
+		}
+	}
+	return nil
+}
+
+func scopeFilterHasValue(value interface{}) bool {
+	if value == nil {
+		return false
+	}
+	if text, ok := value.(string); ok {
+		return strings.TrimSpace(text) != ""
+	}
+	return true
 }
 
 func fingerprint(result scope.Result) string {

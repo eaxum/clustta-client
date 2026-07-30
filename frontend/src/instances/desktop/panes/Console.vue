@@ -551,7 +551,7 @@ const onFilesDropped = async (event) => {
 const buildSelectionContext = () => {
   const context = {
     current_location: null,
-    here_scope: { source: 'here', recursive: false },
+    here_scope: { source: 'here', recursive: !!commonStore.onlyAssets },
     selection: [],
     active_view: stage.activeStage || '',
   };
@@ -576,7 +576,7 @@ const buildSelectionContext = () => {
       source: 'here',
       entity_id: c.id,
       path: c.collection_path || c.item_path || c.file_path || '',
-      recursive: false,
+      recursive: !!commonStore.onlyAssets,
     };
   }
 
