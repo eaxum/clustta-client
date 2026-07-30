@@ -2,6 +2,7 @@ package services
 
 import (
 	"clustta/internal/agent"
+	agentcommands "clustta/internal/agent/commands"
 	"clustta/internal/settings"
 	"context"
 	"encoding/json"
@@ -51,9 +52,14 @@ func migrateLegacyAgentIntegrationID() {
 // AgentService exposes the AI agent to the frontend via Wails bindings.
 type AgentService struct {
 	mu        sync.Mutex
-	history   map[string][]agent.Message    // keyed by projectPath
-	cancels   map[string]context.CancelFunc // active runs keyed by projectPath
-	approvals map[string]chan bool          // pending approval channels keyed by tool call ID
+	history   map[string][]agent.Message       // keyed by projectPath
+	cancels   map[string]context.CancelFunc    // active runs keyed by projectPath
+	approvals map[string]chan approvalDecision // pending approval channels keyed by tool call ID
+}
+
+type approvalDecision struct {
+	approved     bool
+	selectedKeys []string
 }
 
 // AgentKeyStatus reports whether an API key is configured and which provider is selected.
@@ -229,7 +235,10 @@ func (a *AgentService) SendMessage(projectPath, message, attachmentPath string) 
 			app.Event.Emit(eventName, data)
 		}
 
-		updatedHistory, mutated, err := agent.RunAgent(ctx, projectPath, history, message, attachmentContent, cred.AccessToken, provider, model, emit, a.requestApproval)
+		requestApproval := func(ctx context.Context, toolCallID, toolName, riskLevel string, args map[string]interface{}, preview interface{}) bool {
+			return a.requestApproval(ctx, projectPath, toolCallID, toolName, riskLevel, args, preview)
+		}
+		updatedHistory, mutated, err := agent.RunAgent(ctx, projectPath, history, message, attachmentContent, cred.AccessToken, provider, model, emit, requestApproval)
 		if err != nil && !errors.Is(err, agent.ErrCancelled) {
 			app.Event.Emit("agent-error", err.Error())
 		}
@@ -268,7 +277,7 @@ func (a *AgentService) CancelRun(projectPath string) error {
 	// Also unblock any pending approval prompts so the goroutine exits cleanly.
 	for id, ch := range a.approvals {
 		select {
-		case ch <- false:
+		case ch <- approvalDecision{}:
 		default:
 		}
 		delete(a.approvals, id)
@@ -280,17 +289,18 @@ func (a *AgentService) CancelRun(projectPath string) error {
 // agent-tool-approval-request event with full context and blocks until either
 // ApproveToolCall is called for this tool call ID or the context is cancelled.
 // Returns true to allow execution, false to deny.
-func (a *AgentService) requestApproval(ctx context.Context, toolCallID, toolName, riskLevel string, args map[string]interface{}, preview interface{}) bool {
+func (a *AgentService) requestApproval(ctx context.Context, projectPath, toolCallID, toolName, riskLevel string, args map[string]interface{}, preview interface{}) bool {
 	// Honor the auto-approve setting.
-	if auto, _ := settings.GetAgentAutoApproveDestructive(); auto {
+	_, isPlannedCommand := agentcommands.DefinitionFor(toolName)
+	if auto, _ := settings.GetAgentAutoApproveDestructive(); auto && !isPlannedCommand {
 		return true
 	}
 
 	a.mu.Lock()
 	if a.approvals == nil {
-		a.approvals = map[string]chan bool{}
+		a.approvals = map[string]chan approvalDecision{}
 	}
-	ch := make(chan bool, 1)
+	ch := make(chan approvalDecision, 1)
 	a.approvals[toolCallID] = ch
 	a.mu.Unlock()
 
@@ -303,11 +313,19 @@ func (a *AgentService) requestApproval(ctx context.Context, toolCallID, toolName
 	})
 
 	select {
-	case approved := <-ch:
+	case decision := <-ch:
 		a.mu.Lock()
 		delete(a.approvals, toolCallID)
 		a.mu.Unlock()
-		return approved
+		if !decision.approved {
+			return false
+		}
+		if isPlannedCommand {
+			if err := agentcommands.PrepareSelection(projectPath, toolName, args, decision.selectedKeys); err != nil {
+				return false
+			}
+		}
+		return true
 	case <-ctx.Done():
 		a.mu.Lock()
 		delete(a.approvals, toolCallID)
@@ -317,9 +335,9 @@ func (a *AgentService) requestApproval(ctx context.Context, toolCallID, toolName
 }
 
 // ApproveToolCall responds to an agent-tool-approval-request from the frontend.
-// Pass approved=true to allow the tool to run, false to deny it.
+// Pass approved=true to allow the checked items to run, false to deny it.
 // Safe to call with an unknown ID (returns nil).
-func (a *AgentService) ApproveToolCall(toolCallID string, approved bool) error {
+func (a *AgentService) ApproveToolCall(toolCallID string, approved bool, selectedKeys []string) error {
 	a.mu.Lock()
 	ch, ok := a.approvals[toolCallID]
 	if ok {
@@ -330,7 +348,7 @@ func (a *AgentService) ApproveToolCall(toolCallID string, approved bool) error {
 		return nil
 	}
 	select {
-	case ch <- approved:
+	case ch <- approvalDecision{approved: approved, selectedKeys: selectedKeys}:
 	default:
 	}
 	return nil

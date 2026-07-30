@@ -1726,7 +1726,7 @@ func ChangeCollection(tx *sqlx.Tx, assetId string, collectionId string) error {
 			return err
 		}
 
-		err = os.Rename(oldAsset.FilePath, asset.FilePath)
+		err = utils.RenamePathCaseSafe(oldAsset.FilePath, asset.FilePath)
 		if err != nil {
 			return err
 		}
@@ -1862,7 +1862,7 @@ func UpdateAsset(tx *sqlx.Tx, assetId string, name, assetTypeId string, isResour
 			return models.Asset{}, err
 		}
 
-		err = os.Rename(oldAsset.FilePath, asset.FilePath)
+		err = utils.RenamePathCaseSafe(oldAsset.FilePath, asset.FilePath)
 		if err != nil {
 			return models.Asset{}, err
 		}
@@ -1972,7 +1972,7 @@ func RenameAsset(tx *sqlx.Tx, assetId, name string) (models.Asset, error) {
 			return models.Asset{}, err
 		}
 
-		err = os.Rename(oldAsset.FilePath, asset.FilePath)
+		err = utils.RenamePathCaseSafe(oldAsset.FilePath, asset.FilePath)
 		if err != nil {
 			return models.Asset{}, err
 		}

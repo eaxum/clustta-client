@@ -78,7 +78,8 @@
         "name": "ApproveToolCall",
         "params": [
           "toolCallID:string",
-          "approved:bool"
+          "approved:bool",
+          "selectedKeys:[]string"
         ],
         "returns": [
           "error"

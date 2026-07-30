@@ -17,14 +17,15 @@ import * as $models from "./models.js";
 
 /**
  * ApproveToolCall responds to an agent-tool-approval-request from the frontend.
- * Pass approved=true to allow the tool to run, false to deny it.
+ * Pass approved=true to allow the checked items to run, false to deny it.
  * Safe to call with an unknown ID (returns nil).
  * @param {string} toolCallID
  * @param {boolean} approved
+ * @param {string[]} selectedKeys
  * @returns {$CancellablePromise<void>}
  */
-export function ApproveToolCall(toolCallID, approved) {
-    return $Call.ByID(3865245129, toolCallID, approved);
+export function ApproveToolCall(toolCallID, approved, selectedKeys) {
+    return $Call.ByID(3865245129, toolCallID, approved, selectedKeys);
 }
 
 /**

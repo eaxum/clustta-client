@@ -36,6 +36,18 @@
 
                 <span v-else class="msg-assistant-segment" v-html="segment.html"></span>
               </template>
+              <div v-if="message.entities?.length && !hasInlineEntities(message.content)" class="msg-assistant-entities">
+                <ConsoleChip
+                  v-for="entity in visibleMessageEntities(message)"
+                  :key="`${entity.type}:${entity.id}`"
+                  :type="entity.type"
+                  :entityId="entity.id"
+                  :fallbackLabel="entity.name"
+                />
+                <span v-if="hiddenMessageEntityCount(message)" class="msg-entity-overflow">
+                  +{{ hiddenMessageEntityCount(message) }} more
+                </span>
+              </div>
             </div>
           </div>
         </template>
@@ -128,6 +140,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
+import { useAgentEntityCacheStore } from '@/stores/agentEntityCache';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -138,6 +151,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const settings = useSettingsStore();
 const stage = useStageStore();
+const agentEntityCache = useAgentEntityCacheStore();
 
 // props
 const props = defineProps({
@@ -155,6 +169,7 @@ const isApiKeyConfigured = ref(false);
 const isProcessing = ref(false);
 const messages = ref([]);
 const messagesContainer = ref(null);
+const recentResultEntities = ref([]);
 const selectedModel = ref('');
 const textareaRef = ref(null);
 
@@ -335,7 +350,20 @@ const formatToolLabel = (toolName, count) => {
 };
 
 // Matches inline entity references in agent text, e.g. [[asset:abc-123|My Asset]].
-const ENTITY_TOKEN_REGEX = /\[\[(asset|collection|user):([A-Za-z0-9_-]+)\|([\s\S]*?)\]\]/g;
+const ENTITY_TOKEN_REGEX = /\[\[(asset|collection|untracked_asset|untracked_collection|user):([A-Za-z0-9_-]+)\|([\s\S]*?)\]\]/g;
+const MAX_RESPONSE_ENTITIES = 3;
+
+const hasInlineEntities = (text) => {
+  if (!text) return false;
+  return new RegExp(ENTITY_TOKEN_REGEX.source).test(text);
+};
+
+const visibleMessageEntities = (message) => (message?.entities || []).slice(0, MAX_RESPONSE_ENTITIES);
+
+const hiddenMessageEntityCount = (message) => Math.max(
+  0,
+  (message?.entities?.length || 0) - MAX_RESPONSE_ENTITIES,
+);
 
 // Splits assistant text into a list of formatted text segments and entity chip
 // segments, removing any leftover markdown emphasis around the chip boundaries.
@@ -345,6 +373,8 @@ const parseAssistantSegments = (text) => {
   const stripLeadingEmphasis = (s) => s.replace(/^(\*{1,3}|_{1,3}|`)/, '');
 
   const rawChunks = [];
+  let entityCount = 0;
+  let hiddenEntityCount = 0;
   let lastIndex = 0;
   const regex = new RegExp(ENTITY_TOKEN_REGEX.source, 'g');
   let match;
@@ -352,7 +382,12 @@ const parseAssistantSegments = (text) => {
     if (match.index > lastIndex) {
       rawChunks.push({ type: 'text', raw: text.slice(lastIndex, match.index) });
     }
-    rawChunks.push({ type: 'chip', entityType: match[1], id: match[2], label: match[3] });
+    if (entityCount < MAX_RESPONSE_ENTITIES) {
+      rawChunks.push({ type: 'chip', entityType: match[1], id: match[2], label: match[3] });
+      entityCount++;
+    } else {
+      hiddenEntityCount++;
+    }
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < text.length) {
@@ -370,6 +405,9 @@ const parseAssistantSegments = (text) => {
     if (i > 0 && rawChunks[i - 1].type === 'chip') raw = stripLeadingEmphasis(raw);
     if (i < rawChunks.length - 1 && rawChunks[i + 1].type === 'chip') raw = stripTrailingEmphasis(raw);
     if (raw) segments.push({ type: 'text', html: formatContent(raw) });
+  }
+  if (hiddenEntityCount > 0) {
+    segments.push({ type: 'text', html: `<span class="msg-entity-overflow">+${hiddenEntityCount} more</span>` });
   }
   return segments;
 };
@@ -511,32 +549,63 @@ const onFilesDropped = async (event) => {
 
 // Describes the user's current selection (collection, items, active stage) for the agent.
 const buildSelectionContext = () => {
-  const parts = [];
+  const context = {
+    current_location: null,
+    here_scope: { source: 'here', recursive: false },
+    selection: [],
+    active_view: stage.activeStage || '',
+  };
 
-  if (collectionStore.selectedCollection) {
-    const c = collectionStore.selectedCollection;
-    parts.push(`Viewing collection: "${c.name}" (ID: ${c.id}, type: ${c.collection_type_name || 'default'})`);
+  // "Here" means the collection currently open in the browser. A selected
+  // collection may merely be highlighted inside that location, so navigation
+  // takes precedence and project root is represented by null.
+  const currentCollection = commonStore.navigatorMode
+    ? collectionStore.navigatedCollection
+    : (collectionStore.navigatedCollection || collectionStore.selectedCollection);
+  if (currentCollection) {
+    const c = currentCollection;
+    context.current_location = {
+      type: c.type || 'collection',
+      id: c.id,
+      entity_id: c.id,
+      name: c.name,
+      path: c.collection_path || c.item_path || c.file_path || '',
+      parent_id: c.parent_id || '',
+    };
+    context.here_scope = {
+      source: 'here',
+      entity_id: c.id,
+      path: c.collection_path || c.item_path || c.file_path || '',
+      recursive: false,
+    };
   }
 
-  if (stage.selectedItems.length > 1) {
-    const items = stage.selectedItems.map(i => `"${i.name}" (ID: ${i.id}, type: ${i.type})`).join(', ');
-    parts.push(`Selected items: ${items}`);
-  } else if (stage.selectedItem) {
-    const i = stage.selectedItem;
-    const details = [`ID: ${i.id}`, `type: ${i.type}`];
-    if (i.extension) details.push(`extension: ${i.extension}`);
-    if (i.asset_type_name) details.push(`asset type: ${i.asset_type_name}`);
-    if (i.status_short_name) details.push(`status: ${i.status_short_name}`);
-    if (i.assignee_name) details.push(`assignee: ${i.assignee_name}`);
-    parts.push(`Selected item: "${i.name}" (${details.join(', ')})`);
-  }
+  const selected = stage.selectedItems?.length ? stage.selectedItems : (stage.selectedItem ? [stage.selectedItem] : []);
+  context.selection = selected.map((item) => ({
+    type: item.type,
+    id: item.id,
+    name: item.name,
+    path: item.file_path || item.collection_path || '',
+    parent_id: item.parent_id || '',
+    parent_path: item.collection_path || '',
+    collection_id: item.collection_id || '',
+    extension: item.extension || '',
+    metadata: {
+      status_id: item.status_id || '',
+      status: item.status_short_name || '',
+      asset_type_id: item.asset_type_id || '',
+      asset_type: item.asset_type_name || '',
+      collection_type_id: item.collection_type_id || '',
+      collection_type: item.collection_type_name || '',
+      assignee_id: item.assignee_id || '',
+      assignee: item.assignee_name || '',
+      assignee_ids: item.assignee_ids || [],
+      is_resource: !!item.is_resource,
+    },
+  }));
 
-  if (stage.activeStage) {
-    parts.push(`Active view: ${stage.activeStage}`);
-  }
-
-  if (!parts.length) return '';
-  return `[Context: ${parts.join(' | ')}]\n`;
+  if (!context.current_location && !context.selection.length && !context.active_view) return '';
+  return `[Context JSON]\n${JSON.stringify(context)}\n`;
 };
 
 const sendMessage = async () => {
@@ -644,7 +713,57 @@ const onAgentResponse = (event) => {
   if (messages.value.length && messages.value[messages.value.length - 1].type === 'status') {
     messages.value.pop();
   }
-  addMessage('assistant', event.data);
+  messages.value.push({
+    id: messages.value.length + 1,
+    type: 'assistant',
+    content: event.data,
+    entities: recentResultEntities.value,
+  });
+  recentResultEntities.value = [];
+  scrollToBottom();
+};
+
+const onAgentToolResult = (event) => {
+  const data = event?.data?.data;
+  if (!data) return;
+  agentEntityCache.rememberCommandResult(data);
+  const found = new Map(recentResultEntities.value.map((entity) => [`${entity.type}:${entity.id}`, entity]));
+  const visit = (value) => {
+    if (!value) return;
+    if (Array.isArray(value)) return value.forEach(visit);
+    if (typeof value !== 'object') return;
+    const entity = value.entity && typeof value.entity === 'object' ? value.entity : value;
+    if (entity.id && entity.type && entity.name && ['asset', 'collection', 'untracked_asset', 'untracked_collection'].includes(entity.type)) {
+      found.set(`${entity.type}:${entity.id}`, { type: entity.type, id: entity.id, name: entity.name });
+    }
+    Object.values(value).forEach(visit);
+  };
+  visit(data);
+  recentResultEntities.value = [...found.values()];
+};
+
+const onAgentCommandProgress = (event) => {
+  const progress = event?.data;
+  if (!progress) return;
+  emitter.emit('progress-update', {
+    title: 'Agent batch operation',
+    message: progress.message || 'Applying local changes',
+    percentage: progress.percentage || 0,
+    current: progress.current || 0,
+    total: progress.total || 1,
+  });
+};
+
+const onAgentLocalChanges = (event) => {
+  if (!event?.data?.requires_sync || !projectStore.activeProject) return;
+  if (projectStore.activeProject.has_remote) {
+    projectStore.activeProject.is_unsynced = true;
+  }
+  notificationStore.addNotification(
+    'Agent changes saved locally',
+    'Manual sync is required to share these changes.',
+    'warning'
+  );
 };
 
 const onAgentError = (event) => {
@@ -778,7 +897,9 @@ onMounted(async () => {
 
   Events.On('agent-status', onAgentStatus);
   Events.On('agent-tool-start', onAgentToolStart);
-  Events.On('agent-tool-result', () => {}); // silently consumed
+  Events.On('agent-tool-result', onAgentToolResult);
+  Events.On('agent-command-progress', onAgentCommandProgress);
+  Events.On('agent-local-changes', onAgentLocalChanges);
   Events.On('agent-response', onAgentResponse);
   Events.On('agent-error', onAgentError);
   Events.On('agent-done', onAgentDone);
@@ -794,6 +915,8 @@ onUnmounted(() => {
   Events.Off('agent-status');
   Events.Off('agent-tool-start');
   Events.Off('agent-tool-result');
+  Events.Off('agent-command-progress');
+  Events.Off('agent-local-changes');
   Events.Off('agent-response');
   Events.Off('agent-error');
   Events.Off('agent-done');
@@ -1030,6 +1153,24 @@ onUnmounted(() => {
 
 .msg-assistant-segment {
   vertical-align: middle;
+}
+
+.msg-assistant-entities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.5rem;
+}
+
+.msg-entity-overflow,
+.msg-assistant-text :deep(.msg-entity-overflow) {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--large-radius);
+  color: var(--text-muted);
+  background-color: var(--surface-2);
+  line-height: 1.2;
 }
 
 .msg-assistant-text :deep(strong) {

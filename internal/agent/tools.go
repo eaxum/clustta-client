@@ -1,11 +1,13 @@
 package agent
 
 import (
+	agentcommands "clustta/internal/agent/commands"
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -975,8 +977,6 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 	}
 
-	tools = append(tools, GetDCCToolDefinitions()...)
-
 	iconEnum := []string{"bezier", "bone", "book", "boxes", "bulb", "camera-flash", "camera", "clapboard", "compass", "cube", "drum", "film-reel", "film-strip", "fire", "flow-chart", "four-squares", "home", "image", "lamp", "link", "man-running", "masks", "music", "mystery-ball", "open-book", "package", "palette", "scissors", "shapes", "stall", "texture", "tree", "video-camera", "website"}
 
 	tools = append(tools, []ToolDefinition{
@@ -1380,6 +1380,36 @@ func GetToolDefinitions() []ToolDefinition {
 		},
 	}...)
 
+	// Keep legacy implementations available internally while migration is in
+	// progress, but never expose a legacy call once its registry replacement
+	// exists. This gives the model one canonical operation per capability.
+	replacedLegacy := map[string]bool{
+		"list_collections": true, "list_assets_in_collection": true,
+		"rename_asset": true, "rename_collection": true,
+		"change_asset_status": true, "bulk_change_status": true,
+		"change_asset_type": true, "bulk_change_asset_type": true,
+		"change_collection_type": true, "bulk_change_collection_type": true,
+		"assign_asset": true, "bulk_assign": true, "random_assign": true,
+		"unassign_asset": true, "unassign_all_assets": true,
+		"move_assets":      true,
+		"add_tag_to_asset": true, "remove_tag_from_asset": true, "batch_add_tags": true,
+		"add_dependency": true, "remove_dependency": true,
+		"delete_asset": true, "bulk_delete_assets": true, "delete_collection": true,
+	}
+	filtered := tools[:0]
+	for _, tool := range tools {
+		if !replacedLegacy[tool.Name] {
+			filtered = append(filtered, tool)
+		}
+	}
+	tools = filtered
+
+	for _, def := range agentcommands.Definitions() {
+		tools = append(tools, ToolDefinition{
+			Name: def.Name, Description: def.Description, Parameters: def.Parameters,
+		})
+	}
+
 	return tools
 }
 
@@ -1499,8 +1529,27 @@ func checkPermission(projectPath string, toolName string) error {
 
 // ExecuteTool runs a tool by name with the given arguments against the project.
 func ExecuteTool(projectPath string, toolName string, args map[string]interface{}) ToolResult {
+	return ExecuteToolContext(context.Background(), projectPath, toolName, args)
+}
+
+// ExecuteToolContext runs a tool with cancellation propagated into registry commands.
+func ExecuteToolContext(ctx context.Context, projectPath string, toolName string, args map[string]interface{}) ToolResult {
 	if err := checkPermission(projectPath, toolName); err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
+	}
+	if _, ok := agentcommands.DefinitionFor(toolName); ok {
+		if def, _ := agentcommands.DefinitionFor(toolName); def.Direct != nil {
+			result, err := agentcommands.ExecuteDirect(projectPath, toolName, args)
+			if err != nil {
+				return ToolResult{Success: false, Error: err.Error()}
+			}
+			return ToolResult{Success: true, Data: result}
+		}
+		result, err := agentcommands.ExecutePrepared(ctx, projectPath, toolName, args)
+		if err != nil {
+			return ToolResult{Success: false, Error: err.Error()}
+		}
+		return ToolResult{Success: true, Data: result}
 	}
 
 	switch toolName {

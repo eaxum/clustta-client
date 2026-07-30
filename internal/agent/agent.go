@@ -1,7 +1,9 @@
-﻿package agent
+package agent
 
 import (
 	"bytes"
+	agentcommands "clustta/internal/agent/commands"
+	"clustta/internal/agent/planning"
 	"context"
 	"encoding/json"
 	"errors"
@@ -89,6 +91,7 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 	}
 
 	userContent := userMessage
+	authoritativeContext := parseTurnContext(userMessage)
 	if attachmentContent != "" {
 		userContent += "\n\n--- Attached Content ---\n" + attachmentContent
 	}
@@ -135,6 +138,7 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 				if err := json.Unmarshal([]byte(tc.Function.Arguments), &args); err != nil {
 					args = map[string]interface{}{}
 				}
+				applyAuthoritativeScope(args, authoritativeContext)
 
 				if IsDestructive(tc.Function.Name) {
 					if requestApproval == nil {
@@ -153,6 +157,24 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 						continue
 					}
 					preview := buildToolPreview(projectPath, tc.Function.Name, args)
+					if preview.Blocked {
+						reason := "No matching entities were found in the requested scope."
+						for _, note := range preview.Notes {
+							if note != "" && !strings.Contains(strings.ToLower(note), "manual sync") {
+								reason = note
+								break
+							}
+						}
+						blocked := ToolResult{Success: false, Error: reason}
+						emit("agent-tool-result", map[string]interface{}{
+							"tool": tc.Function.Name, "id": tc.ID,
+							"success": false, "blocked": true, "error": reason,
+						})
+						messages = append(messages, Message{
+							Role: "tool", Content: SerializeToolResult(blocked), ToolCallID: tc.ID,
+						})
+						continue
+					}
 					approved := requestApproval(ctx, tc.ID, tc.Function.Name, RiskDestructive, args, preview)
 					if err := ctx.Err(); err != nil {
 						return finalizeCancelled(messages, executedTools, emit), mutated, ErrCancelled
@@ -189,7 +211,11 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 					}
 				}
 
-				result := ExecuteTool(projectPath, tc.Function.Name, args)
+				emit("agent-command-progress", map[string]interface{}{
+					"tool": tc.Function.Name, "id": tc.ID, "current": 0, "total": 1,
+					"percentage": 0, "message": "Applying approved changes locally",
+				})
+				result := ExecuteToolContext(ctx, projectPath, tc.Function.Name, args)
 				if result.Success {
 					executedTools = append(executedTools, tc.Function.Name)
 					if isMutatingTool(tc.Function.Name) {
@@ -201,7 +227,20 @@ func RunAgent(ctx context.Context, projectPath string, history []Message, userMe
 					"tool":    tc.Function.Name,
 					"id":      tc.ID,
 					"success": result.Success,
+					"data":    result.Data,
 				})
+				if def, ok := agentcommands.DefinitionFor(tc.Function.Name); ok && result.Success && def.Direct == nil {
+					emit("agent-command-progress", map[string]interface{}{
+						"tool": tc.Function.Name, "id": tc.ID, "current": 1, "total": 1,
+						"percentage": 100, "message": "Local changes complete",
+					})
+					if planned, ok := result.Data.(planning.Result); ok && planned.RequiresSync {
+						emit("agent-local-changes", map[string]interface{}{
+							"tool": tc.Function.Name, "plan_id": planned.PlanID,
+							"applied": planned.Applied, "requires_sync": true,
+						})
+					}
+				}
 
 				if result.Success && (tc.Function.Name == "add_ignore_pattern" || tc.Function.Name == "remove_ignore_pattern") {
 					if dataMap, ok := result.Data.(map[string]interface{}); ok {
@@ -320,6 +359,9 @@ var readOnlyTools = map[string]bool{
 	"list_filter_dimensions": true,
 	"apply_browser_filter":   true,
 	"clear_browser_filter":   true,
+	"query_entities":         true,
+	"audit_entities":         true,
+	"dcc_open":               true,
 
 	"open_in_dcc":    true,
 	"blender_render": true,
@@ -358,45 +400,57 @@ func buildSystemPrompt(projectContext string) string {
 14. Manage the ignore list: add, remove, and list patterns
 15. Set up standard type presets for animation, game, VFX, or film pipelines; scaffold a full animation project (types + Production/Assets tree + EP/SEQ/SH hierarchy) in one call
 16. Open asset files in DCC applications (Blender, Maya, Houdini, etc.)
-17. Launch Blender headless renders in a terminal window (fire-and-forget)
-18. Export Blender files to FBX, OBJ, glTF, or USD via terminal
-19. Run arbitrary commands in a visible terminal window
-20. Run custom Python scripts on .blend files via terminal
+17. Launch scoped Blender headless jobs (fire-and-forget)
+18. Export scoped Blender files to FBX, OBJ, glTF, or USD
+19. Run approved scoped Python scripts on .blend files
 21. Run inline Python code on .blend files (create collections, modify materials, rename objects, etc.)
 22. Batch-modify Blender render settings (engine, resolution, FPS, samples, output format)
 23. Link or append objects from dependency .blend files into a target .blend file (auto-resolves from Clustta dependency graph)
 
 ## Rules
 - Messages may begin with a [Context: ...] block describing what the user currently has selected in the UI. Use this to resolve ambiguous references like "this asset", "these items", "the selected collection", etc. The context provides item names, IDs, types, and other metadata â€” use these IDs directly when calling tools.
+- Messages may instead begin with [Context JSON] followed by structured current_location and selection data. Prefer this structure when building a command scope:
+  - selected items: source="selection" and copy the selected entity envelopes into scope.selection
+  - "here": copy context.here_scope and only change recursive when the user explicitly requests recursion
+  - one explicit entity: source="entity"
+  - whole project: source="project"
+- For rename, move, delete, status, type, assignment, tags, dependencies, and task/resource requests, use the batch_* commands. Do not loop legacy single-item tools.
+- batch_* commands resolve scope, compute a deterministic local plan, show an approval preview, revalidate it, and apply locally. The user must manually sync afterward.
+- Use entity type values exactly as provided: asset, collection, untracked_asset, untracked_collection.
+- Status changes only support asset. Type changes support asset and collection. Assignment supports tracked asset and collection with their different semantics.
+- If a rename request does not provide either a naming format or one explicit new name, ask for the missing rule.
 
 ## Citing entities in your replies
 - Whenever you mention a specific asset, collection, or user that exists in the project, write it inline using this exact token format so the UI can render it as an interactive chip:
   - Asset:      [[asset:<id>|Display Name]]
   - Collection: [[collection:<id>|Display Name]]
+  - Untracked asset: [[untracked_asset:<id>|Display Name]]
+  - Untracked collection: [[untracked_collection:<id>|Display Name]]
   - User:       [[user:<id>|Display Name]]
 - Use the id returned by the most recent tool call. Never invent ids. If you do not have an id, write the name as plain text instead.
 - Never write a raw id, UUID, or hash in your reply. The user must never see ids â€” they only ever see the display name inside the chip.
 - The token replaces the name inline. Example: "I assigned [[asset:9f3...|shot_010_layout]] to [[user:b21...|Ada Lovelace]]." Do NOT also write the name outside the token.
 - Never wrap a token in Markdown emphasis or code formatting. Do NOT write **[[asset:...|...]]**, *[[...]]*, _[[...]]_, or place tokens inside backticks. Plain tokens only â€” the UI styles the chip.
-- Lists work the same way â€” render each item as a chip on its own line, e.g.
+- In a response, render at most three entity chips. Summarize any remainder as "+N more"; never enumerate a large tool result.
+- Short lists work the same way â€” render each item as a chip on its own line, e.g.
   - [[asset:<id>|Name]]
   - [[asset:<id>|Name]]
-- When the user asks for Blender-internal operations (creating Blender collections, modifying objects, changing materials, etc.), use blender_run_python to execute inline Python code directly â€” do not use generate_script.
+- When the user asks for Blender-internal operations, use the scoped dcc_run_python command.
 - Blender Python best practices: when creating a Blender collection, always link it to the scene with bpy.context.scene.collection.children.link(). When creating objects, always link them to a collection. Data blocks not linked to the scene are invisible in the Outliner.
 - Before any mutating operation (create, delete, rename, assign, etc.), FIRST call get_my_permissions to check the user's role. If the user lacks the required permission, tell them immediately â€” do not attempt the action.
 - Use search_assets (with no filters) to list all assets directly. Do not assume assets must be inside collections â€” assets can exist at root level. search_assets returns paginated results (default 50). Use offset to page through large result sets.
 - For destructive operations (delete, remove user), warn the user and ask for confirmation first
-- For bulk operations (assign all X, change status of all Y), use bulk_assign or bulk_change_status with filter parameters â€” these operate server-side and do NOT require searching first. Never search+collect IDs+loop when a bulk tool with filters can do the job in one call.
-- bulk_assign / bulk_change_status accept filter_extension, filter_unassigned, plus limit, limit_fraction (0-1), and random. Use these for requests like "assign half the .clip files to me" (filter_extension:"clip", limit_fraction:0.5, random:true) â€” do NOT fall back to search_assets and claim you can't pick a subset.
+- For bulk operations, express the target through the command's structured scope and filters. Do not search, collect IDs, and loop.
+- For listing assets or collections in a location, use query_entities with context.here_scope. It supports tracked and untracked entities; do not use legacy collection listing tools.
+- For any count, existence, or contents question about the current location, call query_entities before answering. Never infer that an untracked collection is empty merely because it has no database row.
 - For script generation, display the script for user review â€” never claim to execute it
 - Use exact IDs from the project data when calling tools â€” never guess IDs
 - Be concise and direct in responses
 - When the user asks about Clustta features, use search_knowledge to find accurate information
 - If creating multiple items, use batch tools (batch_create_collections, batch_create_assets) instead of calling single-item tools repeatedly
-- DCC tools (open_in_dcc, blender_render, blender_export) are fire-and-forget â€” they launch a terminal or process and return immediately. Inform the user the operation was started.
+- DCC jobs are fire-and-forget. Inform the user when the scoped job was started.
 - For DCC tool detection: .blend files use Blender, .ma/.mb use Maya, .hip use Houdini. Users can also set BLENDER_PATH, MAYA_PATH, etc. environment variables.
-- run_terminal_command launches any command in a visible terminal â€” use it for custom scripts or operations not covered by other tools
-- blender_link auto-resolves source files from the target asset's Clustta dependency graph when source_asset_ids is omitted. Prefer this for linking dependent assets. Use data_names to link only specific named data blocks (e.g., the asset name) â€” without data_names, ALL data blocks of the specified types are linked from each source file.
+- dcc_link_dependencies auto-resolves source files from the target asset's dependency graph when source_scope is omitted.
 
 ## Filtering the browser view
 - When the user asks to view, list, or filter assets/collections (e.g. "show all rigging assets", "list done tasks", "tasks assigned to me", "only modified files", "all .blend files"), call apply_browser_filter â€” do NOT use search_assets just to display things in the browser. search_assets is for analytical queries that return data to you; apply_browser_filter changes what the user sees.

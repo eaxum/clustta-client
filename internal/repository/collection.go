@@ -968,7 +968,7 @@ func UpdateCollection(tx *sqlx.Tx, collectionId string, name string, tags []stri
 			return models.Collection{}, err
 		}
 
-		err = os.Rename(oldCollection.FilePath, collection.FilePath)
+		err = utils.RenamePathCaseSafe(oldCollection.FilePath, collection.FilePath)
 		if err != nil {
 			return models.Collection{}, err
 		}
@@ -1011,7 +1011,7 @@ func RenameCollection(tx *sqlx.Tx, collectionId string, name string) (models.Col
 			return models.Collection{}, err
 		}
 
-		err = os.Rename(oldCollection.FilePath, collection.FilePath)
+		err = utils.RenamePathCaseSafe(oldCollection.FilePath, collection.FilePath)
 		if err != nil {
 			return models.Collection{}, err
 		}
@@ -1046,7 +1046,7 @@ func ChangeParent(tx *sqlx.Tx, collectionId string, parentId string) error {
 		if err != nil {
 			return err
 		}
-		err = os.Rename(oldCollection.FilePath, collection.FilePath)
+		err = utils.RenamePathCaseSafe(oldCollection.FilePath, collection.FilePath)
 		if err != nil {
 			return err
 		}

@@ -6,6 +6,7 @@
       type="checkbox" 
       @change="handleChange"
       :disabled="disabled"
+      :aria-label="ariaLabel"
     />
     <span class="checkbox-box" :class="{ 'checked': checkboxValue }">
       <span v-if="checkboxValue" class="checkbox-checkmark"></span>
@@ -24,6 +25,10 @@ const props = defineProps({
   disabled: {
     type: Boolean,
     default: false
+  },
+  ariaLabel: {
+    type: String,
+    default: 'Select item'
   }
 });
 
@@ -45,9 +50,6 @@ const handleChange = () => {
 
 <style scoped>
 .checkbox-container {
-  --primaryDarkestColor: rgba(0, 0, 0, 0.384);
-  --checkedColor: var(--selected);
-  height: max-content;
   position: relative;
   cursor: pointer;
   display: flex;
@@ -83,38 +85,44 @@ const handleChange = () => {
   position: relative;
   width: var(--checkbox-size);
   height: var(--checkbox-size);
-  border-radius: 6px;
-  /* background-color: var(--primaryDarkestColor); */
+  box-sizing: border-box;
+  border-radius: 5px;
+  background-color: var(--surface-1);
   transition: all 0.2s ease-in-out;
-  border: 2px solid transparent;
+  border: 1.5px solid var(--border-strong);
 }
 
 .checkbox-box.checked {
-  background-color: var(--checkedColor);
-  border-color: var(--checkedColor);
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.checkbox-container:hover .checkbox-box {
+  border-color: var(--accent);
 }
 
 .checkbox-input:focus + .checkbox-box {
-  outline: 2px solid var(--checkedColor);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
 .checkbox-checkmark {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
-  background-color: white;
-  /* background-color: var(--checkedColor); */
+  width: 5px;
+  height: 9px;
+  margin-top: -2px;
+  border: solid var(--accent-fg);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
   animation: checkmarkAppear 0.2s ease-in-out;
 }
 
 @keyframes checkmarkAppear {
   from {
-    transform: scale(0);
+    transform: rotate(45deg) scale(0);
     opacity: 0;
   }
   to {
-    transform: scale(1);
+    transform: rotate(45deg) scale(1);
     opacity: 1;
   }
 }

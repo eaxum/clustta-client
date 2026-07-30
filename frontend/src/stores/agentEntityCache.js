@@ -11,6 +11,8 @@ export const useAgentEntityCacheStore = defineStore("agentEntityCache", {
     assets: {},
     collections: {},
     users: {},
+    untrackedAssets: {},
+    untrackedCollections: {},
     missing: {},
     pending: {},
   }),
@@ -48,6 +50,8 @@ export const useAgentEntityCacheStore = defineStore("agentEntityCache", {
       if (type === "asset") return this.assets;
       if (type === "collection") return this.collections;
       if (type === "user") return this.users;
+      if (type === "untracked_asset") return this.untrackedAssets;
+      if (type === "untracked_collection") return this.untrackedCollections;
       return null;
     },
 
@@ -57,6 +61,9 @@ export const useAgentEntityCacheStore = defineStore("agentEntityCache", {
       const key = `${type}:${id}`;
 
       try {
+        if (type === "untracked_asset" || type === "untracked_collection") {
+          return this.markMissing(key);
+        }
         if (type === "asset") {
           if (!projectUri) return null;
           const asset = await AssetService.GetAssetByID(projectUri, id);
@@ -103,6 +110,30 @@ export const useAgentEntityCacheStore = defineStore("agentEntityCache", {
     markMissing(key) {
       this.missing[key] = true;
       return null;
+    },
+
+    // Retains entity snapshots returned by scoped commands, including
+    // untracked entities that cannot be fetched from tracked services.
+    rememberCommandResult(data) {
+      const visit = (value) => {
+        if (!value) return;
+        if (Array.isArray(value)) {
+          value.forEach(visit);
+          return;
+        }
+        if (typeof value !== "object") return;
+
+        const entity = value.entity && typeof value.entity === "object" ? value.entity : value;
+        if (entity.id && entity.type && entity.name) {
+          const map = this.mapFor(entity.type);
+          if (map) {
+            map[entity.id] = { ...entity };
+            delete this.missing[`${entity.type}:${entity.id}`];
+          }
+        }
+        Object.values(value).forEach(visit);
+      };
+      visit(data);
     },
   },
 });

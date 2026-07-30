@@ -1,8 +1,10 @@
-﻿package agent
+package agent
 
 import (
+	agentcommands "clustta/internal/agent/commands"
 	"clustta/internal/repository"
 	"clustta/internal/utils"
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -10,17 +12,66 @@ import (
 // ToolPreview is a structured description of what a destructive tool would do,
 // shown to the user in the approval modal.
 type ToolPreview struct {
-	Summary string                 `json:"summary"`          // one-line human-readable description
-	Items   []map[string]string    `json:"items,omitempty"`  // affected items (name + optional context)
-	Counts  map[string]int         `json:"counts,omitempty"` // category â†’ count (e.g. "assets": 12)
-	Notes   []string               `json:"notes,omitempty"`  // extra warnings or context lines
-	Args    map[string]interface{} `json:"args,omitempty"`   // raw arguments for transparency
+	Summary string                 `json:"summary"`           // one-line human-readable description
+	Items   []map[string]string    `json:"items,omitempty"`   // affected items (name + optional context)
+	Counts  map[string]int         `json:"counts,omitempty"`  // category â†’ count (e.g. "assets": 12)
+	Notes   []string               `json:"notes,omitempty"`   // extra warnings or context lines
+	Args    map[string]interface{} `json:"args,omitempty"`    // raw arguments for transparency
+	Blocked bool                   `json:"blocked,omitempty"` // true when validation prevents execution
 }
 
 // buildToolPreview returns a ToolPreview describing the side effects of the given tool call.
 // It performs read-only DB queries when useful; on any error it falls back to a generic preview.
 func buildToolPreview(projectPath, toolName string, args map[string]interface{}) ToolPreview {
 	preview := ToolPreview{Args: args}
+	if _, ok := agentcommands.DefinitionFor(toolName); ok {
+		plan, err := agentcommands.Prepare(projectPath, toolName, args)
+		if err != nil {
+			preview.Summary = "Unable to prepare batch plan."
+			preview.Notes = []string{err.Error()}
+			preview.Blocked = true
+			return preview
+		}
+		preview.Summary = fmt.Sprintf("%s %d item(s) locally.", humanizeCommand(toolName), plan.Counts["changes"])
+		preview.Counts = plan.Counts
+		preview.Blocked = !plan.Executable()
+		preview.Notes = append(preview.Notes, plan.Warnings...)
+		preview.Notes = append(preview.Notes, plan.Errors...)
+		if plan.LocalOnly && plan.RequiresSync {
+			preview.Notes = append(preview.Notes, "These changes are local and require a manual sync.")
+		}
+		for _, change := range plan.Changes {
+			before, _ := json.Marshal(change.Before)
+			after, _ := json.Marshal(change.After)
+			item := map[string]string{
+				"id": change.Entity.ID, "name": change.Entity.Name,
+				"type": string(change.Entity.Type), "action": change.Action,
+				"extension": change.Entity.Extension,
+				"before":    string(before), "after": string(after),
+				"warnings": strings.Join(change.Warnings, "; "),
+				"errors":   strings.Join(change.Errors, "; "),
+			}
+			if change.Entity.Type.Tracked() {
+				item["tracking"] = "tracked"
+			} else {
+				item["tracking"] = "untracked"
+			}
+			if strings.Contains(string(change.Entity.Type), "collection") {
+				item["kind"] = "collection"
+				item["type_name"], _ = change.Entity.Metadata["collection_type"].(string)
+				item["type_icon"], _ = change.Entity.Metadata["collection_type_icon"].(string)
+			} else {
+				item["kind"] = "asset"
+				item["type_name"], _ = change.Entity.Metadata["asset_type"].(string)
+				item["type_icon"], _ = change.Entity.Metadata["asset_type_icon"].(string)
+			}
+			if !change.Valid {
+				item["status"] = "skipped"
+			}
+			preview.Items = append(preview.Items, item)
+		}
+		return preview
+	}
 
 	switch toolName {
 	case "delete_asset":
@@ -180,6 +231,9 @@ func previewBulkDelete(projectPath string, args map[string]interface{}) []map[st
 // verifyToolPreview re-checks that the target items still match the preview the user approved,
 // closing the TOCTOU window between approval and execution for the highest-blast-radius tools.
 func verifyToolPreview(projectPath, toolName string, args map[string]interface{}, preview ToolPreview) error {
+	if _, ok := agentcommands.DefinitionFor(toolName); ok {
+		return agentcommands.Verify(projectPath, toolName, args)
+	}
 	switch toolName {
 	case "delete_asset":
 		id, _ := args["asset_id"].(string)
@@ -233,4 +287,9 @@ func verifyToolPreview(projectPath, toolName string, args map[string]interface{}
 		}
 	}
 	return nil
+}
+
+func humanizeCommand(name string) string {
+	name = strings.TrimPrefix(name, "batch_")
+	return strings.ReplaceAll(name, "_", " ")
 }

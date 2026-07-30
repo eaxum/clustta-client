@@ -19,6 +19,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { Browser } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
+import { FSService } from '@/services';
 
 // components
 import ProfilePhoto from '@/instances/common/components/ProfilePhoto.vue';
@@ -42,13 +43,14 @@ const stage = useStageStore();
 
 // props
 const props = defineProps({
-  type: { type: String, required: true, validator: (v) => ['asset', 'collection', 'user'].includes(v) },
+  type: { type: String, required: true, validator: (v) => ['asset', 'collection', 'untracked_asset', 'untracked_collection', 'user'].includes(v) },
   entityId: { type: String, required: true },
   fallbackLabel: { type: String, default: '' },
 });
 
 // refs
 const resolved = ref(cacheStore.get(props.type, props.entityId));
+const resolvedAssetIcon = ref('');
 
 // computed properties
 const isMissing = computed(() => cacheStore.isMissing(props.type, props.entityId));
@@ -65,14 +67,14 @@ const displayLabel = computed(() => {
 const userPhoto = computed(() => (props.type === 'user' && resolved.value ? resolved.value.photo || '' : ''));
 
 // Renders the asset's own icon (file type, app icon) without theme tinting.
-const useRawIcon = computed(() => props.type === 'asset' && !!resolved.value?.icon);
+const useRawIcon = computed(() => ['asset', 'untracked_asset'].includes(props.type) && !!resolvedAssetIcon.value);
 
 const iconSrc = computed(() => {
-  if (props.type === 'asset') {
-    if (resolved.value?.icon) return resolved.value.icon;
-    return iconStore.getAppIcon('file');
+  if (props.type === 'asset' || props.type === 'untracked_asset') {
+    return resolvedAssetIcon.value || iconStore.getAppIcon('file');
   }
   if (props.type === 'collection') return iconStore.getAppIcon('folder');
+  if (props.type === 'untracked_collection') return iconStore.getAppIcon('folder');
   return iconStore.getAppIcon('person');
 });
 
@@ -94,10 +96,27 @@ const resolveEntity = async () => {
   const cached = cacheStore.get(props.type, props.entityId);
   if (cached) {
     resolved.value = cached;
+    await resolveAssetIcon(cached);
     return;
   }
   const result = await cacheStore.ensure(props.type, props.entityId);
   resolved.value = result || cacheStore.get(props.type, props.entityId);
+  await resolveAssetIcon(resolved.value);
+};
+
+// Mirrors Browser.softRefresh: resolve the actual file icon through the icon
+// store using the normalized extension for tracked and untracked assets.
+const resolveAssetIcon = async (entity) => {
+  if (!['asset', 'untracked_asset'].includes(props.type)) {
+    resolvedAssetIcon.value = '';
+    return;
+  }
+  if (entity?.icon) {
+    resolvedAssetIcon.value = entity.icon;
+    return;
+  }
+  const extension = String(entity?.extension || '').toLowerCase().replace(/^\./, '');
+  resolvedAssetIcon.value = extension ? ((await iconStore.getIcon(extension)) || '') : '';
 };
 
 // Opens the asset's parent collection in the browser and selects the asset.
@@ -152,12 +171,17 @@ const handleClick = async () => {
 
   if (props.type === 'asset') return revealAsset(entity);
   if (props.type === 'collection') return revealCollection(entity);
+  if (props.type === 'untracked_asset' || props.type === 'untracked_collection') {
+    if (entity.path) await FSService.RevealInExplorer(entity.path);
+    return;
+  }
   if (props.type === 'user') return openUserProfile(entity);
 };
 
 // watchers
 watch(() => `${props.type}:${props.entityId}`, () => {
   resolved.value = cacheStore.get(props.type, props.entityId);
+  resolvedAssetIcon.value = '';
   resolveEntity();
 });
 

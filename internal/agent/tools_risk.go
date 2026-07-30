@@ -1,4 +1,4 @@
-﻿package agent
+package agent
 
 // Risk levels classify tool calls for approval gating.
 const (
@@ -14,33 +14,51 @@ var destructiveTools = map[string]bool{
 	"delete_collection": true,
 	"remove_user":       true,
 
-	"delete_asset_type":            true,
-	"delete_collection_type":       true,
-	"apply_workflow":               true,
-	"setup_project_types":          true,
-	"setup_animation_production":   true,
-	"batch_update_asset_types":     true,
+	"delete_asset_type":             true,
+	"delete_collection_type":        true,
+	"apply_workflow":                true,
+	"setup_project_types":           true,
+	"setup_animation_production":    true,
+	"batch_update_asset_types":      true,
 	"batch_update_collection_types": true,
 
-	"bulk_delete_assets":     true,
-	"bulk_change_asset_type": true,
+	"bulk_delete_assets":          true,
+	"bulk_change_asset_type":      true,
 	"bulk_change_collection_type": true,
-	"bulk_change_status":     true,
-	"bulk_assign":            true,
-	"random_assign":          true,
-	"unassign_all_assets":    true,
-	"batch_create_assets":    true,
-	"batch_create_collections": true,
+	"bulk_change_status":          true,
+	"bulk_assign":                 true,
+	"random_assign":               true,
+	"unassign_all_assets":         true,
+	"batch_create_assets":         true,
+	"batch_create_collections":    true,
 
-	"add_project_collaborator":       true,
-	"remove_project_collaborator":    true,
-	"add_studio_collaborator":        true,
+	"add_project_collaborator":        true,
+	"remove_project_collaborator":     true,
+	"add_studio_collaborator":         true,
 	"change_studio_collaborator_role": true,
-	"remove_studio_collaborator":     true,
+	"remove_studio_collaborator":      true,
 
 	"run_terminal_command": true,
 	"blender_run_script":   true,
 	"blender_run_python":   true,
+
+	"batch_rename":               true,
+	"batch_change_status":        true,
+	"batch_change_type":          true,
+	"batch_assign":               true,
+	"batch_unassign":             true,
+	"batch_move":                 true,
+	"batch_add_tags":             true,
+	"batch_remove_tags":          true,
+	"batch_toggle_task_resource": true,
+	"batch_add_dependency":       true,
+	"batch_remove_dependency":    true,
+	"batch_delete":               true,
+	"dcc_render":                 true,
+	"dcc_export":                 true,
+	"dcc_run_script":             true,
+	"dcc_run_python":             true,
+	"dcc_set_settings":           true,
 }
 
 // GetToolRisk returns the risk level for the given tool name.
