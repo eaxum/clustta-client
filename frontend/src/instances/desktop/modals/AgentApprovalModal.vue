@@ -69,7 +69,7 @@
                     <span v-if="item.before || item.after" class="change-arrow">→</span>
                     <span v-if="item.before || item.after">{{ readableValue(item.after, item) }}</span>
                   </template>
-                  <span v-if="item.type_name && !isAssignmentChange(item)" class="item-type-name">{{ item.type_name }}</span>
+                  <span v-if="item.type_name && !isRename(item) && !isAssignmentChange(item)" class="item-type-name">{{ item.type_name }}</span>
                   <span v-if="item.errors" class="item-error">{{ item.errors }}</span>
                 </div>
               </div>
