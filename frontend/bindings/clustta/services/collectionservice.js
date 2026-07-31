@@ -146,10 +146,12 @@ export function DeleteCollectionType(projectPath, id) {
  * @param {string} remoteUrl
  * @param {string} collectionIds
  * @param {string} userId
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.FetchResult>}
  */
 export function Fetch(projectPath, remoteUrl, collectionIds, userId) {
-    return $Call.ByID(1374674309, projectPath, remoteUrl, collectionIds, userId);
+    return $Call.ByID(1374674309, projectPath, remoteUrl, collectionIds, userId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
 }
 
 /**
@@ -161,7 +163,7 @@ export function Fetch(projectPath, remoteUrl, collectionIds, userId) {
  */
 export function GetCollectionAssets(projectPath, collectionId) {
     return $Call.ByID(282805764, projectPath, collectionId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -200,7 +202,7 @@ export function GetCollectionByPath(projectPath, collectionPath) {
  */
 export function GetCollectionChildren(projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList, isUntracked) {
     return $Call.ByID(985363246, projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList, isUntracked).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
 }
 
@@ -215,7 +217,7 @@ export function GetCollectionChildren(projectPath, collectionId, projectWorkingD
  */
 export function GetCollectionChildrenState(projectPath, collectionId, projectWorkingDir, ignoreList) {
     return $Call.ByID(1931303187, projectPath, collectionId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -240,7 +242,7 @@ export function GetCollectionCount(projectPath) {
  */
 export function GetCollectionStateFlags(projectPath, collectionId, projectWorkingDir, ignoreList) {
     return $Call.ByID(144595661, projectPath, collectionId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -252,7 +254,7 @@ export function GetCollectionStateFlags(projectPath, collectionId, projectWorkin
  */
 export function GetCollectionTypes(projectPath) {
     return $Call.ByID(1279663726, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -280,7 +282,7 @@ export function GetCollections(projectPath) {
  */
 export function GetItemsForCheckpoint(projectPath, collectionId, targetPath, projectWorkingDir, ignoreList) {
     return $Call.ByID(621025292, projectPath, collectionId, targetPath, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType8($result);
+        return $$createType9($result);
     }));
 }
 
@@ -295,7 +297,7 @@ export function GetItemsForCheckpoint(projectPath, collectionId, targetPath, pro
  */
 export function GetOutdatedItemsInCollection(projectPath, collectionId, projectWorkingDir, ignoreList) {
     return $Call.ByID(86452480, projectPath, collectionId, projectWorkingDir, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType10($result);
     }));
 }
 
@@ -312,7 +314,7 @@ export function GetOutdatedItemsInCollection(projectPath, collectionId, projectW
  */
 export function GetRecursiveUntrackedAssets(projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList) {
     return $Call.ByID(4149737787, projectPath, collectionId, projectWorkingDir, collectionFolderPath, ignoreList).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType10($result);
+        return $$createType11($result);
     }));
 }
 
@@ -340,7 +342,7 @@ export function IsUserAssignedToCollectionOrAncestor(projectPath, collectionId, 
  */
 export function PurgeRecursiveUntrackedItems(projectPath, collectionId, projectWorkingDir, collectionFolderPath) {
     return $Call.ByID(170177315, projectPath, collectionId, projectWorkingDir, collectionFolderPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType11($result);
+        return $$createType12($result);
     }));
 }
 
@@ -435,12 +437,13 @@ export function UpdatePreview(projectPath, collectionId, previewPath) {
 const $$createType0 = $models.MetadataUpdateResult.createFrom;
 const $$createType1 = models$0.CollectionType.createFrom;
 const $$createType2 = $Create.Array($Create.Any);
-const $$createType3 = $Create.Array($Create.Any);
-const $$createType4 = $models.CollectionItems.createFrom;
-const $$createType5 = $models.CollectionChildrenState.createFrom;
-const $$createType6 = $models.CollectionStateFlags.createFrom;
-const $$createType7 = $Create.Array($$createType1);
-const $$createType8 = $models.ItemsForCheckpoint.createFrom;
-const $$createType9 = $models.ItemsForUpdate.createFrom;
-const $$createType10 = $Create.Array($Create.Any);
-const $$createType11 = $models.PurgeRecursiveUntrackedItemsResult.createFrom;
+const $$createType3 = $models.FetchResult.createFrom;
+const $$createType4 = $Create.Array($Create.Any);
+const $$createType5 = $models.CollectionItems.createFrom;
+const $$createType6 = $models.CollectionChildrenState.createFrom;
+const $$createType7 = $models.CollectionStateFlags.createFrom;
+const $$createType8 = $Create.Array($$createType1);
+const $$createType9 = $models.ItemsForCheckpoint.createFrom;
+const $$createType10 = $models.ItemsForUpdate.createFrom;
+const $$createType11 = $Create.Array($Create.Any);
+const $$createType12 = $models.PurgeRecursiveUntrackedItemsResult.createFrom;

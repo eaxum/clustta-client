@@ -1127,6 +1127,42 @@ export class EntitlementUsage {
     }
 }
 
+/**
+ * FetchResult identifies the assets whose working files were successfully
+ * restored by a fetch operation.
+ */
+export class FetchResult {
+    /**
+     * Creates a new FetchResult instance.
+     * @param {Partial<FetchResult>} [$$source = {}] - The source object to create the FetchResult.
+     */
+    constructor($$source = {}) {
+        if (!("restored_asset_ids" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["restored_asset_ids"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new FetchResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {FetchResult}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("restored_asset_ids" in $$parsedSource) {
+            $$parsedSource["restored_asset_ids"] = $$createField0_0($$parsedSource["restored_asset_ids"]);
+        }
+        return new FetchResult(/** @type {Partial<FetchResult>} */($$parsedSource));
+    }
+}
+
 export class FileInfo {
     /**
      * Creates a new FileInfo instance.

@@ -105,6 +105,54 @@ export const useBrowserTreeStore = defineStore('browserTree', {
       return updatedItemCount;
     },
 
+    markAssetsAvailable(assetIds = []) {
+      let updatedItemCount = 0;
+      for (const assetId of new Set(assetIds || [])) {
+        updatedItemCount += this.patchItemsById(assetId, {
+          file_status: 'normal',
+        });
+      }
+      return updatedItemCount;
+    },
+
+    markCollectionFetched(collectionId, assetIds = []) {
+      const updatedItemCount = this.markAssetsAvailable(assetIds);
+      const collection = this.itemsByKey[`collection:${collectionId}`];
+      if (collection) {
+        collection.collectionStateFlags = {
+          ...(collection.collectionStateFlags || {}),
+          has_fetchable: false,
+        };
+      }
+      return updatedItemCount;
+    },
+
+    markCollectionTreeFetched(collectionId, assetIds = []) {
+      const updatedItemCount = this.markAssetsAvailable(assetIds);
+      const targetCollection = collectionId
+        ? this.itemsByKey[`collection:${collectionId}`]
+        : null;
+      const targetPath = targetCollection?.collection_path || '';
+
+      for (const [itemKey, item] of Object.entries(this.itemsByKey)) {
+        if (!itemKey.startsWith('collection:')) continue;
+
+        const isRootFetch = !collectionId || collectionId === 'root';
+        const isTarget = item.id === collectionId;
+        const itemPath = item.collection_path || '';
+        const isDescendant = targetPath
+          && itemPath.startsWith(`${targetPath}/`);
+        if (!isRootFetch && !isTarget && !isDescendant) continue;
+
+        item.collectionStateFlags = {
+          ...(item.collectionStateFlags || {}),
+          has_fetchable: false,
+        };
+      }
+
+      return updatedItemCount;
+    },
+
     applyItemUpdates(eventData) {
       const itemUpdates = Array.isArray(eventData) ? eventData : [eventData];
       let updatedItemCount = 0;

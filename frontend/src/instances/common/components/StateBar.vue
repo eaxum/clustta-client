@@ -39,6 +39,7 @@ import { CheckpointService, CollectionService, SyncService } from '@/services';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -50,6 +51,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
+const browserTreeStore = useBrowserTreeStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
@@ -129,12 +131,19 @@ const fetchAll = async () => {
 		const userAssetIds = assetStore.getAssets.filter(asset => asset.assignee_id === userStore.user?.id && !asset.trashed).map(asset => asset.id);
 		if (userAssetIds.length) {
 			await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userAssetIds)
-				.then(() => emitter.emit('refresh-browser'))
+				.then((result) => {
+					browserTreeStore.markAssetsAvailable(result?.restored_asset_ids);
+					collectionStore.collectionStateFlags.has_fetchable = false;
+				})
 				.catch((error) => console.error(`Error fetching assets:`, error));
 		}
 	} else {
 		await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
-			.then(() => { if (!path) assetStore.fetchableAssetsPath = []; emitter.emit('refresh-browser'); })
+			.then((result) => {
+				browserTreeStore.markCollectionTreeFetched(navigatedCollectionId, result?.restored_asset_ids);
+				collectionStore.collectionStateFlags.has_fetchable = false;
+				if (!path) assetStore.fetchableAssetsPath = [];
+			})
 			.catch((error) => notificationStore.errorNotification(t('components.stateBar.errorFetchingAll'), error));
 	}
 };

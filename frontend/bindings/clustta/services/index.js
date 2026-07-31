@@ -85,6 +85,7 @@ export {
     EntitlementBundle,
     EntitlementLimits,
     EntitlementUsage,
+    FetchResult,
     FileInfo,
     Gender,
     ImageResolution,

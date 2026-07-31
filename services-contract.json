@@ -367,6 +367,26 @@
         ]
       },
       {
+        "name": "AuthorizeCheckpoint",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "AuthorizeRevert",
+        "params": [
+          "projectPath:string",
+          "assetIds:[]string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "BulkToggleIsTask",
         "params": [
           "projectPath:string",
@@ -1159,6 +1179,7 @@
           "assetIds:[]string"
         ],
         "returns": [
+          "FetchResult",
           "error"
         ]
       },
@@ -1438,6 +1459,7 @@
           "userId:string"
         ],
         "returns": [
+          "FetchResult",
           "error"
         ]
       },
@@ -2784,6 +2806,22 @@
         ]
       },
       {
+        "name": "CreateProjectWithStorageMode",
+        "params": [
+          "projectUri:string",
+          "studioName:string",
+          "workingDir:string",
+          "templateName:string",
+          "hostingMode:string",
+          "studioId:string",
+          "storageMode:string"
+        ],
+        "returns": [
+          "repository.ProjectInfo",
+          "error"
+        ]
+      },
+      {
         "name": "DeleteRemoteProject",
         "params": [
           "projectUri:string",
@@ -3975,6 +4013,16 @@
         ]
       },
       {
+        "name": "GetStorageConversions",
+        "params": [
+          "studioUrl:string"
+        ],
+        "returns": [
+          "[]studio_service.StorageConversionState",
+          "error"
+        ]
+      },
+      {
         "name": "GetStudioInfo",
         "params": [
           "studioUrl:string"
@@ -4045,6 +4093,19 @@
         ],
         "returns": [
           "string",
+          "error"
+        ]
+      },
+      {
+        "name": "StartStorageConversion",
+        "params": [
+          "studioUrl:string",
+          "projectName:string",
+          "targetMode:string",
+          "_:string"
+        ],
+        "returns": [
+          "studio_service.StorageConversionState",
           "error"
         ]
       },

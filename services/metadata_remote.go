@@ -21,6 +21,12 @@ type MetadataUpdateResult struct {
 	RequiresSync  bool `json:"requires_sync"`
 }
 
+// FetchResult identifies the assets whose working files were successfully
+// restored by a fetch operation.
+type FetchResult struct {
+	RestoredAssetIds []string `json:"restored_asset_ids"`
+}
+
 type metadataTransportError struct {
 	err error
 }

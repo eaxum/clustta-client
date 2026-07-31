@@ -1893,18 +1893,19 @@ func (e *CollectionService) processTrackedCollectionForOutdated(tx *sqlx.Tx, col
 // Fetch restores missing working files for specified collections, downloading
 // checkpoint chunks first when they are not available locally.
 // Supports cancellation and sends progress updates via application events.
-func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId string) error {
+func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId string) (FetchResult, error) {
+	result := FetchResult{RestoredAssetIds: make([]string, 0)}
 	defer reset()
 
 	ctx := getContext()
 	if ctx.Err() != nil {
-		return errors.New("operation cancelled before starting")
+		return result, errors.New("operation cancelled before starting")
 	}
 
 	app := application.Get()
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	errChan := make(chan error, 1)
@@ -1926,18 +1927,18 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return result, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return result, err
 	}
 	defer tx.Rollback()
 
 	select {
 	case <-ctx.Done():
-		return errors.New("operation cancelled")
+		return result, errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
 		Title:      "Fetching",
 		Message:    "Preparing to fetch files",
@@ -1970,29 +1971,29 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 		if collectionId == "" {
 			rootCollections, err := repository.GetCollections(tx, false)
 			if err != nil {
-				return err
+				return result, err
 			}
 			collections = append(collections, rootCollections...)
 
 			rootAssets, err := repository.GetAssets(tx, false)
 			if err != nil {
-				return err
+				return result, err
 			}
 			allAssets = append(allAssets, rootAssets...)
 		} else {
 			parentCollection, err := repository.GetCollection(tx, collectionId)
 			if err != nil {
-				return err
+				return result, err
 			}
 			err = os.MkdirAll(parentCollection.FilePath, os.ModePerm)
 			if err != nil {
-				return err
+				return result, err
 			}
 			pathLike := parentCollection.CollectionPath + "%"
 			var collectionChildren []models.Collection
 			err = tx.Select(&collectionChildren, collectionCollectionsQuery, parentCollection.CollectionPath, pathLike)
 			if err != nil {
-				return err
+				return result, err
 			}
 			collections = append(collections, collectionChildren...)
 
@@ -2005,7 +2006,7 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 			var collectionAssets []models.Asset
 			err = tx.Select(&collectionAssets, collectionAssetsQuery, parentCollection.CollectionPath, pathLike)
 			if err != nil {
-				return err
+				return result, err
 			}
 			allAssets = append(allAssets, collectionAssets...)
 		}
@@ -2013,17 +2014,17 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 
 	rootFolder, err := utils.GetProjectWorkingDir(tx)
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	for _, collection := range collections {
 		collectionPath, err := utils.BuildCollectionPath(rootFolder, collection.CollectionPath)
 		if err != nil {
-			return err
+			return result, err
 		}
 		err = os.MkdirAll(collectionPath, os.ModePerm)
 		if err != nil {
-			return err
+			return result, err
 		}
 	}
 
@@ -2041,7 +2042,7 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 		checkpoints := []models.Checkpoint{}
 		err = tx.Select(&checkpoints, fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (%s) ORDER BY created_at DESC", strings.Join(quotedAssetIds, ",")))
 		if err != nil {
-			return err
+			return result, err
 		}
 
 		assetCheckpoints := map[string][]models.Checkpoint{}
@@ -2058,7 +2059,7 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 	for _, asset := range allAssets {
 		assetFilePath, err := utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
 		if err != nil {
-			return err
+			return result, err
 		}
 		asset.FilePath = assetFilePath
 		if len(asset.Checkpoints) == 0 {
@@ -2074,7 +2075,7 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 		latestCheckpoint := asset.Checkpoints[0]
 		isMisssingChunks, err := latestCheckpoint.HasMissingChunks(tx)
 		if err != nil {
-			return err
+			return result, err
 		}
 		if isMisssingChunks {
 			checkpointIdsToDownload = append(checkpointIdsToDownload, latestCheckpoint.Id)
@@ -2083,7 +2084,7 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 
 	err = tx.Rollback()
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	if len(checkpointIdsToDownload) != 0 {
@@ -2117,30 +2118,30 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 		case err = <-errChan:
 			if err != nil {
 				if errors.Is(err, syscall.ECONNREFUSED) {
-					return errors.New("download failed, connection refused")
+					return result, errors.New("download failed, connection refused")
 				}
-				return errors.New("download failed, check your connection")
+				return result, errors.New("download failed, check your connection")
 			}
 		case <-ctx.Done():
 			close(progressChan) // Stop progress updates
-			return errors.New("cancelled")
+			return result, errors.New("cancelled")
 		}
 	}
 
 	if ctx.Err() != nil {
-		return ctx.Err()
+		return result, ctx.Err()
 	}
 
 	tx, err = dbConn.Beginx()
 	if err != nil {
-		return err
+		return result, err
 	}
 	defer tx.Rollback()
 
 	totalItems := len(assetsToFetch)
 	for i, asset := range assetsToFetch {
 		if ctx.Err() != nil {
-			return ctx.Err()
+			return result, ctx.Err()
 		}
 
 		callBack := func(current int, total int, message string, extraMessage string) {
@@ -2155,14 +2156,15 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 		}
 		err = repository.RevertToLatestCheckpoint(tx, asset.Id, asset.FilePath, callBack)
 		if err != nil {
-			return err
+			return result, err
 		}
+		result.RestoredAssetIds = append(result.RestoredAssetIds, asset.Id)
 	}
 	if err = tx.Rollback(); err != nil {
-		return err
+		return result, err
 	}
 	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
-		return err
+		return result, err
 	}
 
 	close(progressChan)
@@ -2174,7 +2176,7 @@ func (e *CollectionService) Fetch(projectPath, remoteUrl, collectionIds, userId 
 		Total:      1,
 	}
 	app.Event.Emit("progress-update", progress)
-	return nil
+	return result, nil
 }
 
 // RevealCollection opens the file explorer to show a collection's folder.

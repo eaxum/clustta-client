@@ -13,6 +13,10 @@ import * as repository$0 from "../internal/repository/models.js";
 // @ts-ignore: Unused imports
 import * as models$0 from "../internal/repository/models/models.js";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * AddCheckpoint creates new checkpoints for multiple assets.
  * Returns the created checkpoints or an error if the operation fails.
@@ -114,10 +118,12 @@ export function GetTimeline(projectPath) {
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string[]} assetIds
- * @returns {$CancellablePromise<void>}
+ * @returns {$CancellablePromise<$models.FetchResult>}
  */
 export function Revert(projectPath, remoteUrl, assetIds) {
-    return $Call.ByID(3999685591, projectPath, remoteUrl, assetIds);
+    return $Call.ByID(3999685591, projectPath, remoteUrl, assetIds).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
 }
 
 /**
@@ -191,3 +197,4 @@ const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = repository$0.CompatTimeline.createFrom;
 const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = $models.FetchResult.createFrom;

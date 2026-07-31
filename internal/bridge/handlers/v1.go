@@ -569,10 +569,11 @@ func V1BuildAsset(w http.ResponseWriter, r *http.Request) {
 			return nil, err
 		}
 		checkpointService := &services.CheckpointService{}
-		if err = checkpointService.Revert(project.Uri, remoteURL, assetIDs); err != nil {
+		fetchResult, err := checkpointService.Revert(project.Uri, remoteURL, assetIDs)
+		if err != nil {
 			return nil, err
 		}
-		return map[string]any{"asset_ids": assetIDs}, nil
+		return map[string]any{"asset_ids": fetchResult.RestoredAssetIds}, nil
 	})
 	jsonResponse(w, http.StatusAccepted, job)
 }

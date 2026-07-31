@@ -358,6 +358,7 @@ import { useAssetThumbnail, getFileTypeIcon } from '@/composables/useAssetThumbn
 
 // stores
 import { useAssetStore } from '@/stores/assets';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -374,6 +375,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
+const browserTreeStore = useBrowserTreeStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
@@ -802,10 +804,9 @@ const launchAssetCommand = async () => {
     } else {
       CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [asset.id])
         .then(async (response) => {
-          let fileStatus = await assetStore.getAssetFileStatus(asset);
-          props.asset.file_status = fileStatus;
-          emitter.emit('asset-file-restored', { assetId: asset.id });
-          FSService.LaunchFile(file_path);
+          if (!response?.restored_asset_ids?.includes(asset.id)) return;
+          browserTreeStore.markAssetsAvailable(response.restored_asset_ids);
+          await FSService.LaunchFile(file_path);
         })
         .catch((error) => {
           console.log(error);
@@ -893,10 +894,7 @@ const revertAsset = async (index, asset, event) => {
 
   CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [assetId])
     .then(async (response) => {
-      emitAssetUpdates(assetId, [
-        { property: 'file_status', value: 'normal' }
-      ]);
-      emitter.emit('asset-file-restored', { assetId });
+      browserTreeStore.markAssetsAvailable(response?.restored_asset_ids);
     })
     .catch((error) => {
       console.log(error);

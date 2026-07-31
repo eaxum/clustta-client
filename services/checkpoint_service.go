@@ -595,18 +595,19 @@ func (c *CheckpointService) GetTimeline(projectPath string) ([]repository.Compat
 
 // Revert reverts multiple assets to their latest checkpoints.
 // Downloads missing chunks if needed and supports cancellation.
-func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []string) error {
+func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []string) (FetchResult, error) {
+	result := FetchResult{RestoredAssetIds: make([]string, 0)}
 	defer reset()
 
 	ctx := getContext()
 	if ctx.Err() != nil {
-		return errors.New("operation cancelled before starting")
+		return result, errors.New("operation cancelled before starting")
 	}
 
 	app := application.Get()
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	errChan := make(chan error, 1)
@@ -628,18 +629,18 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return err
+		return result, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return err
+		return result, err
 	}
 	defer tx.Rollback()
 
 	select {
 	case <-ctx.Done():
-		return errors.New("operation cancelled")
+		return result, errors.New("operation cancelled")
 	case progressChan <- output.ProgressReport{
 		Title:      "Reverting",
 		Message:    "Preparing to Revert",
@@ -650,7 +651,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 	}
 
 	if len(assetIds) == 0 {
-		return nil
+		return result, nil
 	}
 
 	checkpointQuery, checkpointArgs, err := sqlx.In(
@@ -658,13 +659,13 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		assetIds,
 	)
 	if err != nil {
-		return err
+		return result, err
 	}
 	checkpointQuery = tx.Rebind(checkpointQuery)
 	checkpoints := []models.Checkpoint{}
 	err = tx.Select(&checkpoints, checkpointQuery, checkpointArgs...)
 	if err != nil {
-		return err
+		return result, err
 	}
 	assetCheckpoints := map[string][]models.Checkpoint{}
 	for _, assetCheckpoint := range checkpoints {
@@ -683,7 +684,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		latestCheckpoint := assetCheckpointList[0]
 		isMisssingChunks, err := latestCheckpoint.HasMissingChunks(tx)
 		if err != nil {
-			return err
+			return result, err
 		}
 		if isMisssingChunks {
 			checkpointIdsToDownload = append(checkpointIdsToDownload, latestCheckpoint.Id)
@@ -692,7 +693,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 
 	err = tx.Rollback()
 	if err != nil {
-		return err
+		return result, err
 	}
 
 	if len(checkpointIdsToDownload) != 0 {
@@ -726,29 +727,29 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		case err = <-errChan:
 			if err != nil {
 				if errors.Is(err, syscall.ECONNREFUSED) {
-					return errors.New("download failed, connection refused")
+					return result, errors.New("download failed, connection refused")
 				}
-				return errors.New("download failed, check your connection")
+				return result, errors.New("download failed, check your connection")
 			}
 		case <-ctx.Done():
 			close(progressChan) // Stop progress updates
-			return errors.New("cancelled")
+			return result, errors.New("cancelled")
 		}
 	}
 
 	if ctx.Err() != nil {
-		return ctx.Err()
+		return result, ctx.Err()
 	}
 
 	totalAssets := len(revertableAssetIds)
 	for i, assetId := range revertableAssetIds {
 		tx, err := dbConn.Beginx()
 		if err != nil {
-			return err
+			return result, err
 		}
 		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
-			return err
+			return result, err
 		}
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
@@ -764,12 +765,13 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.FilePath, callBack)
 		if err != nil {
 			tx.Rollback()
-			return err
+			return result, err
 		}
 		tx.Rollback()
+		result.RestoredAssetIds = append(result.RestoredAssetIds, assetId)
 	}
 	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
-		return err
+		return result, err
 	}
 
 	close(progressChan)
@@ -781,7 +783,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		Total:      1,
 	}
 	app.Event.Emit("progress-update", progress)
-	return nil
+	return result, nil
 }
 
 // RevertAssetPaths reverts assets by their file paths to latest checkpoints.

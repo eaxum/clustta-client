@@ -225,6 +225,7 @@ import { CheckpointService, CollectionService, FSService, SyncService, AssetServ
 
 // stores
 import { useAssetStore } from '@/stores/assets';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -240,6 +241,7 @@ import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
+const browserTreeStore = useBrowserTreeStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();
@@ -580,7 +582,8 @@ const fetchCollection = async () => {
   notificationStore.cancleFunction = SyncService.CancelSync;
   notificationStore.canCancel = true;
   await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, props.collection.id)
-    .then((data) => {
+    .then((result) => {
+      browserTreeStore.markCollectionFetched(props.collection.id, result?.restored_asset_ids);
       assetStore.fetchableAssetsPath = assetStore.fetchableAssetsPath.filter(assetPath => !assetPath.startsWith(props.collection.collection_path));
       emitter.emit('refresh-browser');
     }).catch(async (error) => {
