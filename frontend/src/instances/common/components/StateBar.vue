@@ -140,7 +140,7 @@ const fetchAll = async () => {
 	} else {
 		await CollectionService.Fetch(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, navigatedCollectionId)
 			.then((result) => {
-				browserTreeStore.markCollectionTreeFetched(navigatedCollectionId, result?.restored_asset_ids);
+				browserTreeStore.markCollectionTreeFetched(navigatedCollectionId, result?.restored_asset_ids, path);
 				collectionStore.collectionStateFlags.has_fetchable = false;
 				if (!path) assetStore.fetchableAssetsPath = [];
 			})

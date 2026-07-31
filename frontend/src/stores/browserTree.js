@@ -127,21 +127,26 @@ export const useBrowserTreeStore = defineStore('browserTree', {
       return updatedItemCount;
     },
 
-    markCollectionTreeFetched(collectionId, assetIds = []) {
+    markCollectionTreeFetched(collectionId, assetIds = [], collectionPath = '') {
       const updatedItemCount = this.markAssetsAvailable(assetIds);
       const targetCollection = collectionId
         ? this.itemsByKey[`collection:${collectionId}`]
         : null;
-      const targetPath = targetCollection?.collection_path || '';
+      const targetPath = collectionPath || targetCollection?.collection_path || '';
+      const normalizedTargetPath = targetPath
+        .replace(/\\/g, '/')
+        .replace(/\/+$/, '');
 
       for (const [itemKey, item] of Object.entries(this.itemsByKey)) {
         if (!itemKey.startsWith('collection:')) continue;
 
         const isRootFetch = !collectionId || collectionId === 'root';
         const isTarget = item.id === collectionId;
-        const itemPath = item.collection_path || '';
-        const isDescendant = targetPath
-          && itemPath.startsWith(`${targetPath}/`);
+        const itemPath = (item.collection_path || '')
+          .replace(/\\/g, '/')
+          .replace(/\/+$/, '');
+        const isDescendant = normalizedTargetPath
+          && itemPath.startsWith(`${normalizedTargetPath}/`);
         if (!isRootFetch && !isTarget && !isDescendant) continue;
 
         item.collectionStateFlags = {
