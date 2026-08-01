@@ -495,12 +495,16 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 		if err := e.stampCollectionsCanModify(tx, collections); err != nil {
 			return children, err
 		}
-		children.Collections = collections
 
 		assets, err := repository.GetCollectionAssets(tx, collectionId)
 		if err != nil {
 			return children, err
 		}
+		collections, assets, err = filterChildrenByViewPermission(tx, collections, assets)
+		if err != nil {
+			return children, err
+		}
+		children.Collections = collections
 		children.Assets = assets
 
 		for _, child := range collections {
@@ -582,6 +586,62 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 	}
 
 	return children, nil
+}
+
+func filterChildrenByViewPermission(tx *sqlx.Tx, collections []models.Collection, assets []models.Asset) ([]models.Collection, []models.Asset, error) {
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return nil, nil, err
+	}
+	user, err := repository.GetUser(tx, activeUser.Id)
+	if err != nil {
+		return nil, nil, err
+	}
+	role, err := repository.GetRole(tx, user.RoleId)
+	if err != nil {
+		return nil, nil, err
+	}
+	if role.ViewAsset {
+		return collections, assets, nil
+	}
+
+	visibleAssets, err := repository.GetUserAssetsMinimal(tx, user.Id)
+	if err != nil {
+		return nil, nil, err
+	}
+	visibleCollections, err := repository.GetUserCollections(tx, visibleAssets, user.Id)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	filteredCollections, filteredAssets := filterVisibleChildren(collections, assets, visibleCollections, visibleAssets)
+	return filteredCollections, filteredAssets, nil
+}
+
+func filterVisibleChildren(collections []models.Collection, assets []models.Asset, visibleCollections []models.Collection, visibleAssets []models.Asset) ([]models.Collection, []models.Asset) {
+	visibleCollectionIds := make(map[string]struct{}, len(visibleCollections))
+	for _, collection := range visibleCollections {
+		visibleCollectionIds[collection.Id] = struct{}{}
+	}
+	filteredCollections := make([]models.Collection, 0, len(collections))
+	for _, collection := range collections {
+		if _, visible := visibleCollectionIds[collection.Id]; visible {
+			filteredCollections = append(filteredCollections, collection)
+		}
+	}
+
+	visibleAssetIds := make(map[string]struct{}, len(visibleAssets))
+	for _, asset := range visibleAssets {
+		visibleAssetIds[asset.Id] = struct{}{}
+	}
+	filteredAssets := make([]models.Asset, 0, len(assets))
+	for _, asset := range assets {
+		if _, visible := visibleAssetIds[asset.Id]; visible {
+			filteredAssets = append(filteredAssets, asset)
+		}
+	}
+
+	return filteredCollections, filteredAssets
 }
 
 // GetRecursiveUntrackedAssets returns all untracked files under a collection folder.
@@ -914,7 +974,15 @@ func (e *CollectionService) GetCollectionAssets(projectPath, collectionId string
 		return []models.Asset{}, err
 	}
 	defer tx.Rollback()
-	return repository.GetCollectionAssets(tx, collectionId)
+	assets, err := repository.GetCollectionAssets(tx, collectionId)
+	if err != nil {
+		return []models.Asset{}, err
+	}
+	_, assets, err = filterChildrenByViewPermission(tx, nil, assets)
+	if err != nil {
+		return []models.Asset{}, err
+	}
+	return assets, nil
 }
 
 // GetCollectionByID retrieves a collection by its ID.

@@ -118,6 +118,9 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 	if err := repository.AddItemsToTomb(tx, data.Tombs); err != nil {
 		return err
 	}
+	if err := reconcileRestrictedAssetAssignments(tx, data, userId); err != nil {
+		return err
+	}
 
 	// Mark the rows the merge touched (and the tombs we just applied) as
 	// synced. Bypasses the per-table "AFTER UPDATE WHEN OLD.mtime !=
@@ -140,6 +143,46 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 	}
 
 	return tx.Commit()
+}
+
+func reconcileRestrictedAssetAssignments(tx *sqlx.Tx, data sync_service.ProjectData, userId string) error {
+	user, err := repository.GetUser(tx, userId)
+	if err != nil {
+		return err
+	}
+	role, err := repository.GetRole(tx, user.RoleId)
+	if err != nil {
+		return err
+	}
+	if role.ViewAsset {
+		return nil
+	}
+	return clearRevokedAssetAssignments(tx, data.Assets, userId)
+}
+
+func clearRevokedAssetAssignments(tx *sqlx.Tx, visibleAssets []models.Asset, userId string) error {
+	// Restricted-user payloads are complete visibility snapshots, so an absent direct assignment is revoked.
+	visibleAssetIds := make(map[string]struct{}, len(visibleAssets))
+	for _, asset := range visibleAssets {
+		visibleAssetIds[asset.Id] = struct{}{}
+	}
+
+	assignedAssetIds := []string{}
+	if err := tx.Select(&assignedAssetIds, "SELECT id FROM asset WHERE assignee_id = ?", userId); err != nil {
+		return err
+	}
+	for _, assetId := range assignedAssetIds {
+		if _, visible := visibleAssetIds[assetId]; visible {
+			continue
+		}
+		if _, err := tx.Exec(
+			"UPDATE asset SET assignee_id = '', assigner_id = '' WHERE id = ?",
+			assetId,
+		); err != nil {
+			return fmt.Errorf("reconcile revoked asset assignment: %w", err)
+		}
+	}
+	return nil
 }
 
 // applyProjectInfo writes the project-level metadata that does not flow

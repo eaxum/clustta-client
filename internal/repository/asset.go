@@ -1156,14 +1156,6 @@ func GetUserAssets(tx *sqlx.Tx, userId string) ([]models.Asset, error) {
 		return nil, err
 	}
 
-	// Get all assets id
-	allAssetsId := []string{}
-	query = `SELECT id FROM asset WHERE trashed = 0`
-	err = tx.Select(&allAssetsId, query)
-	if err != nil {
-		return nil, err
-	}
-
 	allAssetInfo := []models.Asset{}
 	query = `SELECT id, collection_id FROM asset WHERE trashed = 0`
 	err = tx.Select(&allAssetInfo, query)
@@ -1352,14 +1344,6 @@ func GetUserAssetsMinimal(tx *sqlx.Tx, userId string) ([]models.Asset, error) {
 		return nil, err
 	}
 
-	// Get all assets id
-	allAssetsId := []string{}
-	query = `SELECT id FROM asset WHERE trashed = 0`
-	err = tx.Select(&allAssetsId, query)
-	if err != nil {
-		return nil, err
-	}
-
 	allAssetInfo := []models.Asset{}
 	query = `SELECT id, collection_id FROM asset WHERE trashed = 0`
 	err = tx.Select(&allAssetInfo, query)
@@ -1420,19 +1404,19 @@ func GetUserAssetsMinimal(tx *sqlx.Tx, userId string) ([]models.Asset, error) {
 				}
 			}
 		}
+	}
 
-		for _, collectionId := range assignedCollectionsIds {
-			collectionAssets := getAllCollectionAssets(collectionId, allAssetInfo, allCollectionInfo)
-			for _, collectionAsset := range collectionAssets {
-				dependencies[collectionAsset] = struct{}{}
-			}
+	for _, collectionId := range assignedCollectionsIds {
+		collectionAssets := getAllCollectionAssets(collectionId, allAssetInfo, allCollectionInfo)
+		for _, collectionAsset := range collectionAssets {
+			dependencies[collectionAsset] = struct{}{}
 		}
+	}
 
-		for _, collectionId := range sharedCollections {
-			collectionAssets := getAllCollectionAssets(collectionId, allAssetInfo, allCollectionInfo)
-			for _, collectionAsset := range collectionAssets {
-				dependencies[collectionAsset] = struct{}{}
-			}
+	for _, collectionId := range sharedCollections {
+		collectionAssets := getAllCollectionAssets(collectionId, allAssetInfo, allCollectionInfo)
+		for _, collectionAsset := range collectionAssets {
+			dependencies[collectionAsset] = struct{}{}
 		}
 	}
 
