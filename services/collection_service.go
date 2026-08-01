@@ -2400,7 +2400,11 @@ func (e *CollectionService) ChangeType(projectPath, collectionId, collectionType
 	if remoteURL != "" && collectionType.Synced {
 		response, patchErr := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, CollectionTypeId: &collectionTypeId}})
 		if patchErr != nil {
-			if !IsMetadataTransportFailure(patchErr) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableCollection, []string{collectionId}, patchErr)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, patchErr
 			}
 			requiresSync = true
@@ -2471,7 +2475,11 @@ func (e *CollectionService) ChangeIsShared(projectPath, collectionId string, isS
 	if remoteURL != "" {
 		response, err := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, IsShared: &isShared}})
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableCollection, []string{collectionId}, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, err
 			}
 			remoteFailure = err
@@ -2538,7 +2546,11 @@ func (e *CollectionService) Assign(projectPath, collectionId, userId string) (Me
 	if remoteURL != "" {
 		response, err := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, AddAssigneeIds: []string{userId}}})
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableCollection, []string{collectionId}, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, err
 			}
 			remoteFailure = err
@@ -2615,7 +2627,11 @@ func (e *CollectionService) Unassign(projectPath, collectionId, userId string) (
 	if remoteURL != "" {
 		response, err := patchCollectionsRemote(remoteURL, []collectionPatch{{Id: collectionId, RemoveAssigneeIds: []string{userId}}})
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableCollection, []string{collectionId}, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, err
 			}
 			remoteFailure = err
@@ -2716,7 +2732,11 @@ func (e *CollectionService) UnassignCollections(projectPath string, collectionId
 	if remoteURL != "" {
 		response, remoteErr := patchCollectionsRemote(remoteURL, patches)
 		if remoteErr != nil {
-			if !IsMetadataTransportFailure(remoteErr) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableCollection, collectionIds, remoteErr)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, remoteErr
 			}
 			remoteFailure = remoteErr

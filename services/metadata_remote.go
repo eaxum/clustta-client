@@ -21,6 +21,11 @@ type MetadataUpdateResult struct {
 	RequiresSync  bool `json:"requires_sync"`
 }
 
+const (
+	metadataTableAsset      = "asset"
+	metadataTableCollection = "collection"
+)
+
 // FetchResult identifies the assets whose working files were successfully
 // restored by a fetch operation.
 type FetchResult struct {
@@ -39,6 +44,27 @@ func (e *metadataTransportError) Unwrap() error { return e.err }
 func IsMetadataTransportFailure(err error) bool {
 	var transportErr *metadataTransportError
 	return errors.As(err, &transportErr)
+}
+
+func metadataMutationAllowsLocalFallback(projectPath, table string, ids []string, remoteErr error) (bool, error) {
+	if IsMetadataTransportFailure(remoteErr) {
+		return true, nil
+	}
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return false, err
+	}
+	defer db.Close()
+	tx, err := db.Beginx()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	synced, err := metadataRowsAreSynced(tx, table, ids)
+	if err != nil {
+		return false, err
+	}
+	return !synced, nil
 }
 
 type assetPatch struct {

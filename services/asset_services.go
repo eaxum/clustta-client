@@ -771,7 +771,11 @@ func (t *AssetService) ChangeStatus(projectPath string, assetIds []string, statu
 		}
 		response, err := patchAssetsRemote(remoteURL, patches)
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableAsset, assetIds, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, fmt.Errorf("remote status update failed: %w", err)
 			}
 			remoteFailure = err
@@ -1124,7 +1128,11 @@ func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string)
 	if remoteURL != "" && assetType.Synced {
 		response, patchErr := patchAssetsRemote(remoteURL, []assetPatch{{Id: assetId, AssetTypeId: &assetTypeId}})
 		if patchErr != nil {
-			if !IsMetadataTransportFailure(patchErr) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableAsset, []string{assetId}, patchErr)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, patchErr
 			}
 			requiresSync = true
@@ -1208,7 +1216,11 @@ func (t *AssetService) BulkToggleIsTask(projectPath string, assetIds []string, i
 		}
 		response, err := patchAssetsRemote(remoteURL, patches)
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableAsset, assetIds, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, err
 			}
 			remoteFailure = err
@@ -1355,7 +1367,11 @@ func (t *AssetService) AssignAssets(projectPath string, assetIds []string, userI
 		}
 		response, err := patchAssetsRemote(remoteURL, patches)
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableAsset, assetIds, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, err
 			}
 			remoteFailure = err
@@ -1433,7 +1449,11 @@ func (t *AssetService) UnassignAsset(projectPath, assetId string) (MetadataUpdat
 		empty := ""
 		response, err := patchAssetsRemote(remoteURL, []assetPatch{{Id: assetId, AssigneeId: &empty}})
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableAsset, []string{assetId}, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, err
 			}
 			remoteFailure = err
@@ -1509,7 +1529,11 @@ func (t *AssetService) UnassignAssets(projectPath string, assetIds []string) (Me
 		}
 		response, err := patchAssetsRemote(remoteURL, patches)
 		if err != nil {
-			if !IsMetadataTransportFailure(err) {
+			fallback, fallbackErr := metadataMutationAllowsLocalFallback(projectPath, metadataTableAsset, assetIds, err)
+			if fallbackErr != nil {
+				return MetadataUpdateResult{}, fallbackErr
+			}
+			if !fallback {
 				return MetadataUpdateResult{}, err
 			}
 			remoteFailure = err

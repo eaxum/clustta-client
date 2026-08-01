@@ -4,6 +4,8 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
+	"net/http"
+	"net/http/httptest"
 	"path/filepath"
 	"testing"
 
@@ -151,5 +153,49 @@ func TestCanonicalAssetDoesNotOverwritePreexistingDirtyRow(t *testing.T) {
 	}
 	if name != "Local edit" {
 		t.Fatalf("dirty row was overwritten: %q", name)
+	}
+}
+
+func TestUnsyncedCollectionFallsBackAfterRemoteRejection(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		http.Error(w, "collection not found", http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	projectPath := filepath.Join(t.TempDir(), "project.clst")
+	db, err := sqlx.Open("sqlite3", projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(repository.ProjectSchema); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1)", server.URL); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`INSERT INTO collection(id,created_at,mtime,name,collection_path,collection_type_id,parent_id,synced,is_shared)
+		VALUES('collection-1','now',1,'Local collection','','type-1','',0,0)`); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+
+	result, err := (&CollectionService{}).ChangeIsShared(projectPath, "collection-1", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.RemoteApplied || !result.RequiresSync {
+		t.Fatalf("unexpected mutation result: %#v", result)
+	}
+	db, err = sqlx.Open("sqlite3", projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	var isShared bool
+	if err = db.Get(&isShared, "SELECT is_shared FROM collection WHERE id='collection-1'"); err != nil {
+		t.Fatal(err)
+	}
+	if !isShared {
+		t.Fatal("remote rejection did not fall back to the local collection update")
 	}
 }
