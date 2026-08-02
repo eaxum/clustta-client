@@ -86,6 +86,7 @@ import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
+import { useProjectRemovalActions } from '@/composables/useProjectRemovalActions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -120,6 +121,7 @@ const trayStates = useTrayStates();
 const userStore = useUserStore();
 
 const { t } = useI18n();
+const { prepDeleteProject, prepRemoveProject } = useProjectRemovalActions();
 
 // props
 const props = defineProps({
@@ -305,6 +307,18 @@ Events.On('edit-item', async () => {
 Events.On('rename-item', async () => {
   if (operationsActive.value || !props.project.is_tracked) return;
   if (isProjectInFocus.value && studioStore.canManageProject) isEditing.value = true;
+});
+
+Events.On('free-item-space', async () => {
+  if (operationsActive.value || !isProjectInFocus.value) return;
+  if (platformStore.isWeb || !props.project.has_remote || !props.project.is_downloaded) return;
+  prepRemoveProject();
+});
+
+Events.On('delete-item', async () => {
+  if (operationsActive.value || !isProjectInFocus.value) return;
+  if ((!props.project.is_downloaded && !platformStore.isWeb) || !studioStore.canManageProject) return;
+  prepDeleteProject();
 });
 
 // lifecycle hooks

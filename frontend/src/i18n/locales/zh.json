@@ -875,6 +875,8 @@
     }
   },
   "menus": {
+    "copyAsset": "复制资产",
+    "cutAsset": "剪切资产",
     "addAccount": "添加账户",
     "addAsset": "添加资产",
     "addCollection": "添加集合",

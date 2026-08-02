@@ -12,16 +12,16 @@
 			</div>
 			<div v-else class="create-menu" >
 				<ActionButton :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive" :icon="getAppIcon('briefcase-plus')" 
-					@click="createProject" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('stages.newProject')" :buttonFunction="doNothing" />
+					@click="createProject" v-tooltip="{ text: studioInactive ? $t('notifications.studioInactive') : $t('stages.newProject'), shortcut: 'newProject' }" :buttonFunction="doNothing" />
 				<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="operationsActive" :icon="getAppIcon('data-download')" 
 					v-tooltip="$t('stages.importProject')" :buttonFunction="importProject" />
 				<ActionButton v-else :isDisabled="!studioStore.isStudioAdmin || operationsActive || studioInactive"  :icon="getAppIcon('data-download')" 
 					v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('stages.uploadProject')" :buttonFunction="uploadProject" />
 				<ActionButton :isDisabled="operationsActive" :icon="getAppIcon('refresh')" 
-					v-tooltip="$t('common.refresh')" :buttonFunction="refresh" />
+					v-tooltip="{ text: $t('common.refresh'), shortcut: 'refresh' }" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
-				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" :placeholder="$t('stages.searchProjects')" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
+				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" :placeholder="$t('stages.searchProjects') + ' (F3)'" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
 			</div>
 		<div class="view-options">
 			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length || operationsActive" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? $t('stages.hideUntrackedProjects') : $t('stages.showUntrackedProjects')"

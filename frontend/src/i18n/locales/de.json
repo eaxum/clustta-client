@@ -876,6 +876,8 @@
     }
   },
   "menus": {
+    "copyAsset": "Asset kopieren",
+    "cutAsset": "Asset ausschneiden",
     "addAccount": "Konto hinzufügen",
     "addAsset": "Asset hinzufügen",
     "addCollection": "Sammlung hinzufügen",

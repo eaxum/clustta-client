@@ -1,15 +1,15 @@
 <template>
 	<div class="create-menu">
 		<ActionButton :icon="getAppIcon('file-plus')" :isDisabled="props.disabled || kanbanView || !canCreateAsset"
-			@click="createAsset" v-tooltip="$t('components.createMenu.addAsset')" />
+			@click="createAsset" v-tooltip="{ text: $t('components.createMenu.addAsset'), shortcut: 'newAsset' }" />
 		<ActionButton :icon="getAppIcon('folder-plus')" :isDisabled="props.disabled || kanbanView || !canCreateCollection"
-			@click="createCollection" v-tooltip="$t('components.createMenu.addCollection')" />
+			@click="createCollection" v-tooltip="{ text: $t('components.createMenu.addCollection'), shortcut: 'newCollection' }" />
 		<ActionButton :icon="getAppIcon('data-download')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !canCreateAsset"
 			@click="importItemsWithPermission" v-tooltip="$t('components.createMenu.importItems')" />
 		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="props.disabled || kanbanView || !canCreateWorkflow"
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
 		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="props.disabled || kanbanView || !canCreateAsset"
-			@click="createWebLink" v-tooltip="$t('components.createMenu.addWeblink')" />
+			@click="createWebLink" v-tooltip="{ text: $t('components.createMenu.addWeblink'), shortcut: 'newLink' }" />
 		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="props.disabled || kanbanView || !canCreateAsset"
 			v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
 		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateCollection"

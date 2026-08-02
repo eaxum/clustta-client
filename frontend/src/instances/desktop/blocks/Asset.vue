@@ -553,6 +553,12 @@ Events.On('add-checkpoint', async () => {
   }
 });
 
+Events.On('build-with-dependencies', async () => {
+  if (operationsActive.value || !isAssetInFocus.value || !userStore.canDo('pull_chunk')) return;
+  if (!props.asset.dependencies?.length && !props.asset.collection_dependencies?.length) return;
+  await buildWithDependencies();
+});
+
 Events.On('free-item-space', async () => {
   if (operationsActive.value) return;
   if (isAssetInFocus.value) {
@@ -577,6 +583,25 @@ Events.On('delete-item', async () => {
 const cancelRename = () => {
   editableAssetName.value = props.asset.name || '';
   toggleEditMode();
+};
+
+// Builds the focused asset with all transitive dependencies.
+const buildWithDependencies = async () => {
+  if (!isAssetInFocus.value || !userStore.canDo('pull_chunk')) return;
+  try {
+    const assetIds = await AssetService.ResolveBuildDependencies(
+      projectStore.activeProject.uri,
+      props.asset.id,
+    );
+    await CheckpointService.Revert(
+      projectStore.activeProject.uri,
+      projectStore.getActiveProjectUrl,
+      assetIds,
+    );
+    emitter.emit('refresh-browser');
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorRevertingAssets'), error);
+  }
 };
 
 // Shows a popup modal when user cannot modify the asset.

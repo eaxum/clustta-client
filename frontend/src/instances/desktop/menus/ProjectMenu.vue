@@ -36,7 +36,7 @@
 
     <!-- Fetch -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('menus.fetchProject')"
-      :buttonFunction="fetchAll" />
+      shortcut="fetch" :buttonFunction="fetchAll" />
 
     <!-- Purge untracked -->
     <ActionButton v-if="canPurgeUntracked" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
@@ -44,7 +44,7 @@
 
     <!-- Free space -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('two-drives')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
-      shortcut="freeUpSpace" :buttonFunction="prepFreeUpSpacePopUpModal" />
+      :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Clear Trash -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.emptyTrash')"

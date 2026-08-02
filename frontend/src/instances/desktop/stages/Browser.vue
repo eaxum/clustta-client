@@ -47,7 +47,7 @@ import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
-import { canCreateAssetHere, canCreateCollectionHere } from '@/lib/permissions';
+import { canActInCollection, canActInNavigatedCollection, canActOnAssets, canCreateAssetHere, canCreateCollectionHere } from '@/lib/permissions';
 import { useDebounce } from '@/lib/debounce';
 import { useFsWatch } from '@/composables/useFsWatch';
 import { invalidateAssetThumbnailsForItems } from '@/composables/useAssetThumbnail';
@@ -1383,21 +1383,6 @@ Events.On('new-web-link', async () => {
 	createWebLink();
 });
 
-Events.On('sync-project', async () => {
-	return 
-	if (operationsActive.value) return
-	//TODO prevent multiple syncs
-	stage.operationActive = true;
-	await syncData()
-		.then(() => {
-			stage.operationActive = false;
-		})
-		.catch((err) => {
-			console.log(err)
-			stage.operationActive = false;
-		});
-});
-
 Events.On('group-items', async () => {
 	if (operationsActive.value) return
 	if (stage.markedItems.length > 1 && userStore.canDo('update_collection')) {
@@ -1409,10 +1394,16 @@ Events.On('group-items', async () => {
 Events.On('cut-items', async () => {
 	if (operationsActive.value) return;
 	if (isEditableElementFocused()) return;
-	if (!!stage.markedItems.length && userStore.canDo('update_collection')) {
+	const selectedItems = dndStore.allViewItems.filter(item => stage.markedItems.includes(item.id));
+	const selectedAssets = selectedItems.filter(item => item.type === 'asset');
+	const selectedCollections = selectedItems.filter(item => item.type === 'collection');
+	const selectedUntrackedItems = selectedItems.filter(item => item.type?.includes('untracked'));
+	const canCutAssets = !selectedAssets.length || canActOnAssets('update_asset', selectedAssets);
+	const canCutCollections = selectedCollections.every(item => canActInCollection('update_collection', item));
+	const canCutUntracked = !selectedUntrackedItems.length || canActInNavigatedCollection('update_collection');
+	if (selectedItems.length && canCutAssets && canCutCollections && canCutUntracked) {
 		stage.copiedItems = [];
-		const viewItems = dndStore.allViewItems;
-		stage.cutItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
+		stage.cutItems = selectedItems;
 		stage.cutItems = stage.cutItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.collection_id));
 		clearSelection();
 	}
@@ -1421,10 +1412,14 @@ Events.On('cut-items', async () => {
 Events.On('copy-items', async () => {
 	if (operationsActive.value) return;
 	if (isEditableElementFocused()) return;
-	if (!!stage.markedItems.length && userStore.canDo('update_collection')) {
+	const selectedItems = dndStore.allViewItems.filter(item => stage.markedItems.includes(item.id));
+	const selectedAssets = selectedItems.filter(item => item.type === 'asset');
+	const selectedUntrackedItems = selectedItems.filter(item => item.type === 'untracked_asset' || item.type === 'untracked_collection');
+	const canCopyAssets = !selectedAssets.length || canActOnAssets('create_asset', selectedAssets);
+	const canCopyUntracked = !selectedUntrackedItems.length || canCreateAssetHere();
+	if (selectedItems.length && canCopyAssets && canCopyUntracked) {
 		stage.cutItems = [];
-		const viewItems = dndStore.allViewItems;
-		let copiedItems = viewItems.filter((item) => stage.markedItems.includes(item.id));
+		let copiedItems = selectedItems;
 		copiedItems = copiedItems.filter((item) => !stage.markedItems.includes(item.parent_id || item.collection_id));
 		// Filter out tracked collections - copying collections is not yet supported
 		stage.copiedItems = copiedItems.filter((item) => item.type !== 'collection');
@@ -1433,6 +1428,27 @@ Events.On('copy-items', async () => {
 		}
 		clearSelection();
 	}
+});
+
+Events.On('toggle-ui-lock', () => {
+	if (operationsActive.value || isEditableElementFocused()) return;
+	if (commonStore.activeWorkspace !== 'Default' || kanbanView.value || !userStore.canDo('update_collection')) return;
+	dndStore.lockUI = !dndStore.lockUI;
+});
+
+Events.On('toggle-extensions', () => {
+	if (operationsActive.value || isEditableElementFocused() || kanbanView.value) return;
+	commonStore.hideExtensions = !commonStore.hideExtensions;
+});
+
+Events.On('toggle-path-visibility', () => {
+	if (operationsActive.value || isEditableElementFocused() || kanbanView.value) return;
+	commonStore.showFullPath = !commonStore.showFullPath;
+});
+
+Events.On('collapse-all', () => {
+	if (operationsActive.value || isEditableElementFocused() || kanbanView.value || commonStore.useGrid) return;
+	collapseAll();
 });
 
 Events.On('paste-items', async () => {

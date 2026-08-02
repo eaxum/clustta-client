@@ -876,6 +876,8 @@
     }
   },
   "menus": {
+    "copyAsset": "アセットをコピー",
+    "cutAsset": "アセットを切り取り",
     "addAccount": "アカウントを追加",
     "addAsset": "アセットを追加",
     "addCollection": "コレクションを追加",

@@ -13,7 +13,7 @@
 			<ActionButton :icon="getAppIcon('refresh')" v-tooltip="{ text: $t('components.breadcrumbs.refresh'), shortcut: 'refresh' }" :buttonFunction="refresh" />
 
 			<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
-				:allowDeactivate="true" v-tooltip="$t('components.breadcrumbs.upALevel')" :buttonFunction="goUpALevel" />
+				:allowDeactivate="true" v-tooltip="{ text: $t('components.breadcrumbs.upALevel'), shortcut: 'navigateUp' }" :buttonFunction="goUpALevel" />
 
 			<ActionButton v-if="showProjectChip" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''"
 				:label="projectStore.activeProject?.name" :buttonFunction="goHome" />
@@ -408,6 +408,15 @@ const goUpALevel = async () => {
 	}
 };
 
+const handleNavigateUpShortcut = async (event) => {
+	if (event.key !== 'Backspace' || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+	const activeElement = document.activeElement;
+	const isEditing = activeElement?.matches('input, textarea, [contenteditable="true"]');
+	if (!commonStore.navigatorMode || !collectionStore.navigatedCollection || stage.operationActive || isEditing) return;
+	event.preventDefault();
+	await goUpALevel();
+};
+
 // Handles clicks outside to close overflow menu.
 const handleClickOutside = () => { if (displayOverflowItems.value) displayOverflowItems.value = false; };
 
@@ -460,11 +469,13 @@ onMounted(() => {
 		resizeObserver.value.observe(breadcrumbRoot.value);
 	}
 	document.addEventListener('click', handleClickOutside);
+	document.addEventListener('keydown', handleNavigateUpShortcut);
 });
 
 onBeforeUnmount(() => {
 	if (resizeObserver.value) resizeObserver.value.disconnect();
 	document.removeEventListener('click', handleClickOutside);
+	document.removeEventListener('keydown', handleNavigateUpShortcut);
 });
 </script>
 

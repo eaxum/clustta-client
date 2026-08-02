@@ -875,6 +875,8 @@
     }
   },
   "menus": {
+    "copyAsset": "एसेट कॉपी करें",
+    "cutAsset": "एसेट काटें",
     "addAccount": "खाता जोड़ें",
     "addAsset": "एसेट जोड़ें",
     "addCollection": "कलेक्शन जोड़ें",

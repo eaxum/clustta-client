@@ -15,6 +15,12 @@
     <ActionButton v-if="!hideOnFilter && canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
       :fullWidth="true" :label="$t('common.duplicate')" shortcut="duplicate" :buttonFunction="duplicateAsset" />
 
+    <ActionButton v-if="!platformStore.isWeb && canCreateAsset" :icon="getAppIcon('copy')" :showLabel="true"
+      :fullWidth="true" :label="$t('menus.copyAsset')" shortcut="copy" :buttonFunction="copyAsset" />
+
+    <ActionButton v-if="!platformStore.isWeb && canUpdateAsset" :icon="getAppIcon('scissors')" :showLabel="true"
+      :fullWidth="true" :label="$t('menus.cutAsset')" shortcut="cut" :buttonFunction="cutAsset" />
+
     <!-- Copy to Project -->
     <ActionButton v-if="!platformStore.isWeb && canCreateAsset && canCopyToOtherProject" 
       :icon="getAppIcon('briefcase')" :showLabel="true"
@@ -25,8 +31,8 @@
       :icon="getAppIcon('folder-arrow-in')" :showLabel="true"
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
-    <ActionButton v-if="!platformStore.isWeb && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('fetch')" :showLabel="true"
-      :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
+    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('fetch')" :showLabel="true"
+      :fullWidth="true" :label="$t('menus.buildWithDependencies')" shortcut="buildWithDependencies" :buttonFunction="buildWithDependencies" />
 
     <ActionButton v-if="isRemoteProject && canManageDependencies && !isWebLinkAsset" :icon="getAppIcon('dependency')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />
@@ -216,6 +222,7 @@ const emitAssetUpdates = (assetId, updates) => {
 // Builds the asset with all its transitive dependencies (assets and collections),
 // resolved on the backend so the full graph is expanded and de-duplicated.
 const buildWithDependencies = async () => {
+  if (!userStore.canDo('pull_chunk')) return;
   menu.hideContextMenu();
   try {
     const assetIds = await AssetService.ResolveBuildDependencies(
@@ -258,6 +265,22 @@ const copyToProject = () => {
     type: 'projects',
     title: t('menus.selectProject')
   });
+};
+
+// Copies the selected asset into the internal item clipboard.
+const copyAsset = () => {
+  if (platformStore.isWeb || !canCreateAsset.value) return;
+  stage.cutItems = [];
+  stage.copiedItems = [asset.value];
+  menu.hideContextMenu();
+};
+
+// Cuts the selected asset into the internal item clipboard.
+const cutAsset = () => {
+  if (platformStore.isWeb || !canUpdateAsset.value) return;
+  stage.copiedItems = [];
+  stage.cutItems = [asset.value];
+  menu.hideContextMenu();
 };
 
 // Builds clustta://open?studio=...&project=...&asset=... and copies it to the clipboard.

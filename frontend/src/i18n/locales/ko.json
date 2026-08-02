@@ -900,6 +900,8 @@
     }
   },
   "menus": {
+    "copyAsset": "에셋 복사",
+    "cutAsset": "에셋 잘라내기",
     "addAccount": "계정 추가",
     "addAsset": "에셋 추가",
     "addCollection": "컬렉션 추가",

@@ -875,6 +875,8 @@
     }
   },
   "menus": {
+    "copyAsset": "Copiar ativo",
+    "cutAsset": "Recortar ativo",
     "addAccount": "Adicionar Conta",
     "addAsset": "Adicionar Ativo",
     "addCollection": "Adicionar Coleção",

@@ -6,7 +6,7 @@
 	<div v-else-if="hasData" class="state-bar">
 
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_fetchable" :icon="getAppIcon('fetch')" 
-			v-tooltip="$t('components.stateBar.fetchAll')" :buttonFunction="fetchAll" />
+			v-tooltip="$t('components.stateBar.fetchAll')" shortcut="fetch" :buttonFunction="fetchAll" />
 
 		<ActionButton v-if="commonStore.showUntracked && collectionStore.collectionStateFlags.has_untracked && canCreateFromUntrackedHere"
 			:icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('components.stateBar.createCheckpoints')"
@@ -26,7 +26,8 @@
 
 <script setup>
 // imports
-import { computed } from 'vue';
+import { computed, onBeforeUnmount } from 'vue';
+import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 import { canCreateCheckpointInCollection } from '@/lib/permissions';
@@ -147,6 +148,15 @@ const fetchAll = async () => {
 			.catch((error) => notificationStore.errorNotification(t('components.stateBar.errorFetchingAll'), error));
 	}
 };
+
+const stopFetchShortcut = Events.On('fetch-item', async () => {
+	const activeElement = document.activeElement;
+	const isEditing = activeElement?.matches('input, textarea, [contenteditable="true"]');
+	if (stage.operationActive || isEditing || !collectionStore.collectionStateFlags.has_fetchable) return;
+	await fetchAll();
+});
+
+onBeforeUnmount(stopFetchShortcut);
 
 // Reverts all modified assets to their last checkpointed state.
 const revertAllChanges = async () => {

@@ -44,7 +44,7 @@
       :buttonFunction="prepCreateCheckpointsModal" />
 
     <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_fetchable" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true" :label="$t('menus.fetchContents')"
-      :buttonFunction="fetchCollection" />
+      shortcut="fetch" :buttonFunction="fetchCollection" />
 
     <ActionButton v-if="!platformStore.isWeb && collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" :showLabel="true" :fullWidth="true" :label="$t('menus.updateContents')"
       :buttonFunction="updateContents" />

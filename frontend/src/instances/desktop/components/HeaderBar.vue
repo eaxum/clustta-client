@@ -33,8 +33,9 @@
 				<ActionButton :isDisabled="revertButtonDisabled" :buttonFunction="prepDiscardAll" :icon="getAppIcon('revert')"
 					:useOutline="true" :useBackground="false" :useDanger="true" v-tooltip="revertButtonTooltip" />
 
-				<ActionButton :isDisabled="syncButtonDisabled" @click="unSynced ? syncData() : pullData()" :icon="getAppIcon(getCloudIcon)"
-					:useOutline="true" :color="cloudIconColor" :isLoading="isSyncing" :label="cloudIconLabel" v-tooltip="cloudIconTooltip" />
+				<ActionButton :isDisabled="syncButtonDisabled" :buttonFunction="syncProject" :icon="getAppIcon(getCloudIcon)"
+					:useOutline="true" :color="cloudIconColor" :isLoading="isSyncing" :label="cloudIconLabel"
+					v-tooltip="{ text: cloudIconTooltip, shortcut: 'sync' }" />
 				
 				<!-- <ActionButton :icon="getAppIcon('bell')" @click="panes.setPaneVisibility('notifications', true)" v-tooltip="'Notifications'"  /> -->
 			</div>
@@ -59,7 +60,8 @@
 
 
 // imports
-import { computed, ref, onMounted, toRaw } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
+import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { ProjectService, AuthService, SyncService } from '@/services';
@@ -230,6 +232,19 @@ const syncButtonTooltip = computed(() => {
 	if (!unSynced.value) return t('components.headerBar.sync');
 	return t('components.headerBar.sync');
 });
+
+const syncProject = async () => {
+	if (syncButtonDisabled.value || modals.activeModal || !projectStore.getActiveProject?.has_remote) return;
+	if (unSynced.value) {
+		await syncData();
+		return;
+	}
+	await pullData();
+};
+
+const stopSyncShortcut = Events.On('sync-project', syncProject);
+
+onBeforeUnmount(stopSyncShortcut);
 
 // methods
 

@@ -19,15 +19,15 @@
     <!-- Display Options Section -->
     <ActionButton v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')"
       :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')" :showLabel="true" :fullWidth="true"
-      :label="dndStore.lockUI ? $t('menus.unlockUI') : $t('menus.lockUI')" :buttonFunction="toggleLockUI" />
+      :label="dndStore.lockUI ? $t('menus.unlockUI') : $t('menus.lockUI')" shortcut="toggleUILock" :buttonFunction="toggleLockUI" />
 
     <ActionButton v-if="!isKanbanActive"
       :icon="commonStore.hideExtensions ? getAppIcon('extension-cancel') : getAppIcon('extension')" :showLabel="true" :fullWidth="true"
-      :label="commonStore.hideExtensions ? $t('modals.showExtensions') : $t('modals.hideExtensions')" :buttonFunction="toggleHideExtensions" />
+      :label="commonStore.hideExtensions ? $t('modals.showExtensions') : $t('modals.hideExtensions')" shortcut="toggleExtensions" :buttonFunction="toggleHideExtensions" />
 
     <ActionButton v-if="!isKanbanActive"
       :icon="commonStore.showFullPath ? getAppIcon('file-name') : getAppIcon('file-path')" :showLabel="true" :fullWidth="true"
-      :label="commonStore.showFullPath ? $t('menus.showNameOnly') : $t('menus.showFullPath')" :buttonFunction="toggleShowFullPath" />
+      :label="commonStore.showFullPath ? $t('menus.showNameOnly') : $t('menus.showFullPath')" shortcut="togglePathVisibility" :buttonFunction="toggleShowFullPath" />
 
     <ActionButton v-if="!isKanbanActive"
       :icon="commonStore.showUntracked ? getAppIcon('eye-cancel') : getAppIcon('eye')" :showLabel="true" :fullWidth="true"
@@ -42,7 +42,7 @@
     <!-- Collapse Section -->
     <ActionButton v-if="!isKanbanActive && !commonStore.useGrid"
       :icon="getAppIcon('collapse-up')" :showLabel="true" :fullWidth="true" :label="$t('menus.collapseAll')"
-      :buttonFunction="collapseAll" />
+      shortcut="collapseAll" :buttonFunction="collapseAll" />
 
   </div>
 </template>
@@ -88,6 +88,7 @@ const untrackedVisibilityLabel = computed(() => `${commonStore.showUntracked ? t
 
 // Collapses all expanded collections.
 const collapseAll = () => {
+  if (isKanbanActive.value || commonStore.useGrid) return;
   emitter.emit('collapse-all');
   menu.hideContextMenu();
 };
@@ -129,18 +130,21 @@ const setListView = () => {
 
 // Toggles the hide extensions option.
 const toggleHideExtensions = () => {
+  if (isKanbanActive.value) return;
   commonStore.hideExtensions = !commonStore.hideExtensions;
   menu.hideContextMenu();
 };
 
 // Toggles the lock UI option.
 const toggleLockUI = () => {
+  if (!isDefaultWorkspace.value || isKanbanActive.value || !userStore.canDo('update_collection')) return;
   dndStore.lockUI = !dndStore.lockUI;
   menu.hideContextMenu();
 };
 
 // Toggles the show full path option.
 const toggleShowFullPath = () => {
+  if (isKanbanActive.value) return;
   commonStore.showFullPath = !commonStore.showFullPath;
   menu.hideContextMenu();
 };

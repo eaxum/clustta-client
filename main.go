@@ -299,7 +299,7 @@ func main() {
 	keyBindings[modifier+"+n"] = func(window application.Window) {
 		app.Event.Emit("new-project")
 	}
-	keyBindings[modifier+"+s"] = func(window application.Window) {
+	keyBindings[modifier+"+alt+s"] = func(window application.Window) {
 		app.Event.Emit("sync-project")
 	}
 	keyBindings[modifier+"+shift+c"] = func(window application.Window) {
@@ -328,6 +328,24 @@ func main() {
 	}
 	keyBindings[modifier+"+d"] = func(window application.Window) {
 		app.Event.Emit("duplicate-asset")
+	}
+	keyBindings[modifier+"+u"] = func(window application.Window) {
+		app.Event.Emit("toggle-ui-lock")
+	}
+	keyBindings[modifier+"+e"] = func(window application.Window) {
+		app.Event.Emit("toggle-extensions")
+	}
+	keyBindings[modifier+"+p"] = func(window application.Window) {
+		app.Event.Emit("toggle-path-visibility")
+	}
+	keyBindings[modifier+"+shift+h"] = func(window application.Window) {
+		app.Event.Emit("collapse-all")
+	}
+	keyBindings[modifier+"+f"] = func(window application.Window) {
+		app.Event.Emit("fetch-item")
+	}
+	keyBindings[modifier+"+shift+f"] = func(window application.Window) {
+		app.Event.Emit("build-with-dependencies")
 	}
 	keyBindings[modifier+"+i"] = func(window application.Window) {
 		app.Event.Emit("toggle-agent-console")

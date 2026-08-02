@@ -917,6 +917,8 @@
     "untrackedAsset": "Untracked asset"
   },
   "menus": {
+    "copyAsset": "Copy Asset",
+    "cutAsset": "Cut Asset",
     "addAccount": "Add Account",
     "addAsset": "Add Asset",
     "addCollection": "Add Collection",

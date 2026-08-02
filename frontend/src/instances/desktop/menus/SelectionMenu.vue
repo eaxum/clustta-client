@@ -29,7 +29,7 @@
         :showLabel="true" :fullWidth="true" :label="$t('components.detailsPane.moveToCollection')" :buttonFunction="prepMoveToCollection" />
 
       <ActionButton v-if="!platformStore.isWeb && assetsCanFetch" :icon="getAppIcon('fetch')" :showLabel="true"
-        :fullWidth="true" :label="$t('components.detailsPane.fetchAssets')" :buttonFunction="revertAllChanges" />
+        :fullWidth="true" :label="$t('components.detailsPane.fetchAssets')" shortcut="fetch" :buttonFunction="revertAllChanges" />
 
       <ActionButton v-if="selectedItemsCanCreateCheckpoints" :noFilter="true" :icon="getAppIcon('plus-stone')" :useAlert="true" :showLabel="true"
         :fullWidth="true" :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" />
@@ -63,7 +63,7 @@
         :label="$t('components.detailsPane.unassignCollections')" :buttonFunction="unassignCollections" />
 
       <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('fetch')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.fetchCollections')" :buttonFunction="fetchCollections" />
+        :label="$t('components.detailsPane.fetchCollections')" shortcut="fetch" :buttonFunction="fetchCollections" />
 
       <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.freeUpSpace')" shortcut="freeUpSpace" :buttonFunction="freeUpCollectionSpacePopUpModal" />

@@ -876,6 +876,8 @@
     }
   },
   "menus": {
+    "copyAsset": "Copiar recurso",
+    "cutAsset": "Cortar recurso",
     "addAccount": "Agregar cuenta",
     "addAsset": "Agregar asset",
     "addCollection": "Agregar colección",
