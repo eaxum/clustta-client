@@ -2,7 +2,7 @@
   <span v-stop-propagation @click="buttonFunction" :style="{ backgroundColor: color }" :class="{
     'button-background': useBackground, 'alert-background': isAlert, 'full-width': fullWidth, 'outline': useOutline, 'icon-after': iconAfter, 'centered':
       centered, 'button-active': isActive, 'is-inactive': isInactive, 'is-disabled': isDead, 'plain-background' : plainBackground, 'use-alert': useAlert, 'use-danger': useDanger, 'use-go': useGo,
-    'force-light': forceIconColor === 'light', 'force-dark': forceIconColor === 'dark', 'has-custom-icon': (emoji || customIconUrl) && iconAfter, 'is-mini': isMini,
+    'force-light': forceIconColor === 'light', 'force-dark': forceIconColor === 'dark', 'has-custom-icon': (emoji || customIconUrl) && iconAfter, 'has-shortcut': shortcut, 'is-mini': isMini,
   }" class="action-button" ref="buttonRef">
     <Teleport to="#app">
       <div v-if="showIndicator && buttonPosition" class="filter-button-indicator" :style="indicatorStyle"></div>
@@ -11,6 +11,9 @@
     <img v-else-if="customIconUrl" class="small-icons no-cursor"  :class="{ 'no-filter' : noFilter}" :src="customIconUrl">
     <img v-else-if="showIcon && !iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter, 'loading-icon' : isLoading, 'loading-icon-reverse' : reverseLoading }" :src="icon">
     <div v-if="showLabel || label" class="small-icons button-label no-cursor" :class="{ 'label-force-light': forceIconColor === 'light', 'label-force-dark': forceIconColor === 'dark' }">{{ label }}</div>
+    <slot name="trailing">
+      <ShortcutBadge v-if="shortcut && (showLabel || label)" :shortcut="shortcut" />
+    </slot>
     <img v-if="showIcon && iconAfter" class="small-icons no-cursor" :class="{ 'no-filter' : noFilter }" :src="icon">
   </span>
 </template>
@@ -20,6 +23,7 @@ import { computed, ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import { decodeEmoji } from '@/services/utils';
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
+import ShortcutBadge from '@/instances/desktop/components/ShortcutBadge.vue';
 
 const stage = useStageStore();
 const notificationStore = useNotificationStore();
@@ -54,6 +58,7 @@ const props = defineProps({
   fullWidth: { type: Boolean, default: false },
   allowDeactivate: { type: Boolean, default: false },
   showIndicator: { type: Boolean, default: false },
+  shortcut: { type: [String, Array], default: '' },
   forceIconColor: { type: String, default: '', validator: (value) => ['', 'light', 'dark'].includes(value) },
 
 });
@@ -278,6 +283,11 @@ onBeforeUnmount(() => {
 
 .button-label{
   font-weight: 350 ;
+}
+
+.has-shortcut .button-label {
+  flex: 1;
+  text-align: left;
 }
 
 [data-theme="dark"] .button-label{

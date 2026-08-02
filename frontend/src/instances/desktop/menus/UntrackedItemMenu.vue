@@ -11,7 +11,7 @@
 
     <!-- Rename -->
     <ActionButton v-if="canRenameUntracked" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
-      :label="$t('common.rename')" :buttonFunction="renameItem" />
+      :label="$t('common.rename')" shortcut="rename" :buttonFunction="renameItem" />
 
     <!-- Ignore -->
     <ActionButton :icon="getAppIcon('file-watch')" :showLabel="true" :fullWidth="true" :label="$t('menus.ignoreFileFolder')"

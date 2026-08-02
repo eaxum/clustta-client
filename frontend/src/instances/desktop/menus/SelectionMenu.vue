@@ -47,12 +47,12 @@
         :label="$t('components.detailsPane.manageTags')" :buttonFunction="prepManageTags" />
 
       <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.freeUpSpace')" :buttonFunction="prepFreeUpSpacePopUpModal" />
+        :label="$t('components.detailsPane.freeUpSpace')" shortcut="freeUpSpace" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
       <span v-if="selectedAssetsCanDelete" class="menu-divider"></span>
 
       <ActionButton v-if="selectedAssetsCanDelete" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.deleteSelectedAssets')" :buttonFunction="deleteMultipleAssets" />
+        :label="$t('components.detailsPane.deleteSelectedAssets')" shortcut="delete" :buttonFunction="deleteMultipleAssets" />
     </template>
 
     <!-- Collection-only actions -->
@@ -66,12 +66,12 @@
         :label="$t('components.detailsPane.fetchCollections')" :buttonFunction="fetchCollections" />
 
       <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.freeUpSpace')" :buttonFunction="freeUpCollectionSpacePopUpModal" />
+        :label="$t('components.detailsPane.freeUpSpace')" shortcut="freeUpSpace" :buttonFunction="freeUpCollectionSpacePopUpModal" />
 
       <span v-if="userStore.canDo('delete_collection')" class="menu-divider"></span>
 
       <ActionButton v-if="userStore.canDo('delete_collection')" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.deleteCollections')" :buttonFunction="deleteMultipleCollections" />
+        :label="$t('components.detailsPane.deleteCollections')" shortcut="delete" :buttonFunction="deleteMultipleCollections" />
     </template>
 
     <!-- Untracked-only actions -->
@@ -88,7 +88,7 @@
         :label="$t('components.detailsPane.ignoreItems')" :buttonFunction="ignoreItems" />
 
       <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleUntrackedAssets" />
+        :label="$t('components.detailsPane.deleteItems')" shortcut="delete" :buttonFunction="deleteMultipleUntrackedAssets" />
     </template>
 
     <!-- Mixed selection fallback -->
@@ -100,7 +100,7 @@
         :label="$t('components.detailsPane.createCheckpoints')" :buttonFunction="prepAllCheckpointModal" />
 
       <ActionButton v-if="mixedSelectionCanDelete" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
-        :label="$t('components.detailsPane.deleteItems')" :buttonFunction="deleteMultipleItems" />
+        :label="$t('components.detailsPane.deleteItems')" shortcut="delete" :buttonFunction="deleteMultipleItems" />
     </template>
 
   </div>

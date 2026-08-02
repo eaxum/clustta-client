@@ -2,10 +2,10 @@
   <div ref="collectionMenu" class="filter-menu-container">
 
     <ActionButton :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true" :label="$t('common.rename')"
-      v-if="userStore.canDo('update_collection')" :buttonFunction="renameCollection" />
+      v-if="userStore.canDo('update_collection')" shortcut="rename" :buttonFunction="renameCollection" />
 
     <ActionButton :icon="getAppIcon('switches')" :showLabel="true" :fullWidth="true" :label="$t('common.edit')"
-      v-if="userStore.canDo('update_collection')" :buttonFunction="editCollection" />
+      v-if="userStore.canDo('update_collection')" shortcut="edit" :buttonFunction="editCollection" />
 
     <ActionButton v-if="canSelectContent" :icon="getAppIcon('checkbox-selected')" :showLabel="true" :fullWidth="true"
       :label="$t('menus.selectContent')" :buttonFunction="selectContent" />
@@ -14,10 +14,10 @@
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
-      v-if="!hideOnFilter && templateStore.getTemplates.length && canCreateAsset" :buttonFunction="createAsset" />
+      v-if="!hideOnFilter && templateStore.getTemplates.length && canCreateAsset" shortcut="newAsset" :buttonFunction="createAsset" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
-      v-if="!hideOnFilter && canCreateCollection" :buttonFunction="createCollection" />
+      v-if="!hideOnFilter && canCreateCollection" shortcut="newCollection" :buttonFunction="createCollection" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
       v-if="!hideOnFilter && workflowStore.workflows.length && canCreateWorkflow" :buttonFunction="addWorkflow" />
@@ -25,7 +25,7 @@
     
 
     <ActionButton :icon="getAppIcon('web-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.newLink')"
-      v-if="!hideOnFilter && canCreateAsset" :buttonFunction="createLink" />
+      v-if="!hideOnFilter && canCreateAsset" shortcut="newLink" :buttonFunction="createLink" />
 
     <ActionButton :icon="getAppIcon('data-download')" :showLabel="true" :fullWidth="true" :label="$t('modals.importItems')"
       v-if="!hideOnFilter && !platformStore.isWeb && canCreateAsset" :buttonFunction="importItems" />
@@ -79,11 +79,11 @@
 
     <!-- Free space -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('two-drives')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
-      :buttonFunction="prepFreeUpSpacePopUpModal" />
+      shortcut="freeUpSpace" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Asset -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
-      v-if="userStore.canDo('delete_collection')" :buttonFunction="deleteCollection" />
+      v-if="userStore.canDo('delete_collection')" shortcut="delete" :buttonFunction="deleteCollection" />
 
   </div>
 

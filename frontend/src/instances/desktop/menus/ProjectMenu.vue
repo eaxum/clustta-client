@@ -3,10 +3,10 @@
 
     <!-- Create -->
      <ActionButton :icon="getAppIcon('file-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addAsset')"
-      v-if="templateStore.getTemplates.length && userStore.canDo('create_asset')" :buttonFunction="createAsset" />
+      v-if="templateStore.getTemplates.length && userStore.canDo('create_asset')" shortcut="newAsset" :buttonFunction="createAsset" />
 
     <ActionButton :icon="getAppIcon('folder-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addCollection')"
-      v-if="userStore.canDo('create_collection')" :buttonFunction="createCollection" />
+      v-if="userStore.canDo('create_collection')" shortcut="newCollection" :buttonFunction="createCollection" />
 
     <ActionButton :icon="getAppIcon('workflow-plus')" :showLabel="true" :fullWidth="true" :label="$t('menus.addWorkflow')"
       v-if="workflowStore.workflows.length && userStore.canDo('create_asset')" :buttonFunction="addWorkflow" />
@@ -44,7 +44,7 @@
 
     <!-- Free space -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('two-drives')" :showLabel="true" :fullWidth="true" :label="$t('common.freeUpSpace')"
-      :buttonFunction="prepFreeUpSpacePopUpModal" />
+      shortcut="freeUpSpace" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Clear Trash -->
     <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.emptyTrash')"

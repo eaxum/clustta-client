@@ -10,7 +10,7 @@
 
 		<template v-else>
 			<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
-			<ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('components.breadcrumbs.refresh')" :buttonFunction="refresh" />
+			<ActionButton :icon="getAppIcon('refresh')" v-tooltip="{ text: $t('components.breadcrumbs.refresh'), shortcut: 'refresh' }" :buttonFunction="refresh" />
 
 			<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
 				:allowDeactivate="true" v-tooltip="$t('components.breadcrumbs.upALevel')" :buttonFunction="goUpALevel" />

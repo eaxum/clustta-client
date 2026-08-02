@@ -1,14 +1,47 @@
+import { getShortcutKeys } from '@/lib/shortcuts';
+
+const setTooltipContent = (tooltipElement, content, shortcut) => {
+  tooltipElement.replaceChildren();
+
+  const contentElement = document.createElement('span');
+  contentElement.className = 'tooltip-content';
+
+  const textElement = document.createElement('span');
+  textElement.textContent = content || '';
+  contentElement.appendChild(textElement);
+
+  const isMac = document.documentElement.dataset.os === 'darwin';
+  const keys = getShortcutKeys(shortcut, isMac);
+  if (keys.length) {
+    const badgesElement = document.createElement('span');
+    badgesElement.className = 'shortcut-badges';
+
+    keys.forEach(key => {
+      const keyElement = document.createElement('kbd');
+      keyElement.className = 'shortcut-key';
+      keyElement.textContent = key;
+      badgesElement.appendChild(keyElement);
+    });
+
+    contentElement.appendChild(badgesElement);
+  }
+
+  tooltipElement.appendChild(contentElement);
+};
+
 export default {
   updateTooltip(el, { value, modifiers }) {
     if (typeof value === "string") {
       el._tooltipContent = value;
+      el._tooltipShortcut = '';
     } else if (value && value.text) {
       el._tooltipContent = value.text;
+      el._tooltipShortcut = value.shortcut || '';
     }
 
     const tooltipElement = el._tooltipElement;
     if (tooltipElement) {
-      tooltipElement.innerText = el._tooltipContent;
+      setTooltipContent(tooltipElement, el._tooltipContent, el._tooltipShortcut);
       // Hide tooltip immediately if content becomes empty
       if (!el._tooltipContent) {
         tooltipElement.style.visibility = "hidden";
@@ -26,7 +59,7 @@ export default {
     let timeoutId;
     el._showTooltip = (event) => {
       timeoutId = setTimeout(() => {
-        tooltipElement.innerText = el._tooltipContent;
+        setTooltipContent(tooltipElement, el._tooltipContent, el._tooltipShortcut);
         // console.log( el._tooltipContent);
         const rect = el.getBoundingClientRect();
         const { top, left } = calculateTooltipPosition(el, event);

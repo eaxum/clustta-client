@@ -13,12 +13,12 @@
     <ActionButton 
       :isDisabled="!isNameChanged" 
       :icon="getAppIcon('check')" 
-      v-tooltip="$t('components.renameInput.confirm')"
+      v-tooltip="{ text: $t('components.renameInput.confirm'), shortcut: 'confirm' }"
       @click="handleConfirm" 
     />
     <ActionButton 
       :icon="getAppIcon('close')" 
-      v-tooltip="$t('components.renameInput.cancel')" 
+      v-tooltip="{ text: $t('components.renameInput.cancel'), shortcut: 'cancel' }"
       @click="handleCancel" 
     />
   </div>

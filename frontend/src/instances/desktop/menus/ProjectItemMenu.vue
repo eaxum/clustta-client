@@ -5,11 +5,11 @@
       :label="$t('modals.projectDetails')" :buttonFunction="showProjectDetails" />
 
     <ActionButton :icon="getAppIcon('edit')" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true" :label="$t('modals.renameProject')"
-      :buttonFunction="renameProject" />
+      shortcut="rename" :buttonFunction="renameProject" />
 
     <!-- Create -->
     <ActionButton :icon="getAppIcon('switches')" v-if="studioStore.canManageProject" :showLabel="true" :fullWidth="true"
-      :label="$t('menus.editProject')" :buttonFunction="editProject" />
+      :label="$t('menus.editProject')" shortcut="edit" :buttonFunction="editProject" />
 
     <!-- {{  isPinExceeded  }} -->
     <ActionButton v-if="(projectStore.getActiveProject?.is_downloaded || platformStore.isWeb) && isProjectPinned" :icon="getAppIcon('unpin')" :showLabel="true" :fullWidth="true"

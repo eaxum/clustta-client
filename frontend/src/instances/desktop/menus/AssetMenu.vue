@@ -7,13 +7,13 @@
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" class="menu-divider"></span>
 
     <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('edit')" :showLabel="true" :fullWidth="true"
-      :label="$t('common.rename')" :buttonFunction="renameAsset" />
+      :label="$t('common.rename')" shortcut="rename" :buttonFunction="renameAsset" />
 
     <ActionButton v-if="canUpdateAsset" :icon="getAppIcon('switches')" :showLabel="true"
-      :fullWidth="true" :label="$t('common.edit')" :buttonFunction="editAsset" />
+      :fullWidth="true" :label="$t('common.edit')" shortcut="edit" :buttonFunction="editAsset" />
 
     <ActionButton v-if="!hideOnFilter && canCreateAsset && !isWebLinkAsset" :icon="getAppIcon('duplicate')" :showLabel="true"
-      :fullWidth="true" :label="$t('common.duplicate')" :buttonFunction="duplicateAsset" />
+      :fullWidth="true" :label="$t('common.duplicate')" shortcut="duplicate" :buttonFunction="duplicateAsset" />
 
     <!-- Copy to Project -->
     <ActionButton v-if="!platformStore.isWeb && canCreateAsset && canCopyToOtherProject" 
@@ -67,11 +67,11 @@
 
     <!-- Free space -->
     <ActionButton :icon="getAppIcon('two-drives')" v-if="!platformStore.isWeb && !isNotOnDisk" :showLabel="true" :fullWidth="true"
-      :label="$t('common.freeUpSpace')" :buttonFunction="prepFreeUpSpacePopUpModal" />
+      :label="$t('common.freeUpSpace')" shortcut="freeUpSpace" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
     <!-- Delete Asset -->
     <ActionButton :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true" :label="$t('common.delete')"
-      v-if="canDeleteAsset" :buttonFunction="deleteAsset" />
+      v-if="canDeleteAsset" shortcut="delete" :buttonFunction="deleteAsset" />
 
   </div>
 

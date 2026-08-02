@@ -2,7 +2,7 @@
 	<div ref="browserRoot" v-esc="cancelOps" v-right-click="openMenu" class="dash-board-root absolute-pane">
 		<div ref="browserFilters" class="dash-board-filter">
 			<Breadcrumbs :filteredResultCounts="breadcrumbResultCounts" />
-			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search')" :isLoading="!assetStore.assetsLoaded"
+			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search') + ' (F3)'" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
 			<ActionButton v-if="!kanbanView" :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
 		</div>
