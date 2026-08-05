@@ -274,13 +274,17 @@ onBeforeUnmount(() => {
 }
 
 @keyframes modal-bubble-up {
-  from {
+  0% {
     opacity: 0;
     transform: translateY(6px) scale(0.985);
   }
-  to {
+  50% {
     opacity: 1;
-    transform: none;
+    transform: translateY(0) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
