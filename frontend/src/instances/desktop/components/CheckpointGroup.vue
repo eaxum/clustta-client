@@ -53,6 +53,10 @@ const props = defineProps({
     isLastGroup: {
         type: Boolean,
         default: false
+    },
+    previousCheckpointSynced: {
+        type: Boolean,
+        default: null
     }
 });
 
@@ -109,7 +113,8 @@ const calculateDotPositions = () => {
         // Segment from rail top to first dot (non-first groups)
         if (!props.isFirstGroup && dots.length > 0) {
             const synced = dots[0].synced;
-            segments.push({ key: 'top', top: '0px', height: `${dots[0].top}px`, background: segmentBg(synced, synced) });
+            const previousSynced = props.previousCheckpointSynced ?? synced;
+            segments.push({ key: 'top', top: '0px', height: `${dots[0].top}px`, background: segmentBg(previousSynced, synced) });
         }
 
         // Segments between consecutive dots

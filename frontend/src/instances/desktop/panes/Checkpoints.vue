@@ -12,6 +12,7 @@
       <CheckpointGroup v-for="(group, groupIndex) in groupedCheckpoints" :key="group.key" :group="group"
         :assetHash="assetHash" :expandedId="expandedId" :isFirstGroup="groupIndex === 0"
         :isLastGroup="groupIndex === groupedCheckpoints.length - 1"
+        :previousCheckpointSynced="groupIndex > 0 ? groupedCheckpoints[groupIndex - 1].items.at(-1)?.synced : null"
         @refreshCheckpoints="refreshCheckpoints" @updateAssetHash="updateAssetHash" @updateExpanded="updateExpanded" />
     </div>
 
