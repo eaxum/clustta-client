@@ -2141,15 +2141,22 @@ func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string, includeReso
 		SELECT
 			id,
 			name,
-			asset_type_icon,
-			assignee_id,
-			preview,
-			status_id,
-			is_resource,
-			asset_type_id,
-			asset_path,
 			extension,
-			tags
+			is_resource,
+			status_id,
+			asset_type_id,
+			asset_type_icon,
+			collection_id,
+			collection_path,
+			asset_path,
+			assignee_id,
+			tags,
+			collection_dependencies,
+			dependencies,
+			is_link,
+			pointer,
+			preview,
+			synced
 		FROM full_asset
 		WHERE trashed = 0 AND collection_path LIKE ? %s
 		ORDER BY name`, resourceClause)
@@ -2168,6 +2175,11 @@ func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string, includeReso
 		statusesMap[status.Id] = status
 	}
 
+	rootFolder, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return assets, err
+	}
+
 	for i := range assets {
 		status := statusesMap[assets[i].StatusId]
 		assets[i].Status = status
@@ -2184,6 +2196,34 @@ func GetCollectionDescendantAssets(tx *sqlx.Tx, collectionId string, includeReso
 		} else {
 			assets[i].Tags = []string{}
 		}
+
+		assets[i].CollectionDependencies = []string{}
+		if assets[i].CollectionDependenciesRaw != "" && assets[i].CollectionDependenciesRaw != "[]" {
+			collectionDependencies := []Dependency{}
+			if err := json.Unmarshal([]byte(assets[i].CollectionDependenciesRaw), &collectionDependencies); err != nil {
+				return assets, err
+			}
+			for _, dependency := range collectionDependencies {
+				assets[i].CollectionDependencies = append(assets[i].CollectionDependencies, dependency.Id)
+			}
+		}
+
+		assets[i].Dependencies = []string{}
+		if assets[i].DependenciesRaw != "" && assets[i].DependenciesRaw != "[]" {
+			assetDependencies := []Dependency{}
+			if err := json.Unmarshal([]byte(assets[i].DependenciesRaw), &assetDependencies); err != nil {
+				return assets, err
+			}
+			for _, dependency := range assetDependencies {
+				assets[i].Dependencies = append(assets[i].Dependencies, dependency.Id)
+			}
+		}
+
+		assetFilePath, err := utils.BuildAssetPath(rootFolder, assets[i].CollectionPath, assets[i].Name, assets[i].Extension)
+		if err != nil {
+			return assets, err
+		}
+		assets[i].FilePath = assetFilePath
 	}
 	return assets, nil
 }
