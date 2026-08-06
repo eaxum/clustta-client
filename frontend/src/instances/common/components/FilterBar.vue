@@ -25,8 +25,8 @@
 			<FilterButton v-if="!kanbanView && !isMyAssetsWorkspace" :icon="getAppIcon('shapes')" v-tooltip="barIsOverflowing ? $t('components.filterBar.type') : ''" :alert="isFilterActive('general')"
 			 :showLabel="!barIsOverflowing"	@mouseenter="flashFilterMenu($event, 'typeFilterMenu')"
 				@click="showFilterMenu($event, 'typeFilterMenu')" />
-			<ActionButton v-if="filtersActive" :icon="getAppIcon('close')" :allowDeactivate="true"
-				v-tooltip="$t('components.filterBar.resetFilters')" :buttonFunction="clearFilters" />
+			<!-- <ActionButton v-if="filtersActive" :icon="getAppIcon('close')" :allowDeactivate="true"
+				v-tooltip="$t('components.filterBar.resetFilters')" :buttonFunction="clearFilters" /> -->
 		</div>
 	</div>
 </template>

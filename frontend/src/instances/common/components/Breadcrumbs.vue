@@ -9,10 +9,10 @@
 		</template>
 
 		<template v-else>
-			<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
+			<ActionButton v-if="commonStore.navigatorMode && !navigationLocked" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
 			<ActionButton :icon="getAppIcon('refresh')" v-tooltip="{ text: $t('components.breadcrumbs.refresh'), shortcut: 'refresh' }" :buttonFunction="refresh" />
 
-			<ActionButton v-if="commonStore.navigatorMode" :icon="getAppIcon('arrow-back-ramp')"
+			<ActionButton v-if="commonStore.navigatorMode && !navigationLocked" :icon="getAppIcon('arrow-back-ramp')"
 				:allowDeactivate="true" v-tooltip="{ text: $t('components.breadcrumbs.upALevel'), shortcut: 'navigateUp' }" :buttonFunction="goUpALevel" />
 
 			<ActionButton v-if="showProjectChip" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''"
@@ -21,26 +21,35 @@
 			<div v-if="showRootFilteredSeparator" class="kanban-path-separator"></div>
 		</template>
 
-		<div ref="breadcrumbWrapper" class="breadcrumb-wrapper">
+		<div ref="breadcrumbWrapper" class="breadcrumb-wrapper" :class="{ 'result-mode': navigationLocked }">
 			<div ref="breadcrumbContainer" class="breadcrumb-container">
 				<span v-if="showFilteredLabel" class="kanban-filter-text">
 					{{ filteredResultsLabel }}
 				</span>
 				<nav v-else-if="!isKanbanView && path" ref="breadcrumbContent" class="nav">
-					<ActionButton v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="true" @click="toggleOverflowList" />
+					<ActionButton v-if="showEllipsis" :icon="getAppIcon('dots')" :allowDeactivate="!navigationLocked"
+						:isDisabled="navigationLocked" :isInactive="navigationLocked" @click="toggleOverflowList" />
 					<div v-for="(segment, index) in visibleSegments" :key="`${segment}-${index}`" class="breadcrumb-segment">
-						<ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="true"
+						<ActionButton v-if="path !== 'Home'" :icon="getAppIcon('forward-slash')" :allowDeactivate="!navigationLocked"
+							:isDisabled="navigationLocked" :isInactive="navigationLocked"
 							:label="segment.split('/').pop()" @click="goToCollection(segment)" />
 					</div>
 				</nav>
 			</div>
+			<template v-if="commonStore.navigatorMode && navigationLocked">
+				<div class="kanban-path-separator"></div>
+				<span class="kanban-filter-text result-count-label">{{ filteredResultsLabel }}</span>
+			</template>
 		</div>
 
 		<template v-if="commonStore.viewMode !== 'kanban'">
-			<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false"
+			<ActionButton v-if="props.resultModeActive" :icon="getAppIcon('close')" :showLabel="false" :fullWidth="false"
+				v-tooltip="$t('components.filterBar.resetFilters')" :buttonFunction="clearSearchAndFilters" />
+
+			<ActionButton v-else-if="!platformStore.isWeb" :icon="getAppIcon('copy')" :showLabel="false" :fullWidth="false"
 				v-tooltip="$t('components.breadcrumbs.copyPath')" @click="copyDirectoryPath" />
 
-			<ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false"
+			<ActionButton v-if="!props.resultModeActive && !platformStore.isWeb" :icon="getAppIcon('folder-arrow-up-right')" :showLabel="false" :fullWidth="false"
 				v-tooltip="showLabel" @click="revealInExplorer" />
 		</template>
 	</div>
@@ -98,7 +107,8 @@ const props = defineProps({
 	filteredResultCounts: {
 		type: Object,
 		default: null
-	}
+	},
+	resultModeActive: { type: Boolean, default: false }
 });
 
 // refs
@@ -126,6 +136,9 @@ const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Defau
 
 const isKanbanView = computed(() => commonStore.viewMode === 'kanban');
 
+// Collection navigation is locked while the browser is presenting search/filter results.
+const navigationLocked = computed(() => commonStore.navigatorMode && props.resultModeActive);
+
 const taskCountLabel = computed(() => {
 	const count = props.filteredResultCounts?.assets ?? 0;
 	const label = t(count === 1 ? 'components.breadcrumbs.task' : 'components.breadcrumbs.tasks');
@@ -149,7 +162,7 @@ const filteredResultsLabel = computed(() => {
 	if (assets > 0) resultParts.push(`${assets} ${assetLabel}`);
 	if (collections > 0) resultParts.push(`${collections} ${collectionLabel}`);
 
-	return resultParts.length ? `${label} - ${resultParts.join(', ')}` : label;
+	return resultParts.length ? `${label} - ${resultParts.join(', ')}` : `${label} - 0 ${assetLabel}, 0 ${collectionLabel}`;
 });
 
 // True when any filter, search or visibility toggle is active (ignores view-mode changes).
@@ -208,6 +221,18 @@ const segments = computed(() => {
 });
 
 // methods
+
+// Clears the current result view and reloads the active collection.
+const clearSearchAndFilters = () => {
+	commonStore.viewSearchQuery = '';
+	if (commonStore.activeWorkspace === 'My Assets') {
+		const workspace = commonStore.workspaces.find((item) => item.name === 'My Assets');
+		if (workspace) commonStore.setActiveWorkspace(workspace);
+	} else {
+		commonStore.resetFilters();
+	}
+	emitter.emit('refresh-browser');
+};
 
 // Checks if the breadcrumb bar is overflowing and adjusts visible segments.
 const checkOverflow = async () => {
@@ -330,6 +355,7 @@ const getUntrackedCollectionParent = () => {
 
 // Navigates to a specific collection by path.
 const goToCollection = async (selectedPath) => {
+	if (navigationLocked.value) return;
 	displayOverflowItems.value = false;
 	const clickedPath = `/${selectedPath}/`;
 
@@ -412,7 +438,7 @@ const handleNavigateUpShortcut = async (event) => {
 	if (event.key !== 'Backspace' || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
 	const activeElement = document.activeElement;
 	const isEditing = activeElement?.matches('input, textarea, [contenteditable="true"]');
-	if (!commonStore.navigatorMode || !collectionStore.navigatedCollection || stage.operationActive || isEditing) return;
+	if (!commonStore.navigatorMode || navigationLocked.value || !collectionStore.navigatedCollection || stage.operationActive || isEditing) return;
 	event.preventDefault();
 	await goUpALevel();
 };
@@ -445,12 +471,20 @@ const revealInExplorer = async () => {
 };
 
 // Toggles the overflow items dropdown visibility.
-const toggleOverflowList = () => { displayOverflowItems.value = !displayOverflowItems.value; };
+const toggleOverflowList = () => {
+	if (navigationLocked.value) return;
+	displayOverflowItems.value = !displayOverflowItems.value;
+};
 
 // watchers
 
 watch(path, () => {
 	if (path.value === 'Home') showEllipsis.value = false;
+	checkOverflow();
+});
+
+watch(navigationLocked, (locked) => {
+	if (locked) displayOverflowItems.value = false;
 	checkOverflow();
 });
 
@@ -534,6 +568,10 @@ onBeforeUnmount(() => {
 	text-overflow: ellipsis;
 }
 
+.result-count-label {
+	flex-shrink: 0;
+}
+
 .kanban-path-text {
 	color: var(--text);
 	opacity: 0.5;
@@ -555,6 +593,12 @@ onBeforeUnmount(() => {
 	align-items: center;
 	width: 100%;
 	overflow: hidden;
+}
+
+.breadcrumb-wrapper.result-mode .breadcrumb-container {
+	flex: 0 1 auto;
+	min-width: 0;
+	justify-content: flex-start;
 }
 
 .breadcrumb-container {
