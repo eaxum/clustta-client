@@ -67,11 +67,6 @@ func main() {
 			replace: "${1}" + version + "${2}",
 		},
 		{
-			path:    "Clustta_template.xml",
-			pattern: `(PackageName="Eaxum\.Clustta"[^>]* Version=")[^"]+(")`,
-			replace: "${1}" + msixVersion + "${2}",
-		},
-		{
 			path:    "build/windows/Taskfile.yml",
 			pattern: `(?m)^(\s*APP_VERSION:\s*")[^"]+(")(\r?)$`,
 			replace: "${1}" + version + "${2}${3}",
@@ -136,6 +131,16 @@ func main() {
 			pattern: `make flatpak-tag VERSION=v[0-9]+\.[0-9]+\.[0-9]+-flatpak\.1`,
 			replace: "make flatpak-tag VERSION=" + flatpakTag,
 		},
+	}
+
+	if _, err := os.Stat("Clustta_template.xml"); err == nil {
+		changes = append(changes, replacement{
+			path:    "Clustta_template.xml",
+			pattern: `(PackageName="Eaxum\.Clustta"[^>]* Version=")[^"]+(")`,
+			replace: "${1}" + msixVersion + "${2}",
+		})
+	} else if !os.IsNotExist(err) {
+		fatalf("stat Clustta_template.xml: %v", err)
 	}
 
 	for _, change := range changes {

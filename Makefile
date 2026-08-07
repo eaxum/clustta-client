@@ -97,7 +97,7 @@ else ifeq ($(DETECTED_OS),Darwin)
 	bash ../clustta-deployment/darwin/macappstore-build.sh
 else ifeq ($(DETECTED_OS),Linux)
 	wails3 task linux:package PRODUCTION=true
-	wails3 task linux:create:flatpak
+# 	wails3 task linux:create:flatpak
 endif
 
 # Build for development
