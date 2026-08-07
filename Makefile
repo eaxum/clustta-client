@@ -158,7 +158,7 @@ flatpak-sources: flatpak-check
 # Tag and update the Flathub manifest
 .PHONY: flatpak-tag
 flatpak-tag: flatpak-check
-	@if [ -z "$(VERSION)" ]; then echo "Error: VERSION required. Usage: make flatpak-tag VERSION=v0.4.37-flatpak.1"; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "Error: VERSION required. Usage: make flatpak-tag VERSION=v0.4.38-flatpak.1"; exit 1; fi
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	@COMMIT=$$(git rev-parse $(VERSION)); \

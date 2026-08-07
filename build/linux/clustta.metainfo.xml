@@ -51,9 +51,16 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="0.4.37" date="2026-07-14">
+    <release version="0.4.38" date="2026-08-07">
       <description>
-        <p>Improved Linux desktop integration with proper dash icon and high-resolution icon support.</p>
+        <p>Clustta 0.4.38 adds connected DCC workflows, flexible Studio storage, faster browsing, and reliability improvements.</p>
+        <ul>
+          <li>Use faster, studio-aware asset workflows from connected creative applications</li>
+          <li>Choose and convert private Studio project storage modes with clear progress</li>
+          <li>Keep your browser position while project data updates quietly in place</li>
+          <li>Review safer batch actions with permission-aware shortcut hints</li>
+          <li>Includes fixes for sync, fetched assets, checkpoints, task updates, and project storage</li>
+        </ul>
       </description>
     </release>
   </releases>
