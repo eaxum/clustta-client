@@ -1,5 +1,23 @@
 <template>
-  <div class="custom-node-root no-drag" :style="nodeStyle" @dblclick="selectItem" :class="{ 'full-width': forList }">
+  <AssetItem
+    v-if="isDependency && forList"
+    :item="data"
+    :fullPath="dependencyFullPath"
+    :fallbackIcon="dependencyFallbackIcon"
+    :hideExtension="commonStore.hideExtensions"
+    :showFullPath="commonStore.showFullPath"
+    :showBadge="false"
+    @dblclick="selectItem"
+  >
+    <template v-if="userStore.canDo('manage_dependencies') && (showAdd || showRemove)" #actions>
+      <ActionButton v-if="showRemove" :icon="getAppIcon('minus-circle')" v-tooltip="$t('components.virtualNode.remove')"
+        @click="removeDependency" />
+      <ActionButton v-if="showAdd" :icon="getAppIcon('plus-circle')" v-tooltip="$t('components.virtualNode.addDependency')"
+        @click="addDependency" />
+    </template>
+  </AssetItem>
+
+  <div v-else class="custom-node-root no-drag" :style="nodeStyle" @dblclick="selectItem" :class="{ 'full-width': forList }">
     <Handle v-if="data.parentId" :style="nodeStyle" class="handle" type="target" :position="Position.Left" />
     <Handle v-if="data.nodeId" :style="nodeStyle" type="source" :position="Position.Right" />
     <div class="virtual-node-root" >
@@ -49,6 +67,7 @@ import { useIconStore } from '@/stores/icons';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import AssetItem from '@/instances/desktop/components/AssetItem.vue';
 
 // states/stores
 const iconStore = useIconStore();
@@ -97,6 +116,35 @@ const nodeStyle = computed(() => {
 const itemTypeIcon = computed(() => {
   const item = props.data;
   return item.collection_type_icon ? getAppIcon(item.collection_type_icon) : getAppIcon(item.asset_type_icon)
+});
+
+const dependencyFallbackIcon = computed(() => {
+  const item = props.data;
+  if (item.collection_type_id || item.type === 'collection') {
+    return getAppIcon(item.collection_type_icon || 'folder');
+  }
+  return getAppIcon(item.asset_type_icon || 'file');
+});
+
+const dependencyFullPath = computed(() => {
+  const item = props.data;
+  if (item.collection_type_id || item.type === 'collection') {
+    return item.collection_path || item.name || '';
+  }
+
+  const path = String(item.asset_path || '').replace(/\\/g, '/');
+  const name = String(item.name || '');
+  if (!path || !name) return path || name;
+
+  const rawExtension = String(item.extension || '');
+  const extension = rawExtension && !rawExtension.startsWith('.') ? `.${rawExtension}` : rawExtension;
+  const pathWithoutExtension = extension && path.toLowerCase().endsWith(extension.toLowerCase())
+    ? path.slice(0, -extension.length)
+    : path;
+  const pathName = pathWithoutExtension.split('/').filter(Boolean).pop() || '';
+  if (pathName.toLowerCase() === name.toLowerCase()) return path;
+
+  return `${path.replace(/\/$/, '')}/${name}`;
 });
 
 const dependenciesCount = computed(() => {

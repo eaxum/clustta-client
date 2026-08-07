@@ -143,6 +143,7 @@ const normalizedFullPath = computed(() => {
     props.fullPath
     || itemValue.value.fullPath
     || itemValue.value.display_path
+    || itemValue.value.collection_path
     || props.assetPath
     || itemValue.value.asset_path
     || ''
@@ -169,8 +170,9 @@ const displayName = computed(() => {
 const normalizedKind = computed(() => props.kind || itemValue.value.kind || 'default');
 const normalizedKindLabel = computed(() => props.kindLabel || itemValue.value.kindLabel || '');
 
-const explicitIcon = computed(() => props.icon || itemValue.value.icon || itemValue.value.fallbackIcon || props.fallbackIcon || '');
-const displayIcon = computed(() => resolvedIcon.value || explicitIcon.value || getAppIcon('generic'));
+const explicitIcon = computed(() => props.icon || itemValue.value.icon || '');
+const fallbackIcon = computed(() => itemValue.value.fallbackIcon || props.fallbackIcon || '');
+const displayIcon = computed(() => resolvedIcon.value || explicitIcon.value || fallbackIcon.value || getAppIcon('generic'));
 const hasResolvedIcon = computed(() => !!(resolvedIcon.value || explicitIcon.value));
 const showActions = computed(() => props.showNavigate || !!slots.actions);
 

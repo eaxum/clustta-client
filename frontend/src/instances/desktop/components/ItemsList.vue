@@ -2,7 +2,7 @@
   <div ref="scrollContainer" class="virtual-scroll-container" @scroll="handleScroll" >
     <div :style="{ height: totalHeight + 'px' }" class="scroll-height">
       <div :style="{ transform: `translateY(${startOffset}px)` }">
-        <div v-for="(item, index) in visibleItems" :key="firstVisibleIndex + index"
+        <div v-for="(item, index) in visibleItems" :key="item.id || firstVisibleIndex + index"
           :data-index="firstVisibleIndex + index">
           <VirtualNode :isDependency="isDependency" :forList="forList" :showAdd="showAdd" :showRemove="showRemove" :data="item" class="virtual-scroll-item" />
         </div>

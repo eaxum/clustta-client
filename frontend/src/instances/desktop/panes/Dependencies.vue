@@ -465,9 +465,14 @@ watch(
   { deep: true }
 );
 
-watch(() => assetStore.selectedAsset, async () => {
-    getAssetDependencies();
-}, { deep: true });
+watch(() => assetStore.selectedAsset?.id, async () => {
+  allDependencies.value = [];
+  availableDependencies.value = [];
+  await getAssetDependencies();
+  if (searchQuery.value) {
+    await updateSearch();
+  }
+});
 
 // onMounted hook
 onMounted( async () => {
