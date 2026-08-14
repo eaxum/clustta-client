@@ -1,5 +1,7 @@
 package agent
 
+import agentcommands "clustta/internal/agent/commands"
+
 // Risk levels classify tool calls for approval gating.
 const (
 	RiskSafe        = "safe"        // pure read; no side effects
@@ -7,30 +9,15 @@ const (
 	RiskDestructive = "destructive" // bulk/structural change, deletion, role/membership change, or arbitrary code execution
 )
 
-// destructiveTools enumerates tool names that require explicit user approval
-// before execution unless auto-approve is enabled.
+// destructiveTools retains approval policy for legacy non-registry tools.
+// Registered commands own their risk metadata and planned commands cannot be auto-approved.
 var destructiveTools = map[string]bool{
 	"delete_asset":      true,
 	"delete_collection": true,
 	"remove_user":       true,
 
-	"delete_asset_type":             true,
-	"delete_collection_type":        true,
-	"apply_workflow":                true,
-	"setup_project_types":           true,
-	"setup_animation_production":    true,
-	"batch_update_asset_types":      true,
-	"batch_update_collection_types": true,
-
-	"bulk_delete_assets":          true,
-	"bulk_change_asset_type":      true,
-	"bulk_change_collection_type": true,
-	"bulk_change_status":          true,
-	"bulk_assign":                 true,
-	"random_assign":               true,
-	"unassign_all_assets":         true,
-	"batch_create_assets":         true,
-	"batch_create_collections":    true,
+	"delete_asset_type":      true,
+	"delete_collection_type": true,
 
 	"add_project_collaborator":        true,
 	"remove_project_collaborator":     true,
@@ -39,30 +26,13 @@ var destructiveTools = map[string]bool{
 	"remove_studio_collaborator":      true,
 
 	"run_terminal_command": true,
-	"blender_run_script":   true,
-	"blender_run_python":   true,
-
-	"batch_rename":               true,
-	"batch_change_status":        true,
-	"batch_change_type":          true,
-	"batch_assign":               true,
-	"batch_unassign":             true,
-	"batch_move":                 true,
-	"batch_add_tags":             true,
-	"batch_remove_tags":          true,
-	"batch_toggle_task_resource": true,
-	"batch_add_dependency":       true,
-	"batch_remove_dependency":    true,
-	"batch_delete":               true,
-	"dcc_render":                 true,
-	"dcc_export":                 true,
-	"dcc_run_script":             true,
-	"dcc_run_python":             true,
-	"dcc_set_settings":           true,
 }
 
 // GetToolRisk returns the risk level for the given tool name.
 func GetToolRisk(toolName string) string {
+	if definition, ok := agentcommands.DefinitionFor(toolName); ok && definition.Risk != "" {
+		return definition.Risk
+	}
 	if destructiveTools[toolName] {
 		return RiskDestructive
 	}
@@ -74,5 +44,5 @@ func GetToolRisk(toolName string) string {
 
 // IsDestructive reports whether a tool requires approval.
 func IsDestructive(toolName string) bool {
-	return destructiveTools[toolName]
+	return GetToolRisk(toolName) == RiskDestructive
 }

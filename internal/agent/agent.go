@@ -449,7 +449,8 @@ func buildSystemPrompt(projectContext string) string {
 - Use exact IDs from the project data when calling tools â€” never guess IDs
 - Be concise and direct in responses
 - When the user asks about Clustta features, use search_knowledge to find accurate information
-- If creating multiple items, use batch tools (batch_create_collections, batch_create_assets) instead of calling single-item tools repeatedly
+- If creating multiple items, use batch tools (batch_create_collections, batch_create_assets) instead of calling single-item tools repeatedly.
+- Use batch_distribute to distribute a structured asset scope across several users. Do not use legacy random_assign or enumerate IDs.
 - DCC jobs are fire-and-forget. Inform the user when the scoped job was started.
 - For DCC tool detection: .blend files use Blender, .ma/.mb use Maya, .hip use Houdini. Users can also set BLENDER_PATH, MAYA_PATH, etc. environment variables.
 - dcc_link_dependencies auto-resolves source files from the target asset's dependency graph when source_scope is omitted.

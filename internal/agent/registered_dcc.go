@@ -9,25 +9,9 @@ import (
 )
 
 func init() {
-	agentcommands.Register(agentcommands.Definition{
-		Name:        "dcc_open",
-		Description: "Open tracked asset files from a structured scope in their DCC application.",
-		Risk:        "safe",
-		Parameters: dccParameters(map[string]interface{}{
-			"app": map[string]interface{}{"type": "string", "description": "Optional DCC application override."},
-		}, nil),
-		Direct: func(projectPath string, args map[string]interface{}) (interface{}, error) {
-			resolved, legacyArgs, err := resolveDCCArgs(projectPath, args)
-			if err != nil {
-				return nil, err
-			}
-			result := execOpenInDCC(projectPath, legacyArgs)
-			if !result.Success {
-				return nil, fmt.Errorf("%s", result.Error)
-			}
-			return map[string]interface{}{"entities": resolved.Entities, "result": result.Data}, nil
-		},
-	})
+	registerPlannedDCC("dcc_open", "Open tracked asset files from a structured scope in their DCC application.", map[string]interface{}{
+		"app": map[string]interface{}{"type": "string", "description": "Optional DCC application override."},
+	}, nil, false, execOpenInDCC)
 	registerPlannedDCC("dcc_render", "Launch Blender renders for scoped .blend assets.", map[string]interface{}{
 		"start_frame": map[string]interface{}{"type": "integer"},
 		"end_frame":   map[string]interface{}{"type": "integer"},

@@ -27,6 +27,7 @@ type Definition struct {
 	Execute        func(string, planning.Plan) (planning.Result, error)                  `json:"-"`
 	ExecuteContext func(context.Context, string, planning.Plan) (planning.Result, error) `json:"-"`
 	Direct         func(string, map[string]interface{}) (interface{}, error)             `json:"-"`
+	Select         func(map[string]interface{}, planning.Plan, []string) error           `json:"-"`
 }
 
 var (
@@ -102,6 +103,15 @@ func PrepareSelection(projectPath, name string, args map[string]interface{}, sel
 	if !ok || approved.Command != name {
 		return fmt.Errorf("approved plan expired; please retry")
 	}
+	def, _ := DefinitionFor(name)
+	if def.Select != nil {
+		if err := def.Select(args, approved, selectedKeys); err != nil {
+			return err
+		}
+		delete(args, "_plan_id")
+		_, err := Prepare(projectPath, name, args)
+		return err
+	}
 
 	selected := make(map[string]struct{}, len(selectedKeys))
 	for _, key := range selectedKeys {
@@ -157,11 +167,20 @@ func authorize(projectPath, name string, plan planning.Plan) error {
 	}
 	for _, change := range plan.Changes {
 		switch name {
+		case "batch_create_collections", "apply_workflow", "setup_animation_production":
+			if !role.CreateCollection {
+				return fmt.Errorf("permission denied: role %q cannot create collections", role.Name)
+			}
+		case "batch_create_assets", "batch_create_asset_types", "batch_create_collection_types",
+			"batch_update_asset_types", "batch_update_collection_types", "setup_project_types":
+			if !role.CreateAsset {
+				return fmt.Errorf("permission denied: role %q cannot create assets or maintain types", role.Name)
+			}
 		case "batch_change_status":
 			if !role.ChangeStatus {
 				return fmt.Errorf("permission denied: role %q cannot change status", role.Name)
 			}
-		case "batch_assign":
+		case "batch_assign", "batch_distribute":
 			if change.Entity.Type == scope.TypeAsset && !role.AssignAsset {
 				return fmt.Errorf("permission denied: role %q cannot assign assets", role.Name)
 			}

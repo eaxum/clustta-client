@@ -1385,6 +1385,10 @@ func GetToolDefinitions() []ToolDefinition {
 	// exists. This gives the model one canonical operation per capability.
 	replacedLegacy := map[string]bool{
 		"list_collections": true, "list_assets_in_collection": true,
+		"batch_create_collections": true, "batch_create_assets": true,
+		"batch_create_asset_types": true, "batch_create_collection_types": true,
+		"batch_update_asset_types": true, "batch_update_collection_types": true,
+		"setup_project_types": true, "setup_animation_production": true, "apply_workflow": true,
 		"rename_asset": true, "rename_collection": true,
 		"change_asset_status": true, "bulk_change_status": true,
 		"change_asset_type": true, "bulk_change_asset_type": true,
@@ -1395,6 +1399,9 @@ func GetToolDefinitions() []ToolDefinition {
 		"add_tag_to_asset": true, "remove_tag_from_asset": true, "batch_add_tags": true,
 		"add_dependency": true, "remove_dependency": true,
 		"delete_asset": true, "bulk_delete_assets": true, "delete_collection": true,
+		"open_in_dcc": true, "blender_render": true, "blender_export": true,
+		"blender_run_script": true, "blender_run_python": true, "blender_set_settings": true,
+		"blender_link": true, "run_terminal_command": true,
 	}
 	filtered := tools[:0]
 	for _, tool := range tools {
@@ -1421,13 +1428,11 @@ type toolPermission struct {
 
 // toolPermissions maps mutating tools to the permission(s) they require.
 var toolPermissions = map[string]toolPermission{
-	"create_collection":        {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
-	"batch_create_collections": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
-	"rename_collection":        {func(r models.Role) bool { return r.UpdateCollection }, "Update Collection"},
-	"delete_collection":        {func(r models.Role) bool { return r.DeleteCollection }, "Delete Collection"},
+	"create_collection": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
+	"rename_collection": {func(r models.Role) bool { return r.UpdateCollection }, "Update Collection"},
+	"delete_collection": {func(r models.Role) bool { return r.DeleteCollection }, "Delete Collection"},
 
 	"create_asset":           {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-	"batch_create_assets":    {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"create_asset_type":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"create_collection_type": {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
 	"create_tag":             {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
@@ -1435,20 +1440,14 @@ var toolPermissions = map[string]toolPermission{
 	"move_assets":            {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"add_tag_to_asset":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"remove_tag_from_asset":  {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
-	"batch_add_tags":         {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"delete_asset":           {func(r models.Role) bool { return r.DeleteAsset }, "Delete Asset"},
-	"bulk_delete_assets":     {func(r models.Role) bool { return r.DeleteAsset }, "Delete Asset"},
 	"delete_asset_type":      {func(r models.Role) bool { return r.DeleteAsset }, "Delete Asset"},
 	"delete_collection_type": {func(r models.Role) bool { return r.DeleteAsset }, "Delete Asset"},
 
-	"assign_asset":        {func(r models.Role) bool { return r.AssignAsset }, "Assign Asset"},
-	"bulk_assign":         {func(r models.Role) bool { return r.AssignAsset }, "Assign Asset"},
-	"random_assign":       {func(r models.Role) bool { return r.AssignAsset }, "Assign Asset"},
-	"unassign_asset":      {func(r models.Role) bool { return r.UnassignAsset }, "Unassign Asset"},
-	"unassign_all_assets": {func(r models.Role) bool { return r.UnassignAsset }, "Unassign Asset"},
+	"assign_asset":   {func(r models.Role) bool { return r.AssignAsset }, "Assign Asset"},
+	"unassign_asset": {func(r models.Role) bool { return r.UnassignAsset }, "Unassign Asset"},
 
 	"change_asset_status": {func(r models.Role) bool { return r.ChangeStatus }, "Change Status"},
-	"bulk_change_status":  {func(r models.Role) bool { return r.ChangeStatus }, "Change Status"},
 
 	"add_dependency":    {func(r models.Role) bool { return r.ManageDependencies }, "Manage Dependencies"},
 	"remove_dependency": {func(r models.Role) bool { return r.ManageDependencies }, "Manage Dependencies"},
@@ -1460,23 +1459,12 @@ var toolPermissions = map[string]toolPermission{
 	"add_project_collaborator":    {func(r models.Role) bool { return r.AddUser }, "Add User"},
 	"remove_project_collaborator": {func(r models.Role) bool { return r.RemoveUser }, "Remove User"},
 
-	"change_asset_type":             {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
-	"bulk_change_asset_type":        {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
-	"change_collection_type":        {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
-	"bulk_change_collection_type":   {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
-	"update_asset_type":             {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-	"update_collection_type":        {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-	"batch_create_asset_types":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-	"batch_create_collection_types": {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-	"batch_update_asset_types":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-	"batch_update_collection_types": {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-
-	"apply_workflow": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
-
-	"setup_project_types":        {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
-	"setup_animation_production": {func(r models.Role) bool { return r.CreateCollection }, "Create Collection"},
-	"add_ignore_pattern":         {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
-	"remove_ignore_pattern":      {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"change_asset_type":      {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"change_collection_type": {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"update_asset_type":      {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"update_collection_type": {func(r models.Role) bool { return r.CreateAsset }, "Create Asset"},
+	"add_ignore_pattern":     {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
+	"remove_ignore_pattern":  {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 
 	"blender_render":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
 	"blender_export":       {func(r models.Role) bool { return r.UpdateAsset }, "Update Asset"},
@@ -1534,9 +1522,6 @@ func ExecuteTool(projectPath string, toolName string, args map[string]interface{
 
 // ExecuteToolContext runs a tool with cancellation propagated into registry commands.
 func ExecuteToolContext(ctx context.Context, projectPath string, toolName string, args map[string]interface{}) ToolResult {
-	if err := checkPermission(projectPath, toolName); err != nil {
-		return ToolResult{Success: false, Error: err.Error()}
-	}
 	if _, ok := agentcommands.DefinitionFor(toolName); ok {
 		if def, _ := agentcommands.DefinitionFor(toolName); def.Direct != nil {
 			result, err := agentcommands.ExecuteDirect(projectPath, toolName, args)
@@ -1550,6 +1535,9 @@ func ExecuteToolContext(ctx context.Context, projectPath string, toolName string
 			return ToolResult{Success: false, Error: err.Error()}
 		}
 		return ToolResult{Success: true, Data: result}
+	}
+	if err := checkPermission(projectPath, toolName); err != nil {
+		return ToolResult{Success: false, Error: err.Error()}
 	}
 
 	switch toolName {
@@ -1597,8 +1585,6 @@ func ExecuteToolContext(ctx context.Context, projectPath string, toolName string
 		return execDeleteAsset(projectPath, args)
 	case "delete_collection":
 		return execDeleteCollection(projectPath, args)
-	case "bulk_delete_assets":
-		return execBulkDeleteAssets(projectPath, args)
 	case "list_checkpoints":
 		return execListCheckpoints(projectPath, args)
 	case "create_tag":
@@ -1629,14 +1615,6 @@ func ExecuteToolContext(ctx context.Context, projectPath string, toolName string
 		return execSearchAssets(projectPath, args)
 	case "get_project_summary":
 		return execGetProjectSummary(projectPath)
-	case "bulk_assign":
-		return execBulkAssign(projectPath, args)
-	case "bulk_change_status":
-		return execBulkChangeStatus(projectPath, args)
-	case "unassign_all_assets":
-		return execUnassignAllAssets(projectPath, args)
-	case "random_assign":
-		return execRandomAssign(projectPath, args)
 	case "remove_user":
 		return execRemoveUser(projectPath, args)
 	case "list_ignore_patterns":
@@ -1645,64 +1623,23 @@ func ExecuteToolContext(ctx context.Context, projectPath string, toolName string
 		return execAddIgnorePattern(projectPath, args)
 	case "remove_ignore_pattern":
 		return execRemoveIgnorePattern(projectPath, args)
-	case "setup_project_types":
-		return execSetupProjectTypes(projectPath, args)
-	case "setup_animation_production":
-		return execSetupAnimationProduction(projectPath, args)
-	case "batch_create_collections":
-		return execBatchCreateCollections(projectPath, args)
-	case "batch_create_assets":
-		return execBatchCreateAssets(projectPath, args)
-	case "batch_add_tags":
-		return execBatchAddTags(projectPath, args)
 	case "generate_script":
 		return execGenerateScript(args)
 
-	case "open_in_dcc":
-		return execOpenInDCC(projectPath, args)
-	case "blender_render":
-		return execBlenderRender(projectPath, args)
-	case "blender_export":
-		return execBlenderExport(projectPath, args)
-	case "blender_run_script":
-		return execBlenderRunScript(projectPath, args)
-	case "blender_run_python":
-		return execBlenderRunPython(projectPath, args)
-	case "blender_set_settings":
-		return execBlenderSetSettings(projectPath, args)
-	case "blender_link":
-		return execBlenderLink(projectPath, args)
-	case "run_terminal_command":
-		return execRunTerminalCommand(projectPath, args)
-
 	case "change_asset_type":
 		return execChangeAssetType(projectPath, args)
-	case "bulk_change_asset_type":
-		return execBulkChangeAssetType(projectPath, args)
 	case "change_collection_type":
 		return execChangeCollectionType(projectPath, args)
-	case "bulk_change_collection_type":
-		return execBulkChangeCollectionType(projectPath, args)
-	case "batch_create_asset_types":
-		return execBatchCreateAssetTypes(projectPath, args)
-	case "batch_create_collection_types":
-		return execBatchCreateCollectionTypes(projectPath, args)
 	case "update_asset_type":
 		return execUpdateAssetType(projectPath, args)
 	case "update_collection_type":
 		return execUpdateCollectionType(projectPath, args)
-	case "batch_update_asset_types":
-		return execBatchUpdateAssetTypes(projectPath, args)
-	case "batch_update_collection_types":
-		return execBatchUpdateCollectionTypes(projectPath, args)
 	case "reveal_asset_on_disk":
 		return execRevealAssetOnDisk(projectPath, args)
 	case "reveal_in_browser":
 		return execRevealInBrowser(projectPath, args)
 	case "list_workflows":
 		return execListWorkflows(projectPath)
-	case "apply_workflow":
-		return execApplyWorkflow(projectPath, args)
 	case "list_roles":
 		return execListRoles(projectPath)
 	case "change_collaborator_role":
