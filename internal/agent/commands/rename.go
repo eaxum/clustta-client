@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"unicode"
 
@@ -25,17 +26,76 @@ type renameMove struct {
 	newPath string
 }
 
+type renameNumbering struct {
+	start     int
+	step      int
+	padding   int
+	position  string
+	separator string
+}
+
+type renameNameMapping struct {
+	entityID string
+	oldName  string
+	newName  string
+}
+
+type renameOptions struct {
+	format       string
+	newName      string
+	prependText  string
+	appendText   string
+	findText     string
+	replaceText  string
+	removePrefix string
+	removeSuffix string
+	template     string
+	nameMappings []renameNameMapping
+	numbering    *renameNumbering
+}
+
 func init() {
 	Register(Definition{
 		Name:        "batch_rename",
-		Description: "Rename assets and collections in a structured scope using a deterministic naming format or one explicit name. Supports tracked and selected untracked entities. Local-only; manual sync required.",
+		Description: "Rename assets and collections using formats, prepend/append text, find and replace, exact name mappings, sequential numbers, templates, or prefix/suffix removal. Supports tracked and selected untracked entities. Local-only; manual sync required.",
 		Permission:  "update_asset", Risk: "destructive",
 		Parameters: map[string]interface{}{
 			"type": "object",
 			"properties": map[string]interface{}{
-				"scope":    ScopeSchema([]string{"asset", "collection", "untracked_asset", "untracked_collection"}),
-				"format":   map[string]interface{}{"type": "string", "enum": []string{"camelCase", "PascalCase", "snake_case", "kebab-case", "lowercase", "UPPERCASE"}},
-				"new_name": map[string]interface{}{"type": "string", "description": "Explicit new name; only valid when scope resolves to one entity."},
+				"scope":         ScopeSchema([]string{"asset", "collection", "untracked_asset", "untracked_collection"}),
+				"format":        map[string]interface{}{"type": "string", "enum": []string{"camelCase", "PascalCase", "snake_case", "kebab-case", "lowercase", "UPPERCASE"}},
+				"new_name":      map[string]interface{}{"type": "string", "description": "Explicit new name; only valid when scope resolves to one entity and cannot be combined with other rename rules."},
+				"prepend_text":  map[string]interface{}{"type": "string", "description": "Text to add before every name."},
+				"append_text":   map[string]interface{}{"type": "string", "description": "Text to add after every name."},
+				"find_text":     map[string]interface{}{"type": "string", "description": "Exact case-sensitive text to replace in every name."},
+				"replace_text":  map[string]interface{}{"type": "string", "description": "Replacement for find_text. May be empty to remove matches."},
+				"remove_prefix": map[string]interface{}{"type": "string", "description": "Exact case-sensitive prefix to remove when present."},
+				"remove_suffix": map[string]interface{}{"type": "string", "description": "Exact case-sensitive suffix to remove when present."},
+				"template":      map[string]interface{}{"type": "string", "description": "Naming template containing {name} and optionally {number}."},
+				"name_mappings": map[string]interface{}{
+					"type":        "array",
+					"description": "Exact old-name/new-name mappings. This rule cannot be combined with other rename rules.",
+					"items": map[string]interface{}{
+						"type": "object",
+						"properties": map[string]interface{}{
+							"entity_id": map[string]interface{}{"type": "string", "description": "Optional entity ID for unambiguous mappings when names repeat."},
+							"old_name":  map[string]interface{}{"type": "string"},
+							"new_name":  map[string]interface{}{"type": "string"},
+						},
+						"required": []string{"old_name", "new_name"},
+					},
+				},
+				"numbering": map[string]interface{}{
+					"type":        "object",
+					"description": "Sequential numbering in deterministic scope order. Defaults to start 1, step 1, suffix position, and '-' separator.",
+					"properties": map[string]interface{}{
+						"start":     map[string]interface{}{"type": "integer"},
+						"step":      map[string]interface{}{"type": "integer"},
+						"padding":   map[string]interface{}{"type": "integer", "minimum": 0},
+						"position":  map[string]interface{}{"type": "string", "enum": []string{"prefix", "suffix"}},
+						"separator": map[string]interface{}{"type": "string"},
+					},
+				},
 			},
 			"required": []string{"scope"},
 		},
@@ -53,17 +113,16 @@ func planRename(projectPath string, args map[string]interface{}) (planning.Plan,
 	if err != nil {
 		return planning.Plan{}, err
 	}
-	format := stringArg(args, "format")
-	explicit := stringArg(args, "new_name")
-	if format == "" && explicit == "" {
-		return planning.Plan{}, fmt.Errorf("format or new_name is required")
+	options, err := parseRenameOptions(args)
+	if err != nil {
+		return planning.Plan{}, err
 	}
-	if explicit != "" && len(resolved.Entities) != 1 {
+	if options.newName != "" && len(resolved.Entities) != 1 {
 		return planning.Plan{}, fmt.Errorf("new_name requires a scope containing exactly one entity")
 	}
 
 	plan := newPlan("batch_rename", resolved)
-	plan.Options = map[string]interface{}{"format": format, "new_name": explicit}
+	plan.Options = args
 	inventory, err := scope.Resolve(projectPath, scope.Request{
 		Source: "project", Recursive: true,
 		Types: []scope.EntityType{scope.TypeAsset, scope.TypeCollection, scope.TypeUntrackedAsset, scope.TypeUntrackedCollection},
@@ -79,30 +138,31 @@ func planRename(projectPath string, args map[string]interface{}) (planning.Plan,
 	}
 	plannedTargets := map[string]string{}
 	plannedSources := map[string]string{}
-	for _, entity := range resolved.Entities {
-		newName := explicit
-		if newName == "" {
-			newName, err = formatEntityName(entity.Name, format)
-			if err != nil {
-				return planning.Plan{}, err
-			}
+	for index, entity := range resolved.Entities {
+		newName, matched, renameErr := options.apply(entity, index)
+		if renameErr != nil {
+			return planning.Plan{}, renameErr
+		}
+		if !matched {
+			continue
 		}
 		plannedTargets[string(entity.Type)+":"+entity.ID] = normalizedPath(renameTargetPath(entity, newName))
 		plannedSources[normalizedPath(entity.Path)] = string(entity.Type) + ":" + entity.ID
 	}
 	targets := map[string]string{}
-	for _, entity := range resolved.Entities {
-		newName := explicit
-		if newName == "" {
-			newName, err = formatEntityName(entity.Name, format)
-			if err != nil {
-				return planning.Plan{}, err
-			}
+	for index, entity := range resolved.Entities {
+		newName, matched, renameErr := options.apply(entity, index)
+		if renameErr != nil {
+			return planning.Plan{}, renameErr
 		}
 		change := planning.Change{
 			Entity: entity, Action: "Rename", Valid: true,
 			Before: map[string]interface{}{"name": entity.Name, "path": entity.Path},
 			After:  map[string]interface{}{"name": newName},
+		}
+		if !matched {
+			change.Valid = false
+			change.Warnings = append(change.Warnings, "no old-name mapping matched")
 		}
 		if strings.TrimSpace(newName) == "" {
 			change.Valid = false
@@ -148,6 +208,230 @@ func planRename(projectPath string, args map[string]interface{}) (planning.Plan,
 		plan.Errors = append(plan.Errors, "scope resolved to no renameable entities")
 	}
 	return plan, nil
+}
+
+func parseRenameOptions(args map[string]interface{}) (renameOptions, error) {
+	options := renameOptions{
+		format:       stringArg(args, "format"),
+		newName:      stringArg(args, "new_name"),
+		prependText:  stringArg(args, "prepend_text"),
+		appendText:   stringArg(args, "append_text"),
+		findText:     stringArg(args, "find_text"),
+		replaceText:  stringValue(args, "replace_text"),
+		removePrefix: stringArg(args, "remove_prefix"),
+		removeSuffix: stringArg(args, "remove_suffix"),
+		template:     stringArg(args, "template"),
+	}
+
+	mappings, err := parseNameMappings(args["name_mappings"])
+	if err != nil {
+		return renameOptions{}, err
+	}
+	options.nameMappings = mappings
+	if rawNumbering, ok := args["numbering"]; ok {
+		options.numbering, err = parseRenameNumbering(rawNumbering)
+		if err != nil {
+			return renameOptions{}, err
+		}
+	}
+
+	hasComposableRule := options.format != "" || options.prependText != "" || options.appendText != "" ||
+		options.findText != "" || options.removePrefix != "" || options.removeSuffix != "" ||
+		options.template != "" || options.numbering != nil
+	if options.newName == "" && len(options.nameMappings) == 0 && !hasComposableRule {
+		return renameOptions{}, fmt.Errorf("at least one rename rule is required")
+	}
+	if options.newName != "" && (len(options.nameMappings) > 0 || hasComposableRule) {
+		return renameOptions{}, fmt.Errorf("new_name cannot be combined with other rename rules")
+	}
+	if len(options.nameMappings) > 0 && hasComposableRule {
+		return renameOptions{}, fmt.Errorf("name_mappings cannot be combined with other rename rules")
+	}
+	if _, hasReplace := args["replace_text"]; hasReplace && options.findText == "" {
+		return renameOptions{}, fmt.Errorf("find_text is required when replace_text is provided")
+	}
+	if options.template != "" && !strings.Contains(options.template, "{name}") && !strings.Contains(options.template, "{number}") {
+		return renameOptions{}, fmt.Errorf("template must contain {name} or {number}")
+	}
+	if strings.Contains(options.template, "{number}") && options.numbering == nil {
+		return renameOptions{}, fmt.Errorf("numbering is required when template contains {number}")
+	}
+	return options, nil
+}
+
+func parseNameMappings(raw interface{}) ([]renameNameMapping, error) {
+	mappings := []renameNameMapping{}
+	if raw == nil {
+		return mappings, nil
+	}
+	items, ok := raw.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("name_mappings must be an array")
+	}
+	for index, item := range items {
+		mapping, ok := item.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("name_mappings[%d] must be an object", index)
+		}
+		parsed := renameNameMapping{
+			entityID: stringArg(mapping, "entity_id"),
+			oldName:  stringArg(mapping, "old_name"),
+			newName:  stringArg(mapping, "new_name"),
+		}
+		if parsed.oldName == "" || parsed.newName == "" {
+			return nil, fmt.Errorf("name_mappings[%d] requires old_name and new_name", index)
+		}
+		for _, existing := range mappings {
+			if parsed.entityID != "" && parsed.entityID == existing.entityID {
+				return nil, fmt.Errorf("duplicate entity_id %q in name_mappings", parsed.entityID)
+			}
+			if parsed.entityID == "" && existing.entityID == "" && parsed.oldName == existing.oldName {
+				return nil, fmt.Errorf("duplicate old_name %q in name_mappings", parsed.oldName)
+			}
+		}
+		mappings = append(mappings, parsed)
+	}
+	return mappings, nil
+}
+
+func parseRenameNumbering(raw interface{}) (*renameNumbering, error) {
+	values, ok := raw.(map[string]interface{})
+	if !ok {
+		return nil, fmt.Errorf("numbering must be an object")
+	}
+	numbering := &renameNumbering{start: 1, step: 1, position: "suffix", separator: "-"}
+	var err error
+	if _, exists := values["start"]; exists {
+		numbering.start, err = renameInteger(values, "start")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if _, exists := values["step"]; exists {
+		numbering.step, err = renameInteger(values, "step")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if _, exists := values["padding"]; exists {
+		numbering.padding, err = renameInteger(values, "padding")
+		if err != nil {
+			return nil, err
+		}
+	}
+	if numbering.padding < 0 {
+		return nil, fmt.Errorf("numbering.padding cannot be negative")
+	}
+	if numbering.step == 0 {
+		return nil, fmt.Errorf("numbering.step cannot be zero")
+	}
+	if position := stringArg(values, "position"); position != "" {
+		if position != "prefix" && position != "suffix" {
+			return nil, fmt.Errorf("numbering.position must be prefix or suffix")
+		}
+		numbering.position = position
+	}
+	if separator, exists := values["separator"]; exists {
+		text, ok := separator.(string)
+		if !ok {
+			return nil, fmt.Errorf("numbering.separator must be a string")
+		}
+		numbering.separator = text
+	}
+	return numbering, nil
+}
+
+func renameInteger(values map[string]interface{}, key string) (int, error) {
+	switch value := values[key].(type) {
+	case int:
+		return value, nil
+	case int64:
+		return int(value), nil
+	case float64:
+		integer := int(value)
+		if float64(integer) == value {
+			return integer, nil
+		}
+	}
+	return 0, fmt.Errorf("numbering.%s must be an integer", key)
+}
+
+func stringValue(values map[string]interface{}, key string) string {
+	value, _ := values[key].(string)
+	return value
+}
+
+func (options renameOptions) apply(entity scope.Entity, index int) (string, bool, error) {
+	if options.newName != "" {
+		return options.newName, true, nil
+	}
+	if len(options.nameMappings) > 0 {
+		for _, mapping := range options.nameMappings {
+			if mapping.entityID != "" && mapping.entityID == entity.ID {
+				return mapping.newName, true, nil
+			}
+		}
+		for _, mapping := range options.nameMappings {
+			if mapping.entityID == "" && mapping.oldName == entity.Name {
+				return mapping.newName, true, nil
+			}
+		}
+		return entity.Name, false, nil
+	}
+
+	name := entity.Name
+	if options.format != "" {
+		formatted, err := formatEntityName(name, options.format)
+		if err != nil {
+			return "", false, err
+		}
+		name = formatted
+	}
+	if options.findText != "" {
+		name = strings.ReplaceAll(name, options.findText, options.replaceText)
+	}
+	name = strings.TrimPrefix(name, options.removePrefix)
+	name = strings.TrimSuffix(name, options.removeSuffix)
+	name = options.prependText + name + options.appendText
+
+	number := ""
+	if options.numbering != nil {
+		value := options.numbering.start + index*options.numbering.step
+		number = strconv.Itoa(value)
+		if options.numbering.padding > 0 {
+			number = fmt.Sprintf("%0*d", options.numbering.padding, value)
+		}
+	}
+	if options.template != "" {
+		name = strings.ReplaceAll(options.template, "{name}", name)
+		name = strings.ReplaceAll(name, "{number}", number)
+	} else if options.numbering != nil {
+		if options.numbering.position == "prefix" {
+			name = number + options.numbering.separator + name
+		} else {
+			name += options.numbering.separator + number
+		}
+	}
+	return name, true, nil
+}
+
+func preserveSelectedRenameTargets(args map[string]interface{}, changes []planning.Change) {
+	for _, key := range []string{
+		"format", "new_name", "prepend_text", "append_text", "find_text", "replace_text",
+		"remove_prefix", "remove_suffix", "template", "name_mappings", "numbering",
+	} {
+		delete(args, key)
+	}
+	mappings := make([]interface{}, 0, len(changes))
+	for _, change := range changes {
+		newName, _ := change.After["name"].(string)
+		mappings = append(mappings, map[string]interface{}{
+			"entity_id": change.Entity.ID,
+			"old_name":  change.Entity.Name,
+			"new_name":  newName,
+		})
+	}
+	args["name_mappings"] = mappings
 }
 
 func executeRename(ctx context.Context, projectPath string, plan planning.Plan) (planning.Result, error) {

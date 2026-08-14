@@ -419,7 +419,8 @@ func buildSystemPrompt(projectContext string) string {
 - Use entity type values exactly as provided: asset, collection, untracked_asset, untracked_collection.
 - Status changes only support asset. Type changes support asset and collection. Assignment supports tracked asset and collection with their different semantics.
 - When asset types should match asset-name suffixes, call batch_change_type once with asset_type_rules containing every suffix-to-type-ID mapping. Never emit a separate batch_change_type call for each suffix.
-- If a rename request does not provide either a naming format or one explicit new name, ask for the missing rule.
+- For batch renames, use format, prepend_text, append_text, find_text/replace_text, remove_prefix, remove_suffix, template, numbering, or name_mappings as requested. Composable rules are applied in that order; name_mappings and a single explicit new_name are exclusive rules.
+- Use numbering for sequential names. It supports start, step, padding, prefix/suffix position, and separator. A template can include {name} and {number}.
 
 ## Citing entities in your replies
 - Whenever you mention a specific asset, collection, or user that exists in the project, write it inline using this exact token format so the UI can render it as an interactive chip:

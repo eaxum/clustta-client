@@ -108,10 +108,12 @@ func PrepareSelection(projectPath, name string, args map[string]interface{}, sel
 		selected[key] = struct{}{}
 	}
 	entities := make([]scope.Entity, 0, len(selected))
+	selectedChanges := make([]planning.Change, 0, len(selected))
 	for _, change := range approved.Changes {
 		key := string(change.Entity.Type) + ":" + change.Entity.ID
 		if _, ok := selected[key]; ok && change.Valid {
 			entities = append(entities, change.Entity)
+			selectedChanges = append(selectedChanges, change)
 		}
 	}
 	if len(entities) == 0 {
@@ -121,6 +123,9 @@ func PrepareSelection(projectPath, name string, args map[string]interface{}, sel
 	args["scope"] = scope.Request{
 		Source: "selection", Selection: entities,
 		Types: approved.Scope.Request.Types,
+	}
+	if name == "batch_rename" {
+		preserveSelectedRenameTargets(args, selectedChanges)
 	}
 	delete(args, "_plan_id")
 	_, err := Prepare(projectPath, name, args)
