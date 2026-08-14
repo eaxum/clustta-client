@@ -21,7 +21,13 @@ import (
 // ErrCancelled is returned when the agent run was cancelled by the user.
 var ErrCancelled = errors.New("agent run cancelled")
 
-const maxIterations = 25
+const (
+	maxIterations       = 25
+	openAIModelTerra    = "gpt-5.6-terra"
+	openAIModelSol      = "gpt-5.6-sol"
+	openAIModelLuna     = "gpt-5.6-luna"
+	reasoningEffortNone = "none"
+)
 
 // llmHTTPClient is the shared client for LLM API calls. Bounded timeouts at
 // every layer prevent a slow or hung provider from leaking goroutines.
@@ -488,9 +494,10 @@ func buildSystemPrompt(projectContext string) string {
 // --- OpenAI API types ---
 
 type openAIRequest struct {
-	Model    string       `json:"model"`
-	Messages []Message    `json:"messages"`
-	Tools    []openAITool `json:"tools,omitempty"`
+	Model           string       `json:"model"`
+	Messages        []Message    `json:"messages"`
+	Tools           []openAITool `json:"tools,omitempty"`
+	ReasoningEffort string       `json:"reasoning_effort,omitempty"`
 }
 
 type openAITool struct {
@@ -548,7 +555,7 @@ type providerConfig struct {
 }
 
 var providers = map[string]providerConfig{
-	"openai":    {URL: "https://api.openai.com/v1/chat/completions", Model: "gpt-4o-mini"},
+	"openai":    {URL: "https://api.openai.com/v1/chat/completions", Model: openAIModelTerra},
 	"anthropic": {URL: "https://api.anthropic.com/v1/messages", Model: "claude-sonnet-4-20250514"},
 	"gemini":    {URL: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions", Model: "gemini-2.5-flash"},
 	"groq":      {URL: "https://api.groq.com/openai/v1/chat/completions", Model: "llama-3.3-70b-versatile"},
@@ -559,11 +566,9 @@ var providers = map[string]providerConfig{
 // console model dropdown. The first entry is treated as the default for that provider.
 var providerModelOptions = map[string][]string{
 	"openai": {
-		"gpt-4o-mini",
-		"gpt-4o",
-		"gpt-4.1",
-		"gpt-4.1-mini",
-		"o3-mini",
+		openAIModelTerra,
+		openAIModelSol,
+		openAIModelLuna,
 	},
 	"anthropic": {
 		"claude-sonnet-4-20250514",
@@ -646,10 +651,17 @@ func VerifyOllamaModel(ctx context.Context, model string) error {
 	return fmt.Errorf("Ollama model %q is not pulled locally. Run `ollama pull %s` then try again", model, model)
 }
 
-// resolveModel returns model if non-empty, otherwise the provider default.
-func resolveModel(provider, model string) string {
+// ResolveProviderModel returns a supported model or the provider default.
+func ResolveProviderModel(provider, model string) string {
 	if model != "" {
-		return model
+		if provider != "openai" {
+			return model
+		}
+		for _, availableModel := range providerModelOptions[provider] {
+			if model == availableModel {
+				return model
+			}
+		}
 	}
 	return GetDefaultModel(provider)
 }
@@ -659,24 +671,20 @@ func resolveModel(provider, model string) string {
 func callLLM(ctx context.Context, apiKey, provider, model string, messages []Message, tools []openAITool) (openAIResponse, error) {
 	switch provider {
 	case "anthropic":
-		return callAnthropic(ctx, apiKey, resolveModel(provider, model), messages, tools)
+		return callAnthropic(ctx, apiKey, ResolveProviderModel(provider, model), messages, tools)
 	default:
 		cfg, ok := providers[provider]
 		if !ok {
 			cfg = providers["openai"]
 			provider = "openai"
 		}
-		return callOpenAICompat(ctx, apiKey, cfg.URL, resolveModel(provider, model), messages, tools)
+		return callOpenAICompat(ctx, apiKey, cfg.URL, ResolveProviderModel(provider, model), messages, tools)
 	}
 }
 
 // callOpenAICompat calls an OpenAI-compatible chat completions API.
 func callOpenAICompat(ctx context.Context, apiKey, endpoint, model string, messages []Message, tools []openAITool) (openAIResponse, error) {
-	reqBody := openAIRequest{
-		Model:    model,
-		Messages: messages,
-		Tools:    tools,
-	}
+	reqBody := buildOpenAIRequest(model, messages, tools)
 
 	body, err := json.Marshal(reqBody)
 	if err != nil {
@@ -723,6 +731,24 @@ func callOpenAICompat(ctx context.Context, apiKey, endpoint, model string, messa
 	}
 
 	return result, nil
+}
+
+func buildOpenAIRequest(model string, messages []Message, tools []openAITool) openAIRequest {
+	return openAIRequest{
+		Model:           model,
+		Messages:        messages,
+		Tools:           tools,
+		ReasoningEffort: reasoningEffortForModel(model),
+	}
+}
+
+func reasoningEffortForModel(model string) string {
+	switch model {
+	case openAIModelTerra, openAIModelSol, openAIModelLuna:
+		return reasoningEffortNone
+	default:
+		return ""
+	}
 }
 
 // parseAPIError extracts a user-friendly message from an LLM API error response.

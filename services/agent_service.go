@@ -380,10 +380,7 @@ func (a *AgentService) GetAvailableModels(provider string) []string {
 // provider default if no override has been set.
 func (a *AgentService) GetSelectedModel(provider string) string {
 	chosen, _ := settings.GetAgentModel(provider)
-	if chosen != "" {
-		return chosen
-	}
-	return agent.GetDefaultModel(provider)
+	return agent.ResolveProviderModel(provider, chosen)
 }
 
 // SetSelectedModel persists the chosen model for the given provider.
