@@ -277,6 +277,14 @@ export class ChatUIMessage {
              */
             this["count"] = undefined;
         }
+        if (!("turnIndex" in $$source)) {
+            /**
+             * zero-based user turn index
+             * @member
+             * @type {number}
+             */
+            this["turnIndex"] = 0;
+        }
 
         Object.assign(this, $$source);
     }

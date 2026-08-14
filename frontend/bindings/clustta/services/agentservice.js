@@ -48,6 +48,16 @@ export function ClearChatSession(projectPath) {
 }
 
 /**
+ * DeleteChatTurn removes a user request and its associated response.
+ * @param {string} projectPath
+ * @param {number} turnIndex
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteChatTurn(projectPath, turnIndex) {
+    return $Call.ByID(3839363736, projectPath, turnIndex);
+}
+
+/**
  * GetAPIKeyStatus checks if an API key is configured. Never returns the key itself.
  * @returns {$CancellablePromise<$models.AgentKeyStatus>}
  */

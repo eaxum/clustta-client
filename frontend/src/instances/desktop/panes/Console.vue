@@ -9,9 +9,19 @@
       <div class="console-messages" ref="messagesContainer">
         <template v-for="(message, index) in messages" :key="index">
           <div v-if="message.type === 'user'" class="msg-user">
-            <div class="msg-user-bubble">
-              <div v-if="parseUserContext(message.content).context" class="msg-context-tag">{{ parseUserContext(message.content).context }}</div>
-              {{ parseUserContext(message.content).body }}
+            <div class="msg-user-content">
+              <div class="msg-user-bubble">
+                <div v-if="parseUserContext(message.content).context" class="msg-context-tag">{{ parseUserContext(message.content).context }}</div>
+                {{ parseUserContext(message.content).body }}
+              </div>
+              <div class="msg-message-actions">
+                <ActionButton :icon="getAppIcon('copy')" :isDisabled="isProcessing"
+                  v-tooltip="$t('common.copy')" :buttonFunction="() => copyMessage(message)" />
+                <ActionButton v-if="isMostRecentUserMessage(message)" :icon="getAppIcon('edit')"
+                  :isDisabled="isProcessing" v-tooltip="$t('common.edit')" :buttonFunction="() => editMessage(message)" />
+                <ActionButton v-if="hasPersistedTurn(message)" :icon="getAppIcon('trash')"
+                  :isDisabled="isProcessing" v-tooltip="$t('common.delete')" :buttonFunction="() => deleteMessage(message)" />
+              </div>
             </div>
           </div>
 
@@ -128,7 +138,7 @@ import ConsoleChip from '@/instances/desktop/components/ConsoleChip.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 
 // services
-import { AgentService, CollectionService, DialogService, FSService } from '@/services';
+import { AgentService, ClipboardService, CollectionService, DialogService, FSService } from '@/services';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -435,12 +445,68 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 // Pulls a leading `[Context: ...]` block off a user message and returns it separately from the body.
 const parseUserContext = (content) => {
   if (!content) return { context: '', body: content };
+  const jsonContext = content.match(/^\[Context JSON\]\n[^\n]*\n?/);
+  if (jsonContext) return { context: '', body: content.slice(jsonContext[0].length) };
   const match = content.match(/^\[Context:\s*(.+?)\]\n?/);
   if (match) {
     const display = match[1].replace(/\s*\([^)]*\)/g, '').replace(/"/g, '');
     return { context: display, body: content.slice(match[0].length) };
   }
   return { context: '', body: content };
+};
+
+const hasPersistedTurn = (message) => Number.isInteger(message?.turnIndex);
+
+const mostRecentTurnIndex = computed(() => messages.value.reduce((highest, message) => {
+  return message.type === 'user' && Number.isInteger(message.turnIndex)
+    ? Math.max(highest, message.turnIndex)
+    : highest;
+}, -1));
+
+const isMostRecentUserMessage = (message) => {
+  return hasPersistedTurn(message) && message.turnIndex === mostRecentTurnIndex.value;
+};
+
+const nextTurnIndex = () => messages.value.reduce((highest, message) => {
+  return Number.isInteger(message?.turnIndex) ? Math.max(highest, message.turnIndex) : highest;
+}, -1) + 1;
+
+const copyMessage = async (message) => {
+  try {
+    await ClipboardService.WriteText(parseUserContext(message.content).body || '');
+  } catch (error) {
+    console.error('ClipboardService.WriteText failed:', error);
+  }
+};
+
+const editMessage = async (message) => {
+  if (!isMostRecentUserMessage(message) || isProcessing.value) return;
+  const projectPath = projectStore.activeProject?.uri;
+  if (!projectPath) return;
+  currentMessage.value = parseUserContext(message.content).body || '';
+  try {
+    await AgentService.DeleteChatTurn(projectPath, message.turnIndex);
+    await loadChatHistory();
+  } catch (error) {
+    console.error('AgentService.DeleteChatTurn(edit) failed:', error);
+  }
+  await nextTick();
+  if (textareaRef.value) {
+    textareaRef.value?.focus();
+    handleInput();
+  }
+};
+
+const deleteMessage = async (message) => {
+  if (!hasPersistedTurn(message) || isProcessing.value) return;
+  const projectPath = projectStore.activeProject?.uri;
+  if (!projectPath) return;
+  try {
+    await AgentService.DeleteChatTurn(projectPath, message.turnIndex);
+    await loadChatHistory();
+  } catch (error) {
+    console.error('AgentService.DeleteChatTurn failed:', error);
+  }
 };
 
 const openAdvancedSettings = () => {
@@ -462,10 +528,8 @@ const loadChatHistory = async () => {
   if (!projectPath) return;
   try {
     const history = await AgentService.GetChatHistory(projectPath);
-    if (history && history.length) {
-      messages.value = history.map((msg, i) => ({ id: i + 1, ...msg }));
-      scrollToBottom();
-    }
+    messages.value = (history || []).map((msg, i) => ({ id: i + 1, ...msg }));
+    scrollToBottom();
   } catch { /* no history available */ }
 };
 
@@ -636,7 +700,8 @@ const sendMessage = async () => {
   }
   const expanded = shortcut?.prompt ?? rawInput;
 
-  addMessage('user', rawInput);
+  const turnIndex = nextTurnIndex();
+  addMessage('user', rawInput, { turnIndex });
   const context = buildSelectionContext();
   const messageContent = context + expanded;
   currentMessage.value = '';
@@ -649,6 +714,7 @@ const sendMessage = async () => {
   } catch (err) {
     addMessage('error', `${err}`);
     isProcessing.value = false;
+    await loadChatHistory();
   }
 };
 
@@ -664,7 +730,7 @@ const retryLastMessage = async () => {
   const content = lastUserMsg.content;
 
   messages.value = messages.value.slice(0, lastUserIdx);
-  addMessage('user', content);
+  addMessage('user', content, { turnIndex: lastUserMsg.turnIndex });
   isProcessing.value = true;
 
   try {
@@ -675,8 +741,8 @@ const retryLastMessage = async () => {
   }
 };
 
-const addMessage = (type, content) => {
-  messages.value.push({ id: messages.value.length + 1, type, content });
+const addMessage = (type, content, details = {}) => {
+  messages.value.push({ id: messages.value.length + 1, type, content, ...details });
   scrollToBottom();
 };
 
@@ -1107,8 +1173,17 @@ onUnmounted(() => {
   font-weight: 400;
 }
 
-.msg-user-bubble {
+.msg-user-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   max-width: 80%;
+  min-width: 0;
+}
+
+.msg-user-bubble {
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.5rem 0.75rem;
   background-color: var(--bg);
   color: var(--text);
@@ -1136,6 +1211,35 @@ onUnmounted(() => {
   letter-spacing: 0.02em;
   box-sizing: border-box;
   width: 100%;
+}
+
+.msg-message-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  min-height: 28px;
+  padding-top: 0.125rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease-out;
+}
+
+.msg-user-content:hover .msg-message-actions,
+.msg-user-content:focus-within .msg-message-actions {
+  opacity: 0.75;
+  pointer-events: auto;
+}
+
+.msg-message-actions:hover {
+  opacity: 1;
+}
+
+.msg-message-actions :deep(.is-mini img) {
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
+  min-height: 24px;
 }
 
 /* Assistant message — no bubble, plain left-aligned text */

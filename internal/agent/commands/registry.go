@@ -256,9 +256,13 @@ func ExecutePrepared(ctx context.Context, projectPath, name string, args map[str
 }
 
 func ParseScope(args map[string]interface{}, defaultTypes []scope.EntityType) (scope.Request, error) {
-	raw, ok := args["scope"]
+	return ParseNamedScope(args, "scope", defaultTypes)
+}
+
+func ParseNamedScope(args map[string]interface{}, key string, defaultTypes []scope.EntityType) (scope.Request, error) {
+	raw, ok := args[key]
 	if !ok {
-		return scope.Request{}, fmt.Errorf("scope is required")
+		return scope.Request{}, fmt.Errorf("%s is required", key)
 	}
 	// Accept the frontend entity-envelope key as a compatibility alias. The
 	// canonical command schema remains entity_id.
@@ -285,7 +289,7 @@ func ParseScope(args map[string]interface{}, defaultTypes []scope.EntityType) (s
 	}
 	var req scope.Request
 	if err := json.Unmarshal(data, &req); err != nil {
-		return scope.Request{}, fmt.Errorf("invalid scope: %w", err)
+		return scope.Request{}, fmt.Errorf("invalid %s: %w", key, err)
 	}
 	if len(req.Types) == 0 {
 		req.Types = append([]scope.EntityType(nil), defaultTypes...)

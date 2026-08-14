@@ -96,11 +96,6 @@ func Resolve(projectPath string, req Request) (Result, error) {
 		return finish(req, entities), nil
 	}
 
-	rootCollectionID, err := resolveRootCollectionID(req, collections)
-	if err != nil {
-		return Result{}, err
-	}
-
 	switch req.Source {
 	case "project":
 		entities = appendTracked(entities, collections, assets, collectionByID, allowed, "", true, req.Filters)
@@ -110,6 +105,10 @@ func Resolve(projectPath string, req Request) (Result, error) {
 		}
 		entities = append(entities, untracked...)
 	case "here":
+		rootCollectionID, resolveErr := resolveRootCollectionID(req, collections)
+		if resolveErr != nil {
+			return Result{}, resolveErr
+		}
 		if rootCollectionID != "" || req.Path == "" {
 			entities = appendTracked(entities, collections, assets, collectionByID, allowed, rootCollectionID, req.Recursive, req.Filters)
 		}

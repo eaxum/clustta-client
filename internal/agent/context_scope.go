@@ -30,7 +30,13 @@ func parseTurnContext(message string) turnContext {
 // scopes. The model still chooses the operation, filters, types and recursion,
 // but cannot omit or substitute the current location or selected entities.
 func applyAuthoritativeScope(args map[string]interface{}, context turnContext) {
-	raw, ok := args["scope"]
+	for _, key := range []string{"scope", "target_scope", "dependency_scope", "source_scope"} {
+		applyAuthoritativeScopeField(args, key, context)
+	}
+}
+
+func applyAuthoritativeScopeField(args map[string]interface{}, key string, context turnContext) {
+	raw, ok := args[key]
 	if !ok {
 		return
 	}
@@ -41,13 +47,13 @@ func applyAuthoritativeScope(args map[string]interface{}, context turnContext) {
 	// Some providers occasionally place scope members beside `scope` even
 	// though the generated schema nests them. Normalize those fields before
 	// parsing so intent such as asset-only scope cannot be silently ignored.
-	for _, key := range []string{"types", "type", "filters", "recursive", "limit"} {
-		if _, nested := scopeArgs[key]; nested {
+	for _, member := range []string{"types", "type", "filters", "recursive", "limit"} {
+		if _, nested := scopeArgs[member]; nested {
 			continue
 		}
-		if value, misplaced := args[key]; misplaced {
-			scopeArgs[key] = value
-			delete(args, key)
+		if value, misplaced := args[member]; misplaced && key == "scope" {
+			scopeArgs[member] = value
+			delete(args, member)
 		}
 	}
 	normalizeScopeTypes(scopeArgs)

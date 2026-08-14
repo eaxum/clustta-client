@@ -70,10 +70,11 @@ type AgentKeyStatus struct {
 
 // ChatUIMessage represents a message in the format the frontend expects for rendering.
 type ChatUIMessage struct {
-	Type     string `json:"type"` // "user", "assistant", "tool-group"
-	Content  string `json:"content"`
-	ToolName string `json:"toolName,omitempty"` // tool function name for tool-group
-	Count    int    `json:"count,omitempty"`    // number of calls for tool-group
+	Type      string `json:"type"` // "user", "assistant", "tool-group"
+	Content   string `json:"content"`
+	ToolName  string `json:"toolName,omitempty"` // tool function name for tool-group
+	Count     int    `json:"count,omitempty"`    // number of calls for tool-group
+	TurnIndex int    `json:"turnIndex"`          // zero-based user turn index
 }
 
 // chatSessionFile holds persisted conversation history.
@@ -446,6 +447,44 @@ func (a *AgentService) ClearChatSession(projectPath string) error {
 	return saveChatSessions(a.history)
 }
 
+// DeleteChatTurn removes a user request and its associated response.
+func (a *AgentService) DeleteChatTurn(projectPath string, turnIndex int) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	history := a.getHistory(projectPath)
+	start, end, ok := userTurnBounds(history, turnIndex)
+	if !ok {
+		return fmt.Errorf("chat turn %d not found", turnIndex)
+	}
+	updated := make([]agent.Message, 0, len(history)-(end-start))
+	updated = append(updated, history[:start]...)
+	updated = append(updated, history[end:]...)
+	a.history[projectPath] = updated
+	return saveChatSessions(a.history)
+}
+
+func userTurnBounds(history []agent.Message, turnIndex int) (int, int, bool) {
+	currentTurn := -1
+	for index, message := range history {
+		if message.Role != "user" {
+			continue
+		}
+		currentTurn++
+		if currentTurn != turnIndex {
+			continue
+		}
+		end := len(history)
+		for next := index + 1; next < len(history); next++ {
+			if history[next].Role == "user" {
+				end = next
+				break
+			}
+		}
+		return index, end, true
+	}
+	return 0, 0, false
+}
+
 // RetryLastTurn cancels any running agent execution, deletes the last user message and subsequent assistant messages/errors, and restarts the run.
 func (a *AgentService) RetryLastTurn(projectPath string) error {
 	a.mu.Lock()
@@ -486,14 +525,16 @@ func (a *AgentService) GetChatHistory(projectPath string) []ChatUIMessage {
 	a.mu.Unlock()
 
 	var result []ChatUIMessage
+	turnIndex := -1
 	for _, msg := range history {
 		switch msg.Role {
 		case "user":
+			turnIndex++
 			content := fmt.Sprintf("%v", msg.Content)
 			if idx := strings.Index(content, "\n\n--- Attached Content ---\n"); idx >= 0 {
 				content = content[:idx]
 			}
-			result = append(result, ChatUIMessage{Type: "user", Content: content})
+			result = append(result, ChatUIMessage{Type: "user", Content: content, TurnIndex: turnIndex})
 		case "assistant":
 			if len(msg.ToolCalls) > 0 {
 				groups := make(map[string]int)

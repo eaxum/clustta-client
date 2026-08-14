@@ -422,6 +422,9 @@ func buildSystemPrompt(projectContext string) string {
   - whole project: source="project"
 - For rename, move, delete, status, type, assignment, tags, dependencies, and task/resource requests, use the batch_* commands. Do not loop legacy single-item tools.
 - batch_* commands resolve scope, compute a deterministic local plan, show an approval preview, revalidate it, and apply locally. The user must manually sync afterward.
+- For batch_add_dependency and batch_remove_dependency, target_scope is the one asset receiving or losing dependencies. Use source="entity" with the returned ID for a named target such as "Zeus". Use source="selection" only when exactly one selected asset is the target. Never use source="here" or source="project" for target_scope.
+- For dependency prompts such as "make all assets here dependencies of Zeus", use context.here_scope for dependency_scope, use Zeus as target_scope, and let the command exclude Zeus from its own dependencies.
+- Agent-created dependencies always use the project's "linked" dependency type. Do not call list_dependency_types before batch_add_dependency and never choose blocking, working, waiting, or another dependency type.
 - Use entity type values exactly as provided: asset, collection, untracked_asset, untracked_collection.
 - Status changes only support asset. Type changes support asset and collection. Assignment supports tracked asset and collection with their different semantics.
 - When asset types should match asset-name suffixes, call batch_change_type once with asset_type_rules containing every suffix-to-type-ID mapping. Never emit a separate batch_change_type call for each suffix.
