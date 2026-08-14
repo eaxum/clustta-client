@@ -3,23 +3,25 @@
     <HeaderArea :title="title" :icon="getAppIcon('alert')" :showSearch="false" />
 
     <div class="general-container">
-      <div class="risk-banner risk-destructive">
+      <div class="risk-banner" :class="riskBannerClass">
         <img class="risk-icon small-icons" :src="getAppIcon('alert')" />
-        <span>{{ $t('modals.agentApproval.destructiveBanner') }}</span>
+        <span>{{ riskBannerText }}</span>
       </div>
+
+      <div v-if="summaryText" class="preview-summary">{{ summaryText }}</div>
 
       <div v-if="affectedItems.length" class="items-block">
         <div class="items-header">
-          <span>{{ $t('modals.agentApproval.affectedItems', { count: itemCount }) }}</span>
-          <div class="selection-actions">
-            <button type="button" @click="selectAll">Check all</button>
-            <button type="button" @click="unselectAll">Uncheck all</button>
+          <span>{{ itemSectionTitle }}</span>
+          <div v-if="isSelectable" class="selection-actions">
+            <button type="button" @click="selectAll">{{ $t('modals.agentApproval.checkAll') }}</button>
+            <button type="button" @click="unselectAll">{{ $t('modals.agentApproval.uncheckAll') }}</button>
           </div>
         </div>
 
         <div class="items-list">
           <div v-for="item in paginatedItems" :key="itemKey(item)" class="item-row">
-            <template v-if="isTypeChange(item)">
+            <template v-if="isTypeChange(item) && hasBeforeAfter(item)">
               <div class="item-type-icon-slot" v-tooltip="changeTypeName(item, 'before')">
                 <img class="item-type-icon theme-icon" :src="getAppIcon(changeTypeIcon(item, 'before'))" />
               </div>
@@ -39,7 +41,7 @@
               </div>
             </template>
             <template v-else>
-              <div class="item-type-icon-slot">
+              <div v-if="operation === operationUpdate && !isCompactAction(item)" class="item-type-icon-slot">
                 <img class="item-type-icon theme-icon" :src="getAppIcon(item.type_icon || (trackingLabel(item) === 'untracked' ? 'generic' : defaultTypeIcon(item)))" />
               </div>
               <div class="item-entity-icon-slot">
@@ -48,14 +50,18 @@
               </div>
               <div class="item-content">
                 <div class="item-line">
-                  <template v-if="isRename(item)">
+                  <template v-if="isCompactAction(item)">
+                    <span class="item-name">{{ item.name || item.id || JSON.stringify(item) }}</span>
+                    <span v-if="compactDetail(item)" class="compact-detail">{{ compactDetail(item) }}</span>
+                  </template>
+                  <template v-else-if="isRename(item)">
                     <span class="item-name old-name">{{ readableValue(item.before, item) }}</span>
                     <span class="change-arrow">→</span>
                     <span class="item-name">{{ readableValue(item.after, item) }}</span>
                   </template>
                   <template v-else-if="isAssignmentChange(item)">
                     <span class="item-name">{{ item.name || item.id || JSON.stringify(item) }}</span>
-                    <span class="assignment-change">{{ isUnassign(item) ? 'Unassign' : 'Assign to' }}</span>
+                    <span class="assignment-change">{{ isUnassign(item) ? $t('modals.agentApproval.actions.unassign') : $t('modals.agentApproval.actions.assignTo') }}</span>
                     <AssigneeItem v-if="!isUnassign(item) && assignmentAssignee(item).id"
                       class="assignment-assignee" v-stop-propagation
                       :name="assignmentAssignee(item).name"
@@ -64,10 +70,10 @@
                   </template>
                   <template v-else>
                     <span class="item-name">{{ item.name || item.id || JSON.stringify(item) }}</span>
-                    <span v-if="item.before || item.after" class="change-label">{{ changeLabel(item) }}</span>
-                    <span v-if="item.before || item.after">{{ readableValue(item.before, item) }}</span>
-                    <span v-if="item.before || item.after" class="change-arrow">→</span>
-                    <span v-if="item.before || item.after">{{ readableValue(item.after, item) }}</span>
+                    <span v-if="hasBeforeAfter(item)" class="change-label">{{ changeLabel(item) }}</span>
+                    <span v-if="hasBeforeAfter(item)">{{ readableValue(item.before, item) }}</span>
+                    <span v-if="hasBeforeAfter(item)" class="change-arrow">→</span>
+                    <span v-if="hasBeforeAfter(item)">{{ readableValue(item.after, item) }}</span>
                   </template>
                   <span v-if="item.type_name && !isRename(item) && !isAssignmentChange(item)" class="item-type-name">{{ item.type_name }}</span>
                   <span v-if="item.errors" class="item-error">{{ item.errors }}</span>
@@ -75,11 +81,12 @@
               </div>
             </template>
             <div class="item-badges">
+              <span class="operation-badge" :class="`badge-${operation}`">{{ operationBadge(item) }}</span>
               <span v-if="item.status && item.status !== 'skipped'" class="item-status">{{ item.status }}</span>
             </div>
             <span v-if="visibleWarning(item)" class="item-warning-indicator" tabindex="0"
               :aria-label="`Warning: ${visibleWarning(item)}`" v-tooltip="visibleWarning(item)">!</span>
-            <CheckBox class="item-checkbox" :modelValue="isSelected(item)"
+            <CheckBox v-if="isSelectable" class="item-checkbox" :modelValue="isSelected(item)"
               :ariaLabel="`${isSelected(item) ? 'Exclude' : 'Include'} ${item.name || 'item'}`"
               @update:modelValue="setSelected(item, $event)" />
           </div>
@@ -87,9 +94,9 @@
         </div>
 
         <div v-if="totalPages > 1" class="pagination-controls">
-          <button type="button" :disabled="currentPage === 1" @click="currentPage--">Previous</button>
-          <span>Page {{ currentPage }} of {{ totalPages }}</span>
-          <button type="button" :disabled="currentPage === totalPages" @click="currentPage++">Next</button>
+          <button type="button" :disabled="currentPage === 1" @click="currentPage--">{{ $t('modals.agentApproval.previous') }}</button>
+          <span>{{ $t('modals.agentApproval.page', { current: currentPage, total: totalPages }) }}</span>
+          <button type="button" :disabled="currentPage === totalPages" @click="currentPage++">{{ $t('modals.agentApproval.next') }}</button>
         </div>
       </div>
 
@@ -102,8 +109,8 @@
       <div class="approval-actions">
         <GeneralButton :label="$t('common.deny')" :fullWidth="true" :buttonFunction="deny" :colored="false" />
 
-        <GeneralButton :label="$t('common.approve')" :fullWidth="true" :buttonFunction="approve" :colored="true"
-          :isActive="!current?.preview?.blocked && selectedCount > 0" />
+        <GeneralButton :label="approveLabel" :fullWidth="true" :buttonFunction="approve" :colored="true"
+          :isActive="canApprove" />
       </div>
     </div>
   </div>
@@ -138,6 +145,11 @@ const resolvedAssetIcons = ref({});
 const selectedKeys = ref(new Set());
 const currentPage = ref(1);
 const pageSize = 100;
+const operationCreate = 'create';
+const operationUpdate = 'update';
+const operationDelete = 'delete';
+const operationExecute = 'execute';
+const operationMembership = 'membership';
 
 // computed
 const current = computed(() => approvalStore.current);
@@ -154,6 +166,12 @@ const itemCount = computed(() => {
 });
 
 const selectedCount = computed(() => selectedKeys.value.size);
+const operation = computed(() => current.value?.preview?.operation || operationUpdate);
+const isSelectable = computed(() => Boolean(current.value?.preview?.selectable && itemCount.value > 0));
+const approvalCount = computed(() => {
+  if (isSelectable.value) return selectedCount.value;
+  return Number(current.value?.preview?.counts?.changes || itemCount.value || 1);
+});
 const totalPages = computed(() => Math.max(1, Math.ceil(itemCount.value / pageSize)));
 const paginatedItems = computed(() => {
   const start = (currentPage.value - 1) * pageSize;
@@ -163,20 +181,62 @@ const paginatedItems = computed(() => {
 const title = computed(() => {
   if (!current.value) return t('common.confirm');
 
-  const tool = String(current.value.tool || '').toLowerCase();
-  const count = selectedCount.value;
-  const operations = [
-    ['rename', 'Rename', 'item'],
-    ['assign', 'Assign', 'task'],
-    ['status', 'Change status for', 'item'],
-    ['type', 'Change type for', 'item'],
-    ['move', 'Move', 'item'],
-    ['tag', 'Update tags for', 'item'],
-    ['delete', 'Delete', 'item'],
-  ];
-  const operation = operations.find(([key]) => tool.includes(key));
-  const [, verb, noun] = operation || ['', 'Update', 'item'];
-  return `Confirm: ${verb} ${count} ${noun}${count === 1 ? '' : 's'}`;
+  const count = approvalCount.value;
+  const subjectKey = String(current.value.preview?.subject || 'item').replaceAll(' ', '');
+  const subject = t(`modals.agentApproval.subjects.${subjectKey}`, count);
+  return t('modals.agentApproval.confirmItems', {
+    action: t(`modals.agentApproval.actions.${toolActionKey()}`),
+    count,
+    subject,
+  });
+});
+
+const itemSectionTitle = computed(() => {
+  const labels = {
+    [operationCreate]: 'itemsToCreate',
+    [operationUpdate]: 'affectedItems',
+    [operationDelete]: 'itemsToDelete',
+    [operationExecute]: 'targetItems',
+    [operationMembership]: 'affectedAccess',
+  };
+  return t(`modals.agentApproval.${labels[operation.value] || 'affectedItems'}`, { count: itemCount.value });
+});
+
+const riskBannerText = computed(() => {
+  const keys = {
+    [operationCreate]: 'createBanner',
+    [operationUpdate]: 'updateBanner',
+    [operationDelete]: 'deleteBanner',
+    [operationExecute]: 'executeBanner',
+    [operationMembership]: 'membershipBanner',
+  };
+  return t(`modals.agentApproval.${keys[operation.value] || 'updateBanner'}`);
+});
+
+const riskBannerClass = computed(() => `risk-${operation.value}`);
+const summaryText = computed(() => {
+  if (itemCount.value > 0 && operation.value !== operationMembership) return '';
+  const summary = String(current.value?.preview?.summary || '');
+  const args = current.value?.preview?.args || {};
+  const contextKeys = ['email', 'role', 'role_name', 'user_id', 'studio_id', 'asset_type_id', 'collection_type_id'];
+  const details = contextKeys
+    .filter(key => args[key])
+    .map(key => `${key.replaceAll('_', ' ')}: ${args[key]}`);
+  return [summary, details.join(' · ')].filter(Boolean).join(' ');
+});
+const approveLabel = computed(() => {
+  const keys = {
+    [operationCreate]: 'createAction',
+    [operationUpdate]: 'updateAction',
+    [operationDelete]: 'deleteAction',
+    [operationExecute]: 'executeAction',
+    [operationMembership]: 'membershipAction',
+  };
+  return t(`modals.agentApproval.${keys[operation.value] || 'updateAction'}`);
+});
+const canApprove = computed(() => {
+  if (current.value?.preview?.blocked) return false;
+  return !isSelectable.value || selectedCount.value > 0;
 });
 
 const readableValue = (value, item) => {
@@ -192,7 +252,7 @@ const readableValue = (value, item) => {
   // Approval rows should describe the entity change, not expose its full
   // filesystem or database representation. Raw values remain available in
   // "View raw arguments".
-  for (const key of ['name', 'status', 'asset_type', 'collection_type', 'assignment']) {
+  for (const key of ['name', 'status', 'asset_type', 'collection_type', 'assignment', 'tag_name', 'tag_id', 'dependency_name', 'dependency_id']) {
     if (parsed[key] !== undefined && parsed[key] !== '') return String(parsed[key]);
   }
   if (Object.prototype.hasOwnProperty.call(parsed, 'assignee')) {
@@ -201,6 +261,9 @@ const readableValue = (value, item) => {
   if (Array.isArray(parsed.tags)) return parsed.tags.length ? parsed.tags.join(', ') : 'No tags';
   if (Object.prototype.hasOwnProperty.call(parsed, 'is_resource')) {
     return parsed.is_resource ? 'Resource' : 'Task';
+  }
+  if (Object.prototype.hasOwnProperty.call(parsed, 'is_task')) {
+    return parsed.is_task ? 'Task' : 'Resource';
   }
   if (parsed.path) return String(parsed.path).split(/[/\\]/).filter(Boolean).pop() || item?.name || '';
   if (parsed.deleted === true) return 'Deleted';
@@ -211,7 +274,7 @@ const readableValue = (value, item) => {
 const changeLabel = (item) => {
   const action = String(item?.action || '').toLowerCase();
   if (action.includes('rename')) return 'Name';
-  if (action.includes('assign')) return 'Assignment';
+  if (action.includes('assign') || action.includes('distribute')) return 'Assignment';
   if (action.includes('status')) return 'Status';
   if (action.includes('type')) return 'Type';
   if (action.includes('move')) return 'Location';
@@ -224,7 +287,10 @@ const changeLabel = (item) => {
 
 const isRename = (item) => String(item?.action || '').toLowerCase().includes('rename');
 const isTypeChange = (item) => String(item?.action || '').toLowerCase().includes('type');
-const isAssignmentChange = (item) => String(item?.action || '').toLowerCase().includes('assign');
+const isAssignmentChange = (item) => {
+  const action = String(item?.action || '').toLowerCase();
+  return action.includes('assign') || action.includes('distribute');
+};
 
 const changeObject = (value) => {
   if (!value) return {};
@@ -235,6 +301,94 @@ const changeObject = (value) => {
   } catch {
     return {};
   }
+};
+
+const hasChangeValue = (value) => {
+  if (value === undefined || value === null || value === '') return false;
+  if (typeof value !== 'string') return true;
+  try {
+    return JSON.parse(value) !== null;
+  } catch {
+    return true;
+  }
+};
+
+const hasBeforeAfter = (item) => hasChangeValue(item?.before) && hasChangeValue(item?.after);
+
+const isCompactAction = (item) => {
+  if (operation.value !== operationUpdate) return true;
+  return !hasBeforeAfter(item);
+};
+
+const toolActionKey = () => {
+  const toolActions = {
+    batch_rename: 'rename',
+    batch_assign: 'assign',
+    batch_unassign: 'unassign',
+    batch_distribute: 'distribute',
+    batch_change_status: 'changeStatus',
+    batch_change_type: 'changeType',
+    batch_move: 'move',
+    batch_add_tags: 'addTags',
+    batch_remove_tags: 'removeTags',
+    batch_toggle_task_resource: 'changeKind',
+    batch_add_dependency: 'addDependency',
+    batch_remove_dependency: 'removeDependency',
+    batch_update_asset_types: 'updateAssetType',
+    batch_update_collection_types: 'updateCollectionType',
+    dcc_open: 'open',
+    dcc_render: 'render',
+    dcc_export: 'export',
+    dcc_run_script: 'runScript',
+    dcc_run_python: 'runPython',
+    dcc_set_settings: 'changeSettings',
+    dcc_link_dependencies: 'linkDependencies',
+    add_project_collaborator: 'addAccess',
+    remove_project_collaborator: 'removeAccess',
+    add_studio_collaborator: 'addAccess',
+    change_studio_collaborator_role: 'changeRole',
+    remove_studio_collaborator: 'removeAccess',
+    remove_user: 'removeAccess',
+  };
+  const operationActions = {
+    [operationCreate]: 'create',
+    [operationUpdate]: 'update',
+    [operationDelete]: 'delete',
+    [operationExecute]: 'run',
+    [operationMembership]: 'updateAccess',
+  };
+  return toolActions[current.value?.tool] || operationActions[operation.value] || 'update';
+};
+
+const operationBadge = (item) => {
+  const action = String(item?.action || '').toLowerCase();
+  const itemActions = [
+    ['rename', 'rename'],
+    ['unassign', 'unassign'],
+    ['assign', 'assign'],
+    ['distribute', 'distribute'],
+    ['status', 'changeStatus'],
+    ['type', 'changeType'],
+    ['move', 'move'],
+    ['tag', action.includes('remove') ? 'removeTags' : 'addTags'],
+    ['depend', action.includes('remove') ? 'removeDependency' : 'addDependency'],
+  ];
+  const matchedAction = itemActions.find(([term]) => action.includes(term));
+  const key = matchedAction?.[1] || toolActionKey();
+  return t(`modals.agentApproval.actions.${key}`);
+};
+
+const compactDetail = (item) => {
+  const after = changeObject(item?.after);
+  if (operation.value === operationCreate) {
+    return String(after.parent_name || after.collection_name || after.task_type_name || current.value?.preview?.subject || '');
+  }
+  if (operation.value !== operationUpdate) return '';
+  for (const key of ['tag_name', 'tag_id', 'dependency_name', 'dependency_id']) {
+    if (after[key]) return String(after[key]);
+  }
+  if (Object.prototype.hasOwnProperty.call(after, 'is_task')) return after.is_task ? 'Task' : 'Resource';
+  return '';
 };
 
 const changeTypeName = (item, side) => {
@@ -311,7 +465,7 @@ const defaultTypeIcon = (item) => {
 // approve sends an allow decision to the backend and advances the queue.
 const approve = async () => {
   const req = current.value;
-  if (!req || req.preview?.blocked || selectedCount.value === 0) return;
+  if (!req || !canApprove.value) return;
   approvalStore.dequeueCurrent();
   try {
     await AgentService.ApproveToolCall(req.id, true, Array.from(selectedKeys.value));
@@ -372,14 +526,17 @@ watch(paginatedItems, async (items) => {
 <style scoped>
 .approval-modal {
   width: 840px;
+  min-width: min(840px, 90vw);
   max-width: 90vw;
 }
 
-.general-container {
+.approval-modal > .general-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  min-width: 0;
+  max-width: none;
   color: var(--text);
 }
 
@@ -390,16 +547,35 @@ watch(paginatedItems, async (items) => {
   padding: 8px 12px;
   border-radius: var(--small-radius);
   font-size: 13px;
+  width: 96%;
 }
 
-.risk-destructive {
+.risk-delete {
   background-color: color-mix(in oklch, var(--danger) 14%, transparent);
   color: var(--danger);
+}
+
+.risk-create,
+.risk-update,
+.risk-membership {
+  background-color: color-mix(in oklch, var(--accent) 10%, transparent);
+  color: var(--text);
+}
+
+.risk-execute {
+  background-color: color-mix(in oklch, var(--warning) 12%, transparent);
+  color: var(--warning);
 }
 
 .risk-icon {
   width: 16px;
   height: 16px;
+}
+
+.preview-summary {
+  padding: 0 4px;
+  color: var(--text-muted);
+  font-size: 12px;
 }
 
 .notes-block {
@@ -516,6 +692,7 @@ watch(paginatedItems, async (items) => {
   border-radius: var(--large-radius);
   transition: all .2s ease-out;
   overflow: hidden;
+  min-width: 500px;
 }
 
 .item-row:hover {
@@ -590,11 +767,42 @@ watch(paginatedItems, async (items) => {
 }
 
 .item-badges {
-  align-self: flex-start;
+  align-self: center;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+}
+
+.operation-badge {
+  flex: 0 0 auto;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-create {
+  background-color: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+}
+
+.badge-delete {
+  background-color: rgba(220, 50, 50, 0.15);
+  color: #f87171;
+}
+
+.badge-update,
+.badge-membership {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.badge-execute {
+  background-color: color-mix(in oklch, var(--warning) 15%, transparent);
+  color: var(--warning);
 }
 
 .item-checkbox {
@@ -637,6 +845,12 @@ watch(paginatedItems, async (items) => {
 
 .assignment-change {
   color: var(--text-muted);
+}
+
+.compact-detail {
+  overflow: hidden;
+  color: var(--text-muted);
+  text-overflow: ellipsis;
 }
 
 .assignment-assignee {

@@ -14,7 +14,7 @@ export const useAgentApprovalStore = defineStore("agentApproval", {
 
   actions: {
     // enqueueRequest adds a new approval request payload from the backend.
-    // payload shape: { id, tool, risk, args, preview }
+    // preview includes operation, subject, selectable, summary, items, counts, notes, args, and blocked.
     enqueueRequest(payload) {
       if (!payload || !payload.id) return;
       this.queue.push(payload);
