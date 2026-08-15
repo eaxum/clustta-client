@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "Paramètres",
     "accept": "Accepter",
     "add": "Ajouter",
     "addRole": "Ajouter un rôle",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "Impossible de mettre a jour le parametre d ecrasement des fichiers deposes"
   },
   "settings": {
+    "scripts": "Scripts",
+    "scriptDirectoryFromProjectRoot": "Dossier depuis la racine du projet",
+    "scriptDirectoryHelp": "Toujours résolu depuis la racine du projet. Saisissez un chemin relatif comme Scripts. L'agent affiche uniquement les fichiers immédiats de ce dossier.",
+    "allowedScriptExtensions": "Extensions autorisées",
+    "addScriptExtension": "Ajouter une extension, par exemple .py",
+    "saveScriptSettings": "Enregistrer les paramètres des scripts",
+    "scriptSettingsSaved": "Paramètres des scripts enregistrés",
+    "scriptSettingsSaveFailed": "Échec de l'enregistrement des paramètres des scripts",
     "title": "Paramètres",
     "general": "Général",
     "theme": "Thème",
@@ -1038,6 +1047,25 @@
     }
   },
   "panes": {
+    "attachFile": "Joindre un fichier",
+    "clearChat": "Effacer la discussion",
+    "expandConsole": "Agrandir la console",
+    "consoleOpenInModal": "La console est agrandie",
+    "consoleOpenInModalSubtext": "Fermez la console agrandie pour revenir ici",
+    "setupAiAgent": "Configurer l'agent IA",
+    "configureLlmPre": "Configurez votre fournisseur LLM dans",
+    "configureLlmPost": "pour commencer",
+    "agentWorking": "L'agent travaille...",
+    "configureLlmInSettings": "Configurer le LLM dans Paramètres > Avancé",
+    "askAnything": "Posez une question sur votre projet...",
+    "agentHelpHintBefore": "Saisissez",
+    "agentHelpHintAfter": "pour afficher les commandes rapides.",
+    "scripts": "Scripts",
+    "quickCommands": "Commandes rapides",
+    "noConfiguredScripts": "Aucun fichier de script configuré trouvé",
+    "noMatches": "Aucun résultat",
+    "tracked": "Suivi",
+    "untracked": "Non suivi",
     "type": "Type",
     "status": "Statut",
     "asset": "Tâche",

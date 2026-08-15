@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "Einstellungen",
     "accept": "Akzeptieren",
     "add": "Hinzufügen",
     "addRole": "Rolle hinzufügen",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "Einstellung zum Ueberschreiben abgelegter Dateien konnte nicht aktualisiert werden"
   },
   "settings": {
+    "scripts": "Skripte",
+    "scriptDirectoryFromProjectRoot": "Verzeichnis vom Projektstamm",
+    "scriptDirectoryHelp": "Wird immer relativ zum Projektstamm aufgelöst. Geben Sie einen relativen Pfad wie Scripts ein. Der Agent listet nur Dateien direkt in diesem Verzeichnis auf.",
+    "allowedScriptExtensions": "Zulässige Erweiterungen",
+    "addScriptExtension": "Erweiterung hinzufügen, zum Beispiel .py",
+    "saveScriptSettings": "Skripteinstellungen speichern",
+    "scriptSettingsSaved": "Skripteinstellungen gespeichert",
+    "scriptSettingsSaveFailed": "Skripteinstellungen konnten nicht gespeichert werden",
     "title": "Einstellungen",
     "general": "Allgemein",
     "theme": "Design",
@@ -1038,6 +1047,25 @@
     }
   },
   "panes": {
+    "attachFile": "Datei anhängen",
+    "clearChat": "Chat leeren",
+    "expandConsole": "Konsole erweitern",
+    "consoleOpenInModal": "Konsole ist erweitert",
+    "consoleOpenInModalSubtext": "Schließen Sie die erweiterte Konsole, um hierher zurückzukehren",
+    "setupAiAgent": "KI-Agent einrichten",
+    "configureLlmPre": "Konfigurieren Sie Ihren LLM-Anbieter unter",
+    "configureLlmPost": "um zu beginnen",
+    "agentWorking": "Agent arbeitet...",
+    "configureLlmInSettings": "LLM unter Einstellungen > Erweitert konfigurieren",
+    "askAnything": "Fragen Sie etwas zu Ihrem Projekt...",
+    "agentHelpHintBefore": "Geben Sie",
+    "agentHelpHintAfter": "ein, um Schnellbefehle anzuzeigen.",
+    "scripts": "Skripte",
+    "quickCommands": "Schnellbefehle",
+    "noConfiguredScripts": "Keine konfigurierten Skriptdateien gefunden",
+    "noMatches": "Keine Treffer",
+    "tracked": "Verfolgt",
+    "untracked": "Nicht verfolgt",
     "type": "Typ",
     "status": "Status",
     "asset": "Aufgabe",

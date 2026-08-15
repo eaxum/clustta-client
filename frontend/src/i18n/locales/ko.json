@@ -485,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "드롭한 파일 덮어쓰기 설정을 업데이트하지 못했습니다"
   },
   "settings": {
+    "scripts": "스크립트",
+    "scriptDirectoryFromProjectRoot": "프로젝트 루트 기준 디렉터리",
+    "scriptDirectoryHelp": "항상 프로젝트 루트를 기준으로 경로를 확인합니다. Scripts와 같은 상대 경로를 입력하세요. 에이전트는 이 디렉터리 바로 아래의 파일만 표시합니다.",
+    "allowedScriptExtensions": "허용된 확장자",
+    "addScriptExtension": "확장자 추가, 예: .py",
+    "saveScriptSettings": "스크립트 설정 저장",
+    "scriptSettingsSaved": "스크립트 설정이 저장되었습니다",
+    "scriptSettingsSaveFailed": "스크립트 설정을 저장하지 못했습니다",
     "title": "설정",
     "general": "일반",
     "theme": "테마",
@@ -1062,6 +1070,17 @@
     }
   },
   "panes": {
+    "expandConsole": "콘솔 확장",
+    "consoleOpenInModal": "콘솔이 확장되어 있습니다",
+    "consoleOpenInModalSubtext": "여기로 돌아오려면 확장된 콘솔을 닫으세요",
+    "agentHelpHintBefore": "입력:",
+    "agentHelpHintAfter": "빠른 명령을 표시합니다.",
+    "scripts": "스크립트",
+    "quickCommands": "빠른 명령",
+    "noConfiguredScripts": "설정된 스크립트 파일을 찾을 수 없습니다",
+    "noMatches": "일치하는 항목 없음",
+    "tracked": "추적됨",
+    "untracked": "추적되지 않음",
     "type": "유형",
     "status": "상태",
     "asset": "작업",

@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "Impostazioni",
     "accept": "Accetta",
     "add": "Aggiungi",
     "addRole": "Aggiungi ruolo",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "Impossibile aggiornare l impostazione di sovrascrittura dei file rilasciati"
   },
   "settings": {
+    "scripts": "Script",
+    "scriptDirectoryFromProjectRoot": "Directory dalla radice del progetto",
+    "scriptDirectoryHelp": "Viene sempre risolta dalla radice del progetto. Inserisci un percorso relativo come Scripts. L'agente elenca solo i file immediatamente presenti in questa directory.",
+    "allowedScriptExtensions": "Estensioni consentite",
+    "addScriptExtension": "Aggiungi un'estensione, ad esempio .py",
+    "saveScriptSettings": "Salva impostazioni script",
+    "scriptSettingsSaved": "Impostazioni script salvate",
+    "scriptSettingsSaveFailed": "Impossibile salvare le impostazioni degli script",
     "title": "Impostazioni",
     "general": "Generale",
     "theme": "Tema",
@@ -1037,6 +1046,25 @@
     }
   },
   "panes": {
+    "attachFile": "Allega file",
+    "clearChat": "Cancella chat",
+    "expandConsole": "Espandi console",
+    "consoleOpenInModal": "La console è espansa",
+    "consoleOpenInModalSubtext": "Chiudi la console espansa per tornare qui",
+    "setupAiAgent": "Configura agente IA",
+    "configureLlmPre": "Configura il provider LLM in",
+    "configureLlmPost": "per iniziare",
+    "agentWorking": "L'agente sta lavorando...",
+    "configureLlmInSettings": "Configura LLM in Impostazioni > Avanzate",
+    "askAnything": "Chiedi qualsiasi cosa sul tuo progetto...",
+    "agentHelpHintBefore": "Digita",
+    "agentHelpHintAfter": "per visualizzare i comandi rapidi.",
+    "scripts": "Script",
+    "quickCommands": "Comandi rapidi",
+    "noConfiguredScripts": "Nessun file di script configurato trovato",
+    "noMatches": "Nessuna corrispondenza",
+    "tracked": "Tracciato",
+    "untracked": "Non tracciato",
     "type": "Tipo",
     "status": "Stato",
     "asset": "Attività",

@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "設定",
     "accept": "承認",
     "add": "追加",
     "addRole": "ロールを追加",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "ドロップしたファイルの上書き設定を更新できませんでした"
   },
   "settings": {
+    "scripts": "スクリプト",
+    "scriptDirectoryFromProjectRoot": "プロジェクトルートからのディレクトリ",
+    "scriptDirectoryHelp": "常にプロジェクトルートから解決されます。Scripts のような相対パスを入力してください。エージェントはこのディレクトリ直下のファイルのみを表示します。",
+    "allowedScriptExtensions": "許可する拡張子",
+    "addScriptExtension": "拡張子を追加、例: .py",
+    "saveScriptSettings": "スクリプト設定を保存",
+    "scriptSettingsSaved": "スクリプト設定を保存しました",
+    "scriptSettingsSaveFailed": "スクリプト設定を保存できませんでした",
     "title": "設定",
     "general": "一般",
     "theme": "テーマ",
@@ -1038,6 +1047,25 @@
     }
   },
   "panes": {
+    "attachFile": "ファイルを添付",
+    "clearChat": "チャットを消去",
+    "expandConsole": "コンソールを展開",
+    "consoleOpenInModal": "コンソールは展開されています",
+    "consoleOpenInModalSubtext": "展開したコンソールを閉じるとここに戻ります",
+    "setupAiAgent": "AI エージェントを設定",
+    "configureLlmPre": "LLM プロバイダーを次で設定してください:",
+    "configureLlmPost": "設定すると開始できます",
+    "agentWorking": "エージェントが作業中です...",
+    "configureLlmInSettings": "設定 > 詳細で LLM を設定",
+    "askAnything": "プロジェクトについて何でも質問してください...",
+    "agentHelpHintBefore": "入力:",
+    "agentHelpHintAfter": "クイックコマンドを表示します。",
+    "scripts": "スクリプト",
+    "quickCommands": "クイックコマンド",
+    "noConfiguredScripts": "設定されたスクリプトファイルがありません",
+    "noMatches": "一致する項目はありません",
+    "tracked": "追跡済み",
+    "untracked": "未追跡",
     "type": "タイプ",
     "status": "ステータス",
     "asset": "タスク",

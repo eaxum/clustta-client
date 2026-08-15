@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "设置",
     "accept": "接受",
     "add": "添加",
     "addRole": "添加角色",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "无法更新覆盖拖入文件设置"
   },
   "settings": {
+    "scripts": "脚本",
+    "scriptDirectoryFromProjectRoot": "项目根目录下的目录",
+    "scriptDirectoryHelp": "始终从项目根目录解析。请输入类似 Scripts 的相对路径。代理仅列出该目录中的直接文件。",
+    "allowedScriptExtensions": "允许的扩展名",
+    "addScriptExtension": "添加扩展名，例如 .py",
+    "saveScriptSettings": "保存脚本设置",
+    "scriptSettingsSaved": "脚本设置已保存",
+    "scriptSettingsSaveFailed": "无法保存脚本设置",
     "title": "设置",
     "general": "常规",
     "theme": "主题",
@@ -1037,6 +1046,25 @@
     }
   },
   "panes": {
+    "attachFile": "附加文件",
+    "clearChat": "清除聊天",
+    "expandConsole": "展开控制台",
+    "consoleOpenInModal": "控制台已展开",
+    "consoleOpenInModalSubtext": "关闭展开的控制台以返回此处",
+    "setupAiAgent": "设置 AI 代理",
+    "configureLlmPre": "请在以下位置配置 LLM 提供商:",
+    "configureLlmPost": "然后开始使用",
+    "agentWorking": "代理正在工作...",
+    "configureLlmInSettings": "在设置 > 高级中配置 LLM",
+    "askAnything": "询问有关项目的任何问题...",
+    "agentHelpHintBefore": "输入",
+    "agentHelpHintAfter": "以查看快捷命令。",
+    "scripts": "脚本",
+    "quickCommands": "快捷命令",
+    "noConfiguredScripts": "未找到已配置的脚本文件",
+    "noMatches": "无匹配项",
+    "tracked": "已跟踪",
+    "untracked": "未跟踪",
     "type": "类型",
     "status": "状态",
     "asset": "任务",

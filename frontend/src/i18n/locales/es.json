@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "Configuración",
     "accept": "Aceptar",
     "add": "Agregar",
     "addRole": "Agregar Rol",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "No se pudo actualizar la opcion de sobrescribir archivos soltados"
   },
   "settings": {
+    "scripts": "Scripts",
+    "scriptDirectoryFromProjectRoot": "Directorio desde la raíz del proyecto",
+    "scriptDirectoryHelp": "Siempre se resuelve desde la raíz del proyecto. Introduce una ruta relativa como Scripts. El agente solo muestra los archivos inmediatos de este directorio.",
+    "allowedScriptExtensions": "Extensiones permitidas",
+    "addScriptExtension": "Añade una extensión, por ejemplo .py",
+    "saveScriptSettings": "Guardar configuración de scripts",
+    "scriptSettingsSaved": "Configuración de scripts guardada",
+    "scriptSettingsSaveFailed": "No se pudo guardar la configuración de scripts",
     "title": "Configuración",
     "general": "General",
     "theme": "Tema",
@@ -1038,6 +1047,25 @@
     }
   },
   "panes": {
+    "attachFile": "Adjuntar archivo",
+    "clearChat": "Borrar chat",
+    "expandConsole": "Expandir consola",
+    "consoleOpenInModal": "La consola está expandida",
+    "consoleOpenInModalSubtext": "Cierra la consola expandida para volver aquí",
+    "setupAiAgent": "Configurar agente de IA",
+    "configureLlmPre": "Configura tu proveedor de LLM en",
+    "configureLlmPost": "para comenzar",
+    "agentWorking": "El agente está trabajando...",
+    "configureLlmInSettings": "Configura el LLM en Configuración > Avanzado",
+    "askAnything": "Pregunta cualquier cosa sobre tu proyecto...",
+    "agentHelpHintBefore": "Escribe",
+    "agentHelpHintAfter": "para ver los comandos rápidos.",
+    "scripts": "Scripts",
+    "quickCommands": "Comandos rápidos",
+    "noConfiguredScripts": "No se encontraron archivos de script configurados",
+    "noMatches": "Sin coincidencias",
+    "tracked": "Rastreado",
+    "untracked": "No rastreado",
     "type": "Tipo",
     "status": "Estado",
     "asset": "Tarea",

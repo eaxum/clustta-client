@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "सेटिंग्स",
     "accept": "स्वीकार करें",
     "add": "जोड़ें",
     "addRole": "भूमिका जोड़ें",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "Drop ki gayi files overwrite setting update nahi ho saki"
   },
   "settings": {
+    "scripts": "स्क्रिप्ट",
+    "scriptDirectoryFromProjectRoot": "प्रोजेक्ट रूट से डायरेक्टरी",
+    "scriptDirectoryHelp": "यह हमेशा प्रोजेक्ट रूट से तय होती है। Scripts जैसा सापेक्ष पथ दर्ज करें। एजेंट इस डायरेक्टरी की केवल सीधे मौजूद फाइलें दिखाता है।",
+    "allowedScriptExtensions": "अनुमत एक्सटेंशन",
+    "addScriptExtension": "एक एक्सटेंशन जोड़ें, जैसे .py",
+    "saveScriptSettings": "स्क्रिप्ट सेटिंग्स सहेजें",
+    "scriptSettingsSaved": "स्क्रिप्ट सेटिंग्स सहेजी गईं",
+    "scriptSettingsSaveFailed": "स्क्रिप्ट सेटिंग्स सहेजी नहीं जा सकीं",
     "title": "सेटिंग्स",
     "general": "सामान्य",
     "theme": "थीम",
@@ -1037,6 +1046,25 @@
     }
   },
   "panes": {
+    "attachFile": "फाइल संलग्न करें",
+    "clearChat": "चैट साफ करें",
+    "expandConsole": "कंसोल विस्तृत करें",
+    "consoleOpenInModal": "कंसोल विस्तृत है",
+    "consoleOpenInModalSubtext": "यहां लौटने के लिए विस्तृत कंसोल बंद करें",
+    "setupAiAgent": "AI एजेंट सेट करें",
+    "configureLlmPre": "अपना LLM प्रदाता यहां कॉन्फिगर करें",
+    "configureLlmPost": "और शुरू करें",
+    "agentWorking": "एजेंट काम कर रहा है...",
+    "configureLlmInSettings": "सेटिंग्स > एडवांस्ड में LLM कॉन्फिगर करें",
+    "askAnything": "अपने प्रोजेक्ट के बारे में कुछ भी पूछें...",
+    "agentHelpHintBefore": "टाइप करें",
+    "agentHelpHintAfter": "त्वरित कमांड देखने के लिए।",
+    "scripts": "स्क्रिप्ट",
+    "quickCommands": "त्वरित कमांड",
+    "noConfiguredScripts": "कोई कॉन्फिगर की गई स्क्रिप्ट फाइल नहीं मिली",
+    "noMatches": "कोई मिलान नहीं",
+    "tracked": "ट्रैक किया गया",
+    "untracked": "ट्रैक नहीं किया गया",
     "type": "प्रकार",
     "status": "स्थिति",
     "asset": "टास्क",

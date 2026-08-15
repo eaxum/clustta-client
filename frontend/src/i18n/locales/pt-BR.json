@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "Configurações",
     "accept": "Aceitar",
     "add": "Adicionar",
     "addRole": "Adicionar Função",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "Falha ao atualizar a configuracao de sobrescrever arquivos soltos"
   },
   "settings": {
+    "scripts": "Scripts",
+    "scriptDirectoryFromProjectRoot": "Diretório a partir da raiz do projeto",
+    "scriptDirectoryHelp": "Sempre resolvido a partir da raiz do projeto. Insira um caminho relativo como Scripts. O agente lista apenas os arquivos imediatos deste diretório.",
+    "allowedScriptExtensions": "Extensões permitidas",
+    "addScriptExtension": "Adicione uma extensão, por exemplo .py",
+    "saveScriptSettings": "Salvar configurações de scripts",
+    "scriptSettingsSaved": "Configurações de scripts salvas",
+    "scriptSettingsSaveFailed": "Não foi possível salvar as configurações de scripts",
     "title": "Configurações",
     "general": "Geral",
     "theme": "Tema",
@@ -1037,6 +1046,25 @@
     }
   },
   "panes": {
+    "attachFile": "Anexar arquivo",
+    "clearChat": "Limpar conversa",
+    "expandConsole": "Expandir console",
+    "consoleOpenInModal": "O console está expandido",
+    "consoleOpenInModalSubtext": "Feche o console expandido para voltar aqui",
+    "setupAiAgent": "Configurar agente de IA",
+    "configureLlmPre": "Configure seu provedor de LLM em",
+    "configureLlmPost": "para começar",
+    "agentWorking": "O agente está trabalhando...",
+    "configureLlmInSettings": "Configure o LLM em Configurações > Avançado",
+    "askAnything": "Pergunte qualquer coisa sobre seu projeto...",
+    "agentHelpHintBefore": "Digite",
+    "agentHelpHintAfter": "para ver os comandos rápidos.",
+    "scripts": "Scripts",
+    "quickCommands": "Comandos rápidos",
+    "noConfiguredScripts": "Nenhum arquivo de script configurado foi encontrado",
+    "noMatches": "Nenhuma correspondência",
+    "tracked": "Rastreado",
+    "untracked": "Não rastreado",
     "type": "Tipo",
     "status": "Status",
     "asset": "Tarefa",

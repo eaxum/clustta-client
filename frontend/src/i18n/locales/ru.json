@@ -1,5 +1,6 @@
 {
   "common": {
+    "settings": "Настройки",
     "accept": "Принять",
     "add": "Добавить",
     "addRole": "Добавить роль",
@@ -484,6 +485,14 @@
     "failedToUpdateOverwriteDroppedFiles": "Не удалось обновить настройку перезаписи перетащенных файлов"
   },
   "settings": {
+    "scripts": "Скрипты",
+    "scriptDirectoryFromProjectRoot": "Каталог от корня проекта",
+    "scriptDirectoryHelp": "Путь всегда определяется от корня проекта. Укажите относительный путь, например Scripts. Агент показывает только файлы непосредственно в этом каталоге.",
+    "allowedScriptExtensions": "Разрешенные расширения",
+    "addScriptExtension": "Добавьте расширение, например .py",
+    "saveScriptSettings": "Сохранить настройки скриптов",
+    "scriptSettingsSaved": "Настройки скриптов сохранены",
+    "scriptSettingsSaveFailed": "Не удалось сохранить настройки скриптов",
     "title": "Настройки",
     "general": "Общие",
     "theme": "Тема",
@@ -1037,6 +1046,25 @@
     }
   },
   "panes": {
+    "attachFile": "Прикрепить файл",
+    "clearChat": "Очистить чат",
+    "expandConsole": "Развернуть консоль",
+    "consoleOpenInModal": "Консоль развернута",
+    "consoleOpenInModalSubtext": "Закройте развернутую консоль, чтобы вернуться сюда",
+    "setupAiAgent": "Настроить ИИ-агента",
+    "configureLlmPre": "Настройте поставщика LLM в разделе",
+    "configureLlmPost": "чтобы начать",
+    "agentWorking": "Агент работает...",
+    "configureLlmInSettings": "Настройте LLM в Настройки > Дополнительно",
+    "askAnything": "Спросите что-нибудь о своем проекте...",
+    "agentHelpHintBefore": "Введите",
+    "agentHelpHintAfter": "чтобы увидеть быстрые команды.",
+    "scripts": "Скрипты",
+    "quickCommands": "Быстрые команды",
+    "noConfiguredScripts": "Настроенные файлы скриптов не найдены",
+    "noMatches": "Совпадений нет",
+    "tracked": "Отслеживается",
+    "untracked": "Не отслеживается",
     "type": "Тип",
     "status": "Статус",
     "asset": "Задача",
