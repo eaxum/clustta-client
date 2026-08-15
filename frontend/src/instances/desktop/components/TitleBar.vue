@@ -700,7 +700,7 @@ onBeforeUnmount(() => {
   min-height: 36px;
   color: var(--text);
   overflow: hidden;
-  border-bottom: var(--transparent-line);
+  /* border-bottom: var(--transparent-line); */
   background-color: var(--surface-1);
   z-index: 999999999;
   padding-left: .2rem;

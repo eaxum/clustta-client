@@ -165,6 +165,7 @@ onBeforeUnmount(async () => {
 	height: 100vh;
 	width: 100vw;
 	background-color: var(--surface-1);
+	/* background-color: orange; */
 	overflow: hidden;
 	box-sizing: border-box;
 }
@@ -191,6 +192,7 @@ onBeforeUnmount(async () => {
 	padding-top: 0;
 	background-color: forestgreen;
 	background-color: var(--surface-3);
+  border-radius: 16px 16px 0px 0px;
 }
 </style>
 

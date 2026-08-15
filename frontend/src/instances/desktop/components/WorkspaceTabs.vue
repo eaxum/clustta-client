@@ -380,18 +380,19 @@ const getTabStyle = (index) => {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  /* background-color: forestgreen; */
 }
 
 .tab-bar {
   display: flex;
-  padding: 0 .5rem;
+  /* padding: 0 .5rem; */
   gap: 6px;
-  padding: 0 20px;
+  /* padding: 0 20px; */
   height: 100%;
   box-sizing: border-box;
   position: relative;
-  align-items: flex-end;
-  align-items: center;
+  /* align-items: flex-end; */
+  /* align-items: center; */
 }
 
 .tab {
@@ -402,9 +403,11 @@ const getTabStyle = (index) => {
   min-width: 100px;
   max-width: 200px;
   height: 32px;
+  /* height: 100%; */
   box-sizing: border-box;
   user-select: none;
   position: relative;
+  opacity: .4;
 }
 
 /* after active tab */
@@ -470,8 +473,9 @@ const getTabStyle = (index) => {
 .tab:hover {
   color: var(--text);
   background: var(--selected-soft);
-  border-radius: var(--normal-radius);
+  border-radius: var(--large-radius);
   border: 0px;
+  opacity: 1;
 }
 
 .workspace-tab-meta {
@@ -493,14 +497,15 @@ const getTabStyle = (index) => {
 .tab.active {
   color: var(--text);
   border-bottom: none;
-  border-radius: 16px 16px 0px 0px;
-  height: 100%;
+  /* border-radius: 16px 16px 0px 0px; */
+  border-radius: var(--large-radius);
   position: relative;
   background-color: var(--surface-3);
+  opacity: 1;
 }
 
 .tab.active::before {
-  content: "";
+  /* content: "";
   position: absolute;
   background-color: transparent;
   left: -50px;
@@ -508,11 +513,11 @@ const getTabStyle = (index) => {
   height: 25px;
   width: 50px;
   border-bottom-right-radius: 16px;
-  box-shadow: 25px 0 0 0 var(--surface-3);
+  box-shadow: 25px 0 0 0 var(--surface-3); */
 }
 
 .tab.active::after {
-  content: "";
+  /* content: "";
   position: absolute;
   background-color: transparent;
   right: -50px;
@@ -520,7 +525,7 @@ const getTabStyle = (index) => {
   height: 25px;
   width: 50px;
   border-bottom-left-radius: 16px;
-  box-shadow: -25px 0 0 0 var(--surface-3);
+  box-shadow: -25px 0 0 0 var(--surface-3); */
 }
 
 .tab.dragging {

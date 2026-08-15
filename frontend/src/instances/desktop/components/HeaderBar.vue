@@ -459,14 +459,15 @@ const logUserOut = async () => {
 
 .header-bar {
 	color: var(--text);
-	padding-top: .3rem;
+	padding-top: .2rem;
+	padding-bottom: .3rem;
 	width: 100%;
-	height: 50px;
-	min-height: 50px;
+	height: 40px;
+	min-height: 40px;
 	display: flex;
 	overflow: hidden;
 	box-sizing: border-box;
-	align-items: center;
+	/* align-items: center; */
 	justify-content: space-between;
 	overflow: hidden;
 	/* border-bottom: var(--transparent-line); */

@@ -248,7 +248,7 @@ onBeforeUnmount(() => {
 }
 
 .side-pane {
-	border-right: var(--transparent-line);
+	/* border-right: var(--transparent-line); */
 	color: var(--text);
 	display: flex;
 	flex-direction: column;
