@@ -3,11 +3,11 @@
     'list-box-container-full' : fullWidth,
     'list-box-container-fixed' : fixedWidth
     }" >
-    <div class="list-box-parent" :class="{ 'is-disabled': stage.operationActive, 'is-expanded': isExpanded}" ref="listBoxParent" @click="toggleList()">
+    <div class="list-box-parent" :class="{ 'is-disabled': stage.operationActive || disabled, 'is-expanded': isExpanded}" ref="listBoxParent" @click="toggleList()">
       <div class="list-box-parent-content" @mouseenter="utils.handleHover($event)"
         @mouseleave="utils.resetScroll($event)">
         <div class="list-box-parent-text" :class="{ 'placeholder-text': isPlaceholder }" style="overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5rem;">
-          <img v-if="selectedItemIcon" :src="selectedItemIcon" class="listbox-icon small-icons" />
+          <img v-if="selectedItemIcon" :src="selectedItemIcon" class="listbox-icon small-icons" :class="selectedItemIconClass" v-tooltip="selectedItemIconTooltip" />
           {{ selectedListItem }}
         </div>
       </div>
@@ -22,7 +22,7 @@
             <div class="listbox-item-text-mask" @mouseenter="startScrollText($event, index)"
               @mouseleave="stopScrollText($event)">
               <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }" style="display: flex; align-items: center; gap: 0.5rem;">
-                <img v-if="getItemIcon(item)" :src="getItemIcon(item)" class="listbox-icon  small-icons" />
+                <img v-if="getItemIcon(item)" :src="getItemIcon(item)" class="listbox-icon small-icons" :class="getItemIconClass(item)" v-tooltip="getItemIconTooltip(item)" />
                 {{ utils.capitalizeStr(getItemValue(item)) }}
               </div>
             </div>
@@ -31,6 +31,7 @@
             </div>
           </div>
         </div>
+        <slot v-if="$slots.footer" name="footer" :close="closeList" />
       </div>
     </Teleport>
   </div>
@@ -74,6 +75,20 @@ const getItemIcon = (item) => {
     return null;
   }
   return item.icon || null;
+};
+
+const getItemIconTooltip = (item) => {
+  if (typeof item === 'string') {
+    return '';
+  }
+  return item.iconTooltip || '';
+};
+
+const getItemIconClass = (item) => {
+  if (typeof item === 'string' || !item.iconTone) {
+    return '';
+  }
+  return `listbox-icon-${item.iconTone}`;
 };
 
 const isItemDisabled = (item) => {
@@ -122,6 +137,22 @@ const selectedItemIcon = computed(() => {
   return selectedObj ? getItemIcon(selectedObj) : null;
 });
 
+const selectedItemIconTooltip = computed(() => {
+  if (!props.selectedItem || !isObjectArray.value) {
+    return '';
+  }
+  const selectedObj = props.items.find(item => getItemValue(item) === props.selectedItem);
+  return selectedObj ? getItemIconTooltip(selectedObj) : '';
+});
+
+const selectedItemIconClass = computed(() => {
+  if (!props.selectedItem || !isObjectArray.value) {
+    return '';
+  }
+  const selectedObj = props.items.find(item => getItemValue(item) === props.selectedItem);
+  return selectedObj ? getItemIconClass(selectedObj) : '';
+});
+
 // props
 const props = defineProps({
   isUnique: {
@@ -133,6 +164,7 @@ const props = defineProps({
   useFilter: { type: Boolean, default: true },
   fullWidth: { type: Boolean, default: true },
   fixedWidth: { type: Boolean, default: false },
+  disabled: { type: Boolean, default: false },
   items: Array,
   onSelect: Function,
   selectedItem: String,
@@ -162,6 +194,8 @@ const stopScrollText = (event) => {
 };
 
 const toggleList = () => {
+  if (props.disabled) return;
+
   const boundaryRect = listItemsBoundary.value ? listItemsBoundary.value.getBoundingClientRect() : null;
   const boundaryTop = boundaryRect ? boundaryRect.top : 0;
   const boundaryBottom = boundaryRect ? boundaryRect.bottom : window.innerHeight;
@@ -485,6 +519,18 @@ onUnmounted(() => {
   min-width: 16px;
   object-fit: contain;
   flex-shrink: 0;
+}
+
+img.listbox-icon.listbox-icon-alert {
+  filter: brightness(0) saturate(100%) invert(60%) sepia(72%) saturate(489%) hue-rotate(1deg) brightness(92%) contrast(90%);
+}
+
+[data-theme="dark"] img.listbox-icon.listbox-icon-alert {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(45%) saturate(566%) hue-rotate(359deg) brightness(97%) contrast(92%);
+}
+
+img.listbox-icon.listbox-icon-go {
+  filter: brightness(0) saturate(100%) invert(50%) sepia(74%) saturate(486%) hue-rotate(75deg) brightness(96%) contrast(87%);
 }
 
 .placeholder-text {

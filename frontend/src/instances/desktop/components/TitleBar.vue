@@ -1,5 +1,5 @@
 <template>
-  <div style="--wails-draggable:drag" @click="handleClickOutside" @dblclick="toggleMaximize" class="titlebar"
+  <div style="--wails-draggable:drag" @dblclick="toggleMaximize" class="titlebar"
     :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || locationsStale }"
     v-stop-propagation>
 
@@ -9,29 +9,25 @@
         <ClusttaLogo :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
       </div>
 
-      <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode && stage.selectedStage !== 'settings'" 
+      <div class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode && stage.selectedStage !== 'settings'"
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
-        <div class="studio-tabs-container" @click="!accountStore.isStudioAuth && toggleStudioList()" v-stop-propagation>
-          <span class="studio-tabs">
-            <div class="studio-name-with-status">
-              <span class="online-indicator" :class="studioStore.appOnline ? 'online' : 'offline'" v-tooltip="studioStore.appOnline ? $t('components.titleBar.connected') : $t('components.titleBar.offline')"></span>
-              {{ utils.capitalizeStr(projectStore.getSelectedStudioName) }}
-            </div>
-            <img v-if="!accountStore.isStudioAuth" class="small-icons chevron" :src="getAppIcon('chevron-down')">
-
-            <div v-if="displayStudioList" class="studio-list-container" :style="{ left: parentLocation?.left + 'px', top: parentLocation?.top + parentLocation?.height + 'px' }">
-              <div class="studio-instance-container">
-
-                <div v-for="(studio, index) in studioList" :key="index" class="studio-instance" @click="selectStudio(studio)">
-                  <div class="studio-instance-meta">
-                    <img class="large-icons" :src="studio.name === 'Personal' ? getAppIcon('two-drives') : getAppIcon('website')">
-                    <div>{{ studio.name }}</div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </span>
+        <div class="studio-selector" v-stop-propagation>
+          <DropDownBox
+            :items="studioOptions"
+            :selectedItem="projectStore.getSelectedStudioName"
+            :onSelect="selectStudioByName"
+            :disabled="accountStore.isStudioAuth"
+            :fullWidth="false"
+            :useFilter="false"
+          >
+            <template #footer="{ close }">
+              <div class="studio-dropdown-divider"></div>
+              <button class="studio-create-action" type="button" @click="createStudio(close)">
+                <img class="small-icons" :src="getAppIcon('stall')">
+                <span>{{ $t('components.titleBar.newStudio') }}</span>
+              </button>
+            </template>
+          </DropDownBox>
         </div>
 
           <ActionButton v-if="studioStore.isStudioAdmin && projectStore.selectedStudio?.name !== 'Personal'" :icon="getAppIcon('stall-cog')" v-tooltip="$t('components.titleBar.studioSettings')" :buttonFunction="studioSettings" />
@@ -98,36 +94,14 @@
 
   </div>
 
-  <div v-if="displayStudioList" class="studio-list-container" :style="{ left: parentLocation?.left + 'px', top: parentLocation?.top + parentLocation?.height + 'px' }">
-    <div class="studio-instance-container">
-
-      <div v-for="(studio, index) in studioList" :key="index" class="studio-instance" @click="selectStudio(studio)">
-        <div class="studio-instance-meta">
-          <div>{{ studio.name }}</div>
-        </div>
-      </div>
-
-      <div v-if="studioList.length" class="menu-divider"></div>
-
-      <div class="studio-instance" @click="createStudio()" v-stop-propagation >
-        <div class="studio-instance-meta">
-          <img class="large-icons" :src="getAppIcon('stall')">
-          <div>{{ $t('components.titleBar.newStudio') }}</div>
-        </div>
-      </div>
-
-    </div>
-
-  </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watchEffect } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { AppService, SettingsService } from '@/services';
+import { AppService } from '@/services';
 import { Window, Events } from "@wailsio/runtime";
-import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 
 import { useUserStore } from '@/stores/users';
@@ -137,12 +111,11 @@ import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useNotificationStore } from '@/stores/notifications';
-import { useThemeStore } from '@/stores/theme';
-import { useCollectionStore } from '@/stores/collections';
 import { useSettingsStore } from '@/stores/settings';
 
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
+import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import PlanInfo from '@/instances/common/components/PlanInfo.vue';
 import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
@@ -159,8 +132,6 @@ const trayStates = useTrayStates();
 const modals = useDesktopModalStore();
 const projectStore = useProjectStore();
 const notificationStore = useNotificationStore();
-const themeStore = useThemeStore();
-const collectionStore = useCollectionStore();
 const settingsStore = useSettingsStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
@@ -180,7 +151,6 @@ const goToSignUp = () => {
 };
 
 const os = ref('');
-const studioTabsParent = ref(null);
 const screenWidth = ref(window.innerWidth);
 
 // Responsive breakpoints
@@ -189,11 +159,6 @@ const isWideScreen = computed(() => screenWidth.value >= 400);
 const updateScreenWidth = () => {
   screenWidth.value = window.innerWidth;
 };
-
-const parentLocation = computed(() => {
-  if(!studioTabsParent.value) return
-  return studioTabsParent.value.getBoundingClientRect()
-});
 
 const isAuthPage = computed(() => route.path.startsWith('/auth'));
 const restrictedTitles = ref(['projects', 'settings' ])
@@ -217,7 +182,6 @@ const props = defineProps({
   titleOnly: { type: Boolean, default: false }
 });
 
-const displayStudioList = ref(false);
 const progressRunning = computed(() => { return stage.operationActive || notificationStore.getProgress.running })
 
 const projectStages = ['browser', 'trash', 'projectSettings'];
@@ -240,7 +204,31 @@ const getAppIcon = (iconName) => {
 
 
 
-const studioList = computed(() => { return projectStore.studios.filter(item => item.id !== projectStore.selectedStudio.id && (item.url || item.hosting_mode) ) });
+const studioOptions = computed(() => {
+  return projectStore.studios
+    .filter((studio) => studio.id === projectStore.selectedStudio?.id || studio.url || studio.hosting_mode)
+    .map((studio) => {
+      if (studio.id !== projectStore.selectedStudio?.id) {
+        return {
+          ...studio,
+          icon: null,
+          iconTone: '',
+          iconTooltip: '',
+        };
+      }
+
+      const statusTooltip = studioStore.appOnline
+        ? t('components.titleBar.connected')
+        : t('components.titleBar.offline');
+
+      return {
+        ...studio,
+        icon: getAppIcon('dot-big'),
+        iconTone: studioStore.appOnline ? 'go' : 'alert',
+        iconTooltip: statusTooltip,
+      };
+    });
+});
 
 const operationMessage = computed(() => {
   return ' - ' + t('components.titleBar.working');
@@ -249,18 +237,6 @@ const operationMessage = computed(() => {
 const modalsActive = computed(() => {
   return !!modals.activeModal;
 });
-
-const toggleStudioList = () => {
-  if (accountStore.isStudioAuth) return;
-  displayStudioList.value = !displayStudioList.value;
-};
-
-const toggleTheme = () => {
-  // Cycle: system -> light -> dark -> system
-  const order = ['system', 'light', 'dark'];
-  const next = order[(order.indexOf(themeStore.mode) + 1) % order.length];
-  themeStore.setMode(next);
-};
 
 const displayAppInfo = () => {
   modals.setModalVisibility('appInfoModal', true);
@@ -288,7 +264,6 @@ const reloadStudio = async () => {
   }
   await projectStore.loadProjects();
   refreshEntitlements();
-  displayStudioList.value = false;
 }
 
 const selectStudio = async (studio) => {
@@ -297,7 +272,6 @@ const selectStudio = async (studio) => {
     stage.setStageVisibility('projects', true);
   }
 
-  displayStudioList.value = false;
   projectStore.activeProject = null
   projectStore.projects = []
   projectStore.untrackedFiles = []
@@ -318,8 +292,15 @@ const selectStudio = async (studio) => {
 
 }
 
-const createStudio = () => {
-  displayStudioList.value = false;
+const selectStudioByName = async (studioName) => {
+  const studio = projectStore.studios.find((item) => item.name === studioName);
+  if (!studio || studio.id === projectStore.selectedStudio?.id) return;
+
+  await selectStudio(studio);
+};
+
+const createStudio = (closeDropdown) => {
+  closeDropdown();
 
   const inactive = projectStore.studios.find((s) => s.active === false && s.hosting_mode === 'cloud');
   if (inactive) {
@@ -333,12 +314,6 @@ const createStudio = () => {
   }
 
   modals.setModalVisibility('configClusttaCloudStudioModal', true);
-};
-
-const handleClickOutside = (event) => {
-  if (displayStudioList.value) {
-    displayStudioList.value = false;
-  };
 };
 
 const isWindowMaximized = ref(false);
@@ -381,14 +356,12 @@ const frontendReady = async () => {
 onMounted( async () => {
   os.value = await AppService.GetOS();
   frontendReady();
-  document.addEventListener('click', handleClickOutside);
   window.addEventListener('resize', updateScreenWidth);
 
 	emitter.on('window-fullscreen', toggleFullscreen);
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleClickOutside);
   window.removeEventListener('resize', updateScreenWidth);
 	emitter.off('window-unfullscreen', toggleFullscreen);
 
@@ -506,86 +479,6 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid rgba(255, 255, 255, 0.096);
 }
 
-.menu-divider{
-	height: 5px;
-	margin-top: 5px;
-	margin-bottom: 5px;
-}
-
-.studio-list-container {
-  position: absolute;
-  z-index: 10000;
-  /* top: 206px; */
-  min-width: 160px;
-  width: max-content;
-  height: max-content;
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 1rem;
-  border-radius: var(--large-radius);
-  color: var(--text);
-
-  overflow: hidden;
-  box-sizing: border-box;
-  max-height: 500px;
-  overflow-y: scroll;
-
-  /* background-color: hotpink; */
-  
-  border-radius: var(--very-large-radius);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  backdrop-filter: blur(35px);
-}
-
-
-.studio-list-container::-webkit-scrollbar {
-  width: 4px;
-}
-
-.studio-list-container::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--border-strong);
-}
-
-.studio-list-container::-webkit-scrollbar-track {
-  margin: 20px;
-  border-radius: 10px;
-}
-
-.chevron {
-  pointer-events: none;
-  transition: all .1s ease-in;
-}
-
-.studio-tabs-container {
-  width: max-content;
-  height: 80%;
-  gap: .5rem;
-  display: flex;
-  /* padding: .3rem; */
-  box-sizing: border-box;
-  overflow: hidden;
-  flex-direction: column;
-  border-radius: var(--small-radius);
-  background-color: hsla(0, 0%, 0%, 0.2);
-  border-radius: var(--normal-radius);
-}
-
-.studio-tabs-container:hover {
-  outline: var(--transparent-line);
-  background-color: hsla(0, 0%, 0%, 0.15);
-}
-
-[data-theme="dark"] .studio-tabs-container {
-  background-color: hsla(0, 0%, 0%, 0.8);
-}
-
-[data-theme="dark"] .studio-tabs-container:hover {
-  background-color: hsla(0, 0%, 0%, 0.2);
-}
-
 .studio-tabs-parent {
   display: flex;
   box-sizing: border-box;
@@ -593,90 +486,41 @@ onBeforeUnmount(() => {
   height: 100%;
   gap: .5rem;
   align-items: center;
-  /* background-color: crimson; */
   position: relative;
   transition: all 0.1s ease;
 }
 
-.studio-tabs {
-  width: max-content;
-  height: 100%;
-  display: flex;
-  box-sizing: border-box;
-  overflow: hidden;
-  align-items: center;
-  gap: .8rem;
-  padding: .3rem .8rem;
+.studio-selector {
+  width: 200px;
 }
 
-.studio-instance-container {
+.studio-selector :deep(.list-box-container) {
   width: 100%;
-  height: 100%;
-  height: max-content;
-  /* gap: .2rem; */
-  display: flex;
-  padding: .3rem;
-  box-sizing: border-box;
-  overflow: hidden;
-  flex-direction: column;
 }
 
-.studio-instance {
-  overflow: hidden;
-  background-color: transparent;
-  text-align: center;
-  font-size: 14px;
-  line-height: 14px;
-  background-color: transparent;
+.studio-dropdown-divider {
+  border-top: var(--transparent-line);
+  margin: .3rem .1rem;
+}
+
+.studio-create-action {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  width: 100%;
+  padding: .3rem .5rem;
+  border: 0;
+  border-radius: var(--normal-radius);
   color: var(--text);
-  position: relative;
-  border-radius: var(--large-radius);
-  box-sizing: border-box;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
   cursor: pointer;
-  display: flex;
-  gap: 5px;
-  align-items: center;
-  padding: .1rem;
-  height: 20px;
-  width: max-content;
-  min-width: max-content;
-  min-height: 35px;
-  transition: all 0..1s ease;
-  justify-content: space-between;
-  width: 100%;
 }
 
-.studio-instance:hover {
-  background-color: var(--hover);
-}
-
-.studio-instance:active {
-  background-color: rgb(70, 70, 70);
-  background-color: #00000013;
-}
-
-.studio-instance-pressed {
-  box-sizing: border-box;
-  background-color: rgba(0, 0, 0, 0.216);
-  outline: solid 1px var(--border-strong);
-  outline-offset: -1px;
-}
-
-.studio-instance-actions {
-  display: flex;
-  box-sizing: border-box;
-  width: max-content;
-}
-
-.studio-instance-meta {
-  display: flex;
-  align-items: center;
-  box-sizing: border-box;
-  width: 100%;
-  height: 100px;
-  height: 40px;
-  padding: .2rem .5rem;
-  gap: 10px;
+.studio-create-action:hover {
+  background-color: var(--surface-4);
 }
 
 .clustta-logo-left{
@@ -706,7 +550,7 @@ onBeforeUnmount(() => {
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  min-height: 36px;
+  min-height: 44px;
   color: var(--text);
   overflow: hidden;
   /* border-bottom: var(--transparent-line); */
@@ -877,27 +721,6 @@ onBeforeUnmount(() => {
   height: 100%;
 }
 
-.studio-name-with-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.online-indicator {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  transition: background-color 0.3s ease;
-}
-
-.online-indicator.online {
-  background-color: #22c55e;
-}
-
-.online-indicator.offline {
-  background-color: #f59e0b;
-}
 </style>
 
 
