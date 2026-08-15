@@ -9,12 +9,9 @@ const (
 	RiskDestructive = "destructive" // bulk/structural change, deletion, role/membership change, or arbitrary code execution
 )
 
-// destructiveTools retains approval policy for legacy non-registry tools.
-// Registered commands own their risk metadata and planned commands cannot be auto-approved.
+// destructiveTools contains the remaining non-registry operations that require approval.
 var destructiveTools = map[string]bool{
-	"delete_asset":      true,
-	"delete_collection": true,
-	"remove_user":       true,
+	"remove_user": true,
 
 	"delete_asset_type":      true,
 	"delete_collection_type": true,
@@ -24,8 +21,6 @@ var destructiveTools = map[string]bool{
 	"add_studio_collaborator":         true,
 	"change_studio_collaborator_role": true,
 	"remove_studio_collaborator":      true,
-
-	"run_terminal_command": true,
 }
 
 // GetToolRisk returns the risk level for the given tool name.

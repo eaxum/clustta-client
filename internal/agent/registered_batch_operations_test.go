@@ -4,10 +4,23 @@ import (
 	agentcommands "clustta/internal/agent/commands"
 	"clustta/internal/agent/planning"
 	"clustta/internal/agent/scope"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestToolSurfaceIsUniqueAndDeterministic(t *testing.T) {
+	definitions := GetToolDefinitions()
+	names := make([]string, 0, len(definitions))
+	seen := map[string]bool{}
+	for _, definition := range definitions {
+		require.False(t, seen[definition.Name], definition.Name)
+		seen[definition.Name] = true
+		names = append(names, definition.Name)
+	}
+	require.True(t, sort.StringsAreSorted(names))
+}
 
 func TestBatchMutationsArePlannedAndRequireApproval(t *testing.T) {
 	commands := []string{
@@ -45,13 +58,33 @@ func TestToolSurfaceContainsOneCanonicalBatchTool(t *testing.T) {
 	for _, name := range canonical {
 		require.Equal(t, 1, counts[name], name)
 	}
-	legacy := []string{
+	retired := []string{
+		"list_collections", "list_assets_in_collection",
+		"create_asset_type", "create_collection_type", "create_collection", "create_asset",
+		"rename_asset", "rename_collection", "change_asset_status", "change_asset_type", "change_collection_type",
+		"assign_asset", "unassign_asset", "move_assets", "delete_asset", "delete_collection",
+		"add_tag_to_asset", "remove_tag_from_asset", "add_dependency", "remove_dependency",
+		"update_asset_type", "update_collection_type",
 		"bulk_delete_assets", "bulk_change_status", "bulk_assign", "bulk_change_asset_type",
 		"bulk_change_collection_type", "random_assign", "unassign_all_assets",
 		"open_in_dcc", "blender_render", "blender_export", "blender_run_script", "blender_run_python",
 		"blender_set_settings", "blender_link", "run_terminal_command",
 	}
-	for _, name := range legacy {
+	for _, name := range retired {
+		require.Zero(t, counts[name], name)
+	}
+}
+
+func TestUnsupportedOperationsAreNotExposed(t *testing.T) {
+	counts := map[string]int{}
+	for _, definition := range GetToolDefinitions() {
+		counts[definition.Name]++
+	}
+	unsupported := []string{
+		"track_entities", "batch_track_entities", "inspect_entity", "squash_assets",
+		"create_checkpoint", "batch_create_checkpoints", "revert_checkpoint", "delete_checkpoint",
+	}
+	for _, name := range unsupported {
 		require.Zero(t, counts[name], name)
 	}
 }

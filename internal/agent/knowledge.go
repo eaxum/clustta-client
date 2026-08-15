@@ -228,8 +228,7 @@ Common script scenarios:
 - Automated exports: Export assets from DCCs (Digital Content Creation tools)
 - File analysis: Scan assets for issues (missing textures, broken references)
 
-Scripts are generated for review and manual execution - they are never auto-executed by the agent.
-Alternatively, you can use the run_terminal_command tool to launch a command in a visible terminal window.`,
+Scripts are generated for review and manual execution - they are never auto-executed by the agent.`,
 
 	"dcc_tools": `Clustta has built-in DCC (Digital Content Creation) tool integration. All DCC operations are fire-and-forget - they launch in a visible terminal window so the user can monitor progress.
 
@@ -247,19 +246,16 @@ DCC executable discovery (in order):
 3. System PATH lookup
 
 Blender tools:
-- open_in_dcc: Open files in the correct DCC app (auto-detected from extension or specified)
-- blender_render: Headless render with optional frame range, engine, and output path
-- blender_export: Export to FBX, OBJ, glTF, or USD
-- blender_run_python: Run inline Python code on .blend files - the agent writes the code, saves to a temp file, and launches Blender headless. The file is auto-saved after execution. Use this for any Blender-internal operation: creating Blender collections, modifying objects, materials, scenes, etc.
-- blender_run_script: Run a custom .py script file on .blend files
-- blender_set_settings: Batch-modify render engine, resolution, FPS, samples, output format
-- blender_link: Link or append objects from dependency .blend files into a target file
+- dcc_open: Open scoped files in the correct DCC app
+- dcc_render: Headless render with optional frame range, engine, and output path
+- dcc_export: Export scoped assets to FBX, OBJ, glTF, or USD
+- dcc_run_python: Run approved inline Python code on scoped .blend files
+- dcc_run_script: Run an approved Python script on scoped .blend files
+- dcc_set_settings: Batch-modify render engine, resolution, FPS, samples, and output format
+- dcc_link_dependencies: Link or append dependency data into a target file
   - Auto-resolves sources from the asset's Clustta dependency graph
   - Supports append (copy) or link (reference) modes
   - Can link Collections, Objects, Materials, NodeTrees, etc.
 
-Terminal command:
-- run_terminal_command: Run any command in a new visible terminal window
-
-All DCC tools require the "Update Asset" permission except open_in_dcc (read-only).`,
+All DCC commands use scoped plans and the agent approval modal.`,
 }

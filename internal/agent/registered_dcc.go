@@ -64,24 +64,24 @@ func registerDCCLink() {
 				return planning.Plan{}, fmt.Errorf("target_scope must resolve to exactly one asset")
 			}
 			combined := target
-			legacy := map[string]interface{}{"target_asset_id": target.Entities[0].ID}
+			executorArgs := map[string]interface{}{"target_asset_id": target.Entities[0].ID}
 			if raw, ok := args["source_scope"]; ok {
 				source, sourceArgs, err := resolveDCCArgs(projectPath, map[string]interface{}{"scope": raw})
 				if err != nil {
 					return planning.Plan{}, err
 				}
 				combined.Entities = append(combined.Entities, source.Entities...)
-				legacy["source_asset_ids"] = sourceArgs["asset_ids"]
+				executorArgs["source_asset_ids"] = sourceArgs["asset_ids"]
 			}
 			for _, key := range []string{"link_mode", "object_types", "data_names"} {
 				if value, ok := args[key]; ok {
-					legacy[key] = value
+					executorArgs[key] = value
 				}
 			}
 			plan := planning.Plan{
 				Command: "dcc_link_dependencies", Scope: combined,
 				Counts:    map[string]int{"changes": len(combined.Entities)},
-				CreatedAt: time.Now().UTC(), Options: legacy,
+				CreatedAt: time.Now().UTC(), Options: executorArgs,
 				Warnings: []string{"This job modifies the target working file. Create a checkpoint before syncing it."},
 			}
 			for _, entity := range combined.Entities {
@@ -127,13 +127,13 @@ func registerPlannedDCC(name, description string, extra map[string]interface{}, 
 		Name: name, Description: description, Permission: "update_asset", Risk: "destructive",
 		Parameters: dccParameters(extra, required),
 		Plan: func(projectPath string, args map[string]interface{}) (planning.Plan, error) {
-			resolved, legacyArgs, err := resolveDCCArgs(projectPath, args)
+			resolved, executorArgs, err := resolveDCCArgs(projectPath, args)
 			if err != nil {
 				return planning.Plan{}, err
 			}
 			plan := planning.Plan{
 				Command: name, Scope: resolved, Counts: map[string]int{"changes": len(resolved.Entities)},
-				CreatedAt: time.Now().UTC(), Options: legacyArgs,
+				CreatedAt: time.Now().UTC(), Options: executorArgs,
 			}
 			if modifiesFiles {
 				plan.Warnings = append(plan.Warnings, "This job can modify working files. Create checkpoints before syncing the file changes.")
@@ -181,12 +181,12 @@ func resolveDCCArgs(projectPath string, args map[string]interface{}) (scope.Resu
 			ids = append(ids, entity.ID)
 		}
 	}
-	legacy := map[string]interface{}{}
+	executorArgs := map[string]interface{}{}
 	for key, value := range args {
 		if key != "scope" && key != "_plan_id" {
-			legacy[key] = value
+			executorArgs[key] = value
 		}
 	}
-	legacy["asset_ids"] = ids
-	return resolved, legacy, nil
+	executorArgs["asset_ids"] = ids
+	return resolved, executorArgs, nil
 }
