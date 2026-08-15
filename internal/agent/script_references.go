@@ -50,7 +50,6 @@ func ListScriptReferences(projectPath string) ([]ScriptReference, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	allowedExtensions := map[string]bool{}
 	for _, extension := range settings.Extensions {
 		allowedExtensions[strings.ToLower(extension)] = true
@@ -61,7 +60,11 @@ func ListScriptReferences(projectPath string) ([]ScriptReference, error) {
 	}
 	references := make([]ScriptReference, 0, len(entries))
 	for _, entry := range entries {
-		if entry.IsDir() || !allowedExtensions[strings.ToLower(filepath.Ext(entry.Name()))] {
+		if entry.IsDir() {
+			continue
+		}
+		extension := strings.ToLower(filepath.Ext(entry.Name()))
+		if !allowedExtensions[extension] {
 			continue
 		}
 		path, err := validateProjectFilePath(workingDir, filepath.Join(scriptDir, entry.Name()))
@@ -71,7 +74,7 @@ func ListScriptReferences(projectPath string) ([]ScriptReference, error) {
 		tracked, isTracked := trackedByPath[normalizedFilePath(path)]
 		reference := ScriptReference{
 			Type: "untracked_asset", Name: entry.Name(), Path: path,
-			Extension: strings.ToLower(filepath.Ext(entry.Name())),
+			Extension: extension,
 			Tracked:   isTracked,
 		}
 		if isTracked {
@@ -96,19 +99,35 @@ func trackedScriptsByPath(tx interface {
 	Select(interface{}, string, ...interface{}) error
 }, workingDir string) (map[string]trackedScript, error) {
 	var assets []struct {
-		ID       string `db:"id"`
-		Name     string `db:"name"`
-		FilePath string `db:"file_path"`
-		Pointer  string `db:"pointer"`
+		ID             string `db:"id"`
+		Name           string `db:"name"`
+		Extension      string `db:"extension"`
+		CollectionPath string `db:"collection_path"`
+		Pointer        string `db:"pointer"`
 	}
-	if err := tx.Select(&assets, "SELECT id, name, file_path, pointer FROM asset WHERE trashed = 0"); err != nil {
+	query := `
+		SELECT
+			a.id,
+			a.name,
+			a.extension,
+			a.pointer,
+			COALESCE(c.collection_path, '') AS collection_path
+		FROM asset a
+		LEFT JOIN collection c ON a.collection_id = c.id
+		WHERE a.trashed = 0
+	`
+	if err := tx.Select(&assets, query); err != nil {
 		return nil, err
 	}
 	tracked := make(map[string]trackedScript, len(assets))
 	for _, asset := range assets {
-		path := asset.FilePath
-		if asset.Pointer != "" {
-			path = asset.Pointer
+		path := asset.Pointer
+		if path == "" {
+			var err error
+			path, err = utils.BuildAssetPath(workingDir, asset.CollectionPath, asset.Name, asset.Extension)
+			if err != nil {
+				continue
+			}
 		}
 		resolved, err := validateProjectFilePath(workingDir, path)
 		if err == nil {

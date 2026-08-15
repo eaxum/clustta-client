@@ -201,6 +201,7 @@ const composerTrigger = ref(null);
 const recentResultEntities = ref([]);
 const scriptReferences = ref([]);
 const scriptReferencesLoadedFor = ref('');
+const scriptReferencesLoadingFor = ref('');
 const selectedScriptReferences = ref(new Map());
 const selectedModel = ref('');
 const textareaRef = ref(null);
@@ -649,13 +650,17 @@ const restoreComposerDraft = (projectPath) => {
 
 const loadScriptReferences = async () => {
   const projectPath = projectStore.activeProject?.uri;
-  if (!projectPath || scriptReferencesLoadedFor.value === projectPath) return;
-  scriptReferencesLoadedFor.value = projectPath;
+  if (!projectPath || scriptReferencesLoadedFor.value === projectPath || scriptReferencesLoadingFor.value === projectPath) return;
+  scriptReferencesLoadingFor.value = projectPath;
   try {
     scriptReferences.value = await AgentService.ListScriptReferences(projectPath) || [];
+    scriptReferencesLoadedFor.value = projectPath;
   } catch (error) {
     scriptReferences.value = [];
+    scriptReferencesLoadedFor.value = '';
     console.error('AgentService.ListScriptReferences failed:', error);
+  } finally {
+    scriptReferencesLoadingFor.value = '';
   }
 };
 
@@ -1209,6 +1214,7 @@ watch(() => projectStore.activeProject?.uri, async (projectPath, previousProject
   messages.value = [];
   scriptReferences.value = [];
   scriptReferencesLoadedFor.value = '';
+  scriptReferencesLoadingFor.value = '';
   restoreComposerDraft(projectPath);
   await checkApiKeyStatus();
   await loadChatHistory();
