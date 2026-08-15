@@ -140,7 +140,7 @@ import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } f
 import { useI18n } from 'vue-i18n';
 import { Events } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
-import { agentShortcuts, expandShortcut, isAgentShortcut } from '@/lib/agentShortcuts';
+import { agentShortcuts, expandShortcut, isAgentShortcut, restoreShortcutDisplay } from '@/lib/agentShortcuts';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -791,7 +791,15 @@ const loadChatHistory = async () => {
   if (!projectPath) return;
   try {
     const history = await AgentService.GetChatHistory(projectPath);
-    messages.value = (history || []).map((msg, i) => ({ id: i + 1, ...msg }));
+    messages.value = (history || []).map((message, index) => {
+      const parsed = message.type === 'user' ? parseUserContext(message.content) : null;
+      const restoredShortcut = parsed ? restoreShortcutDisplay(parsed.body) : '';
+      return {
+        id: index + 1,
+        ...message,
+        content: restoredShortcut || message.content,
+      };
+    });
     scrollToBottom();
   } catch { /* no history available */ }
 };
@@ -963,6 +971,7 @@ const sendMessage = async () => {
     return;
   }
   const expanded = shortcut?.prompt ?? rawInput;
+  const displayMessage = shortcut?.prompt ? rawInput : '';
 
   const turnIndex = nextTurnIndex();
   addMessage('user', rawInput, { turnIndex });
@@ -972,7 +981,7 @@ const sendMessage = async () => {
   isProcessing.value = true;
 
   try {
-    await AgentService.SendMessage(projectPath, messageContent, attachmentPath.value);
+    await AgentService.SendMessage(projectPath, messageContent, displayMessage, attachmentPath.value);
     attachmentPath.value = '';
   } catch (err) {
     addMessage('error', `${err}`);

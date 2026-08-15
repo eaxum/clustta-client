@@ -180,7 +180,7 @@ func (a *AgentService) getHistory(projectPath string) []agent.Message {
 
 // SendMessage sends a user message to the agent, which calls the LLM and executes tools.
 // Results are streamed back via Wails events: agent-status, agent-tool-start, agent-tool-result, agent-response, agent-error.
-func (a *AgentService) SendMessage(projectPath, message, attachmentPath string) error {
+func (a *AgentService) SendMessage(projectPath, message, displayMessage, attachmentPath string) error {
 	app := application.Get()
 
 	migrateLegacyAgentIntegrationID()
@@ -244,6 +244,14 @@ func (a *AgentService) SendMessage(projectPath, message, attachmentPath string) 
 			return a.requestApproval(ctx, projectPath, toolCallID, toolName, riskLevel, args, preview)
 		}
 		updatedHistory, mutated, err := agent.RunAgent(ctx, projectPath, history, message, attachmentContent, cred.AccessToken, provider, model, emit, requestApproval)
+		if displayMessage != "" {
+			for index := len(history); index < len(updatedHistory); index++ {
+				if updatedHistory[index].Role == "user" {
+					updatedHistory[index].DisplayContent = displayMessage
+					break
+				}
+			}
+		}
 		if err != nil && !errors.Is(err, agent.ErrCancelled) {
 			app.Event.Emit("agent-error", err.Error())
 		}
@@ -510,6 +518,7 @@ func (a *AgentService) RetryLastTurn(projectPath string) error {
 
 	// Extract the user message content
 	userMsgContent := fmt.Sprintf("%v", history[lastUserIdx].Content)
+	displayContent := history[lastUserIdx].DisplayContent
 
 	// Remove the last user message and everything after it
 	history = history[:lastUserIdx]
@@ -518,7 +527,7 @@ func (a *AgentService) RetryLastTurn(projectPath string) error {
 	a.mu.Unlock()
 
 	// SendMessage will cancel any in-flight run and start a new one
-	return a.SendMessage(projectPath, userMsgContent, "")
+	return a.SendMessage(projectPath, userMsgContent, displayContent, "")
 }
 
 // GetChatHistory returns the persisted conversation history mapped to UI message types.
@@ -535,7 +544,9 @@ func (a *AgentService) GetChatHistory(projectPath string) []ChatUIMessage {
 		case "user":
 			turnIndex++
 			content := fmt.Sprintf("%v", msg.Content)
-			if idx := strings.Index(content, "\n\n--- Attached Content ---\n"); idx >= 0 {
+			if msg.DisplayContent != "" {
+				content = msg.DisplayContent
+			} else if idx := strings.Index(content, "\n\n--- Attached Content ---\n"); idx >= 0 {
 				content = content[:idx]
 			}
 			result = append(result, ChatUIMessage{Type: "user", Content: content, TurnIndex: turnIndex})

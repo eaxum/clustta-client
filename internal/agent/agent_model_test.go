@@ -67,3 +67,16 @@ func TestOpenAIRequestIncludesDisabledReasoning(t *testing.T) {
 		t.Fatalf("request payload does not disable reasoning: %s", payload)
 	}
 }
+
+func TestOpenAIRequestOmitsDisplayContent(t *testing.T) {
+	messages := []Message{{Role: "user", Content: "expanded prompt", DisplayContent: "/who"}}
+	request := buildOpenAIRequest(openAIModelTerra, messages, nil)
+	payload, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if strings.Contains(string(payload), "display_content") || strings.Contains(string(payload), "/who") {
+		t.Fatalf("request payload includes UI-only content: %s", payload)
+	}
+}

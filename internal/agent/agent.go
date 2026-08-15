@@ -44,10 +44,11 @@ var llmHTTPClient = &http.Client{
 
 // Message represents a chat message in the conversation.
 type Message struct {
-	Role       string      `json:"role"`
-	Content    interface{} `json:"content"`
-	ToolCallID string      `json:"tool_call_id,omitempty"`
-	ToolCalls  []ToolCall  `json:"tool_calls,omitempty"`
+	Role           string      `json:"role"`
+	Content        interface{} `json:"content"`
+	DisplayContent string      `json:"display_content,omitempty"`
+	ToolCallID     string      `json:"tool_call_id,omitempty"`
+	ToolCalls      []ToolCall  `json:"tool_calls,omitempty"`
 }
 
 // ToolCall represents a tool invocation requested by the LLM.
@@ -731,9 +732,15 @@ func callOpenAICompat(ctx context.Context, apiKey, endpoint, model string, messa
 }
 
 func buildOpenAIRequest(model string, messages []Message, tools []openAITool) openAIRequest {
+	providerMessages := make([]Message, len(messages))
+	copy(providerMessages, messages)
+	for index := range providerMessages {
+		providerMessages[index].DisplayContent = ""
+	}
+
 	return openAIRequest{
 		Model:           model,
-		Messages:        messages,
+		Messages:        providerMessages,
 		Tools:           tools,
 		ReasoningEffort: reasoningEffortForModel(model),
 	}

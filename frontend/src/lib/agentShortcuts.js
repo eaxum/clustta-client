@@ -77,6 +77,15 @@ export function isAgentShortcut(command) {
     || ['/produce', '/invite'].includes(normalized);
 }
 
+const restorableShortcutCommands = ['/setup', '/production', '/mine', '/clear', '/who', '/summary'];
+
+export function restoreShortcutDisplay(prompt) {
+  for (const command of restorableShortcutCommands) {
+    if (expandShortcut(command)?.prompt === prompt) return command;
+  }
+  return '';
+}
+
 // expandShortcut takes raw input and returns either a rewritten prompt string, a synthetic local
 // reply (no LLM call), or null when the input is not a shortcut and should be sent verbatim.
 export function expandShortcut(rawInput) {

@@ -146,11 +146,12 @@ export function RetryLastTurn(projectPath) {
  * Results are streamed back via Wails events: agent-status, agent-tool-start, agent-tool-result, agent-response, agent-error.
  * @param {string} projectPath
  * @param {string} message
+ * @param {string} displayMessage
  * @param {string} attachmentPath
  * @returns {$CancellablePromise<void>}
  */
-export function SendMessage(projectPath, message, attachmentPath) {
-    return $Call.ByID(3870210951, projectPath, message, attachmentPath);
+export function SendMessage(projectPath, message, displayMessage, attachmentPath) {
+    return $Call.ByID(3870210951, projectPath, message, displayMessage, attachmentPath);
 }
 
 /**
