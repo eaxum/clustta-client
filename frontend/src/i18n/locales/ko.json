@@ -1079,8 +1079,6 @@
     "quickCommands": "빠른 명령",
     "noConfiguredScripts": "설정된 스크립트 파일을 찾을 수 없습니다",
     "noMatches": "일치하는 항목 없음",
-    "tracked": "추적됨",
-    "untracked": "추적되지 않음",
     "type": "유형",
     "status": "상태",
     "asset": "작업",

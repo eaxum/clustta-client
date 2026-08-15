@@ -244,9 +244,9 @@ const composerMenuItems = computed(() => {
     .filter((reference) => reference.name.toLowerCase().includes(query))
     .map((reference) => ({
       key: reference.path,
-      label: reference.name,
-      meta: `${reference.extension} - ${reference.tracked ? t('panes.tracked') : t('panes.untracked')}`,
-      description: reference.path,
+      label: reference.name.toLowerCase().endsWith(reference.extension.toLowerCase())
+        ? reference.name
+        : `${reference.name}${reference.extension}`,
       reference,
       type: 'script',
     }));
@@ -1426,10 +1426,11 @@ onUnmounted(() => {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  /* gap: 0.25rem; */
   min-height: 0;
   padding: 0.75rem 0.5rem;
   overflow-y: auto;
+  /* background-color: crimson; */
 }
 
 .console-messages::-webkit-scrollbar {

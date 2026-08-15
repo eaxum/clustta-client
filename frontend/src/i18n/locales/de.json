@@ -1064,8 +1064,6 @@
     "quickCommands": "Schnellbefehle",
     "noConfiguredScripts": "Keine konfigurierten Skriptdateien gefunden",
     "noMatches": "Keine Treffer",
-    "tracked": "Verfolgt",
-    "untracked": "Nicht verfolgt",
     "type": "Typ",
     "status": "Status",
     "asset": "Aufgabe",

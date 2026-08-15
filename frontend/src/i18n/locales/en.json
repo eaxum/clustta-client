@@ -1163,8 +1163,6 @@
     "quickCommands": "Quick commands",
     "noConfiguredScripts": "No configured script files found",
     "noMatches": "No matches",
-    "tracked": "Tracked",
-    "untracked": "Untracked",
     "you": "You",
     "clustta": "Clustta",
     "searchDependencies": "Search for dependencies to add",

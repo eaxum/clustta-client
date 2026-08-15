@@ -1064,8 +1064,6 @@
     "quickCommands": "Comandos rápidos",
     "noConfiguredScripts": "No se encontraron archivos de script configurados",
     "noMatches": "Sin coincidencias",
-    "tracked": "Rastreado",
-    "untracked": "No rastreado",
     "type": "Tipo",
     "status": "Estado",
     "asset": "Tarea",

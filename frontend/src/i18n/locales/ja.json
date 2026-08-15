@@ -1064,8 +1064,6 @@
     "quickCommands": "クイックコマンド",
     "noConfiguredScripts": "設定されたスクリプトファイルがありません",
     "noMatches": "一致する項目はありません",
-    "tracked": "追跡済み",
-    "untracked": "未追跡",
     "type": "タイプ",
     "status": "ステータス",
     "asset": "タスク",

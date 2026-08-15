@@ -1063,8 +1063,6 @@
     "quickCommands": "Comandos rápidos",
     "noConfiguredScripts": "Nenhum arquivo de script configurado foi encontrado",
     "noMatches": "Nenhuma correspondência",
-    "tracked": "Rastreado",
-    "untracked": "Não rastreado",
     "type": "Tipo",
     "status": "Status",
     "asset": "Tarefa",
