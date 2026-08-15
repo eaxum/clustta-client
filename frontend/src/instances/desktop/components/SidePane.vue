@@ -258,13 +258,12 @@ onBeforeUnmount(() => {
 	padding: .1rem;
 	align-items: center;
 	width: 100%;
+	min-width: 50px;
 	max-width: 240px;
 	height: 100%;
 	transition: all 0.1s cubic-bezier(0.6, 0.05, 0.01, 0.99);
 	background-color: var(--surface-1);
-	/* background-color: crimson; */
-
-	/* flex: 1 1 100%; */
+	/* background-color: forestgreen; */
 }
 
 .side-pane-content {

@@ -5,7 +5,9 @@
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
 
-      <ClusttaLogo v-if="os !== 'darwin'" :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
+      <div v-if="os !== 'darwin'" class="clustta-logo-left" >
+        <ClusttaLogo :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
+      </div>
 
       <div ref="studioTabsParent" class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode && stage.selectedStage !== 'settings'" 
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
@@ -677,6 +679,13 @@ onBeforeUnmount(() => {
   gap: 10px;
 }
 
+.clustta-logo-left{
+  min-width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .titlebar-left {
   display: flex;
   box-sizing: border-box;
@@ -703,7 +712,7 @@ onBeforeUnmount(() => {
   /* border-bottom: var(--transparent-line); */
   background-color: var(--surface-1);
   z-index: 999999999;
-  padding-left: .2rem;
+  /* padding-left: .2rem; */
   transition: background-color 0.3s ease;
 }
 
