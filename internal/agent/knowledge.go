@@ -228,7 +228,7 @@ Common script scenarios:
 - Automated exports: Export assets from DCCs (Digital Content Creation tools)
 - File analysis: Scan assets for issues (missing textures, broken references)
 
-Scripts are generated for review and manual execution - they are never auto-executed by the agent.`,
+Generated scripts are displayed for review and are never auto-executed. Existing project Python scripts may be executed on approved scoped Blender assets with dcc_run_script.`,
 
 	"dcc_tools": `Clustta has built-in DCC (Digital Content Creation) tool integration. All DCC operations are fire-and-forget - they launch in a visible terminal window so the user can monitor progress.
 
@@ -250,7 +250,10 @@ Blender tools:
 - dcc_render: Headless render with optional frame range, engine, and output path
 - dcc_export: Export scoped assets to FBX, OBJ, glTF, or USD
 - dcc_run_python: Run approved inline Python code on scoped .blend files
-- dcc_run_script: Run an approved Python script on scoped .blend files
+- dcc_run_script: Run one referenced tracked script asset or project-relative Python file on scoped .blend files
+  - The script and targets resolve independently, so neither must be selected or in the current browser location
+  - A named collection can provide recursive targets, and explicit assets can span different collections
+  - Every script and target must exist on disk inside the configured project working directory
 - dcc_set_settings: Batch-modify render engine, resolution, FPS, samples, and output format
 - dcc_link_dependencies: Link or append dependency data into a target file
   - Auto-resolves sources from the asset's Clustta dependency graph

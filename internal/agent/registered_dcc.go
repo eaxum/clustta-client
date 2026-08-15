@@ -5,11 +5,18 @@ import (
 	"clustta/internal/agent/planning"
 	"clustta/internal/agent/scope"
 	"fmt"
+	"path/filepath"
+	"strings"
 	"time"
 )
 
+const (
+	dccOpenCommand      = "dcc_open"
+	dccRunScriptCommand = "dcc_run_script"
+)
+
 func init() {
-	registerPlannedDCC("dcc_open", "Open tracked asset files from a structured scope in their DCC application.", map[string]interface{}{
+	registerPlannedDCC(dccOpenCommand, "Open tracked asset files from a structured scope in their DCC application.", map[string]interface{}{
 		"app": map[string]interface{}{"type": "string", "description": "Optional DCC application override."},
 	}, nil, false, execOpenInDCC)
 	registerPlannedDCC("dcc_render", "Launch Blender renders for scoped .blend assets.", map[string]interface{}{
@@ -22,9 +29,14 @@ func init() {
 		"format":     map[string]interface{}{"type": "string", "enum": []string{"fbx", "obj", "gltf", "usd"}},
 		"output_dir": map[string]interface{}{"type": "string"},
 	}, []string{"format"}, false, execBlenderExport)
-	registerPlannedDCC("dcc_run_script", "Run a Python script on scoped .blend assets.", map[string]interface{}{
-		"script_path": map[string]interface{}{"type": "string"},
-	}, []string{"script_path"}, true, execBlenderRunScript)
+	scriptScope := agentcommands.ScopeSchema([]string{"asset"})
+	scriptScope["description"] = "Exactly one tracked Python script asset. Resolve it independently from the target scope."
+	registerPlannedDCC(dccRunScriptCommand, "Run one referenced Python script on tracked .blend assets anywhere in the project working directory.", map[string]interface{}{
+		"script_scope": scriptScope,
+		"script_path": map[string]interface{}{
+			"type": "string", "description": "A project-working-directory-relative or absolute .py file path. Use script_scope for a tracked script asset.",
+		},
+	}, nil, true, execBlenderRunScript)
 	registerPlannedDCC("dcc_run_python", "Run inline Python on scoped .blend assets.", map[string]interface{}{
 		"python_code": map[string]interface{}{"type": "string"},
 		"description": map[string]interface{}{"type": "string"},
@@ -78,6 +90,9 @@ func registerDCCLink() {
 					executorArgs[key] = value
 				}
 			}
+			if err := validateBlenderEntities(combined.Entities); err != nil {
+				return planning.Plan{}, err
+			}
 			plan := planning.Plan{
 				Command: "dcc_link_dependencies", Scope: combined,
 				Counts:    map[string]int{"changes": len(combined.Entities)},
@@ -110,8 +125,10 @@ func registerDCCLink() {
 }
 
 func dccParameters(extra map[string]interface{}, required []string) map[string]interface{} {
+	targetScope := agentcommands.ScopeSchema([]string{"asset"})
+	targetScope["description"] = "Target tracked assets. Use source entity for one named collection, or source entities with resolved asset or collection IDs for targets across locations. Explicit collection references default to recursive targeting."
 	properties := map[string]interface{}{
-		"scope": agentcommands.ScopeSchema([]string{"asset"}),
+		"scope": targetScope,
 	}
 	for key, value := range extra {
 		properties[key] = value
@@ -131,12 +148,28 @@ func registerPlannedDCC(name, description string, extra map[string]interface{}, 
 			if err != nil {
 				return planning.Plan{}, err
 			}
+			if name != dccOpenCommand {
+				if err := validateBlenderEntities(resolved.Entities); err != nil {
+					return planning.Plan{}, err
+				}
+			}
+			if name == dccRunScriptCommand {
+				scriptPath, scriptErr := resolveDCCScriptPath(projectPath, args)
+				if scriptErr != nil {
+					return planning.Plan{}, scriptErr
+				}
+				executorArgs["script_path"] = scriptPath
+				delete(executorArgs, "script_scope")
+			}
 			plan := planning.Plan{
 				Command: name, Scope: resolved, Counts: map[string]int{"changes": len(resolved.Entities)},
 				CreatedAt: time.Now().UTC(), Options: executorArgs,
 			}
 			if modifiesFiles {
 				plan.Warnings = append(plan.Warnings, "This job can modify working files. Create checkpoints before syncing the file changes.")
+			}
+			if name == dccRunScriptCommand {
+				plan.Warnings = append(plan.Warnings, fmt.Sprintf("Script: %s", filepath.Base(executorArgs["script_path"].(string))))
 			}
 			for _, entity := range resolved.Entities {
 				plan.Changes = append(plan.Changes, planning.Change{
@@ -171,15 +204,26 @@ func resolveDCCArgs(projectPath string, args map[string]interface{}) (scope.Resu
 	if err != nil {
 		return scope.Result{}, nil, err
 	}
+	if (req.Source == "entity" || req.Source == "entities") && !dccRecursiveSpecified(args) {
+		req.Recursive = true
+	}
 	resolved, err := scope.Resolve(projectPath, req)
 	if err != nil {
 		return scope.Result{}, nil, err
 	}
 	ids := make([]interface{}, 0, len(resolved.Entities))
+	assetIDs := make([]string, 0, len(resolved.Entities))
 	for _, entity := range resolved.Entities {
 		if entity.Type == scope.TypeAsset {
 			ids = append(ids, entity.ID)
+			assetIDs = append(assetIDs, entity.ID)
 		}
+	}
+	if len(assetIDs) == 0 {
+		return scope.Result{}, nil, fmt.Errorf("target scope resolved to no tracked assets")
+	}
+	if _, err := resolveAssetFilePaths(projectPath, assetIDs); err != nil {
+		return scope.Result{}, nil, err
 	}
 	executorArgs := map[string]interface{}{}
 	for key, value := range args {
@@ -189,4 +233,64 @@ func resolveDCCArgs(projectPath string, args map[string]interface{}) (scope.Resu
 	}
 	executorArgs["asset_ids"] = ids
 	return resolved, executorArgs, nil
+}
+
+func dccRecursiveSpecified(args map[string]interface{}) bool {
+	rawScope, ok := args["scope"].(map[string]interface{})
+	if !ok {
+		return false
+	}
+	_, specified := rawScope["recursive"]
+	return specified
+}
+
+func resolveDCCScriptPath(projectPath string, args map[string]interface{}) (string, error) {
+	scriptPath, hasPath := args["script_path"].(string)
+	scriptPath = strings.TrimSpace(scriptPath)
+	hasPath = hasPath && scriptPath != ""
+	_, hasScope := args["script_scope"]
+	if hasPath && hasScope {
+		return "", fmt.Errorf("provide script_scope or script_path, not both")
+	}
+
+	if hasScope {
+		req, err := agentcommands.ParseNamedScope(args, "script_scope", []scope.EntityType{scope.TypeAsset})
+		if err != nil {
+			return "", err
+		}
+		resolved, err := scope.Resolve(projectPath, req)
+		if err != nil {
+			return "", err
+		}
+		if len(resolved.Entities) != 1 || resolved.Entities[0].Type != scope.TypeAsset {
+			return "", fmt.Errorf("script_scope must resolve to exactly one tracked asset")
+		}
+		paths, err := resolveAssetFilePaths(projectPath, []string{resolved.Entities[0].ID})
+		if err != nil {
+			return "", err
+		}
+		scriptPath = paths[0]
+	} else if !hasPath || scriptPath == "" {
+		return "", fmt.Errorf("script_scope or script_path is required")
+	} else {
+		resolvedPath, err := resolveProjectFilePath(projectPath, scriptPath)
+		if err != nil {
+			return "", fmt.Errorf("script: %w", err)
+		}
+		scriptPath = resolvedPath
+	}
+
+	if !strings.EqualFold(filepath.Ext(scriptPath), ".py") {
+		return "", fmt.Errorf("script must be a .py file: %s", filepath.Base(scriptPath))
+	}
+	return scriptPath, nil
+}
+
+func validateBlenderEntities(entities []scope.Entity) error {
+	for _, entity := range entities {
+		if !strings.EqualFold(filepath.Ext(entity.Path), ".blend") && !strings.EqualFold(strings.TrimPrefix(entity.Extension, "."), "blend") {
+			return fmt.Errorf("asset %s is not a .blend file", entity.Name)
+		}
+	}
+	return nil
 }

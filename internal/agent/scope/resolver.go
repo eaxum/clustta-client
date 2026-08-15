@@ -119,6 +119,20 @@ func Resolve(projectPath string, req Request) (Result, error) {
 		entities = append(entities, untracked...)
 	case "entity":
 		entities = appendEntityScope(entities, req, collections, assets, collectionByID, allowed)
+	case "entities":
+		if len(req.EntityIDs) == 0 {
+			return Result{}, fmt.Errorf("entity_ids is required for entities scope")
+		}
+		for _, entityID := range req.EntityIDs {
+			if _, assetExists := assetByID[entityID]; !assetExists {
+				if _, collectionExists := collectionByID[entityID]; !collectionExists {
+					return Result{}, fmt.Errorf("scoped entity %q no longer exists", entityID)
+				}
+			}
+			entityRequest := req
+			entityRequest.EntityID = entityID
+			entities = appendEntityScope(entities, entityRequest, collections, assets, collectionByID, allowed)
+		}
 	default:
 		return Result{}, fmt.Errorf("unsupported scope source %q", req.Source)
 	}

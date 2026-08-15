@@ -166,23 +166,6 @@ func execBlenderExport(projectPath string, args map[string]interface{}) ToolResu
 	return ToolResult{Success: true, Data: fmt.Sprintf("Launched %s export for %d file(s) in terminal", strings.ToUpper(format), len(paths))}
 }
 
-// execRunTerminalCommand opens a terminal and runs a command string.
-func execRunTerminalCommand(projectPath string, args map[string]interface{}) ToolResult {
-	command := getStringArg(args, "command", "")
-	if command == "" {
-		return ToolResult{Success: false, Error: "command is required"}
-	}
-
-	title := getStringArg(args, "title", "Clustta Terminal")
-	workDir := filepath.Dir(projectPath)
-
-	if err := launchInTerminal(title, workDir, command); err != nil {
-		return ToolResult{Success: false, Error: err.Error()}
-	}
-
-	return ToolResult{Success: true, Data: "Command launched in terminal"}
-}
-
 // execBlenderRunScript runs a user-provided .py script on .blend files via terminal.
 func execBlenderRunScript(projectPath string, args map[string]interface{}) ToolResult {
 	assetIDs := getStringSliceArg(args, "asset_ids")
@@ -191,9 +174,11 @@ func execBlenderRunScript(projectPath string, args map[string]interface{}) ToolR
 		return ToolResult{Success: false, Error: "asset_ids and script_path are required"}
 	}
 
-	if _, err := os.Stat(scriptPath); err != nil {
-		return ToolResult{Success: false, Error: fmt.Sprintf("script file not found: %s", scriptPath)}
+	resolvedScriptPath, err := resolveProjectFilePath(projectPath, scriptPath)
+	if err != nil {
+		return ToolResult{Success: false, Error: fmt.Sprintf("invalid script path: %s", err.Error())}
 	}
+	scriptPath = resolvedScriptPath
 
 	blenderPath, err := findDCCExecutable("blender")
 	if err != nil {
@@ -495,8 +480,7 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 
 // --- Shared helpers ---
 
-// resolveAssetFilePaths looks up asset IDs and returns their absolute file paths.
-// Each path is validated to live inside the project directory so a malicious asset path cannot escape it.
+// resolveAssetFilePaths returns existing asset files inside the project working directory.
 func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -508,6 +492,10 @@ func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, err
 		return nil, err
 	}
 	defer tx.Rollback()
+	workingDir, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve project working directory: %w", err)
+	}
 
 	paths := make([]string, 0, len(assetIDs))
 	for _, id := range assetIDs {
@@ -521,7 +509,7 @@ func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, err
 			return nil, fmt.Errorf("asset %s (%s) has no file path", asset.Name, id)
 		}
 
-		safePath, err := validateAssetPath(projectPath, fp)
+		safePath, err := validateProjectFilePath(workingDir, fp)
 		if err != nil {
 			return nil, fmt.Errorf("asset %s (%s): %w", asset.Name, id, err)
 		}
@@ -532,25 +520,69 @@ func resolveAssetFilePaths(projectPath string, assetIDs []string) ([]string, err
 	return paths, nil
 }
 
-// validateAssetPath resolves fp relative to the project directory and rejects
-// paths that escape the project root. Returns the cleaned absolute path.
+// validateAssetPath resolves an asset against its configured working directory.
 func validateAssetPath(projectPath, fp string) (string, error) {
-	projectDir, err := filepath.Abs(filepath.Dir(projectPath))
+	return resolveProjectFilePath(projectPath, fp)
+}
+
+func resolveProjectFilePath(projectPath, filePath string) (string, error) {
+	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return "", fmt.Errorf("invalid project path: %w", err)
+		return "", fmt.Errorf("failed to open database: %w", err)
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	workingDir, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve project working directory: %w", err)
+	}
+	return validateProjectFilePath(workingDir, filePath)
+}
+
+func validateProjectFilePath(workingDir, filePath string) (string, error) {
+	workingDir = strings.TrimSpace(workingDir)
+	filePath = strings.TrimSpace(filePath)
+	if workingDir == "" {
+		return "", fmt.Errorf("project working directory is empty")
+	}
+	if filePath == "" {
+		return "", fmt.Errorf("file path is empty")
 	}
 
-	if !filepath.IsAbs(fp) {
-		fp = filepath.Join(projectDir, fp)
+	projectDir, err := filepath.Abs(filepath.Clean(workingDir))
+	if err != nil {
+		return "", fmt.Errorf("invalid project working directory: %w", err)
 	}
-	abs, err := filepath.Abs(filepath.Clean(fp))
+	if !filepath.IsAbs(filePath) {
+		filePath = filepath.Join(projectDir, filePath)
+	}
+	abs, err := filepath.Abs(filepath.Clean(filePath))
 	if err != nil {
 		return "", fmt.Errorf("invalid file path: %w", err)
 	}
-
-	rootWithSep := projectDir + string(filepath.Separator)
-	if !strings.EqualFold(abs, projectDir) && !strings.HasPrefix(strings.ToLower(abs)+string(filepath.Separator), strings.ToLower(rootWithSep)) {
-		return "", fmt.Errorf("path %s is outside the project directory", abs)
+	relative, err := filepath.Rel(projectDir, abs)
+	if err != nil || filepath.IsAbs(relative) || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("path %s is outside the project working directory %s", abs, projectDir)
+	}
+	info, err := os.Stat(abs)
+	if err != nil {
+		return "", fmt.Errorf("file does not exist on disk: %s", abs)
+	}
+	if info.IsDir() {
+		return "", fmt.Errorf("path is a directory, not a file: %s", abs)
+	}
+	canonicalRoot, rootErr := filepath.EvalSymlinks(projectDir)
+	canonicalPath, pathErr := filepath.EvalSymlinks(abs)
+	if rootErr == nil && pathErr == nil {
+		canonicalRelative, relErr := filepath.Rel(canonicalRoot, canonicalPath)
+		if relErr != nil || filepath.IsAbs(canonicalRelative) || canonicalRelative == ".." || strings.HasPrefix(canonicalRelative, ".."+string(filepath.Separator)) {
+			return "", fmt.Errorf("path %s resolves outside the project working directory %s", abs, projectDir)
+		}
+		abs = canonicalPath
 	}
 	return abs, nil
 }

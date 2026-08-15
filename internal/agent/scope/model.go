@@ -28,6 +28,7 @@ type Entity struct {
 type Request struct {
 	Source    string                 `json:"source"`
 	EntityID  string                 `json:"entity_id,omitempty"`
+	EntityIDs []string               `json:"entity_ids,omitempty"`
 	Path      string                 `json:"path,omitempty"`
 	Recursive bool                   `json:"recursive"`
 	Types     []EntityType           `json:"types,omitempty"`

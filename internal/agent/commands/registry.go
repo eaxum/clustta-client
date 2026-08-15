@@ -347,10 +347,14 @@ func fingerprint(result scope.Result) string {
 func ScopeSchema(typeEnums []string) map[string]interface{} {
 	return map[string]interface{}{
 		"type":        "object",
-		"description": "Structured target scope. Use selection for selected items, here for the current collection, entity for one entity, or project for the whole project.",
+		"description": "Structured target scope. Use selection for browser-selected items, here for the current collection, entity or entities for explicit resolved references, or project for the whole project.",
 		"properties": map[string]interface{}{
-			"source":    map[string]interface{}{"type": "string", "enum": []string{"selection", "here", "entity", "project"}},
+			"source":    map[string]interface{}{"type": "string", "enum": []string{"selection", "here", "entity", "entities", "project"}},
 			"entity_id": map[string]interface{}{"type": "string"},
+			"entity_ids": map[string]interface{}{
+				"type": "array", "items": map[string]interface{}{"type": "string"},
+				"description": "Explicit IDs returned by query_entities. Use with source entities for targets across locations.",
+			},
 			"path":      map[string]interface{}{"type": "string"},
 			"recursive": map[string]interface{}{"type": "boolean"},
 			"types":     map[string]interface{}{"type": "array", "items": map[string]interface{}{"type": "string", "enum": typeEnums}},
