@@ -8,6 +8,9 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as repository$0 from "../internal/repository/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as settings$0 from "../internal/settings/models.js";
 
 /**
@@ -134,12 +137,22 @@ export function DeleteIntegrationCredential(integrationId) {
 }
 
 /**
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<repository$0.AgentScriptSettings>}
+ */
+export function GetAgentScriptSettings(projectPath) {
+    return $Call.ByID(2430138693, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * GetAllLocationPaths retrieves all configured project locations.
  * @returns {$CancellablePromise<settings$0.ProjectLocation[]>}
  */
 export function GetAllLocationPaths() {
     return $Call.ByID(1879856430).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType6($result);
     }));
 }
 
@@ -200,7 +213,7 @@ export function GetIconScheme() {
  */
 export function GetIgnoreListPresets() {
     return $Call.ByID(4182633768).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -212,7 +225,7 @@ export function GetIgnoreListPresets() {
  */
 export function GetIntegrationCredential(integrationId) {
     return $Call.ByID(3906565165, integrationId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType8($result);
     }));
 }
 
@@ -302,7 +315,7 @@ export function GetPinnedProjects(studioName) {
  */
 export function GetProjectDependencyPresets(projectId) {
     return $Call.ByID(3058392474, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType8($result);
+        return $$createType9($result);
     }));
 }
 
@@ -330,7 +343,7 @@ export function GetProjectLocation(projectID) {
  */
 export function GetProjectWorkspaces(projectId) {
     return $Call.ByID(2164081225, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType8($result);
+        return $$createType9($result);
     }));
 }
 
@@ -368,7 +381,7 @@ export function GetShowTypeIcons() {
  */
 export function GetStudios(path) {
     return $Call.ByID(2852753313, path).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType10($result);
+        return $$createType11($result);
     }));
 }
 
@@ -519,6 +532,16 @@ export function RemoveProjectWorkspace(projectId, workspaceName) {
  */
 export function SaveIntegrationCredential(cred) {
     return $Call.ByID(927307362, cred);
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string} directory
+ * @param {string[]} extensions
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetAgentScriptSettings(projectPath, directory, extensions) {
+    return $Call.ByID(2656688553, projectPath, directory, extensions);
 }
 
 /**
@@ -779,9 +802,10 @@ const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = settings$0.LocationHealth.createFrom;
 const $$createType3 = $Create.Array($$createType2);
 const $$createType4 = settings$0.SystemBookmarksHealth.createFrom;
-const $$createType5 = $Create.Array($$createType0);
-const $$createType6 = $Create.Map($Create.Any, $$createType1);
-const $$createType7 = settings$0.IntegrationCredential.createFrom;
-const $$createType8 = $Create.Array($Create.Any);
-const $$createType9 = settings$0.Studio.createFrom;
-const $$createType10 = $Create.Array($$createType9);
+const $$createType5 = repository$0.AgentScriptSettings.createFrom;
+const $$createType6 = $Create.Array($$createType0);
+const $$createType7 = $Create.Map($Create.Any, $$createType1);
+const $$createType8 = settings$0.IntegrationCredential.createFrom;
+const $$createType9 = $Create.Array($Create.Any);
+const $$createType10 = settings$0.Studio.createFrom;
+const $$createType11 = $Create.Array($$createType10);

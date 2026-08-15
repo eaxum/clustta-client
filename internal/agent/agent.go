@@ -452,6 +452,7 @@ func buildSystemPrompt(projectContext string) string {
 - Use batch_distribute to distribute a structured asset scope across several users without enumerating IDs.
 - DCC jobs are fire-and-forget. Inform the user when the scoped job was started.
 - For dcc_run_script, resolve the script independently with script_scope or a project-working-directory-relative script_path. Resolve named target assets or collections with query_entities, then use an entity or entities scope; do not substitute the current browser location unless the user explicitly says "here".
+- A structured script_references entry maps the user's ~token to a validated candidate. Use script_scope with its ID when tracked, or script_path when untracked; never infer a path from the visible token alone.
 - A target collection uses source entity with the collection ID and defaults to recursive targeting. Explicit target assets or collections may span locations through source entities and entity_ids.
 - DCC planning verifies that every target and script exists on disk inside the configured project working directory before approval.
 - For DCC tool detection: .blend files use Blender, .ma/.mb use Maya, .hip use Houdini. Users can also set BLENDER_PATH, MAYA_PATH, etc. environment variables.

@@ -6,9 +6,10 @@ import (
 )
 
 type turnContext struct {
-	CurrentLocation map[string]interface{}   `json:"current_location"`
-	HereScope       map[string]interface{}   `json:"here_scope"`
-	Selection       []map[string]interface{} `json:"selection"`
+	CurrentLocation  map[string]interface{}   `json:"current_location"`
+	HereScope        map[string]interface{}   `json:"here_scope"`
+	Selection        []map[string]interface{} `json:"selection"`
+	ScriptReferences []map[string]interface{} `json:"script_references"`
 }
 
 func parseTurnContext(message string) turnContext {

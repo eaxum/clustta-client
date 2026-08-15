@@ -6,6 +6,45 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class AgentScriptSettings {
+    /**
+     * Creates a new AgentScriptSettings instance.
+     * @param {Partial<AgentScriptSettings>} [$$source = {}] - The source object to create the AgentScriptSettings.
+     */
+    constructor($$source = {}) {
+        if (!("directory" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["directory"] = "";
+        }
+        if (!("extensions" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["extensions"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AgentScriptSettings instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AgentScriptSettings}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("extensions" in $$parsedSource) {
+            $$parsedSource["extensions"] = $$createField1_0($$parsedSource["extensions"]);
+        }
+        return new AgentScriptSettings(/** @type {Partial<AgentScriptSettings>} */($$parsedSource));
+    }
+}
+
 export class CompatTimeline {
     /**
      * Creates a new CompatTimeline instance.

@@ -5,7 +5,7 @@
 import { ignoreTemplates } from '@/lib/ignoreTemplates';
 
 // help text shown by /help, also used by the autocomplete menu.
-const shortcuts = [
+export const agentShortcuts = [
   { command: '/setup', args: '(attach a script)', description: 'Scaffold an animation project from the attached script.' },
   { command: '/production', args: '(attach a file)', description: 'Set up an animation production with the attached file as reference.' },
   { command: '/add', args: '<email>', description: 'Add a collaborator to this project.' },
@@ -67,8 +67,14 @@ function matchIgnorePreset(query) {
 
 // Renders the /help reply directly without going through the LLM.
 function renderHelp() {
-  const lines = shortcuts.map(s => `- ${s.command} ${s.args} - ${s.description}`);
+  const lines = agentShortcuts.map(s => `- ${s.command} ${s.args} - ${s.description}`);
   return ['Available shortcuts:', ...lines].join('\n');
+}
+
+export function isAgentShortcut(command) {
+  const normalized = command.toLowerCase();
+  return agentShortcuts.some((shortcut) => shortcut.command === normalized)
+    || ['/produce', '/invite'].includes(normalized);
 }
 
 // expandShortcut takes raw input and returns either a rewritten prompt string, a synthetic local

@@ -1,13 +1,48 @@
 package services
 
 import (
+	"clustta/internal/repository"
 	"clustta/internal/settings"
+	"clustta/internal/utils"
 	"os"
 	"strings"
 	"sync"
 )
 
 type SettingsService struct{}
+
+func (s *SettingsService) GetAgentScriptSettings(projectPath string) (repository.AgentScriptSettings, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return repository.AgentScriptSettings{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return repository.AgentScriptSettings{}, err
+	}
+	defer tx.Rollback()
+	return repository.GetAgentScriptSettings(tx)
+}
+
+func (s *SettingsService) SetAgentScriptSettings(projectPath, directory string, extensions []string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := repository.SetAgentScriptSettings(tx, repository.AgentScriptSettings{
+		Directory: directory, Extensions: extensions,
+	}); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
 
 var (
 	bridgeLifecycleMu sync.RWMutex

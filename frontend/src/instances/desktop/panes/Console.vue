@@ -12,7 +12,7 @@
             <div class="msg-user-content">
               <div class="msg-user-bubble">
                 <div v-if="parseUserContext(message.content).context" class="msg-context-tag">{{ parseUserContext(message.content).context }}</div>
-                {{ parseUserContext(message.content).body }}
+                <span v-html="formatContent(parseUserContext(message.content).body)"></span>
               </div>
               <div class="msg-message-actions">
                 <ActionButton :icon="getAppIcon('copy')" :isDisabled="isProcessing"
@@ -75,6 +75,7 @@
         <div v-if="!messages.length && isApiKeyConfigured" class="console-empty">
           <div class="empty-text">{{ emptyStateTitle }}</div>
           <div class="empty-subtext">{{ emptyStateSubtext }}</div>
+          <div class="empty-subtext">{{ $t('panes.agentHelpHintBefore') }} <button class="agent-inline-token empty-help-command" @click="insertHelpCommand">/help</button> {{ $t('panes.agentHelpHintAfter') }}</div>
         </div>
 
         <div v-if="!messages.length && !isApiKeyConfigured" class="console-empty">
@@ -84,13 +85,23 @@
       </div>
 
       <div class="console-input-container">
-        <div class="console-input-wrapper" id="agent-console-drop-zone" data-file-drop-target>
+        <div ref="inputWrapperRef" class="console-input-wrapper" id="agent-console-drop-zone" data-file-drop-target>
           <div v-if="attachmentPath" class="console-attachment-row">
             <Chip :icon="getAppIcon('paper-clip')" :label="attachmentName" :onRemove="removeAttachment" />
           </div>
 
-          <textarea ref="textareaRef" v-model="currentMessage" class="console-input" type="text" :placeholder="inputPlaceholder"
-            spellcheck="false" @input="handleInput" @keydown.enter.exact.prevent="sendMessage" :disabled="isProcessing" />
+          <div class="console-editor">
+            <div ref="inputHighlightRef" class="console-input console-input-highlight" aria-hidden="true"
+              v-html="composerHighlightHtml"></div>
+            <textarea ref="textareaRef" v-model="currentMessage" class="console-input console-input-editor" type="text"
+              :placeholder="inputPlaceholder" spellcheck="false" @input="handleInput" @click="updateComposerMenu"
+              @keyup.stop="updateComposerMenu" @scroll="syncComposerScroll" @keydown.stop="handleComposerKeydown" @blur="closeComposerMenu"
+              :disabled="isProcessing" />
+          </div>
+
+          <AgentComposerMenu :visible="composerMenuVisible" :title="composerMenuTitle" :items="composerMenuItems"
+            :activeIndex="composerMenuIndex" :menuStyle="composerMenuStyle" :emptyText="composerMenuEmptyText"
+            @select="selectComposerItem" />
 
           <div class="console-toolbar">
             <div class="console-toolbar-left">
@@ -129,10 +140,11 @@ import { computed, nextTick, onActivated, onMounted, onUnmounted, ref, watch } f
 import { useI18n } from 'vue-i18n';
 import { Events } from '@wailsio/runtime';
 import emitter from '@/lib/mitt';
-import { expandShortcut } from '@/lib/agentShortcuts';
+import { agentShortcuts, expandShortcut, isAgentShortcut } from '@/lib/agentShortcuts';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import AgentComposerMenu from '@/instances/desktop/components/AgentComposerMenu.vue';
 import Chip from '@/instances/common/components/Chip.vue';
 import ConsoleChip from '@/instances/desktop/components/ConsoleChip.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
@@ -170,6 +182,8 @@ const props = defineProps({
 
 const { t } = useI18n();
 
+const AGENT_DRAFT_STORAGE_PREFIX = 'clustta_agent_draft:';
+
 // refs
 const attachmentPath = ref('');
 const availableModels = ref([]);
@@ -179,7 +193,15 @@ const isApiKeyConfigured = ref(false);
 const isProcessing = ref(false);
 const messages = ref([]);
 const messagesContainer = ref(null);
+const inputHighlightRef = ref(null);
+const inputWrapperRef = ref(null);
+const composerMenuIndex = ref(0);
+const composerMenuStyle = ref({});
+const composerTrigger = ref(null);
 const recentResultEntities = ref([]);
+const scriptReferences = ref([]);
+const scriptReferencesLoadedFor = ref('');
+const selectedScriptReferences = ref(new Map());
 const selectedModel = ref('');
 const textareaRef = ref(null);
 
@@ -198,6 +220,48 @@ const inputPlaceholder = computed(() => {
   if (!isApiKeyConfigured.value) return t('panes.configureLlmInSettings');
   return t('panes.askAnything');
 });
+
+const composerHighlightHtml = computed(() => formatComposerText(currentMessage.value));
+
+const composerMenuItems = computed(() => {
+  const trigger = composerTrigger.value;
+  if (!trigger) return [];
+  const query = trigger.query.toLowerCase();
+  if (trigger.character === '/') {
+    return agentShortcuts
+      .filter((shortcut) => shortcut.command.slice(1).includes(query))
+      .map((shortcut) => ({
+        key: shortcut.command,
+        label: shortcut.command,
+        meta: shortcut.args,
+        description: shortcut.description,
+        value: shortcut.command,
+        type: 'command',
+      }));
+  }
+  return scriptReferences.value
+    .filter((reference) => reference.name.toLowerCase().includes(query))
+    .map((reference) => ({
+      key: reference.path,
+      label: reference.name,
+      meta: `${reference.extension} - ${reference.tracked ? t('panes.tracked') : t('panes.untracked')}`,
+      description: reference.path,
+      reference,
+      type: 'script',
+    }));
+});
+
+const composerMenuEmptyText = computed(() => {
+  if (composerTrigger.value?.character === '~' && !scriptReferences.value.length) {
+    return t('panes.noConfiguredScripts');
+  }
+  return t('panes.noMatches');
+});
+
+const composerMenuTitle = computed(() => composerTrigger.value?.character === '~'
+  ? t('panes.scripts')
+  : t('panes.quickCommands'));
+const composerMenuVisible = computed(() => !!composerTrigger.value && !isProcessing.value);
 
 const isConsoleModalOpen = computed(() => modals.modalStates.consoleModal);
 
@@ -353,6 +417,28 @@ const escapeHtml = (text) => {
   return div.innerHTML;
 };
 
+const protectAgentTokens = (text) => {
+  const tokens = [];
+  const protectedText = `${text || ''}`.replace(/(^|[\s(,])((?:\/[A-Za-z][\w-]*)|(?:~(?:"[^"\n]+"|[^\s,\n]+)))/g, (match, prefix, token) => {
+    if (token.startsWith('/') && !isAgentShortcut(token)) return match;
+    const index = tokens.push(token) - 1;
+    return `${prefix}\uE000${index}\uE001`;
+  });
+  return { protectedText, tokens };
+};
+
+const restoreAgentTokens = (html, tokens) => html.replace(/\uE000(\d+)\uE001/g, (match, index) => {
+  const token = tokens[Number(index)];
+  const kind = token?.startsWith('/') ? 'command' : 'script';
+  return `<span class="agent-inline-token agent-inline-token-${kind}">${escapeHtml(token)}</span>`;
+});
+
+const formatComposerText = (text) => {
+  const { protectedText, tokens } = protectAgentTokens(text);
+  const highlighted = restoreAgentTokens(escapeHtml(protectedText), tokens);
+  return `${highlighted || ''}\n`;
+};
+
 const formatToolLabel = (toolName, count) => {
   const label = toolName.replace(/_/g, ' ');
   if (count > 1) return `${label} (${count})`;
@@ -425,7 +511,8 @@ const parseAssistantSegments = (text) => {
 // Renders a small subset of markdown: ISO dates, code blocks, inline code, bold, line breaks.
 const formatContent = (text) => {
   if (!text) return '';
-  let escaped = escapeHtml(text);
+  const { protectedText, tokens } = protectAgentTokens(text);
+  let escaped = escapeHtml(protectedText);
   escaped = escaped.replace(/(\d{4}-\d{2}-\d{2})[T ](?:at )?((\d{2}):(\d{2})(?::\d{2})?Z?)/g, (match, datePart, timePart, hours, minutes) => {
     try {
       const date = new Date(datePart + 'T' + timePart.replace('at ', '') + (timePart.endsWith('Z') ? '' : 'Z'));
@@ -437,7 +524,7 @@ const formatContent = (text) => {
   escaped = escaped.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
   escaped = escaped.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   escaped = escaped.replace(/\n/g, '<br>');
-  return escaped;
+  return restoreAgentTokens(escaped, tokens);
 };
 
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
@@ -516,11 +603,182 @@ const openAdvancedSettings = () => {
 
 const getToolIcon = (toolName) => toolIconMap[toolName] || 'cog';
 
-// Grows or shrinks the input textarea to match its content.
+const insertHelpCommand = async () => {
+  currentMessage.value = '/help';
+  await nextTick();
+  textareaRef.value?.focus();
+  textareaRef.value?.setSelectionRange(currentMessage.value.length, currentMessage.value.length);
+  handleInput();
+};
+
+const draftStorageKey = (projectPath) => `${AGENT_DRAFT_STORAGE_PREFIX}${encodeURIComponent(projectPath)}`;
+
+const saveComposerDraft = (projectPath = projectStore.activeProject?.uri) => {
+  if (!projectPath) return;
+  try {
+    const key = draftStorageKey(projectPath);
+    if (!currentMessage.value) {
+      localStorage.removeItem(key);
+      return;
+    }
+    const scriptReferences = [...selectedScriptReferences.value.values()]
+      .filter((reference) => currentMessage.value.includes(reference.token));
+    localStorage.setItem(key, JSON.stringify({ message: currentMessage.value, scriptReferences }));
+  } catch (error) {
+    console.warn('Failed to save agent draft:', error);
+  }
+};
+
+const restoreComposerDraft = (projectPath) => {
+  currentMessage.value = '';
+  selectedScriptReferences.value = new Map();
+  if (!projectPath) return;
+  try {
+    const savedDraft = localStorage.getItem(draftStorageKey(projectPath));
+    if (!savedDraft) return;
+    const draft = JSON.parse(savedDraft);
+    currentMessage.value = typeof draft?.message === 'string' ? draft.message : '';
+    const references = Array.isArray(draft?.scriptReferences) ? draft.scriptReferences : [];
+    selectedScriptReferences.value = new Map(references
+      .filter((reference) => reference?.token && currentMessage.value.includes(reference.token))
+      .map((reference) => [reference.token, reference]));
+  } catch (error) {
+    console.warn('Failed to restore agent draft:', error);
+  }
+};
+
+const loadScriptReferences = async () => {
+  const projectPath = projectStore.activeProject?.uri;
+  if (!projectPath || scriptReferencesLoadedFor.value === projectPath) return;
+  scriptReferencesLoadedFor.value = projectPath;
+  try {
+    scriptReferences.value = await AgentService.ListScriptReferences(projectPath) || [];
+  } catch (error) {
+    scriptReferences.value = [];
+    console.error('AgentService.ListScriptReferences failed:', error);
+  }
+};
+
+const findComposerTrigger = () => {
+  const input = textareaRef.value;
+  if (!input) return null;
+  const cursor = input.selectionStart;
+  const prefix = currentMessage.value.slice(0, cursor);
+  const match = prefix.match(/(^|[\s,(])([/~])([^\s,]*)$/);
+  if (!match) return null;
+  return {
+    character: match[2],
+    query: match[3].replace(/^"/, ''),
+    start: cursor - match[2].length - match[3].length,
+    end: cursor,
+  };
+};
+
+const updateComposerMenuAnchor = () => {
+  const wrapper = inputWrapperRef.value;
+  if (!wrapper || !composerTrigger.value) return;
+  const rect = wrapper.getBoundingClientRect();
+  const viewportPadding = 8;
+  const menuGap = 6;
+  composerMenuStyle.value = {
+    left: `${Math.max(viewportPadding, rect.left)}px`,
+    bottom: `${window.innerHeight - rect.top + menuGap}px`,
+    width: `${Math.min(rect.width, window.innerWidth - (viewportPadding * 2))}px`,
+    maxHeight: `${Math.max(100, Math.min(320, rect.top - menuGap - viewportPadding))}px`,
+  };
+};
+
+const updateComposerMenu = async () => {
+  composerTrigger.value = findComposerTrigger();
+  if (!composerTrigger.value) return;
+  if (composerTrigger.value.character === '~') await loadScriptReferences();
+  composerMenuIndex.value = Math.min(composerMenuIndex.value, Math.max(0, composerMenuItems.value.length - 1));
+  await nextTick();
+  updateComposerMenuAnchor();
+};
+
+const closeComposerMenu = () => {
+  window.setTimeout(() => { composerTrigger.value = null; }, 0);
+};
+
+const scriptToken = (reference) => reference.name.includes(' ') ? `~"${reference.name}"` : `~${reference.name}`;
+
+const selectComposerItem = async (item) => {
+  const trigger = composerTrigger.value;
+  if (!trigger) return;
+  const inserted = item.type === 'script' ? scriptToken(item.reference) : item.value;
+  currentMessage.value = `${currentMessage.value.slice(0, trigger.start)}${inserted} ${currentMessage.value.slice(trigger.end)}`;
+  if (item.type === 'script') {
+    const selected = new Map(selectedScriptReferences.value);
+    selected.set(inserted, { ...item.reference, token: inserted });
+    selectedScriptReferences.value = selected;
+  }
+  composerTrigger.value = null;
+  await nextTick();
+  const cursor = trigger.start + inserted.length + 1;
+  textareaRef.value?.focus();
+  textareaRef.value?.setSelectionRange(cursor, cursor);
+  handleInput();
+};
+
+const handleComposerKeydown = (event) => {
+  if (composerMenuVisible.value) {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      event.stopPropagation();
+      const direction = event.key === 'ArrowDown' ? 1 : -1;
+      const length = composerMenuItems.value.length;
+      if (length) composerMenuIndex.value = (composerMenuIndex.value + direction + length) % length;
+      return;
+    }
+    if ((event.key === 'Enter' || event.key === 'Tab') && composerMenuItems.value.length) {
+      event.preventDefault();
+      event.stopPropagation();
+      selectComposerItem(composerMenuItems.value[composerMenuIndex.value]);
+      return;
+    }
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      composerTrigger.value = null;
+      return;
+    }
+  }
+  if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey && !event.altKey && !event.metaKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+};
+
+const syncComposerScroll = () => {
+  if (!textareaRef.value || !inputHighlightRef.value) return;
+  inputHighlightRef.value.scrollTop = textareaRef.value.scrollTop;
+  inputHighlightRef.value.scrollLeft = textareaRef.value.scrollLeft;
+  updateComposerMenuAnchor();
+};
+
+const clearComposer = () => {
+  currentMessage.value = '';
+  composerTrigger.value = null;
+  selectedScriptReferences.value = new Map();
+  if (textareaRef.value) textareaRef.value.style.height = 'auto';
+};
+
+const activeScriptReferences = () => [...selectedScriptReferences.value.entries()]
+  .filter(([token]) => currentMessage.value.includes(token))
+  .map(([, reference]) => reference);
+
+// Grows or shrinks the input and refreshes token/menu state.
 const handleInput = () => {
   if (!textareaRef.value) return;
   textareaRef.value.style.height = 'auto';
   textareaRef.value.style.height = textareaRef.value.scrollHeight + 'px';
+  const selected = new Map([...selectedScriptReferences.value].filter(([token]) => currentMessage.value.includes(token)));
+  selectedScriptReferences.value = selected;
+  nextTick(() => {
+    syncComposerScroll();
+    updateComposerMenu();
+  });
 };
 
 const loadChatHistory = async () => {
@@ -612,12 +870,15 @@ const onFilesDropped = async (event) => {
 };
 
 // Describes the user's current selection (collection, items, active stage) for the agent.
-const buildSelectionContext = () => {
+const buildSelectionContext = (referencedScripts = []) => {
   const context = {
     current_location: null,
     here_scope: { source: 'here', recursive: !!commonStore.onlyAssets },
     selection: [],
     active_view: stage.activeStage || '',
+    script_references: referencedScripts.map(({ token, type, id, name, path, extension, tracked }) => ({
+      token, type, id, name, path, extension, tracked,
+    })),
   };
 
   // "Here" means the collection currently open in the browser. A selected
@@ -668,7 +929,7 @@ const buildSelectionContext = () => {
     },
   }));
 
-  if (!context.current_location && !context.selection.length && !context.active_view) return '';
+  if (!context.current_location && !context.selection.length && !context.active_view && !context.script_references.length) return '';
   return `[Context JSON]\n${JSON.stringify(context)}\n`;
 };
 
@@ -687,25 +948,22 @@ const sendMessage = async () => {
   if (shortcut?.error) {
     addMessage('user', rawInput);
     addMessage('error', shortcut.error);
-    currentMessage.value = '';
-    if (textareaRef.value) textareaRef.value.style.height = 'auto';
+    clearComposer();
     return;
   }
   if (shortcut?.localReply) {
     addMessage('user', rawInput);
     addMessage('assistant', shortcut.localReply);
-    currentMessage.value = '';
-    if (textareaRef.value) textareaRef.value.style.height = 'auto';
+    clearComposer();
     return;
   }
   const expanded = shortcut?.prompt ?? rawInput;
 
   const turnIndex = nextTurnIndex();
   addMessage('user', rawInput, { turnIndex });
-  const context = buildSelectionContext();
+  const context = buildSelectionContext(activeScriptReferences());
   const messageContent = context + expanded;
-  currentMessage.value = '';
-  if (textareaRef.value) textareaRef.value.style.height = 'auto';
+  clearComposer();
   isProcessing.value = true;
 
   try {
@@ -946,11 +1204,20 @@ const onAgentClearFilter = () => {
 };
 
 // watchers
-watch(() => projectStore.activeProject, async () => {
+watch(() => projectStore.activeProject?.uri, async (projectPath, previousProjectPath) => {
+  saveComposerDraft(previousProjectPath);
   messages.value = [];
+  scriptReferences.value = [];
+  scriptReferencesLoadedFor.value = '';
+  restoreComposerDraft(projectPath);
   await checkApiKeyStatus();
   await loadChatHistory();
+  await nextTick();
+  handleInput();
 });
+
+watch(composerMenuItems, () => { composerMenuIndex.value = 0; });
+watch(currentMessage, () => saveComposerDraft());
 
 // lifecycle hooks
 onActivated(async () => {
@@ -958,8 +1225,11 @@ onActivated(async () => {
 });
 
 onMounted(async () => {
+  restoreComposerDraft(projectStore.activeProject?.uri);
   await checkApiKeyStatus();
   await loadChatHistory();
+  await nextTick();
+  handleInput();
 
   Events.On('agent-status', onAgentStatus);
   Events.On('agent-tool-start', onAgentToolStart);
@@ -975,9 +1245,11 @@ onMounted(async () => {
   Events.On('agent-apply-filter', onAgentApplyFilter);
   Events.On('agent-clear-filter', onAgentClearFilter);
   Events.On('files-dropped', onFilesDropped);
+  window.addEventListener('resize', updateComposerMenuAnchor);
 });
 
 onUnmounted(() => {
+  saveComposerDraft();
   Events.Off('agent-status');
   Events.Off('agent-tool-start');
   Events.Off('agent-tool-result');
@@ -992,6 +1264,7 @@ onUnmounted(() => {
   Events.Off('agent-apply-filter');
   Events.Off('agent-clear-filter');
   Events.Off('files-dropped');
+  window.removeEventListener('resize', updateComposerMenuAnchor);
 });
 </script>
 
@@ -1054,6 +1327,35 @@ onUnmounted(() => {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+.console-editor {
+  display: grid;
+  width: 100%;
+  min-height: 50px;
+}
+
+.console-editor > .console-input {
+  grid-area: 1 / 1;
+}
+
+.console-input-highlight {
+  pointer-events: none;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  overflow: hidden;
+}
+
+.console-input-editor {
+  position: relative;
+  caret-color: var(--text);
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.console-input-editor::placeholder {
+  color: var(--text-muted);
+  -webkit-text-fill-color: var(--text-muted);
 }
 
 .console-input::-webkit-scrollbar {
@@ -1146,6 +1448,31 @@ onUnmounted(() => {
 .empty-subtext {
   font-size: 12px;
   max-width: 250px;
+}
+
+.empty-help-command {
+  border: 0;
+  cursor: pointer;
+}
+
+:deep(.agent-inline-token),
+.agent-inline-token {
+  display: inline;
+  padding: 0.08rem 0.35rem;
+  border-radius: 6px;
+  color: var(--text);
+  background: var(--surface-4);
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.92em;
+  font-weight: 600;
+  line-height: inherit;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+:deep(.agent-inline-token-script),
+.agent-inline-token-script {
+  color: var(--accent-primary);
 }
 
 .empty-text {

@@ -68,6 +68,10 @@ type AgentKeyStatus struct {
 	Provider   string `json:"provider"`
 }
 
+func (a *AgentService) ListScriptReferences(projectPath string) ([]agent.ScriptReference, error) {
+	return agent.ListScriptReferences(projectPath)
+}
+
 // ChatUIMessage represents a message in the format the frontend expects for rendering.
 type ChatUIMessage struct {
 	Type      string `json:"type"` // "user", "assistant", "tool-group"

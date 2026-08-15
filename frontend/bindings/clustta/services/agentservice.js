@@ -13,6 +13,10 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as agent$0 from "../internal/agent/models.js";
+
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as $models from "./models.js";
 
 /**
@@ -111,6 +115,16 @@ export function GetSelectedModel(provider) {
 }
 
 /**
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<agent$0.ScriptReference[]>}
+ */
+export function ListScriptReferences(projectPath) {
+    return $Call.ByID(1114395811, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * RemoveAPIKey deletes the stored API key.
  * @returns {$CancellablePromise<void>}
  */
@@ -175,3 +189,5 @@ const $$createType0 = $models.AgentKeyStatus.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = $models.ChatUIMessage.createFrom;
 const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = agent$0.ScriptReference.createFrom;
+const $$createType5 = $Create.Array($$createType4);
