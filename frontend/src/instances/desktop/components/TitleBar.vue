@@ -1,6 +1,6 @@
 <template>
   <div style="--wails-draggable:drag" @click="handleClickOutside" @dblclick="toggleMaximize" class="titlebar"
-    :class="{ 'title-only': titleOnly, 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || locationsStale }"
+    :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || locationsStale }"
     v-stop-propagation>
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
@@ -714,6 +714,10 @@ onBeforeUnmount(() => {
   z-index: 999999999;
   /* padding-left: .2rem; */
   transition: background-color 0.3s ease;
+}
+
+.titlebar-darwin {
+  padding-left: .2rem;
 }
 
 .titlebar-unsynced {
