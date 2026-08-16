@@ -36,28 +36,27 @@ defineEmits(['select']);
   width: calc(100vw - 16px);
   max-height: 320px;
   padding: 0.3rem;
+  overflow: hidden;
   overflow-y: auto;
   box-sizing: border-box;
   border: 1px solid var(--surface-4);
   border-radius: var(--large-radius);
   background: var(--surface-3);
-  scrollbar-color: var(--surface-4) transparent;
-  scrollbar-width: thin;
-  overscroll-behavior: contain;
 }
+
 
 .agent-composer-menu::-webkit-scrollbar {
   width: 4px;
 }
 
 .agent-composer-menu::-webkit-scrollbar-thumb {
-  border-radius: 10px;
-  background-color: var(--surface-4);
+  border-radius: var(--small-radius);
+  background-color: var(--surface-2);
 }
 
 .agent-composer-menu::-webkit-scrollbar-track {
-  border-radius: 10px;
-  background: transparent;
+  border-radius: var(--small-radius);
+  margin: 1rem 0;
 }
 
 .agent-composer-menu-title {
