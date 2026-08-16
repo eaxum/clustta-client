@@ -380,19 +380,19 @@ const getTabStyle = (index) => {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  /* background-color: forestgreen; */
 }
 
 .tab-bar {
   display: flex;
   /* padding: 0 .5rem; */
   gap: 6px;
-  /* padding: 0 20px; */
+  padding-right:20px;
   height: 100%;
   box-sizing: border-box;
   position: relative;
   /* align-items: flex-end; */
-  /* align-items: center; */
+  /* background-color: crimson; */
+  align-items: center;
 }
 
 .tab {
@@ -573,7 +573,7 @@ const getTabStyle = (index) => {
   font-size: 18px;
   opacity: 0.3;
   color: var(--text);
-  color: black
+  color: black;
 }
 
 .workspace-tab-button:hover {
