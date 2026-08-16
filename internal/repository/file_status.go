@@ -11,9 +11,6 @@ import (
 )
 
 func GetAssetFileStatus(asset *models.Asset, checkpoints []models.Checkpoint) (string, error) {
-	if asset.LocalPath != "" && !pathsEqual(asset.LocalPath, asset.FilePath) && utils.FileExists(asset.LocalPath) {
-		return "rename_pending", nil
-	}
 	filePath := asset.GetFilePath()
 	if asset.IsLink && utils.IsValidPointer(asset.Pointer) {
 		return "normal", nil

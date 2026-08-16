@@ -303,7 +303,7 @@ export const useAssetStore = defineStore("asset", {
 
     getDisplayAssetsFileStatus: (state) => {
       //return the most important file status of the assets
-      let statusPiority = ["rename_pending", "modified", "missing", "outdated", "normal"];
+      let statusPiority = ["modified", "missing", "outdated", "normal"];
       let status = "normal";
       for (let i = 0; i < state.getDisplayedAssets.length; i++) {
         let asset = state.getDisplayedAssets[i];

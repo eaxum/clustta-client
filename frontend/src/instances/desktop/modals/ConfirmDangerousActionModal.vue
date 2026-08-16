@@ -17,7 +17,7 @@
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="$t('common.confirm')" :fullWidth="true" :buttonFunction="confirmAction"
+        <GeneralButton :label="trayStates.dangerousActionConfirmLabel || $t('common.confirm')" :fullWidth="true" :buttonFunction="confirmAction"
           :isActive="isInputValid" :isDisabled="!isInputValid" :loading="isLoading" />
       </div>
     </div>
@@ -77,8 +77,11 @@ const closeModal = () => {
   inputValue.value = '';
   inputError.value = '';
   isLoading.value = false;
+  trayStates.dangerousActionConfirmLabel = '';
   trayStates.dangerousActionInputSecret = false;
   trayStates.dangerousActionRequireExactInput = true;
+  trayStates.dangerousActionShowInput = true;
+  trayStates.dangerousActionShowToggle = false;
   modals.setModalVisibility('confirmDangerousActionModal', false);
 };
 
@@ -116,8 +119,11 @@ onBeforeUnmount(() => {
   inputValue.value = '';
   inputError.value = '';
   isLoading.value = false;
+  trayStates.dangerousActionConfirmLabel = '';
   trayStates.dangerousActionInputSecret = false;
   trayStates.dangerousActionRequireExactInput = true;
+  trayStates.dangerousActionShowInput = true;
+  trayStates.dangerousActionShowToggle = false;
 });
 </script>
 

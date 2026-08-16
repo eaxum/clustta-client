@@ -1206,9 +1206,6 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 	if err := tx.Get(&flags.HasRenamePending, pendingQuery, collectionId, collectionId, collectionId); err != nil {
 		return flags, err
 	}
-	if flags.HasRenamePending {
-		return flags, nil
-	}
 
 	var collectionPath string
 	if collectionId == "" {
@@ -1252,7 +1249,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 
 		var assets []models.Asset
 		query := `
-			SELECT id, asset_path, extension, collection_path, name
+			SELECT id, asset_path, extension, collection_path, name, local_path
 			FROM full_asset 
 			WHERE collection_path LIKE ? AND trashed = 0 AND is_link = 0
 			ORDER BY collection_path, name
@@ -1313,9 +1310,12 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 		}
 
 		for _, asset := range assets {
-			assetFilePath, err := utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
-			if err != nil {
-				continue
+			assetFilePath := asset.LocalPath
+			if assetFilePath == "" {
+				assetFilePath, err = utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
+				if err != nil {
+					continue
+				}
 			}
 
 			fileInfo, err := os.Stat(assetFilePath)
@@ -1554,16 +1554,15 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 
 	for _, asset := range assets {
 		assetMap[asset.Id] = asset
+		assetFilePath := ""
 		if asset.LocalPath != "" && utils.FileExists(asset.LocalPath) {
-			asset.FilePath = asset.LocalPath
-			assetMap[asset.Id] = asset
 			state.RenamePendingAssets = append(state.RenamePendingAssets, asset)
-			continue
-		}
-
-		assetFilePath, err := utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
-		if err != nil {
-			continue
+			assetFilePath = asset.LocalPath
+		} else {
+			assetFilePath, err = utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
+			if err != nil {
+				continue
+			}
 		}
 
 		fileInfo, err := os.Stat(assetFilePath)

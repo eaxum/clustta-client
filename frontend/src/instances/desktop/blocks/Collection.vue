@@ -25,7 +25,10 @@
           <img class="small-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
         
-        <div v-if="!isEditing" class="main-collection-item-grid-meta" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
+        <div v-if="!isEditing" class="main-collection-item-grid-meta"
+          :class="{ 'rename-pending-name': !!collection.local_path }"
+          v-tooltip="collection.local_path ? remoteNameChangeTooltip : ''"
+          :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
           {{collectionName}}
         </div>
 
@@ -42,13 +45,7 @@
         <div v-if="!isEditing" class="collection-item-grid-status">
           <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else-if="!isUntracked">
-            <ActionButton v-if="collectionStateFlags.has_rename_pending && userStore.canDo('pull_chunk')"
-              @click="applyPathUpdate"
-              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="renamePendingTooltip" />
-            <ActionButton v-else-if="collectionStateFlags.has_outdated"
-              @click="updateCollectionAssets" 
-              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
-            <ActionButton v-else-if="collectionStateFlags.has_modified && canCheckpointCollection" 
+            <ActionButton v-if="collectionStateFlags.has_modified && canCheckpointCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
               :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified" 
@@ -58,6 +55,12 @@
               :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
             <ActionButton v-else-if="hasVisibleUntrackedState" 
               :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedItems')" />
+            <ActionButton v-else-if="collectionStateFlags.has_rename_pending && userStore.canDo('pull_chunk') && !(collection.id in stage.expandedCollections)"
+              @click="applyPathUpdate"
+              :icon="getAppIcon('alert')" :useDanger="true" :noFilter="true" v-tooltip="renamePendingTooltip" />
+            <ActionButton v-else-if="collectionStateFlags.has_outdated"
+              @click="updateCollectionAssets"
+              :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
           </template>
           <template v-else-if="commonStore.showUntracked && collection.type === 'untracked_collection' && props.hasChildren">
             <ActionButton v-if="canCheckpointUntrackedFromCollection"
@@ -121,7 +124,10 @@
         </div>
 
         <div class="collection-item-content selection-area">
-          <div v-if="!isEditing" class="collection-item-details" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
+          <div v-if="!isEditing" class="collection-item-details"
+            :class="{ 'rename-pending-name': !!collection.local_path }"
+            v-tooltip="collection.local_path ? remoteNameChangeTooltip : ''"
+            :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
             {{ collectionName }}
           </div>
 
@@ -168,10 +174,7 @@
         <div v-if="!isEditing && !isUntracked" class="collection-item-actions">
           <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else>
-            <ActionButton v-if="collectionStateFlags.has_rename_pending && userStore.canDo('pull_chunk')"
-              @click="applyPathUpdate"
-              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="renamePendingTooltip" />
-            <ActionButton v-else-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections) && canCheckpointCollection"
+            <ActionButton v-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections) && canCheckpointCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
               :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections)" 
@@ -181,10 +184,13 @@
               :icon="getAppIcon('plus-stone')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedClickCheckpoint')" />
             <ActionButton v-else-if="hasVisibleUntrackedState && !(collection.id in stage.expandedCollections)" 
               :icon="getAppIcon('dot-big')" :useDanger="true" :noFilter="true" v-tooltip="$t('blocks.untrackedItems')" />
-            <ActionButton v-if="collectionStateFlags.has_outdated && !(collection.id in stage.expandedCollections)" 
+            <ActionButton v-else-if="collectionStateFlags.has_rename_pending && userStore.canDo('pull_chunk') && !(collection.id in stage.expandedCollections)"
+              @click="applyPathUpdate"
+              :icon="getAppIcon('alert')" :useDanger="true" :noFilter="true" v-tooltip="renamePendingTooltip" />
+            <ActionButton v-else-if="collectionStateFlags.has_outdated && !(collection.id in stage.expandedCollections)"
               @click="updateCollectionAssets" 
               :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
-            <ActionButton v-if="collectionStateFlags.has_fetchable && !(collection.id in stage.expandedCollections)" 
+            <ActionButton v-else-if="collectionStateFlags.has_fetchable && !(collection.id in stage.expandedCollections)"
               @click="fetchCollection" 
               :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.itemsMissingClickFetch')" />
           </template>
@@ -367,11 +373,11 @@ const collectionStateFlags = computed(() => {
 });
 
 const renamePendingTooltip = computed(() => {
-  if (!props.collection.local_path) {
-    return 'Contains items with pending path updates';
-  }
-  const oldName = props.collection.local_path?.split(/[\\/]/).pop() || props.collection.name;
-  return `${oldName} -> ${props.collection.name}`;
+  return t('blocks.updateName');
+});
+
+const remoteNameChangeTooltip = computed(() => {
+  return t('blocks.nameChangedRemotely', { name: props.collection.name });
 });
 
 //Returns true if the values of any item in collectionStateFlags is true
@@ -1370,5 +1376,9 @@ onBeforeUnmount(() => {
   gap: .3rem;
   width: 100%;
   overflow: hidden;
+}
+
+.rename-pending-name {
+  text-decoration: line-through;
 }
 </style>

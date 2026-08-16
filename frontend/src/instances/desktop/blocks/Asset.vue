@@ -81,7 +81,9 @@
                 <img v-else class="small-icons" :src="getAppIcon(asset.asset_type_icon)" v-tooltip="assetTypeName">
               </div>
               
-              <div class="main-asset-item-grid-meta" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
+              <div class="main-asset-item-grid-meta" :class="{ 'rename-pending-name': hasRenamePending }"
+                v-tooltip="hasRenamePending ? remoteNameChangeTooltip : ''"
+                :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
                 {{ assetName }}
               </div>
             </div>
@@ -144,18 +146,17 @@
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
-              <ActionButton v-else-if="asset.file_status == 'rename_pending'" :icon="getAppIcon('circle-check')"
-                :useAlert="true" :noFilter="true" v-tooltip="renamePendingTooltip"
+              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true"
+                v-tooltip="modifiedAssetTooltip" v-else-if="asset.file_status == 'modified'"
+                @click="handleModifiedAssetCheckpointClick(index, asset, $event)" />
+              <ActionButton v-else-if="hasRenamePending" :icon="getAppIcon('alert')"
+                :useDanger="true" :noFilter="true" v-tooltip="renamePendingTooltip"
                 @click="applyPathUpdate(index, asset, $event)" />
               <ActionButton v-else-if="asset.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="$t('blocks.noChanges')"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
                 v-tooltip="$t('blocks.outdatedClickUpdate')" v-else-if="asset.file_status == 'outdated'" 
                 @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" 
-                v-tooltip="modifiedAssetTooltip"
-                v-else-if="asset.file_status == 'modified'"
-                @click="handleModifiedAssetCheckpointClick(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.fileMissingClickFetch')"
                 v-else-if="asset.file_status == 'fetchable'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" 
@@ -217,7 +218,9 @@
         </div>
 
         <div class="asset-item-content selection-area">
-          <div v-if="!isEditing" class="asset-item-details" :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
+          <div v-if="!isEditing" class="asset-item-details" :class="{ 'rename-pending-name': hasRenamePending }"
+            v-tooltip="hasRenamePending ? remoteNameChangeTooltip : ''"
+            :style="{ fontStyle: isUntracked ? 'italic' : 'normal' }">
             {{ assetName }}
           </div>
 
@@ -303,16 +306,16 @@
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true"
-                v-tooltip="renamePendingTooltip" v-else-if="asset.file_status == 'rename_pending'"
+              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="modifiedAssetTooltip"
+                v-else-if="asset.file_status == 'modified'"
+                @click="handleModifiedAssetCheckpointClick(index, asset, $event)" />
+              <ActionButton :icon="getAppIcon('alert')" :useDanger="true" :noFilter="true"
+                v-tooltip="renamePendingTooltip" v-else-if="hasRenamePending"
                 @click="applyPathUpdate(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, asset, $event)"
                 v-tooltip="$t('blocks.noChanges')" v-else-if="asset.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
                 v-else-if="asset.file_status == 'outdated'" @click="revertAsset(index, asset, $event)" />
-              <ActionButton :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="modifiedAssetTooltip"
-                v-else-if="asset.file_status == 'modified'"
-                @click="handleModifiedAssetCheckpointClick(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('fetch')" v-tooltip="$t('blocks.fileMissingClickFetch')"
                 v-else-if="asset.file_status == 'fetchable'" @click="revertAsset(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('alert')" :noFilter="true" v-tooltip="$t('blocks.assetMissingResync')"
@@ -462,9 +465,14 @@ const modifiedAssetTooltip = computed(() => {
   return t('blocks.modifiedClickCheckpoint');
 });
 
+const hasRenamePending = computed(() => !!props.asset.local_path);
+
 const renamePendingTooltip = computed(() => {
-  const oldName = props.asset.local_path?.split(/[\\/]/).pop() || props.asset.name;
-  return `${oldName} -> ${props.asset.name}${props.asset.extension}`;
+  return t('blocks.updateName');
+});
+
+const remoteNameChangeTooltip = computed(() => {
+  return t('blocks.nameChangedRemotely', { name: props.asset.name });
 });
 
 // Returns the grid styles for the asset item.
@@ -506,7 +514,7 @@ const assetName = computed(() => {
   const asset = props.asset;
   const extension = commonStore.hideExtensions ? '' : asset.name ? asset.extension : '';
   let currentAssetName = asset.name ? asset.name : asset.extension;
-  if (asset.file_status === 'rename_pending' && asset.local_path) {
+  if (asset.local_path) {
     const localFileName = asset.local_path.split(/[\\/]/).pop();
     currentAssetName = asset.extension && localFileName.endsWith(asset.extension)
       ? localFileName.slice(0, -asset.extension.length)
@@ -839,24 +847,56 @@ const launchAssetCommand = async () => {
   const asset = props.asset;
   if (asset.is_link && isValidWeblink(asset.pointer)) {
     Browser.OpenURL(asset.pointer);
-  } else {
-    const localPath = asset.pointer || asset.local_path || asset.file_path;
-    if (await FSService.Exists(localPath)) {
-      FSService.LaunchFile(localPath);
-    } else {
-      const fetchedPath = asset.pointer || asset.file_path;
-      CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [asset.id])
-        .then(async (response) => {
-          if (!response?.restored_asset_ids?.includes(asset.id)) return;
-          browserTreeStore.markAssetsAvailable(response.restored_asset_ids);
-          await FSService.LaunchFile(fetchedPath);
-        })
-        .catch((error) => {
-          console.log(error);
-          notificationStore.errorNotification(t('notifications.errorFetchingAsset'), error);
-        });
-    }
+    return;
   }
+
+  if (hasRenamePending.value) {
+    prepRenameBeforeLaunchModal(asset);
+    return;
+  }
+
+  await launchAssetFile(asset);
+};
+
+// Launches or fetches an asset whose local path is current.
+const launchAssetFile = async (asset) => {
+  const filePath = asset.pointer || asset.file_path;
+  if (await FSService.Exists(filePath)) {
+    await FSService.LaunchFile(filePath);
+    return;
+  }
+
+  try {
+    const response = await CheckpointService.Revert(
+      projectStore.activeProject.uri,
+      projectStore.getActiveProjectUrl,
+      [asset.id]
+    );
+    if (!response?.restored_asset_ids?.includes(asset.id)) return;
+    browserTreeStore.markAssetsAvailable(response.restored_asset_ids);
+    await FSService.LaunchFile(filePath);
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorFetchingAsset'), error);
+  }
+};
+
+// Warns before renaming and launching an asset.
+const prepRenameBeforeLaunchModal = (asset) => {
+  trayStates.dangerousActionTitle = t('blocks.renameRequiredTitle');
+  trayStates.dangerousActionMessage = t('blocks.renameRequiredMessage', {
+    oldName: asset.local_path?.split(/[\\/]/).pop(),
+    newName: `${asset.name}${asset.extension}`,
+  });
+  trayStates.dangerousActionIcon = 'alert';
+  trayStates.dangerousActionConfirmLabel = t('common.proceed');
+  trayStates.dangerousActionConfirmText = '';
+  trayStates.dangerousActionShowInput = false;
+  trayStates.dangerousActionShowToggle = false;
+  trayStates.dangerousActionFunction = async () => {
+    await renameAssetPath(asset);
+    await launchAssetFile(asset);
+  };
+  modals.setModalVisibility('confirmDangerousActionModal', true);
 };
 
 // Triggers rename from the menu.
@@ -945,20 +985,24 @@ const revertAsset = async (index, asset, event) => {
     });
 };
 
+const renameAssetPath = async (asset) => {
+  await AssetService.ApplyPathUpdate(projectStore.activeProject.uri, asset.id);
+  asset.local_path = '';
+  asset.file_status = await AssetService.GetAssetState(projectStore.activeProject.uri, asset.id);
+  emitAssetUpdates(asset.id, [
+    { property: 'local_path', value: '' },
+    { property: 'file_status', value: asset.file_status }
+  ]);
+  emitter.emit('refresh-browser');
+};
+
 const applyPathUpdate = async (index, asset, event) => {
   handleClick(index, asset, event);
   isAwaitingResponse.value = true;
   try {
-    await AssetService.ApplyPathUpdate(projectStore.activeProject.uri, asset.id);
-    asset.local_path = '';
-    asset.file_status = await AssetService.GetAssetState(projectStore.activeProject.uri, asset.id);
-    emitAssetUpdates(asset.id, [
-      { property: 'local_path', value: '' },
-      { property: 'file_status', value: asset.file_status }
-    ]);
-    emitter.emit('refresh-browser');
+    await renameAssetPath(asset);
   } catch (error) {
-    notificationStore.errorNotification('Unable to apply file rename', error);
+    notificationStore.errorNotification(t('blocks.renameFailed'), error);
   } finally {
     isAwaitingResponse.value = false;
   }
@@ -1878,6 +1922,10 @@ onBeforeUnmount(() => {
   height: 20px;
   overflow: hidden;
   animation: loadingRotate .5s linear infinite;
+}
+
+.rename-pending-name {
+  text-decoration: line-through;
 }
 
 </style>

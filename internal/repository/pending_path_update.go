@@ -248,11 +248,18 @@ func ApplyCollectionPathUpdate(tx *sqlx.Tx, collectionId string) error {
 		collectionId = rootId
 	}
 
-	collectionIds, err := collectionSubtreeIds(tx, collectionId)
-	if err != nil {
-		return err
-	}
 	completedMoves := []completedPathMove{}
+	collectionIds := []string{}
+	if collectionId == "" {
+		if err := tx.Select(&collectionIds, "SELECT id FROM collection ORDER BY length(collection_path)"); err != nil {
+			return err
+		}
+	} else {
+		collectionIds, err = collectionSubtreeIds(tx, collectionId)
+		if err != nil {
+			return err
+		}
+	}
 	for _, id := range collectionIds {
 		if err := applySinglePendingPath(tx, pendingCollection, id, &completedMoves); err != nil {
 			return rollbackPathMoves(completedMoves, err)
@@ -263,6 +270,19 @@ func ApplyCollectionPathUpdate(tx *sqlx.Tx, collectionId string) error {
 		if err := tx.Select(&assetIds, `SELECT p.entity_id FROM pending_path_update p
 			JOIN asset ON asset.id = p.entity_id
 			WHERE p.entity_type = 'asset' AND asset.collection_id = ?`, id); err != nil {
+			return rollbackPathMoves(completedMoves, err)
+		}
+		for _, assetId := range assetIds {
+			if err := applySinglePendingPath(tx, pendingAsset, assetId, &completedMoves); err != nil {
+				return rollbackPathMoves(completedMoves, err)
+			}
+		}
+	}
+	if collectionId == "" {
+		assetIds := []string{}
+		if err := tx.Select(&assetIds, `SELECT p.entity_id FROM pending_path_update p
+			JOIN asset ON asset.id = p.entity_id
+			WHERE p.entity_type = 'asset' AND asset.collection_id = ''`); err != nil {
 			return rollbackPathMoves(completedMoves, err)
 		}
 		for _, assetId := range assetIds {

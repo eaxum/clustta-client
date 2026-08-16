@@ -19,6 +19,10 @@
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_modified" :icon="getAppIcon('revert')" 
 			:useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.revertAll')" :buttonFunction="prepResetPopUpModal" />
 
+		<ActionButton v-if="collectionStore.collectionStateFlags.has_rename_pending && canApplyPathUpdatesHere" :icon="getAppIcon('alert')"
+			:useDanger="true" :noFilter="true" :isLoading="isApplyingPathUpdates"
+			v-tooltip="$t('components.stateBar.renamePending')" :buttonFunction="applyPathUpdates" />
+
 		<ActionButton v-if="collectionStore.collectionStateFlags.has_outdated" :icon="getAppIcon('circle-check')" 
 			:useAlert="true" :noFilter="true" v-tooltip="$t('components.stateBar.updateAll')" :buttonFunction="updateAll" />
 	</div>
@@ -26,11 +30,11 @@
 
 <script setup>
 // imports
-import { computed, onBeforeUnmount } from 'vue';
+import { computed, onBeforeUnmount, ref } from 'vue';
 import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
-import { canCreateCheckpointInCollection } from '@/lib/permissions';
+import { canActInNavigatedCollection, canCreateCheckpointInCollection } from '@/lib/permissions';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -63,6 +67,7 @@ const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const { t } = useI18n();
+const isApplyingPathUpdates = ref(false);
 
 // props
 const props = defineProps({
@@ -149,12 +154,30 @@ const fetchAll = async () => {
 	}
 };
 
+// Applies every pending path update in the current collection context.
+const applyPathUpdates = async () => {
+	if (isApplyingPathUpdates.value) return;
+	isApplyingPathUpdates.value = true;
+	const collectionId = collectionStore.navigatedCollection?.id || '';
+	try {
+		await CollectionService.ApplyPathUpdate(projectStore.activeProject.uri, collectionId);
+		collectionStore.collectionStateFlags.has_rename_pending = false;
+		emitter.emit('refresh-browser');
+	} catch (error) {
+		notificationStore.errorNotification(t('blocks.renameFailed'), error);
+	} finally {
+		isApplyingPathUpdates.value = false;
+	}
+};
+
 const stopFetchShortcut = Events.On('fetch-item', async () => {
 	const activeElement = document.activeElement;
 	const isEditing = activeElement?.matches('input, textarea, [contenteditable="true"]');
 	if (stage.operationActive || isEditing || !collectionStore.collectionStateFlags.has_fetchable) return;
 	await fetchAll();
 });
+
+const canApplyPathUpdatesHere = computed(() => canActInNavigatedCollection('pull_chunk'));
 
 onBeforeUnmount(stopFetchShortcut);
 

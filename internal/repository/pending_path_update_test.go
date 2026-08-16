@@ -133,4 +133,25 @@ func TestPendingCollectionPathUpdateRenamesRecursiveChildren(t *testing.T) {
 	if bindingCount != 0 {
 		t.Fatalf("expected pending paths to be cleared, got %d", bindingCount)
 	}
+
+	oldRootPath := filepath.Join(workingDirectory, "OldRoot.txt")
+	newRootPath := filepath.Join(workingDirectory, "NewRoot.txt")
+	if err := os.WriteFile(oldRootPath, []byte("root"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tx.Exec(`INSERT INTO asset
+		(id, created_at, mtime, name, extension, status_id, asset_type_id, collection_id)
+		VALUES ('direct-root-asset', 1, 1, 'NewRoot', '.txt', 'status', 'at', '')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := tx.Exec(`INSERT INTO pending_path_update (entity_type, entity_id, current_local_path)
+		VALUES ('asset', 'direct-root-asset', ?)`, oldRootPath); err != nil {
+		t.Fatal(err)
+	}
+	if err := ApplyCollectionPathUpdate(tx, ""); err != nil {
+		t.Fatal(err)
+	}
+	if !utils.FileExists(newRootPath) || utils.FileExists(oldRootPath) {
+		t.Fatal("root context path update did not rename the direct asset")
+	}
 }

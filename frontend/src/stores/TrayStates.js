@@ -96,6 +96,7 @@ export const useTrayStates = defineStore("useTrayStates", {
     dangerousActionTitle: "",
     dangerousActionMessage: "",
     dangerousActionIcon: "trash",
+    dangerousActionConfirmLabel: "",
     dangerousActionConfirmText: "",
     dangerousActionFunction: null,
     dangerousActionShowInput: true,

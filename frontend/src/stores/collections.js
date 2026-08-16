@@ -89,7 +89,8 @@ export const useCollectionStore = defineStore("collection", {
       has_untracked: false,
       has_modified: false,
       has_outdated: false,
-      has_fetchable: false
+      has_fetchable: false,
+      has_rename_pending: false
     },
     loadingCollectionStates: false,
   }),
@@ -376,7 +377,8 @@ export const useCollectionStore = defineStore("collection", {
           has_untracked: false,
           has_modified: false,
           has_outdated: false,
-          has_fetchable: false
+          has_fetchable: false,
+          has_rename_pending: false
         };
       } finally {
         this.loadingCollectionStates = false;

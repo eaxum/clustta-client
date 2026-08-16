@@ -453,11 +453,7 @@ func GetCollectionAssets(tx *sqlx.Tx, id string) ([]models.Asset, error) {
 		// if err != nil {
 		// 	return assets, err
 		// }
-		if asset.LocalPath != "" && !pathsEqual(asset.LocalPath, assetFilePath) && utils.FileExists(asset.LocalPath) {
-			assets[i].FileStatus = "rename_pending"
-		} else {
-			assets[i].FileStatus = "fetchable"
-		}
+		assets[i].FileStatus = "fetchable"
 	}
 
 	return assets, nil
