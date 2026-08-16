@@ -202,7 +202,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, 
 		}
 		app.Event.Emit("progress-update", progress)
 	}
-	err = repository.RevertToCheckpoint(tx, checkpointId, asset.FilePath, callBack)
+	err = repository.RevertToCheckpoint(tx, checkpointId, asset.GetFilePath(), callBack)
 	if err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 			"",
 			0,
 			0,
-			asset.FilePath,
+			asset.GetFilePath(),
 			authorId,
 			previewId,
 			groupId,
@@ -762,7 +762,7 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 			app.Event.Emit("progress-update", progress)
 		}
 
-		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.FilePath, callBack)
+		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.GetFilePath(), callBack)
 		if err != nil {
 			tx.Rollback()
 			return result, err
@@ -950,7 +950,7 @@ func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, asse
 			app.Event.Emit("progress-update", progress)
 		}
 
-		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.FilePath, callBack)
+		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.GetFilePath(), callBack)
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -1122,8 +1122,9 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 			}
 			app.Event.Emit("progress-update", progress)
 		}
-		if utils.FileExists(asset.FilePath) {
-			fileXXHash, err := utils.GenerateXXHashChecksum(asset.FilePath)
+		assetFilePath := asset.GetFilePath()
+		if utils.FileExists(assetFilePath) {
+			fileXXHash, err := utils.GenerateXXHashChecksum(assetFilePath)
 			if err != nil {
 				return err
 			}
@@ -1140,7 +1141,7 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 				continue // Skip if the file is already in the correct state
 			}
 		}
-		err = repository.RevertToCheckpoint(tx, checkpoint.Id, asset.FilePath, callBack)
+		err = repository.RevertToCheckpoint(tx, checkpoint.Id, assetFilePath, callBack)
 		if err != nil {
 			tx.Rollback()
 			return err

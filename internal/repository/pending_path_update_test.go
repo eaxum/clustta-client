@@ -102,6 +102,45 @@ func TestPendingCollectionPathUpdateRenamesRecursiveChildren(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	pendingAsset, err := GetAsset(tx, "child-asset")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pendingAsset.GetFilePath() != childAssetPath {
+		t.Fatalf("expected pending asset content path %q, got %q", childAssetPath, pendingAsset.GetFilePath())
+	}
+	callback := func(int, int, string, string) {}
+	if _, err := CreateCheckpoint(tx, pendingAsset.Id, "before changes", "", "", 0, 0, pendingAsset.GetFilePath(), "author", "", "base-group", callback); err != nil {
+		t.Fatal(err)
+	}
+	modifiedContent := []byte("modified child")
+	if err := os.WriteFile(childAssetPath, modifiedContent, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := CreateCheckpoint(tx, pendingAsset.Id, "modified", "", "", 0, 0, pendingAsset.GetFilePath(), "author", "", "modified-group", callback); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(childAssetPath, []byte("discarded changes"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := RevertToLatestCheckpoint(tx, pendingAsset.Id, pendingAsset.GetFilePath(), callback); err != nil {
+		t.Fatal(err)
+	}
+	revertedContent, err := os.ReadFile(childAssetPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(revertedContent) != string(modifiedContent) {
+		t.Fatalf("expected reverted pending asset content %q, got %q", modifiedContent, revertedContent)
+	}
+	prematureNewPath, err := utils.BuildAssetPath(workingDirectory, "/NewParent/NewChild/", "NewAsset", ".txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if utils.FileExists(prematureNewPath) {
+		t.Fatal("checkpoint or revert created the pending destination file")
+	}
+
 	bindingCount := 0
 	if err := tx.Get(&bindingCount, "SELECT COUNT(*) FROM pending_path_update"); err != nil {
 		t.Fatal(err)
