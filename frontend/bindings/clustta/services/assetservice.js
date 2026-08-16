@@ -51,6 +51,16 @@ export function AddPreview(projectPath, assetId, previewPath) {
 }
 
 /**
+ * ApplyPathUpdate applies a pending remote path change to a local asset.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<void>}
+ */
+export function ApplyPathUpdate(projectPath, assetId) {
+    return $Call.ByID(161235379, projectPath, assetId);
+}
+
+/**
  * @param {string} projectPath
  * @param {string} assetId
  * @returns {$CancellablePromise<string>}

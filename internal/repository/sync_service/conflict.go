@@ -93,6 +93,10 @@ func remapCollectionId(tx *sqlx.Tx, oldId, newId string) error {
 	if err != nil {
 		return fmt.Errorf("failed to update collection id: %w", err)
 	}
+	if _, err = tx.Exec(`UPDATE pending_path_update SET entity_id = ?
+		WHERE entity_type = 'collection' AND entity_id = ?`, newId, oldId); err != nil {
+		return fmt.Errorf("failed to update pending collection path: %w", err)
+	}
 
 	return nil
 }
@@ -135,6 +139,10 @@ func remapAssetId(tx *sqlx.Tx, oldId, newId string) error {
 		newId, now, oldId)
 	if err != nil {
 		return fmt.Errorf("failed to update asset id: %w", err)
+	}
+	if _, err = tx.Exec(`UPDATE pending_path_update SET entity_id = ?
+		WHERE entity_type = 'asset' AND entity_id = ?`, newId, oldId); err != nil {
+		return fmt.Errorf("failed to update pending asset path: %w", err)
 	}
 
 	return nil

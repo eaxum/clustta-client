@@ -453,7 +453,11 @@ func GetCollectionAssets(tx *sqlx.Tx, id string) ([]models.Asset, error) {
 		// if err != nil {
 		// 	return assets, err
 		// }
-		assets[i].FileStatus = "fetchable"
+		if asset.LocalPath != "" && !pathsEqual(asset.LocalPath, assetFilePath) && utils.FileExists(asset.LocalPath) {
+			assets[i].FileStatus = "rename_pending"
+		} else {
+			assets[i].FileStatus = "fetchable"
+		}
 	}
 
 	return assets, nil
@@ -1017,6 +1021,22 @@ func RenameCollection(tx *sqlx.Tx, collectionId string, name string) (models.Col
 		}
 	}
 	return collection, nil
+}
+
+// UpdateSyncCollection applies remote metadata without moving local files.
+func UpdateSyncCollection(tx *sqlx.Tx, collection models.Collection) error {
+	params := map[string]any{
+		"name":               strings.TrimSpace(collection.Name),
+		"description":        collection.Description,
+		"parent_id":          collection.ParentId,
+		"preview_id":         collection.PreviewId,
+		"is_shared":          collection.IsShared,
+		"collection_type_id": collection.CollectionTypeId,
+	}
+	if err := base_service.Update(tx, "collection", collection.Id, params); err != nil {
+		return err
+	}
+	return base_service.UpdateMtime(tx, "collection", collection.Id, utils.GetEpochTime())
 }
 
 func ChangeParent(tx *sqlx.Tx, collectionId string, parentId string) error {

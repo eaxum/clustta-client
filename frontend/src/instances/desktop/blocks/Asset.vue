@@ -144,6 +144,9 @@
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
+              <ActionButton v-else-if="asset.file_status == 'rename_pending'" :icon="getAppIcon('circle-check')"
+                :useAlert="true" :noFilter="true" v-tooltip="renamePendingTooltip"
+                @click="applyPathUpdate(index, asset, $event)" />
               <ActionButton v-else-if="asset.file_status == 'normal'" :icon="getAppIcon('circle-check-go')" :noFilter="true" 
                 v-tooltip="$t('blocks.noChanges')"  />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" 
@@ -300,6 +303,9 @@
                 v-tooltip="isDownloading ? $t('blocks.downloading') : $t('common.download')" 
                 :isLoading="isDownloading"
                 @click="downloadAsset(index, asset, $event)" />
+              <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true"
+                v-tooltip="renamePendingTooltip" v-else-if="asset.file_status == 'rename_pending'"
+                @click="applyPathUpdate(index, asset, $event)" />
               <ActionButton :icon="getAppIcon('circle-check-go')" :noFilter="true" @click="handleClick(index, asset, $event)"
                 v-tooltip="$t('blocks.noChanges')" v-else-if="asset.file_status == 'normal'" />
               <ActionButton :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickUpdate')"
@@ -456,6 +462,11 @@ const modifiedAssetTooltip = computed(() => {
   return t('blocks.modifiedClickCheckpoint');
 });
 
+const renamePendingTooltip = computed(() => {
+  const oldName = props.asset.local_path?.split(/[\\/]/).pop() || props.asset.name;
+  return `${oldName} -> ${props.asset.name}${props.asset.extension}`;
+});
+
 // Returns the grid styles for the asset item.
 const gridStyles = computed(() => ({
   minWidth: commonStore.gridSize + 'px',
@@ -494,7 +505,13 @@ const operationsActive = computed(() => {
 const assetName = computed(() => {
   const asset = props.asset;
   const extension = commonStore.hideExtensions ? '' : asset.name ? asset.extension : '';
-  const assetName = asset.name ? asset.name : asset.extension;
+  let currentAssetName = asset.name ? asset.name : asset.extension;
+  if (asset.file_status === 'rename_pending' && asset.local_path) {
+    const localFileName = asset.local_path.split(/[\\/]/).pop();
+    currentAssetName = asset.extension && localFileName.endsWith(asset.extension)
+      ? localFileName.slice(0, -asset.extension.length)
+      : localFileName;
+  }
   const isDirectParent = props.asset.id === asset.collection_id;
   const assetPath = asset.asset_path?.replace(/\//g, ' / ').replace(/^( \/ )?/, '');
 
@@ -503,15 +520,15 @@ const assetName = computed(() => {
   }
   if (props.isChild) {
     if (commonStore.showChildCollections) {
-      return assetName + extension;
+      return currentAssetName + extension;
     } else {
-      return isDirectParent ? (assetName + extension) : assetPath;
+      return isDirectParent ? (currentAssetName + extension) : assetPath;
     }
   } else {
     if (commonStore.viewSearchQuery) {
       return assetPath + extension;
     } else {
-      return assetName + extension;
+      return currentAssetName + extension;
     }
   }
 });
@@ -823,15 +840,16 @@ const launchAssetCommand = async () => {
   if (asset.is_link && isValidWeblink(asset.pointer)) {
     Browser.OpenURL(asset.pointer);
   } else {
-    let file_path = asset.pointer ? asset.pointer : asset.file_path;
-    if (await FSService.Exists(file_path)) {
-      FSService.LaunchFile(file_path);
+    const localPath = asset.pointer || asset.local_path || asset.file_path;
+    if (await FSService.Exists(localPath)) {
+      FSService.LaunchFile(localPath);
     } else {
+      const fetchedPath = asset.pointer || asset.file_path;
       CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, [asset.id])
         .then(async (response) => {
           if (!response?.restored_asset_ids?.includes(asset.id)) return;
           browserTreeStore.markAssetsAvailable(response.restored_asset_ids);
-          await FSService.LaunchFile(file_path);
+          await FSService.LaunchFile(fetchedPath);
         })
         .catch((error) => {
           console.log(error);
@@ -925,6 +943,25 @@ const revertAsset = async (index, asset, event) => {
       console.log(error);
       notificationStore.errorNotification(t('notifications.errorRevertingAsset'), error);
     });
+};
+
+const applyPathUpdate = async (index, asset, event) => {
+  handleClick(index, asset, event);
+  isAwaitingResponse.value = true;
+  try {
+    await AssetService.ApplyPathUpdate(projectStore.activeProject.uri, asset.id);
+    asset.local_path = '';
+    asset.file_status = await AssetService.GetAssetState(projectStore.activeProject.uri, asset.id);
+    emitAssetUpdates(asset.id, [
+      { property: 'local_path', value: '' },
+      { property: 'file_status', value: asset.file_status }
+    ]);
+    emitter.emit('refresh-browser');
+  } catch (error) {
+    notificationStore.errorNotification('Unable to apply file rename', error);
+  } finally {
+    isAwaitingResponse.value = false;
+  }
 };
 
 // Starts the rename operation.

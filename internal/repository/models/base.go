@@ -76,6 +76,7 @@ type Asset struct {
 	IsDependency    bool     `db:"is_dependency" json:"is_dependency"`
 	DependencyLevel int      `db:"dependency_level" json:"-"`
 	FilePath        string   `db:"file_path" json:"file_path"`
+	LocalPath       string   `db:"local_path" json:"local_path"`
 	Tags            []string `db:"-" json:"tags"`
 	TagsRaw         string   `db:"tags" json:"-"`
 	// Tags             []string `db:"tags" json:"tags"`
@@ -109,6 +110,9 @@ func (t Asset) MarshalJSON() ([]byte, error) {
 
 func (t *Asset) GetFilePath() string {
 	if t.Pointer == "" {
+		if t.LocalPath != "" {
+			return t.LocalPath
+		}
 		return t.FilePath
 	}
 	return t.Pointer
@@ -122,6 +126,7 @@ type Collection struct {
 	Description        string   `db:"description" json:"description"`
 	CollectionPath     string   `db:"collection_path" json:"collection_path"`
 	FilePath           string   `db:"file_path" json:"file_path"`
+	LocalPath          string   `db:"local_path" json:"local_path"`
 	Trashed            bool     `db:"trashed" json:"trashed"`
 	CollectionTypeId   string   `db:"collection_type_id" json:"collection_type_id"`
 	CollectionTypeIcon string   `db:"collection_type_icon" json:"collection_type_icon"`
@@ -160,6 +165,9 @@ func (e Collection) MarshalJSON() ([]byte, error) {
 }
 
 func (e *Collection) GetFilePath() string {
+	if e.LocalPath != "" {
+		return e.LocalPath
+	}
 	return e.FilePath
 }
 

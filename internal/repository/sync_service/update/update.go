@@ -105,6 +105,9 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 	if err != nil {
 		return err
 	}
+	if err := repository.RecordPendingPathUpdates(tx, data.Collections, data.Assets, true); err != nil {
+		return err
+	}
 
 	// Merge: mtime-gated upsert that preserves local unsynced rows whose
 	// mtime is newer than the server's. strict=false because chunks for
@@ -112,10 +115,12 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 	if err := sync_service.WriteProjectData(tx, data, false); err != nil {
 		return err
 	}
-
 	// Apply server-side deletions. Local rows with unsynced edits are safe:
 	// their ids are absent from data.Tombs.
 	if err := repository.AddItemsToTomb(tx, data.Tombs); err != nil {
+		return err
+	}
+	if err := repository.ReconcilePendingPathUpdates(tx); err != nil {
 		return err
 	}
 	if err := reconcileRestrictedAssetAssignments(tx, data, userId); err != nil {

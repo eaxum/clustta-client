@@ -15,6 +15,16 @@ import * as models$0 from "../internal/repository/models/models.js";
 import * as $models from "./models.js";
 
 /**
+ * ApplyPathUpdate applies pending remote path changes to a collection tree.
+ * @param {string} projectPath
+ * @param {string} collectionId
+ * @returns {$CancellablePromise<void>}
+ */
+export function ApplyPathUpdate(projectPath, collectionId) {
+    return $Call.ByID(152337607, projectPath, collectionId);
+}
+
+/**
  * Assign assigns a user to a collection.
  * Returns an error if the operation fails.
  * @param {string} projectPath

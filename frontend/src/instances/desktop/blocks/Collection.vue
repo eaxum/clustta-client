@@ -42,7 +42,10 @@
         <div v-if="!isEditing" class="collection-item-grid-status">
           <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else-if="!isUntracked">
-            <ActionButton v-if="collectionStateFlags.has_outdated" 
+            <ActionButton v-if="collectionStateFlags.has_rename_pending && userStore.canDo('pull_chunk')"
+              @click="applyPathUpdate"
+              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="renamePendingTooltip" />
+            <ActionButton v-else-if="collectionStateFlags.has_outdated"
               @click="updateCollectionAssets" 
               :icon="getAppIcon('dot-big')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.outdatedClickToUpdate')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified && canCheckpointCollection" 
@@ -165,7 +168,10 @@
         <div v-if="!isEditing && !isUntracked" class="collection-item-actions">
           <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else>
-            <ActionButton v-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections) && canCheckpointCollection" 
+            <ActionButton v-if="collectionStateFlags.has_rename_pending && userStore.canDo('pull_chunk')"
+              @click="applyPathUpdate"
+              :icon="getAppIcon('circle-check')" :useAlert="true" :noFilter="true" v-tooltip="renamePendingTooltip" />
+            <ActionButton v-else-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections) && canCheckpointCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
               :icon="getAppIcon('plus-stone')" :useAlert="true" :noFilter="true" v-tooltip="$t('blocks.untrackedModifiedClickCheckpoint')" />
             <ActionButton v-else-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections)" 
@@ -355,8 +361,17 @@ const collectionStateFlags = computed(() => {
     has_untracked: false,
     has_modified: false,
     has_outdated: false,
-    has_fetchable: false
+    has_fetchable: false,
+    has_rename_pending: false
   };
+});
+
+const renamePendingTooltip = computed(() => {
+  if (!props.collection.local_path) {
+    return 'Contains items with pending path updates';
+  }
+  const oldName = props.collection.local_path?.split(/[\\/]/).pop() || props.collection.name;
+  return `${oldName} -> ${props.collection.name}`;
 });
 
 //Returns true if the values of any item in collectionStateFlags is true
@@ -386,7 +401,9 @@ const editableCollectionName = ref(props.collection.name || '')
 const collectionName = computed(() => {
   const isUntracked = props.isUntracked;
   const collection = props.collection;
-  const collectionName = collection.name;
+  const currentCollectionName = collection.local_path
+    ? collection.local_path.split(/[\\/]/).filter(Boolean).pop()
+    : collection.name;
   const isDirectParent = props.collection.id === collection.collection_id;
   const itemPath = isUntracked ? collection.item_path : collection.collection_path;
   const collectionPath = itemPath.replace(/\//g, ' / ');
@@ -396,15 +413,15 @@ const collectionName = computed(() => {
   }
   if (props.isChild) {
     if (commonStore.showChildCollections) {
-      return collectionName;
+      return currentCollectionName;
     } else {
-      return isDirectParent ? (collectionName) : collectionPath;
+      return isDirectParent ? currentCollectionName : collectionPath;
     }
   } else {
     if (commonStore.viewSearchQuery) {
       return collectionPath;
     } else {
-      return collectionName;
+      return currentCollectionName;
     }
   }
 });
@@ -704,6 +721,22 @@ const updateCollectionAssets = async () => {
     }).catch(async (error) => {
       notificationStore.errorNotification(t('notifications.errorUpdatingItems'), error);
     });
+};
+
+const applyPathUpdate = async () => {
+  isAwaitingResponse.value = true;
+  try {
+    await CollectionService.ApplyPathUpdate(projectStore.activeProject.uri, props.collection.id);
+    emitCollectionUpdates(props.collection.id, [
+      { property: 'local_path', value: '' },
+      { property: 'collectionStateFlags', value: { ...collectionStateFlags.value, has_rename_pending: false } }
+    ]);
+    emitter.emit('refresh-browser');
+  } catch (error) {
+    notificationStore.errorNotification('Unable to apply folder rename', error);
+  } finally {
+    isAwaitingResponse.value = false;
+  }
 };
 
 // watchers

@@ -47,6 +47,7 @@ const (
 	assetActionChangeStatus       assetAction = "change_status"
 	assetActionCreateCheckpoint   assetAction = "create_checkpoint"
 	assetActionRevertCheckpoint   assetAction = "revert_checkpoint"
+	assetActionApplyPathUpdate    assetAction = "apply_path_update"
 )
 
 func activeAssetRole(tx *sqlx.Tx) (models.User, models.Role, error) {
@@ -85,6 +86,8 @@ func roleAllowsAssetAction(role models.Role, action assetAction) bool {
 		return role.CreateCheckpoint
 	case assetActionRevertCheckpoint:
 		return role.ViewCheckpoint
+	case assetActionApplyPathUpdate:
+		return role.PullChunk
 	default:
 		return false
 	}
@@ -1093,6 +1096,40 @@ func (t *AssetService) UpdateAsset(projectPath, assetId, name, assetTypeId strin
 		return models.Asset{}, err
 	}
 	return updatedAsset, nil
+}
+
+// ApplyPathUpdate applies a pending remote path change to a local asset.
+func (t *AssetService) ApplyPathUpdate(projectPath, assetId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err := authorizeAssetActionTx(tx, assetActionApplyPathUpdate, []string{assetId}); err != nil {
+		return err
+	}
+	asset, err := repository.GetSimpleAsset(tx, assetId)
+	if err != nil {
+		return err
+	}
+	pathUpdateRoot, err := repository.GetCollectionPathUpdateRoot(tx, asset.CollectionId)
+	if err != nil {
+		return err
+	}
+	if pathUpdateRoot != "" {
+		if err := authorizeCollectionPathUpdateTx(tx, pathUpdateRoot); err != nil {
+			return err
+		}
+	}
+	if err := repository.ApplyAssetPathUpdate(tx, assetId); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 func (t *AssetService) ChangeAssetType(projectPath, assetId, assetTypeId string) (MetadataUpdateResult, error) {

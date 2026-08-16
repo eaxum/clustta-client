@@ -1855,7 +1855,7 @@ func UpdateAsset(tx *sqlx.Tx, assetId string, name, assetTypeId string, isResour
 	return asset, nil
 }
 
-func UpdateSyncAsset(tx *sqlx.Tx, assetId string, name, collectionId, assetTypeId, assigneeId, assignerId, statusId, previewId string, isResource, isLink bool, pointer string, tags []string) error {
+func UpdateSyncAsset(tx *sqlx.Tx, assetId string, name, extension, collectionId, assetTypeId, assigneeId, assignerId, statusId, previewId string, isResource, isLink bool, pointer string, tags []string) error {
 	name = strings.TrimSpace(name)
 	oldAsset, err := GetAsset(tx, assetId)
 	if err != nil {
@@ -1870,6 +1870,7 @@ func UpdateSyncAsset(tx *sqlx.Tx, assetId string, name, collectionId, assetTypeI
 
 	params := map[string]any{
 		"name":          newAssetName,
+		"extension":     extension,
 		"is_resource":   isResource,
 		"is_link":       isLink,
 		"pointer":       pointer,

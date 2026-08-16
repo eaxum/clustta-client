@@ -418,7 +418,8 @@ const refreshView = async () => {
       ...(state.normal_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'normal' }] })),
       ...(state.modified_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'modified' }] })),
       ...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
-      ...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] }))
+      ...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] })),
+      ...(state.rename_pending_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'rename_pending' }] }))
     ];
     if (statusUpdates.length) {
       const updatedIds = new Set(statusUpdates.map(update => update.itemId));

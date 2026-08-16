@@ -394,48 +394,9 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 
 		localCollection := localCollections[i]
 		if localCollection.MTime < collection.MTime {
-
-			parentId := collection.ParentId
-			previewId := collection.PreviewId
-			isShared := collection.IsShared
-			collectionTypeId := collection.CollectionTypeId
-
-			collection, err = repository.RenameCollection(tx, collection.Id, collection.Name)
-			if err != nil {
+			if err = repository.UpdateSyncCollection(tx, collection); err != nil {
 				return err
 			}
-
-			collection.ParentId = parentId
-			collection.PreviewId = previewId
-			collection.IsShared = isShared
-			collection.CollectionTypeId = collectionTypeId
-
-			if localCollection.ParentId != collection.ParentId {
-				err = repository.ChangeParent(tx, collection.Id, collection.ParentId)
-				if err != nil {
-					return err
-				}
-			}
-
-			if localCollection.PreviewId != collection.PreviewId {
-				err = repository.SetCollectionPreview(tx, collection.Id, "collection", collection.PreviewId)
-				if err != nil {
-					return err
-				}
-			}
-			if localCollection.IsShared != collection.IsShared {
-				err = repository.ChangeIsShared(tx, collection.Id, collection.IsShared)
-				if err != nil {
-					return err
-				}
-			}
-			if localCollection.CollectionTypeId != collection.CollectionTypeId {
-				err = repository.ChangeCollectionType(tx, collection.Id, collection.CollectionTypeId)
-				if err != nil {
-					return err
-				}
-			}
-
 		}
 	}
 
@@ -492,7 +453,7 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 
 		localAsset := localAssets[i]
 		if localAsset.MTime < asset.MTime {
-			err := repository.UpdateSyncAsset(tx, asset.Id, asset.Name, asset.CollectionId, asset.AssetTypeId, asset.AssigneeId, asset.AssignerId, asset.StatusId, asset.PreviewId, asset.IsResource, asset.IsLink, asset.Pointer, []string{})
+			err := repository.UpdateSyncAsset(tx, asset.Id, asset.Name, asset.Extension, asset.CollectionId, asset.AssetTypeId, asset.AssigneeId, asset.AssignerId, asset.StatusId, asset.PreviewId, asset.IsResource, asset.IsLink, asset.Pointer, []string{})
 			if err != nil {
 				return err
 			}

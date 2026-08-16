@@ -262,8 +262,20 @@ const composeVisibleItems = (children = {}) => {
 		? (children.collections || []).filter((item) => !item.is_trashed)
 		: [];
 	const assets = applyTrackedAssetVisibility(children.assets || []);
-	const untrackedCollections = filterUntrackedCollections(children.untracked_collections || children.untracked_folders || []);
-	const untrackedAssets = filterUntrackedAssets(children.untracked_assets || children.untracked_files || []);
+	const pathKey = (path) => {
+		const normalizedPath = path?.replace(/\\/g, '/').replace(/\/$/, '') || '';
+		return platformStore.isWindows ? normalizedPath.toLowerCase() : normalizedPath;
+	};
+	const trackedPaths = new Set([
+		...collections.map((item) => pathKey(item.local_path || item.file_path)),
+		...assets.map((item) => pathKey(item.local_path || item.file_path))
+	]);
+	const untrackedCollections = filterUntrackedCollections(
+		children.untracked_collections || children.untracked_folders || []
+	).filter((item) => !trackedPaths.has(pathKey(item.file_path)));
+	const untrackedAssets = filterUntrackedAssets(
+		children.untracked_assets || children.untracked_files || []
+	).filter((item) => !trackedPaths.has(pathKey(item.file_path)));
 
 	return sortItems(collections, assets, untrackedCollections, untrackedAssets);
 };
@@ -713,6 +725,7 @@ const handleRootFsChange = async () => {
 			normal: (state.normal_assets || []).map(a => a.id).sort(),
 			outdated: (state.outdated_assets || []).map(a => a.id).sort(),
 			fetchable: (state.fetchable_assets || []).map(a => a.id).sort(),
+			rename_pending: (state.rename_pending_assets || []).map(a => a.id).sort(),
 			untracked_files: (state.untracked_files || []).map(f => f.id).sort(),
 			untracked_folders: (state.untracked_folders || []).map(f => f.id).sort()
 		};
@@ -723,7 +736,8 @@ const handleRootFsChange = async () => {
 			...(state.normal_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'normal' }] })),
 			...(state.modified_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'modified' }] })),
 			...(state.outdated_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'outdated' }] })),
-			...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] }))
+			...(state.fetchable_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'fetchable' }] })),
+			...(state.rename_pending_assets || []).map(a => ({ itemId: a.id, updates: [{ property: 'file_status', value: 'rename_pending' }] }))
 		];
 		if (statusUpdates.length) {
 			const updatedIds = new Set(statusUpdates.map(update => update.itemId));

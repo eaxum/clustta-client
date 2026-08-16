@@ -488,6 +488,13 @@ export class CollectionChildrenState {
              */
             this["normal_assets"] = [];
         }
+        if (!("rename_pending_assets" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Asset[]}
+             */
+            this["rename_pending_assets"] = [];
+        }
         if (!("untracked_files" in $$source)) {
             /**
              * @member
@@ -516,8 +523,9 @@ export class CollectionChildrenState {
         const $$createField1_0 = $$createType2;
         const $$createField2_0 = $$createType2;
         const $$createField3_0 = $$createType2;
-        const $$createField4_0 = $$createType3;
-        const $$createField5_0 = $$createType4;
+        const $$createField4_0 = $$createType2;
+        const $$createField5_0 = $$createType3;
+        const $$createField6_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("modified_assets" in $$parsedSource) {
             $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
@@ -531,11 +539,14 @@ export class CollectionChildrenState {
         if ("normal_assets" in $$parsedSource) {
             $$parsedSource["normal_assets"] = $$createField3_0($$parsedSource["normal_assets"]);
         }
+        if ("rename_pending_assets" in $$parsedSource) {
+            $$parsedSource["rename_pending_assets"] = $$createField4_0($$parsedSource["rename_pending_assets"]);
+        }
         if ("untracked_files" in $$parsedSource) {
-            $$parsedSource["untracked_files"] = $$createField4_0($$parsedSource["untracked_files"]);
+            $$parsedSource["untracked_files"] = $$createField5_0($$parsedSource["untracked_files"]);
         }
         if ("untracked_folders" in $$parsedSource) {
-            $$parsedSource["untracked_folders"] = $$createField5_0($$parsedSource["untracked_folders"]);
+            $$parsedSource["untracked_folders"] = $$createField6_0($$parsedSource["untracked_folders"]);
         }
         return new CollectionChildrenState(/** @type {Partial<CollectionChildrenState>} */($$parsedSource));
     }
@@ -639,6 +650,13 @@ export class CollectionStateFlags {
              * @type {boolean}
              */
             this["has_fetchable"] = false;
+        }
+        if (!("has_rename_pending" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["has_rename_pending"] = false;
         }
 
         Object.assign(this, $$source);

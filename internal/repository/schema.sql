@@ -6,6 +6,14 @@ CREATE TABLE IF NOT EXISTS config (
     CHECK( typeof(name)='text' AND length(name)>=1)
 );
 
+CREATE TABLE IF NOT EXISTS pending_path_update (
+    entity_type TEXT NOT NULL,
+    entity_id TEXT NOT NULL,
+    current_local_path TEXT NOT NULL,
+    PRIMARY KEY (entity_type, entity_id),
+    CHECK (entity_type IN ('asset', 'collection'))
+);
+
 CREATE TABLE IF NOT EXISTS preview (
     hash TEXT PRIMARY KEY,
     preview BLOB,
@@ -829,7 +837,8 @@ SELECT
     collection_type.name AS collection_type_name,
     collection_type.icon AS collection_type_icon,
     preview.preview AS preview,
-    IFNULL(ea.assignee_ids, '[]') as assignee_ids
+    IFNULL(ea.assignee_ids, '[]') as assignee_ids,
+    IFNULL(ppu.current_local_path, '') AS local_path
 FROM 
     collection
 LEFT JOIN 
@@ -837,7 +846,9 @@ LEFT JOIN
 JOIN 
     collection_type ON collection.collection_type_id = collection_type.id
 LEFT JOIN
-    collection_assignees ea ON collection.id = ea.collection_id;
+    collection_assignees ea ON collection.id = ea.collection_id
+LEFT JOIN
+    pending_path_update ppu ON ppu.entity_type = 'collection' AND ppu.entity_id = collection.id;
 
 DROP VIEW IF EXISTS asset_assignees;
 CREATE VIEW asset_assignees AS
@@ -926,6 +937,7 @@ WITH asset_base AS (
             COALESCE(assigner.first_name, '') || ' ' || COALESCE(assigner.last_name, '') 
             ELSE '' END as assigner_name,
         CASE WHEN t.assigner_id != '' THEN IFNULL(assigner.email, '') ELSE '' END as assigner_email
+        ,IFNULL(ppu.current_local_path, '') AS local_path
     FROM 
         asset t
     JOIN 
@@ -938,6 +950,8 @@ WITH asset_base AS (
         user assignee ON t.assignee_id != '' AND t.assignee_id = assignee.id
     LEFT JOIN 
         user assigner ON t.assigner_id != '' AND t.assigner_id = assigner.id
+    LEFT JOIN
+        pending_path_update ppu ON ppu.entity_type = 'asset' AND ppu.entity_id = t.id
 )
 SELECT 
     tb.*,

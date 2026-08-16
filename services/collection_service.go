@@ -33,19 +33,21 @@ type CollectionItems struct {
 }
 
 type CollectionStateFlags struct {
-	HasUntracked bool `json:"has_untracked"`
-	HasModified  bool `json:"has_modified"`
-	HasOutdated  bool `json:"has_outdated"`
-	HasFetchable bool `json:"has_fetchable"`
+	HasUntracked     bool `json:"has_untracked"`
+	HasModified      bool `json:"has_modified"`
+	HasOutdated      bool `json:"has_outdated"`
+	HasFetchable     bool `json:"has_fetchable"`
+	HasRenamePending bool `json:"has_rename_pending"`
 }
 
 type CollectionChildrenState struct {
-	ModifiedAssets   []models.Asset               `json:"modified_assets"`
-	OutdatedAssets   []models.Asset               `json:"outdated_assets"`
-	FetchableAssets  []models.Asset               `json:"fetchable_assets"`
-	NormalAssets     []models.Asset               `json:"normal_assets"`
-	UntrackedFiles   []models.UntrackedAsset      `json:"untracked_files"`
-	UntrackedFolders []models.UntrackedCollection `json:"untracked_folders"`
+	ModifiedAssets      []models.Asset               `json:"modified_assets"`
+	OutdatedAssets      []models.Asset               `json:"outdated_assets"`
+	FetchableAssets     []models.Asset               `json:"fetchable_assets"`
+	NormalAssets        []models.Asset               `json:"normal_assets"`
+	RenamePendingAssets []models.Asset               `json:"rename_pending_assets"`
+	UntrackedFiles      []models.UntrackedAsset      `json:"untracked_files"`
+	UntrackedFolders    []models.UntrackedCollection `json:"untracked_folders"`
 }
 
 type ItemsForCheckpoint struct {
@@ -120,6 +122,35 @@ func authorizeUpdateCollectionTx(tx *sqlx.Tx, collectionId string) error {
 	}
 	if _, allowed := canModifyIds[collectionId]; !allowed {
 		return errors.New("user cannot update collection outside assigned collection scope")
+	}
+	return nil
+}
+
+func authorizeCollectionPathUpdateTx(tx *sqlx.Tx, collectionId string) error {
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	user, err := repository.GetUser(tx, activeUser.Id)
+	if err != nil {
+		return err
+	}
+	role, err := repository.GetRole(tx, user.RoleId)
+	if err != nil {
+		return err
+	}
+	if !role.PullChunk {
+		return errors.New("user does not have pull_chunk permission")
+	}
+	if role.Name == "admin" {
+		return nil
+	}
+	canModifyIds, err := repository.GetUserCanModifyCollectionIds(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	if _, allowed := canModifyIds[collectionId]; !allowed {
+		return errors.New("user cannot update local paths outside assigned collection scope")
 	}
 	return nil
 }
@@ -363,6 +394,31 @@ func (e *CollectionService) RenameCollection(projectPath, collectionId, newName 
 	return updatedCollection, nil
 }
 
+// ApplyPathUpdate applies pending remote path changes to a collection tree.
+func (e *CollectionService) ApplyPathUpdate(projectPath, collectionId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	pathUpdateRoot, err := repository.GetCollectionPathUpdateRoot(tx, collectionId)
+	if err != nil {
+		return err
+	}
+	if err := authorizeCollectionPathUpdateTx(tx, pathUpdateRoot); err != nil {
+		return err
+	}
+	if err := repository.ApplyCollectionPathUpdate(tx, collectionId); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 // CreateCollections creates multiple collection collections in bulk.
 // Currently a stub implementation for future batch creation functionality.
 func (e *CollectionService) CreateCollections(projectPath, name, description, collectionTypeId, parentId string) ([]models.Collection, error) {
@@ -508,12 +564,34 @@ func (e *CollectionService) GetCollectionChildren(projectPath, collectionId, pro
 		children.Assets = assets
 
 		for _, child := range collections {
+			if child.LocalPath != "" {
+				collectionTrackFolders = append(collectionTrackFolders, filepath.Base(filepath.Clean(child.LocalPath)))
+				continue
+			}
 			collectionTrackFolders = append(collectionTrackFolders, child.Name)
 		}
 
 		for _, child := range assets {
+			if child.LocalPath != "" {
+				collectionTrackFiles = append(collectionTrackFiles, filepath.Base(child.LocalPath))
+				continue
+			}
 			collectionTrackFiles = append(collectionTrackFiles, child.Name+child.Extension)
 		}
+
+		if collectionId != "" {
+			collection, err := repository.GetCollection(tx, collectionId)
+			if err != nil {
+				return children, err
+			}
+			collectionFolderPath = collection.GetFilePath()
+		}
+		pendingFolders, pendingFiles, err := pendingNamesInFolder(tx, collectionFolderPath)
+		if err != nil {
+			return children, err
+		}
+		collectionTrackFolders = append(collectionTrackFolders, pendingFolders...)
+		collectionTrackFiles = append(collectionTrackFiles, pendingFiles...)
 	}
 
 	if !utils.DirExists(collectionFolderPath) {
@@ -618,6 +696,41 @@ func filterChildrenByViewPermission(tx *sqlx.Tx, collections []models.Collection
 	return filteredCollections, filteredAssets, nil
 }
 
+const pendingPathCollectionEntity = "collection"
+
+func pendingNamesInFolder(tx *sqlx.Tx, folderPath string) ([]string, []string, error) {
+	pendingPaths := []struct {
+		EntityType string `db:"entity_type"`
+		LocalPath  string `db:"current_local_path"`
+	}{}
+	if err := tx.Select(&pendingPaths, "SELECT entity_type, current_local_path FROM pending_path_update"); err != nil {
+		return nil, nil, err
+	}
+	folders := []string{}
+	files := []string{}
+	for _, pendingPath := range pendingPaths {
+		if !sameFilesystemPath(filepath.Dir(pendingPath.LocalPath), folderPath) {
+			continue
+		}
+		name := filepath.Base(filepath.Clean(pendingPath.LocalPath))
+		if pendingPath.EntityType == pendingPathCollectionEntity {
+			folders = append(folders, name)
+		} else {
+			files = append(files, name)
+		}
+	}
+	return folders, files, nil
+}
+
+func sameFilesystemPath(left, right string) bool {
+	left = filepath.Clean(left)
+	right = filepath.Clean(right)
+	if runtime.GOOS == "windows" {
+		return strings.EqualFold(left, right)
+	}
+	return left == right
+}
+
 func filterVisibleChildren(collections []models.Collection, assets []models.Asset, visibleCollections []models.Collection, visibleAssets []models.Asset) ([]models.Collection, []models.Asset) {
 	visibleCollectionIds := make(map[string]struct{}, len(visibleCollections))
 	for _, collection := range visibleCollections {
@@ -679,15 +792,20 @@ func (e *CollectionService) GetRecursiveUntrackedAssets(projectPath, collectionI
 	type trackedAssetFile struct {
 		AssetPath string `db:"asset_path"`
 		Extension string `db:"extension"`
+		LocalPath string `db:"local_path"`
 	}
 	trackedAssets := []trackedAssetFile{}
-	err = tx.Select(&trackedAssets, "SELECT asset_path, extension FROM full_asset WHERE trashed = 0")
+	err = tx.Select(&trackedAssets, "SELECT asset_path, extension, local_path FROM full_asset WHERE trashed = 0")
 	if err != nil {
 		return untrackedAssets, err
 	}
 
 	absoluteTrackedFiles := make(map[string]bool, len(trackedAssets))
 	for _, asset := range trackedAssets {
+		if asset.LocalPath != "" {
+			absoluteTrackedFiles[filepath.Clean(asset.LocalPath)] = true
+			continue
+		}
 		absoluteAssetPath, err := filepath.Abs(filepath.Join(projectWorkingDir, asset.AssetPath+asset.Extension))
 		if err != nil {
 			return untrackedAssets, err
@@ -835,9 +953,10 @@ func (e *CollectionService) PurgeRecursiveUntrackedItems(projectPath, collection
 	type trackedAssetFile struct {
 		AssetPath string `db:"asset_path"`
 		Extension string `db:"extension"`
+		LocalPath string `db:"local_path"`
 	}
 	trackedAssets := []trackedAssetFile{}
-	err = tx.Select(&trackedAssets, "SELECT asset_path, extension FROM full_asset WHERE trashed = 0")
+	err = tx.Select(&trackedAssets, "SELECT asset_path, extension, local_path FROM full_asset WHERE trashed = 0")
 	if err != nil {
 		return result, err
 	}
@@ -852,6 +971,10 @@ func (e *CollectionService) PurgeRecursiveUntrackedItems(projectPath, collection
 
 	absoluteTrackedFiles := make(map[string]bool, len(trackedAssets))
 	for _, asset := range trackedAssets {
+		if asset.LocalPath != "" {
+			absoluteTrackedFiles[pathKey(asset.LocalPath)] = true
+			continue
+		}
 		assetPath := strings.Trim(asset.AssetPath+asset.Extension, "/\\")
 		absoluteAssetPath, err := filepath.Abs(filepath.Join(absoluteProjectWorkingDir, assetPath))
 		if err != nil {
@@ -862,9 +985,10 @@ func (e *CollectionService) PurgeRecursiveUntrackedItems(projectPath, collection
 
 	type trackedCollectionPath struct {
 		CollectionPath string `db:"collection_path"`
+		LocalPath      string `db:"local_path"`
 	}
 	trackedCollections := []trackedCollectionPath{}
-	err = tx.Select(&trackedCollections, "SELECT collection_path FROM full_collection WHERE trashed = 0")
+	err = tx.Select(&trackedCollections, "SELECT collection_path, local_path FROM full_collection WHERE trashed = 0")
 	if err != nil {
 		return result, err
 	}
@@ -873,6 +997,10 @@ func (e *CollectionService) PurgeRecursiveUntrackedItems(projectPath, collection
 		pathKey(absoluteProjectWorkingDir): true,
 	}
 	for _, collection := range trackedCollections {
+		if collection.LocalPath != "" {
+			absoluteTrackedCollections[pathKey(collection.LocalPath)] = true
+			continue
+		}
 		collectionPath := strings.Trim(utils.NormalizePath(collection.CollectionPath), "/")
 		absoluteCollectionPath, err := filepath.Abs(filepath.Join(absoluteProjectWorkingDir, collectionPath))
 		if err != nil {
@@ -1062,6 +1190,25 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 		return flags, err
 	}
 	defer tx.Rollback()
+
+	pendingQuery := `WITH RECURSIVE subtree(id) AS (
+		SELECT id FROM collection WHERE id = ?
+		UNION ALL
+		SELECT collection.id FROM collection JOIN subtree ON collection.parent_id = subtree.id
+	) SELECT EXISTS(
+		SELECT 1 FROM pending_path_update
+		WHERE entity_type = 'collection' AND (? = '' OR entity_id IN (SELECT id FROM subtree))
+		UNION ALL
+		SELECT 1 FROM pending_path_update JOIN asset ON asset.id = pending_path_update.entity_id
+		WHERE pending_path_update.entity_type = 'asset'
+		AND (? = '' OR asset.collection_id IN (SELECT id FROM subtree))
+	)`
+	if err := tx.Get(&flags.HasRenamePending, pendingQuery, collectionId, collectionId, collectionId); err != nil {
+		return flags, err
+	}
+	if flags.HasRenamePending {
+		return flags, nil
+	}
 
 	var collectionPath string
 	if collectionId == "" {
@@ -1257,7 +1404,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 
 		var allAssets []models.Asset
 		query := `
-			SELECT asset_path, extension
+			SELECT asset_path, extension, local_path
 			FROM full_asset 
 			WHERE collection_path LIKE ? AND trashed = 0 AND is_link = 0
 		`
@@ -1267,6 +1414,10 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 		}
 
 		for _, asset := range allAssets {
+			if asset.LocalPath != "" {
+				trackedFiles[filepath.Clean(asset.LocalPath)] = true
+				continue
+			}
 			assetFilePath, err := filepath.Abs(filepath.Join(projectWorkingDir, asset.AssetPath+asset.Extension))
 			if err == nil {
 				trackedFiles[assetFilePath] = true
@@ -1281,10 +1432,7 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 			if err != nil {
 				return flags, err
 			}
-			folderToScan, err = utils.BuildCollectionPath(rootFolder, collection.CollectionPath)
-			if err != nil {
-				return flags, err
-			}
+			folderToScan = collection.GetFilePath()
 		}
 
 		if utils.DirExists(folderToScan) {
@@ -1344,12 +1492,13 @@ func (e *CollectionService) GetCollectionStateFlags(projectPath, collectionId, p
 // Returns state containing modified, outdated, fetchable assets and untracked items.
 func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId, projectWorkingDir string, ignoreList []string) (CollectionChildrenState, error) {
 	state := CollectionChildrenState{
-		ModifiedAssets:   make([]models.Asset, 0),
-		OutdatedAssets:   make([]models.Asset, 0),
-		FetchableAssets:  make([]models.Asset, 0),
-		NormalAssets:     make([]models.Asset, 0),
-		UntrackedFiles:   make([]models.UntrackedAsset, 0),
-		UntrackedFolders: make([]models.UntrackedCollection, 0),
+		ModifiedAssets:      make([]models.Asset, 0),
+		OutdatedAssets:      make([]models.Asset, 0),
+		FetchableAssets:     make([]models.Asset, 0),
+		NormalAssets:        make([]models.Asset, 0),
+		RenamePendingAssets: make([]models.Asset, 0),
+		UntrackedFiles:      make([]models.UntrackedAsset, 0),
+		UntrackedFolders:    make([]models.UntrackedCollection, 0),
 	}
 
 	if collectionId == "root" {
@@ -1375,7 +1524,7 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 
 	var assets []models.Asset
 	query := `
-		SELECT id, asset_path, extension, collection_path, name, collection_id
+		SELECT id, asset_path, extension, collection_path, name, collection_id, local_path
 		FROM full_asset 
 		WHERE collection_id = ? AND trashed = 0
 		ORDER BY name
@@ -1405,6 +1554,12 @@ func (e *CollectionService) GetCollectionChildrenState(projectPath, collectionId
 
 	for _, asset := range assets {
 		assetMap[asset.Id] = asset
+		if asset.LocalPath != "" && utils.FileExists(asset.LocalPath) {
+			asset.FilePath = asset.LocalPath
+			assetMap[asset.Id] = asset
+			state.RenamePendingAssets = append(state.RenamePendingAssets, asset)
+			continue
+		}
 
 		assetFilePath, err := utils.BuildAssetPath(rootFolder, asset.CollectionPath, asset.Name, asset.Extension)
 		if err != nil {
@@ -1567,7 +1722,7 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 
 	var trackedAssets []models.Asset
 	assetQuery := `
-		SELECT name, extension
+		SELECT name, extension, local_path
 		FROM full_asset 
 		WHERE collection_id = ? AND trashed = 0
 	`
@@ -1577,12 +1732,16 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 	}
 
 	for _, asset := range trackedAssets {
+		if asset.LocalPath != "" {
+			trackedAssetNames[filepath.Base(asset.LocalPath)] = true
+			continue
+		}
 		trackedAssetNames[asset.Name+asset.Extension] = true
 	}
 
 	var trackedCollections []models.Collection
 	collectionQuery := `
-		SELECT name
+		SELECT name, local_path
 		FROM full_collection 
 		WHERE parent_id = ? AND trashed = 0
 	`
@@ -1592,6 +1751,10 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 	}
 
 	for _, collection := range trackedCollections {
+		if collection.LocalPath != "" {
+			trackedCollectionNames[filepath.Base(filepath.Clean(collection.LocalPath))] = true
+			continue
+		}
 		trackedCollectionNames[collection.Name] = true
 	}
 
@@ -1604,10 +1767,17 @@ func (e *CollectionService) detectUntrackedItems(tx *sqlx.Tx, state CollectionCh
 		if err != nil {
 			return state, err
 		}
-		folderToScan, err = utils.BuildCollectionPath(rootFolder, collection.CollectionPath)
-		if err != nil {
-			return state, err
-		}
+		folderToScan = collection.GetFilePath()
+	}
+	pendingFolders, pendingFiles, err := pendingNamesInFolder(tx, folderToScan)
+	if err != nil {
+		return state, err
+	}
+	for _, name := range pendingFolders {
+		trackedCollectionNames[name] = true
+	}
+	for _, name := range pendingFiles {
+		trackedAssetNames[name] = true
 	}
 
 	if !utils.DirExists(folderToScan) {

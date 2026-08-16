@@ -1,4 +1,4 @@
-﻿package sync_service
+package sync_service
 
 import (
 	"clustta/internal/auth_service"
@@ -117,6 +117,11 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	}
 
 	if !isUpToDate {
+		err = repository.RecordPendingPathUpdates(tx, data.Collections, data.Assets, false)
+		if err != nil {
+			return err
+		}
+
 		err = ClearLocalDataDrop(tx)
 		if err != nil {
 			return err
@@ -129,6 +134,9 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 
 		err = OverWriteProjectData(tx, data)
 		if err != nil {
+			return err
+		}
+		if err = repository.ReconcilePendingPathUpdates(tx); err != nil {
 			return err
 		}
 
