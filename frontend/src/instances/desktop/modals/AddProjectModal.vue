@@ -496,7 +496,7 @@ const makeProjectRemote = async (project) => {
 
 // Resets project data in stores after creation.
 const resetProjectData = () => {
-  commonStore.activeWorkspace = 'Default';
+  commonStore.activeWorkspace = 'Project';
   commonStore.resetFilters();
   collectionStore.collections = [];
   assetStore.assets = [];

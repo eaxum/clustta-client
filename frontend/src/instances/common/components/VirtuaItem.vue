@@ -127,10 +127,10 @@ const filtersActive = computed(() => {
   return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilter;
 });
 
-// Search always presents flat results. Filters only do so in the Default workspace.
+// Search always presents flat results. Filters only do so in the Project workspace.
 const isFilteredView = computed(() =>
   !!commonStore.viewSearchQuery ||
-  (filtersActive.value && commonStore.activeWorkspace === 'Default')
+  (filtersActive.value && commonStore.activeWorkspace === 'Project')
 );
 
 const shouldLoadAssetState = computed(() => !isFilteredView.value);
@@ -182,7 +182,7 @@ const applyTrackedAssetVisibility = (assets = []) => {
 // Filters untracked assets by broad asset/untracked toggles plus search and extension filters.
 const filterUntrackedAssets = (assets = []) => {
   if (commonStore.onlyCollections) return [];
-  if (commonStore.activeWorkspace === 'My Assets') return [];
+  if (commonStore.activeWorkspace === 'My Tasks') return [];
   if (!commonStore.showAssets || !commonStore.showUntracked) return [];
   const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
   const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";

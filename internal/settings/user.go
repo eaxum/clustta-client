@@ -1189,8 +1189,8 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 		return []interface{}{}, err
 	}
 
-	defaultWorkspace := map[string]interface{}{
-		"name":                 "Default",
+	projectWorkspace := map[string]interface{}{
+		"name":                 "Project",
 		"filters":              map[string]interface{}{"assetFilters": []interface{}{}, "collectionFilters": []interface{}{}, "resourceFilters": []interface{}{}},
 		"workspaceSearchQuery": "",
 		"collection":           nil,
@@ -1204,8 +1204,8 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 		"type":       "assignation",
 		"username":   user.Username,
 	}
-	assignedAssetsWorkspace := map[string]interface{}{
-		"name":                 "My Assets",
+	myTasksWorkspace := map[string]interface{}{
+		"name":                 "My Tasks",
 		"filters":              map[string]interface{}{"assetFilters": []interface{}{assetFilter}, "collectionFilters": []interface{}{}, "resourceFilters": []interface{}{}, "showAssets": true, "onlyAssets": true},
 		"workspaceSearchQuery": "",
 		"collection":           nil,
@@ -1213,11 +1213,11 @@ func GetProjectWorkspaces(projectId string) ([]interface{}, error) {
 
 	projectWorkspaces, exists := settings.WorkSpaces[projectId]
 	if !exists {
-		projectWorkspaces = append(projectWorkspaces, defaultWorkspace)
-		projectWorkspaces = append(projectWorkspaces, assignedAssetsWorkspace)
+		projectWorkspaces = append(projectWorkspaces, projectWorkspace)
+		projectWorkspaces = append(projectWorkspaces, myTasksWorkspace)
 		return projectWorkspaces, nil
 	}
-	projectWorkspaces = append([]interface{}{defaultWorkspace, assignedAssetsWorkspace}, projectWorkspaces...)
+	projectWorkspaces = append([]interface{}{projectWorkspace, myTasksWorkspace}, projectWorkspaces...)
 	return projectWorkspaces, nil
 }
 

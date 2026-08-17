@@ -1349,7 +1349,7 @@
     "errorImportingItems": "Error importing items",
     "noResultsFound": "No results found.",
     "noResultsMatchFilters": "No results match your filters.",
-    "noAssetsAssigned": "You have no assets assigned to you.",
+    "noTasksAssigned": "You have no tasks assigned to you.",
     "nothingInWorkspace": "Nothing in this workspace.",
     "nothingToSeeHere": "Nothing to see here.",
     "errorMovingFiles": "Error moving files",
@@ -1629,6 +1629,8 @@
       "remove": "Remove"
     },
     "workspaceTabs": {
+      "project": "Project",
+      "myTasks": "My Tasks",
       "deleteWorkspace": "Delete Workspace",
       "resetWorkspace": "Reset to Saved",
       "saveWorkspace": "Save Workspace",

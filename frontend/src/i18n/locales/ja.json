@@ -1305,7 +1305,7 @@
     "errorImportingItems": "アイテムのインポートエラー",
     "noResultsFound": "結果が見つかりません。",
     "noResultsMatchFilters": "フィルターに一致する結果がありません。",
-    "noAssetsAssigned": "割り当てられたアセットがありません。",
+    "noTasksAssigned": "割り当てられたタスクはありません。",
     "nothingInWorkspace": "このワークスペースには何もありません。",
     "nothingToSeeHere": "ここには何もありません。",
     "errorMovingFiles": "ファイルの移動エラー",
@@ -1590,6 +1590,8 @@
       "remove": "削除"
     },
     "workspaceTabs": {
+      "project": "プロジェクト",
+      "myTasks": "自分のタスク",
       "deleteWorkspace": "ワークスペースを削除",
       "resetWorkspace": "保存済みに戻す",
       "saveWorkspace": "ワークスペースを保存",

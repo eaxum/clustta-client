@@ -197,7 +197,7 @@ const loadProjectLocations = async () => {
 
 // Resets project data stores to initial state.
 const resetProjectData = () => {
-  commonStore.activeWorkspace = 'Default';
+  commonStore.activeWorkspace = 'Project';
   commonStore.resetFilters();
   collectionStore.collections = [];
   assetStore.assets = [];

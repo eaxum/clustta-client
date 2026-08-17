@@ -155,9 +155,9 @@ const filtersActive = computed(() => {
 	return assigneeFilters || collectionFilters || assetFilters || resourceFilters || generalFilterActive;
 });
 
-const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
 
-// Search always shows flat results. Filters only defer per-item state in the Default workspace.
+// Search always shows flat results. Filters only defer per-item state in the Project workspace.
 const isFilteredView = computed(() =>
 	!!commonStore.viewSearchQuery ||
 	(filtersActive.value && isDefaultWorkspace.value)
@@ -171,7 +171,7 @@ const loadStateBarFlags = () => {
 	collectionStore.loadCollectionStateFlags();
 };
 
-// Whether the active workspace allows creating items (Default or a collection-based workspace).
+// Whether the active workspace allows creating items (Project or a collection-based workspace).
 const canCreateInWorkspace = computed(() => {
 	if (isDefaultWorkspace.value) return true;
 	const workspace = commonStore.workspaces.find(w => w.name === commonStore.activeWorkspace);
@@ -221,7 +221,7 @@ const applyTrackedAssetVisibility = (assets = []) => {
 // Filters untracked assets by the broad asset/untracked toggles plus search and extension filters.
 const filterUntrackedAssets = (assets = []) => {
 	if (commonStore.onlyCollections) return [];
-	if (commonStore.activeWorkspace === 'My Assets') return [];
+	if (commonStore.activeWorkspace === 'My Tasks') return [];
 	if (!commonStore.showAssets || !commonStore.showUntracked) return [];
 	const viewSearchQuery = commonStore.viewSearchQuery?.toLowerCase() || "";
 	const workspaceSearchQuery = commonStore.workspaceSearchQuery?.toLowerCase() || "";
@@ -295,7 +295,7 @@ const getNavigatedTrackedAssets = async (collectionId, immediateAssets = []) => 
 
 // Loads recursive untracked assets for root/navigated only-assets mode.
 const getRecursiveUntrackedAssets = async (collectionId, collectionFolderPath) => {
-	if (commonStore.activeWorkspace === 'My Assets') return null;
+	if (commonStore.activeWorkspace === 'My Tasks') return null;
 	if (!commonStore.onlyAssets || !commonStore.showUntracked || !collectionFolderPath) return null;
 	return await CollectionService.GetRecursiveUntrackedAssets(
 		projectStore.activeProject.uri,
@@ -832,10 +832,10 @@ const importItems = async () => {
 // Returns the empty state message based on current view context.
 const message = () => {
 	const searching = commonStore.viewSearchQuery;
-	const myAssetsWorkspace = commonStore.activeWorkspace === 'My Assets';
+	const myTasksWorkspace = commonStore.activeWorkspace === 'My Tasks';
 	if (searching) return t('stages.noResultsFound');
 	if (isDefaultWorkspace.value && filtersActive.value) return t('stages.noResultsMatchFilters');
-	if (myAssetsWorkspace) return t('stages.noAssetsAssigned');
+	if (myTasksWorkspace) return t('stages.noTasksAssigned');
 	if (!isDefaultWorkspace.value) return t('stages.nothingInWorkspace');
 	return t('stages.nothingToSeeHere');
 };
@@ -1445,7 +1445,7 @@ Events.On('copy-items', async () => {
 
 Events.On('toggle-ui-lock', () => {
 	if (operationsActive.value || isEditableElementFocused()) return;
-	if (commonStore.activeWorkspace !== 'Default' || kanbanView.value || !userStore.canDo('update_collection')) return;
+	if (commonStore.activeWorkspace !== 'Project' || kanbanView.value || !userStore.canDo('update_collection')) return;
 	dndStore.lockUI = !dndStore.lockUI;
 });
 
@@ -1551,7 +1551,7 @@ watch(() => commonStore.navigatorMode, async () => {
 onMounted(async () => {
 	commonStore.resetFilters();
 	dndStore.lockUI = true;
-	commonStore.activeWorkspace = 'Default';
+	commonStore.activeWorkspace = 'Project';
 	commonStore.snapshotWorkspace();
 	panes.showDetailsPane = screenWidth.value >= 1000;
 	window.addEventListener('resize', updateScreenWidth);

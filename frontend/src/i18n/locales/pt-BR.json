@@ -1304,7 +1304,7 @@
     "errorImportingItems": "Erro ao importar itens",
     "noResultsFound": "Nenhum resultado encontrado.",
     "noResultsMatchFilters": "Nenhum resultado corresponde aos seus filtros.",
-    "noAssetsAssigned": "Você não tem ativos atribuídos a você.",
+    "noTasksAssigned": "Você não tem tarefas atribuídas.",
     "nothingInWorkspace": "Nada neste workspace.",
     "nothingToSeeHere": "Nada para ver aqui.",
     "errorMovingFiles": "Erro ao mover arquivos",
@@ -1589,6 +1589,8 @@
       "remove": "Remover"
     },
     "workspaceTabs": {
+      "project": "Projeto",
+      "myTasks": "Minhas tarefas",
       "deleteWorkspace": "Excluir Workspace",
       "resetWorkspace": "Redefinir para salvo",
       "saveWorkspace": "Salvar Workspace",

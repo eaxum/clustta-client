@@ -1304,7 +1304,7 @@
     "errorImportingItems": "Ошибка импорта элементов",
     "noResultsFound": "Результатов не найдено.",
     "noResultsMatchFilters": "Нет результатов, соответствующих фильтрам.",
-    "noAssetsAssigned": "Вам не назначены ресурсы.",
+    "noTasksAssigned": "Вам не назначены задачи.",
     "nothingInWorkspace": "В этом рабочем пространстве ничего нет.",
     "nothingToSeeHere": "Здесь ничего нет.",
     "errorMovingFiles": "Ошибка перемещения файлов",
@@ -1589,6 +1589,8 @@
       "remove": "Удалить"
     },
     "workspaceTabs": {
+      "project": "Проект",
+      "myTasks": "Мои задачи",
       "deleteWorkspace": "Удалить рабочее пространство",
       "resetWorkspace": "Сбросить к сохранённому",
       "saveWorkspace": "Сохранить рабочее пространство",

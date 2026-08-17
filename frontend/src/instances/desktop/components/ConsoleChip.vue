@@ -121,7 +121,7 @@ const resolveAssetIcon = async (entity) => {
 
 // Opens the asset's parent collection in the browser and selects the asset.
 const revealAsset = async (asset) => {
-  commonStore.activeWorkspace = 'Default';
+  commonStore.activeWorkspace = 'Project';
   commonStore.viewSearchQuery = '';
   commonStore.resetFilters();
   commonStore.navigatorMode = true;
@@ -142,7 +142,7 @@ const revealAsset = async (asset) => {
 
 // Opens the collection in the browser and marks it selected.
 const revealCollection = (collection) => {
-  commonStore.activeWorkspace = 'Default';
+  commonStore.activeWorkspace = 'Project';
   commonStore.viewSearchQuery = '';
   commonStore.resetFilters();
   commonStore.navigatorMode = true;

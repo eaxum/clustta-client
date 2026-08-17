@@ -30,7 +30,7 @@ const iconStore = useIconStore();
 const expanded = ref(false);
 
 // computed properties
-const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
 const isDenseActive = computed(() => commonStore.viewMode === 'dense');
 const isExpanded = computed(() => expanded.value || commonStore.viewMode === 'kanban');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');

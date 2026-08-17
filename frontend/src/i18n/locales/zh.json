@@ -1304,7 +1304,7 @@
     "errorImportingItems": "导入项目时出错",
     "noResultsFound": "未找到结果。",
     "noResultsMatchFilters": "没有匹配您筛选条件的结果。",
-    "noAssetsAssigned": "您没有被分配的资产。",
+    "noTasksAssigned": "您没有分配到任务。",
     "nothingInWorkspace": "此工作区中没有内容。",
     "nothingToSeeHere": "这里没有内容。",
     "errorMovingFiles": "移动文件时出错",
@@ -1589,6 +1589,8 @@
       "remove": "移除"
     },
     "workspaceTabs": {
+      "project": "项目",
+      "myTasks": "我的任务",
       "deleteWorkspace": "删除工作区",
       "resetWorkspace": "重置为已保存",
       "saveWorkspace": "保存工作区",

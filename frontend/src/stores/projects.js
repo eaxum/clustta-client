@@ -375,7 +375,7 @@ export const useProjectStore = defineStore("projects", {
       }
 
       await this.setActiveProject(project);
-      commonStore.activeWorkspace = "Default";
+      commonStore.activeWorkspace = "Project";
       commonStore.resetFilters();
       commonStore.snapshotWorkspace();
 

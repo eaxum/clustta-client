@@ -80,7 +80,7 @@ export const useCommonStore = defineStore("common", {
     ],
     workspaces: [],
     projectWorkflows: [],
-    activeWorkspace: "Default",
+    activeWorkspace: "Project",
     savedWorkspaceSnapshot: null,
     ghostCardStyle: {
       leaving: false,

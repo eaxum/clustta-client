@@ -1154,7 +1154,7 @@ const onAgentRevealInBrowser = async (event) => {
   const data = event.data;
   if (!data || !projectStore.activeProject) return;
   try {
-    commonStore.activeWorkspace = 'Default';
+    commonStore.activeWorkspace = 'Project';
     commonStore.viewSearchQuery = '';
     commonStore.resetFilters();
     commonStore.navigatorMode = true;

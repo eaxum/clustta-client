@@ -1304,7 +1304,7 @@
     "errorImportingItems": "आइटम आयात करने में त्रुटि",
     "noResultsFound": "कोई परिणाम नहीं मिला।",
     "noResultsMatchFilters": "आपके फ़िल्टर से कोई परिणाम मेल नहीं खाता।",
-    "noAssetsAssigned": "आपको कोई एसेट असाइन नहीं है।",
+    "noTasksAssigned": "आपको कोई कार्य असाइन नहीं किया गया है।",
     "nothingInWorkspace": "इस वर्कस्पेस में कुछ नहीं है।",
     "nothingToSeeHere": "यहाँ देखने के लिए कुछ नहीं है।",
     "errorMovingFiles": "फ़ाइलें स्थानांतरित करने में त्रुटि",
@@ -1589,6 +1589,8 @@
       "remove": "हटाएँ"
     },
     "workspaceTabs": {
+      "project": "परियोजना",
+      "myTasks": "मेरे कार्य",
       "deleteWorkspace": "वर्कस्पेस हटाएँ",
       "resetWorkspace": "सहेजे गए पर रीसेट करें",
       "saveWorkspace": "वर्कस्पेस सहेजें",

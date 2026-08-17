@@ -132,7 +132,7 @@ const listItemsLeft = computed(() => breadcrumbContent.value?.getBoundingClientR
 
 const navigatedCollection = computed(() => collectionStore.navigatedCollection);
 
-const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
 
 const isKanbanView = computed(() => commonStore.viewMode === 'kanban');
 
@@ -147,7 +147,7 @@ const taskCountLabel = computed(() => {
 
 const filteredResultsLabel = computed(() => {
 	const label = t('components.breadcrumbs.filterResults');
-	if (commonStore.activeWorkspace === 'My Assets') {
+	if (commonStore.activeWorkspace === 'My Tasks') {
 		return `${taskCountLabel.value} ${t('components.breadcrumbs.assignedToYou')}`;
 	}
 	if (isKanbanView.value) return taskCountLabel.value;
@@ -188,7 +188,7 @@ const hasActiveFilters = computed(() => {
 	);
 });
 
-// Show the project-name chip only on Default workspace at the root with no active filters/search.
+// Show the project-name chip only on the Project workspace at the root with no active filters/search.
 const showProjectChip = computed(() => {
 	return !commonStore.navigatorMode
 		&& commonStore.viewMode !== 'kanban'
@@ -225,8 +225,8 @@ const segments = computed(() => {
 // Clears the current result view and reloads the active collection.
 const clearSearchAndFilters = () => {
 	commonStore.viewSearchQuery = '';
-	if (commonStore.activeWorkspace === 'My Assets') {
-		const workspace = commonStore.workspaces.find((item) => item.name === 'My Assets');
+	if (commonStore.activeWorkspace === 'My Tasks') {
+		const workspace = commonStore.workspaces.find((item) => item.name === 'My Tasks');
 		if (workspace) commonStore.setActiveWorkspace(workspace);
 	} else {
 		commonStore.resetFilters();

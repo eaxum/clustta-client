@@ -133,7 +133,7 @@ const fetchAll = async () => {
 	const navigatedCollectionId = collectionStore.navigatedCollection?.id;
 	notificationStore.cancleFunction = SyncService.CancelSync;
 	notificationStore.canCancel = true;
-	if (commonStore.activeWorkspace === 'My Assets') {
+	if (commonStore.activeWorkspace === 'My Tasks') {
 		const userAssetIds = assetStore.getAssets.filter(asset => asset.assignee_id === userStore.user?.id && !asset.trashed).map(asset => asset.id);
 		if (userAssetIds.length) {
 			await CheckpointService.Revert(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, userAssetIds)

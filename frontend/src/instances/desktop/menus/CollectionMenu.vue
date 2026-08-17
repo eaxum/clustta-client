@@ -391,7 +391,7 @@ const getCurrentDirectory = () => {
 // Navigates directly to the selected collection after clearing search and filters.
 const goToCollection = () => {
   const selectedCollection = collectionStore.selectedCollection;
-  commonStore.activeWorkspace = 'Default';
+  commonStore.activeWorkspace = 'Project';
   menu.hideContextMenu();
   commonStore.viewSearchQuery = '';
   commonStore.resetFilters();

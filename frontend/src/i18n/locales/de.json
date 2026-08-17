@@ -1305,7 +1305,7 @@
     "errorImportingItems": "Fehler beim Importieren der Elemente",
     "noResultsFound": "Keine Ergebnisse gefunden.",
     "noResultsMatchFilters": "Keine Ergebnisse entsprechen den Filtern.",
-    "noAssetsAssigned": "Ihnen sind keine Assets zugewiesen.",
+    "noTasksAssigned": "Ihnen sind keine Aufgaben zugewiesen.",
     "nothingInWorkspace": "Nichts in diesem Workspace.",
     "nothingToSeeHere": "Hier gibt es nichts zu sehen.",
     "errorMovingFiles": "Fehler beim Verschieben der Dateien",
@@ -1590,6 +1590,8 @@
       "remove": "Entfernen"
     },
     "workspaceTabs": {
+      "project": "Projekt",
+      "myTasks": "Meine Aufgaben",
       "deleteWorkspace": "Workspace löschen",
       "resetWorkspace": "Auf gespeichert zurücksetzen",
       "saveWorkspace": "Workspace speichern",

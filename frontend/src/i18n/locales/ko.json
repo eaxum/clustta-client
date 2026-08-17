@@ -1328,7 +1328,7 @@
     "errorImportingItems": "항목 가져오기 오류",
     "noResultsFound": "결과를 찾을 수 없습니다.",
     "noResultsMatchFilters": "필터와 일치하는 결과가 없습니다.",
-    "noAssetsAssigned": "할당된 에셋이 없습니다.",
+    "noTasksAssigned": "할당된 작업이 없습니다.",
     "nothingInWorkspace": "이 워크스페이스에 아무것도 없습니다.",
     "nothingToSeeHere": "여기에 볼 것이 없습니다.",
     "errorMovingFiles": "파일 이동 오류",
@@ -1613,6 +1613,8 @@
       "remove": "제거"
     },
     "workspaceTabs": {
+      "project": "프로젝트",
+      "myTasks": "내 작업",
       "deleteWorkspace": "워크스페이스 삭제",
       "resetWorkspace": "저장된 상태로 초기화",
       "saveWorkspace": "워크스페이스 저장",

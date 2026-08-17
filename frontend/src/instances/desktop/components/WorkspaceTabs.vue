@@ -8,7 +8,7 @@
 
           <div class="workspace-tab-meta">
             <img v-if="workspace.icon" :src="workspace.icon" class="tab-favicon" alt="favicon">
-            <span class="tab-title">{{ workspace.name }}</span>
+            <span class="tab-title">{{ getWorkspaceLabel(workspace.name) }}</span>
             <div v-if="index > 1" class="workspace-tab-actions" v-stop-propagation>
               <span v-if="isActiveTab(workspace) && isDirty && !isDefaultWorkspace && canSaveOver"
                 v-tooltip="$t('components.workspaceTabs.updateWorkspace')" @click.stop="saveOverWorkspace" class="workspace-tab-button workspace-hover-button">
@@ -44,6 +44,7 @@
 <script setup>
 // imports
 import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useI18n } from 'vue-i18n';
 import { SettingsService } from "@/services";
 import emitter from '@/lib/mitt';
 
@@ -65,6 +66,7 @@ const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const projectStore = useProjectStore();
 const modals = useDesktopModalStore();
+const { t } = useI18n();
 
 // computed props
 const workspaceTabs = computed(() => { return commonStore.workspaces });
@@ -79,11 +81,11 @@ const activeWorkspaceIndex = computed(() => {
 });
 
 const addWorkspaceVisible = computed(() => {
-  // Only show save button when on "Default" workspace
-  const defaultWorkspace = commonStore.activeWorkspace === 'Default';
+  // Only show save button when on the Project workspace
+  const defaultWorkspace = commonStore.activeWorkspace === 'Project';
   if (!defaultWorkspace) return false;
 
-  // Show whenever Default has any unsaved change (filters, search, navigation, view mode).
+  // Show whenever Project has any unsaved change (filters, search, navigation, view mode).
   return commonStore.isWorkspaceDirty;
 });
 
@@ -92,8 +94,8 @@ const canSaveOver = computed(() => {
   return activeWorkspaceIndex.value > 1;
 });
 
-// Whether the active workspace is the Default workspace.
-const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+// Whether the active workspace is the Project workspace.
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
 
 // Whether the active workspace filters have changed from the saved snapshot.
 const isDirty = computed(() => commonStore.isWorkspaceDirty);
@@ -105,6 +107,12 @@ const withinLimits = computed(() => {
 const getAppIcon = (iconName) => {
     const icon = iconStore.getAppIcon(iconName);
     return icon
+};
+
+const getWorkspaceLabel = (workspaceName) => {
+  if (workspaceName === 'Project') return t('components.workspaceTabs.project');
+  if (workspaceName === 'My Tasks') return t('components.workspaceTabs.myTasks');
+  return workspaceName;
 };
 
 const refreshWorkspace = () => emitter.emit('refresh-browser', {
@@ -136,7 +144,7 @@ const setWorkspace = (workspaceName) => {
     return;
   }
   
-  if (workspaceName === 'Default') {
+  if (workspaceName === 'Project') {
     setDefaultWorkspace();
     refreshWorkspace();
     return
@@ -183,7 +191,7 @@ const deleteWorkspace = async (workspaceName) => {
 };
 
 const setDefaultWorkspace = () => {
-  commonStore.activeWorkspace = 'Default';
+  commonStore.activeWorkspace = 'Project';
   commonStore.resetFilters();
   commonStore.snapshotWorkspace();
   commonStore.navigatorMode = false;
@@ -193,7 +201,7 @@ const setDefaultWorkspace = () => {
 // Resets the active workspace filters back to the saved snapshot.
 const resetWorkspace = () => {
   const workspaceName = commonStore.activeWorkspace;
-  if (workspaceName === 'Default') {
+  if (workspaceName === 'Project') {
     setDefaultWorkspace();
     refreshWorkspace();
     return;

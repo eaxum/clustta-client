@@ -77,7 +77,7 @@ const { t } = useI18n();
 const viewMenu = ref(null);
 
 // computed properties
-const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Default');
+const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
 const isDenseActive = computed(() => commonStore.viewMode === 'dense');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');

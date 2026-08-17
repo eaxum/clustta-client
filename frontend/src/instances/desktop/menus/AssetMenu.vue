@@ -446,7 +446,7 @@ const goToDependencyGraph = () => {
 
 // Navigates to the asset's location in the browser.// Navigates to the asset's location in the browser.
 const goToLocation = async () => {
-  commonStore.activeWorkspace = 'Default';
+  commonStore.activeWorkspace = 'Project';
   menu.hideContextMenu();
   commonStore.viewSearchQuery = '';
   commonStore.resetFilters();

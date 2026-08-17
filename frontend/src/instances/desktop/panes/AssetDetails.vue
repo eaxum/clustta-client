@@ -341,7 +341,7 @@ const copyAssetId = async () => {
 };
 
 const showAllAssets = () => {
-  commonStore.activeWorkspace = 'Default'
+  commonStore.activeWorkspace = 'Project'
   commonStore.resetFilters();
   commonStore.navigatorMode = false;
   if (assetStore.selectedAsset?.assignee_id) {

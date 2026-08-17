@@ -1304,7 +1304,7 @@
     "errorImportingItems": "Errore nell'importazione degli elementi",
     "noResultsFound": "Nessun risultato trovato.",
     "noResultsMatchFilters": "Nessun risultato corrisponde ai filtri.",
-    "noAssetsAssigned": "Non hai asset assegnati.",
+    "noTasksAssigned": "Non hai attività assegnate.",
     "nothingInWorkspace": "Niente in questo workspace.",
     "nothingToSeeHere": "Niente da vedere qui.",
     "errorMovingFiles": "Errore nello spostamento dei file",
@@ -1589,6 +1589,8 @@
       "remove": "Rimuovi"
     },
     "workspaceTabs": {
+      "project": "Progetto",
+      "myTasks": "Le mie attività",
       "deleteWorkspace": "Elimina workspace",
       "resetWorkspace": "Ripristina salvato",
       "saveWorkspace": "Salva workspace",
