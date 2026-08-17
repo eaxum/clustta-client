@@ -3,7 +3,7 @@
     'list-box-container-full' : fullWidth,
     'list-box-container-fixed' : fixedWidth
     }" >
-    <div class="list-box-parent" :class="{ 'is-disabled': stage.operationActive || disabled, 'is-expanded': isExpanded}" ref="listBoxParent" @click="toggleList()">
+    <div class="list-box-parent" :style="{ minHeight: `${minHeight}px`}"  :class="{ 'is-disabled': stage.operationActive || disabled, 'is-expanded': isExpanded}" ref="listBoxParent" @click="toggleList()">
       <div class="list-box-parent-content" @mouseenter="utils.handleHover($event)"
         @mouseleave="utils.resetScroll($event)">
         <div class="list-box-parent-text" :class="{ 'placeholder-text': isPlaceholder }" style="overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 0.5rem;">
@@ -162,6 +162,7 @@ const props = defineProps({
     }
   },
   useFilter: { type: Boolean, default: true },
+  minHeight: { type: Number, default: 35 },
   fullWidth: { type: Boolean, default: true },
   fixedWidth: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
@@ -331,7 +332,7 @@ onUnmounted(() => {
   border-radius: var(--large-radius);
   height: 35px;
   align-items: center;
-  padding: 6px;
+  padding: 0 6px;
   overflow: hidden;
   font-family: Inter, sans-serif;
   font-size: 16px;

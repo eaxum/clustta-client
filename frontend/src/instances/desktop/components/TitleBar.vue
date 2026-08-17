@@ -19,6 +19,7 @@
             :disabled="accountStore.isStudioAuth"
             :fullWidth="false"
             :useFilter="false"
+            :minHeight="30"
           >
             <template #footer="{ close }">
               <div class="studio-dropdown-divider"></div>
@@ -550,7 +551,7 @@ onBeforeUnmount(() => {
   width: 100%;
   justify-content: space-between;
   align-items: center;
-  min-height: 44px;
+  min-height: 38px;
   color: var(--text);
   overflow: hidden;
   /* border-bottom: var(--transparent-line); */
