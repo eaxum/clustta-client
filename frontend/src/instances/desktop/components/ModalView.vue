@@ -50,10 +50,12 @@ import AddAssetTypeModal from '@/instances/desktop/settings/modals/AddAssetTypeM
 import AddCollaboratorModal from '@/instances/desktop/settings/modals/AddCollaboratorModal.vue';
 import AddCollectionTypeModal from '@/instances/desktop/settings/modals/AddCollectionTypeModal.vue';
 import AddRoleModal from '@/instances/desktop/settings/modals/AddRoleModal.vue';
+import AddTagModal from '@/instances/desktop/settings/modals/AddTagModal.vue';
 import AddTemplateModal from '@/instances/desktop/settings/modals/AddTemplateModal.vue';
 import EditAssetTypeModal from '@/instances/desktop/settings/modals/EditAssetTypeModal.vue';
 import EditCollectionTypeModal from '@/instances/desktop/settings/modals/EditCollectionTypeModal.vue';
 import EditRoleModal from '@/instances/desktop/settings/modals/EditRoleModal.vue';
+import EditTagModal from '@/instances/desktop/settings/modals/EditTagModal.vue';
 import EditTemplateModal from '@/instances/desktop/settings/modals/EditTemplateModal.vue';
 import ManageCollaboratorModal from '@/instances/desktop/settings/modals/ManageCollaboratorModal.vue';
 
@@ -157,10 +159,12 @@ const modalComponents = {
   addCollaboratorModal: AddCollaboratorModal,
   addCollectionTypeModal: AddCollectionTypeModal,
   addRoleModal: AddRoleModal,
+  addTagModal: AddTagModal,
   addTemplateModal: AddTemplateModal,
   editAssetTypeModal: EditAssetTypeModal,
   editCollectionTypeModal: EditCollectionTypeModal,
   editRoleModal: EditRoleModal,
+  editTagModal: EditTagModal,
   editTemplateModal: EditTemplateModal,
   manageCollaboratorModal: ManageCollaboratorModal,
 

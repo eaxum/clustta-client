@@ -34,6 +34,7 @@ const stage = useStageStore();
 import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import General from '@/instances/desktop/settings/General.vue';
 import Collaborators from '@/instances/desktop/settings/Collaborators.vue';
+import Tags from '@/instances/desktop/settings/Tags.vue';
 import Templates from '@/instances/desktop/settings/Templates.vue';
 import WorkflowTemplates from '@/instances/desktop/settings/WorkflowTemplates.vue';
 import AssetTypes from '@/instances/desktop/settings/AssetTypes.vue';
@@ -49,6 +50,7 @@ const settingsComponents = {
 	general: General,
 	templates: Templates,
 	collaborators: Collaborators,
+	tags: Tags,
 	workflows: WorkflowTemplates,
 	assettypes: AssetTypes,
 	roles: Roles,

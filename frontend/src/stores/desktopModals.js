@@ -57,6 +57,9 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       addCollectionTypeModal: false,
       editCollectionTypeModal: false,
 
+      addTagModal: false,
+      editTagModal: false,
+
       manageCollaboratorModal: false,
       addCollaboratorModal: false,
 

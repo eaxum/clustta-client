@@ -154,6 +154,7 @@ const projectSettingsAccessPermissions = [
 const projectSettingsTabPermissions = {
   templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
   collaborators: ['add_user', 'remove_user', 'change_role'],
+  tags: ['change_role'],
   roles: ['change_role'],
   assettypes: ['change_role'],
   collectiontypes: ['change_role'],

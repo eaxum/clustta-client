@@ -15,9 +15,9 @@ var (
 	ErrAssetTypeNotFound       = errors.New("asset type not found")
 	ErrAssetTypeExists         = errors.New("asset type already exist")
 	ErrAssetExistsInTrash      = errors.New("asset of same name exists in trash")
-	ErrNotAutheticated        = errors.New("user not autheticated")
-	ErrNotUnauthorized        = errors.New("user unauthorized")
-	ErrMustHaveAdmin          = errors.New("must have at least one admin")
+	ErrNotAutheticated         = errors.New("user not autheticated")
+	ErrNotUnauthorized         = errors.New("user unauthorized")
+	ErrMustHaveAdmin           = errors.New("must have at least one admin")
 	ErrAssetNotFound           = errors.New("asset not found")
 	ErrAssetCheckPointNotFound = errors.New("asset checkpoint not found")
 
@@ -31,12 +31,12 @@ var (
 	ErrCollectionExists           = errors.New("collection already exists")
 	ErrCollectionExistsInTrash    = errors.New("collection already exists in trash")
 
-	ErrStatusNotFound           = errors.New("asset status not found")
-	ErrUserNotFound             = errors.New("user not found")
-	ErrRoleNotFound             = errors.New("role not found")
-	ErrUserHaveAssetAssigned     = errors.New("user have asset assigned")
-	ErrDependencyTypeNotFound   = errors.New("asset dependency type not found")
-	ErrAssetDependencyNotFound   = errors.New("asset dependency not found")
+	ErrStatusNotFound               = errors.New("asset status not found")
+	ErrUserNotFound                 = errors.New("user not found")
+	ErrRoleNotFound                 = errors.New("role not found")
+	ErrUserHaveAssetAssigned        = errors.New("user have asset assigned")
+	ErrDependencyTypeNotFound       = errors.New("asset dependency type not found")
+	ErrAssetDependencyNotFound      = errors.New("asset dependency not found")
 	ErrCollectionDependencyNotFound = errors.New("collection dependency not found")
 
 	ErrWorkflowExists   = errors.New("workflow of same name exists")
@@ -44,14 +44,15 @@ var (
 
 	ErrWorkflowCollectionExists   = errors.New("workflow collection of same name exists")
 	ErrWorkflowCollectionNotFound = errors.New("workflow collection not found")
-	ErrWorkflowAssetExists     = errors.New("workflow asset of same name exists")
-	ErrWorkflowAssetNotFound   = errors.New("workflow asset not found")
-	ErrWorkflowLinkNotFound   = errors.New("workflow link not found")
-	ErrWorkflowLinkExists     = errors.New("workflow link of same name exists")
+	ErrWorkflowAssetExists        = errors.New("workflow asset of same name exists")
+	ErrWorkflowAssetNotFound      = errors.New("workflow asset not found")
+	ErrWorkflowLinkNotFound       = errors.New("workflow link not found")
+	ErrWorkflowLinkExists         = errors.New("workflow link of same name exists")
 
 	ErrTemplateNotFound = errors.New("template not found")
 
-	ErrTagNotFound     = errors.New("tag not found")
+	ErrTagNotFound      = errors.New("tag not found")
+	ErrTagExists        = errors.New("tag already exists")
 	ErrAssetTagNotFound = errors.New("asset tag not found")
 
 	ErrPreviewNotFound = errors.New("preview not found")

@@ -37,6 +37,28 @@ export function AddTagToAssets(projectPath, assetIds, tagName) {
 }
 
 /**
+ * CreateTag creates a project tag.
+ * @param {string} projectPath
+ * @param {string} name
+ * @returns {$CancellablePromise<models$0.Tag>}
+ */
+export function CreateTag(projectPath, name) {
+    return $Call.ByID(1731100013, projectPath, name).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
+ * DeleteTag removes a tag and its asset assignments.
+ * @param {string} projectPath
+ * @param {string} id
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteTag(projectPath, id) {
+    return $Call.ByID(1327803380, projectPath, id);
+}
+
+/**
  * Retrieves all tags associated with a specific asset.
  * @param {string} projectPath
  * @param {string} assetId
@@ -46,6 +68,16 @@ export function GetAssetTags(projectPath, assetId) {
     return $Call.ByID(1932031834, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
+}
+
+/**
+ * GetTagUsageCount returns the number of assets assigned to a tag.
+ * @param {string} projectPath
+ * @param {string} id
+ * @returns {$CancellablePromise<number>}
+ */
+export function GetTagUsageCount(projectPath, id) {
+    return $Call.ByID(702348301, projectPath, id);
 }
 
 /**
@@ -83,6 +115,20 @@ export function RemoveTagFromAsset(projectPath, assetId, tagId) {
  */
 export function RemoveTagFromAssets(projectPath, assetIds, tagId) {
     return $Call.ByID(2341162620, projectPath, assetIds, tagId);
+}
+
+/**
+ * UpdateTag renames a tag and optionally merges a colliding tag.
+ * @param {string} projectPath
+ * @param {string} id
+ * @param {string} name
+ * @param {boolean} mergeOnCollision
+ * @returns {$CancellablePromise<models$0.Tag>}
+ */
+export function UpdateTag(projectPath, id, name, mergeOnCollision) {
+    return $Call.ByID(377330190, projectPath, id, name, mergeOnCollision).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
 }
 
 // Private type creation functions

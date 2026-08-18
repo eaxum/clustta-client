@@ -2,7 +2,10 @@ package repository
 
 import (
 	"clustta/internal/base_service"
+	"clustta/internal/error_service"
 	"clustta/internal/repository/models"
+	"clustta/internal/utils"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -42,6 +45,71 @@ func GetTags(tx *sqlx.Tx) ([]models.Tag, error) {
 	return tags, nil
 }
 
+func GetTagUsageCount(tx *sqlx.Tx, id string) (int64, error) {
+	if _, err := GetTag(tx, id); err != nil {
+		return 0, err
+	}
+	var count int64
+	err := tx.Get(&count, "SELECT COUNT(*) FROM asset_tag WHERE tag_id = ?", id)
+	return count, err
+}
+
+func UpdateTag(tx *sqlx.Tx, id, name string, mergeOnCollision bool) (models.Tag, error) {
+	if _, err := GetTag(tx, id); err != nil {
+		return models.Tag{}, err
+	}
+
+	existingTag, err := GetTagByName(tx, name)
+	if err == nil && existingTag.Id != id {
+		if !mergeOnCollision {
+			return models.Tag{}, error_service.ErrTagExists
+		}
+		return mergeTags(tx, id, existingTag)
+	}
+	if err != nil && !errors.Is(err, error_service.ErrTagNotFound) {
+		return models.Tag{}, err
+	}
+
+	params := map[string]interface{}{
+		"name":  name,
+		"mtime": utils.GetEpochTime(),
+	}
+	if err = base_service.Update(tx, "tag", id, params); err != nil {
+		return models.Tag{}, err
+	}
+	return GetTag(tx, id)
+}
+
+func mergeTags(tx *sqlx.Tx, sourceTagId string, targetTag models.Tag) (models.Tag, error) {
+	deleteDuplicatesQuery := `
+		DELETE FROM asset_tag
+		WHERE tag_id = ?
+		AND asset_id IN (SELECT asset_id FROM asset_tag WHERE tag_id = ?)`
+	if _, err := tx.Exec(deleteDuplicatesQuery, sourceTagId, targetTag.Id); err != nil {
+		return models.Tag{}, err
+	}
+
+	updateAssignmentsQuery := "UPDATE asset_tag SET tag_id = ?, mtime = ? WHERE tag_id = ?"
+	if _, err := tx.Exec(updateAssignmentsQuery, targetTag.Id, utils.GetEpochTime(), sourceTagId); err != nil {
+		return models.Tag{}, err
+	}
+
+	if err := base_service.Delete(tx, "tag", sourceTagId); err != nil {
+		return models.Tag{}, err
+	}
+	return targetTag, nil
+}
+
+func DeleteTag(tx *sqlx.Tx, id string) error {
+	if _, err := GetTag(tx, id); err != nil {
+		return err
+	}
+	if err := base_service.DeleteBy(tx, "asset_tag", map[string]interface{}{"tag_id": id}); err != nil {
+		return err
+	}
+	return base_service.Delete(tx, "tag", id)
+}
+
 func GetTagByName(tx *sqlx.Tx, name string) (models.Tag, error) {
 	tag := models.Tag{}
 	err := base_service.GetByName(tx, "tag", name, &tag)
@@ -72,7 +140,7 @@ func AddTagToAsset(tx *sqlx.Tx, assetId string, tag string) error {
 	}
 	params := map[string]interface{}{
 		"asset_id": assetId,
-		"tag_id":  tagObj.Id,
+		"tag_id":   tagObj.Id,
 	}
 	err = base_service.Create(tx, "asset_tag", params)
 	if err != nil {
@@ -83,9 +151,9 @@ func AddTagToAsset(tx *sqlx.Tx, assetId string, tag string) error {
 
 func AddTagToAssetById(tx *sqlx.Tx, id, assetId string, tagId string) error {
 	params := map[string]interface{}{
-		"id":      id,
+		"id":       id,
 		"asset_id": assetId,
-		"tag_id":  tagId,
+		"tag_id":   tagId,
 	}
 	err := base_service.Create(tx, "asset_tag", params)
 	if err != nil {
@@ -115,7 +183,7 @@ func GetAssetTags(tx *sqlx.Tx, assetId string) ([]models.Tag, error) {
 func RemoveTagFromAsset(tx *sqlx.Tx, assetId string, tagId string) error {
 	conditions := map[string]interface{}{
 		"asset_id": assetId,
-		"tag_id":  tagId,
+		"tag_id":   tagId,
 	}
 	err := base_service.DeleteBy(tx, "asset_tag", conditions)
 	return err

@@ -14,6 +14,7 @@ export const useSettingsStore = defineStore("settings", {
       general: false,
       templates: false,
       collaborators: false,
+      tags: false,
       workflows: false,
       roles: false,
       collectiontypes: false,
@@ -58,6 +59,7 @@ export const useSettingsStore = defineStore("settings", {
 
       { id: "assettypes", nameKey: "settings.assetTypes", name: "Asset types", icon: "brush" },
       { id: "collectiontypes", nameKey: "settings.collectionTypes", name: "Collection types", icon: "folder" },
+      { id: "tags", nameKey: "settings.tags", name: "Tags", icon: "tag" },
       { id: "ignorelist", nameKey: "settings.ignoreList", name: "Ignore List", icon: "file-watch" },
       { id: "projecttemplates", nameKey: "settings.projectTemplates", name: "Project Templates", icon: "briefcase" },
       { id: "workflows", nameKey: "settings.workflows", name: "Workflows", icon: "workflow-arrow" },

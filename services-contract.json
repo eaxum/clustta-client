@@ -104,6 +104,16 @@
         ]
       },
       {
+        "name": "DeleteChatTurn",
+        "params": [
+          "projectPath:string",
+          "turnIndex:int"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "GetAPIKeyStatus",
         "params": null,
         "returns": [
@@ -145,6 +155,16 @@
         ]
       },
       {
+        "name": "ListScriptReferences",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "[]agent.ScriptReference",
+          "error"
+        ]
+      },
+      {
         "name": "RemoveAPIKey",
         "params": null,
         "returns": [
@@ -165,6 +185,7 @@
         "params": [
           "projectPath:string",
           "message:string",
+          "displayMessage:string",
           "attachmentPath:string"
         ],
         "returns": [
@@ -317,6 +338,16 @@
         ],
         "returns": [
           "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "ApplyPathUpdate",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
           "error"
         ]
       },
@@ -1340,6 +1371,16 @@
   "CollectionService": {
     "file": "services/collection_service.go",
     "methods": [
+      {
+        "name": "ApplyPathUpdate",
+        "params": [
+          "projectPath:string",
+          "collectionId:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
       {
         "name": "Assign",
         "params": [
@@ -3240,6 +3281,16 @@
         ]
       },
       {
+        "name": "GetAgentScriptSettings",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "repository.AgentScriptSettings",
+          "error"
+        ]
+      },
+      {
         "name": "GetAllLocationPaths",
         "params": null,
         "returns": [
@@ -3606,6 +3657,17 @@
         "name": "SaveIntegrationCredential",
         "params": [
           "cred:settings.IntegrationCredential"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetAgentScriptSettings",
+        "params": [
+          "projectPath:string",
+          "directory:string",
+          "extensions:[]string"
         ],
         "returns": [
           "error"
@@ -4329,6 +4391,27 @@
         ]
       },
       {
+        "name": "CreateTag",
+        "params": [
+          "projectPath:string",
+          "name:string"
+        ],
+        "returns": [
+          "models.Tag",
+          "error"
+        ]
+      },
+      {
+        "name": "DeleteTag",
+        "params": [
+          "projectPath:string",
+          "id:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "GetAssetTags",
         "params": [
           "projectPath:string",
@@ -4336,6 +4419,17 @@
         ],
         "returns": [
           "[]models.Tag",
+          "error"
+        ]
+      },
+      {
+        "name": "GetTagUsageCount",
+        "params": [
+          "projectPath:string",
+          "id:string"
+        ],
+        "returns": [
+          "int64",
           "error"
         ]
       },
@@ -4369,6 +4463,19 @@
           "tagId:string"
         ],
         "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateTag",
+        "params": [
+          "projectPath:string",
+          "id:string",
+          "name:string",
+          "mergeOnCollision:bool"
+        ],
+        "returns": [
+          "models.Tag",
           "error"
         ]
       }

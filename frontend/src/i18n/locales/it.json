@@ -528,6 +528,7 @@
     "directories": "Directory",
     "templates": "Modelli",
     "collaborators": "Collaboratori",
+    "tags": "Tag",
     "roles": "Ruoli",
     "assetTypes": "Tipi asset",
     "collectionTypes": "Tipi collezione",
