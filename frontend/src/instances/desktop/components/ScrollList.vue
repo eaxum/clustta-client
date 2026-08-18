@@ -367,7 +367,7 @@ const props = defineProps({
   background-color: var(--surface-2);
   border-radius: 10px;
   overflow: hidden;
-  height: 60px;
+  height: 50px;
   outline: var(--transparent-line);
   outline-offset: -1px;
   /* background-color: crimson; */
@@ -499,20 +499,17 @@ const props = defineProps({
 }
 
 .asset-item-details {
-  /* display: flex; */
   padding: .2rem;
   flex-wrap: nowrap;
   overflow: hidden;
   box-sizing: border-box;
   align-items: center;
   justify-content: flex-start;
-  /* width: 50%; */
   height: 100%;
   height: min-content;
   white-space: nowrap;
   text-overflow: ellipsis;
-
-  /* background-color: forestgreen; */
+  font-size: 14px;
 }
 
 .asset-item-meta {

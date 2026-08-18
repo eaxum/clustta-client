@@ -147,6 +147,10 @@ onUnmounted(() => {
 	padding: .5rem;
 }
 
+.settings-component-container {
+  border-radius: var(--gigantic-radius) !important;
+}
+
 /* Shared Card Styles for all settings components */
 .settings-section-card {
 	display: flex;
