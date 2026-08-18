@@ -252,7 +252,7 @@ const readableValue = (value, item) => {
   // Approval rows should describe the entity change, not expose its full
   // filesystem or database representation. Raw values remain available in
   // "View raw arguments".
-  for (const key of ['name', 'status', 'asset_type', 'collection_type', 'assignment', 'tag_name', 'tag_id', 'dependency_name', 'dependency_id']) {
+  for (const key of ['name', 'location_name', 'status', 'asset_type', 'collection_type', 'assignment', 'tag_name', 'tag_id', 'dependency_name', 'dependency_id']) {
     if (parsed[key] !== undefined && parsed[key] !== '') return String(parsed[key]);
   }
   if (Object.prototype.hasOwnProperty.call(parsed, 'assignee')) {
