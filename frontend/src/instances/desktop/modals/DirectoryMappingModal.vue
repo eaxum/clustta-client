@@ -57,6 +57,11 @@
                   No task types match this template's task set.
                 </div>
                 <div v-for="taskType in getTemplateTaskTypes(template)" :key="`${template.id}-${taskType.id || taskType.name}`" class="task-output-row">
+                  <CheckBox
+                    :modelValue="isTaskOutputEnabled(template, taskType.name)"
+                    :ariaLabel="`${isTaskOutputEnabled(template, taskType.name) ? 'Exclude' : 'Include'} ${taskType.name}`"
+                    @update:modelValue="setTaskOutputEnabled(template, taskType.name, $event)"
+                  />
                   <span class="task-output-name">{{ taskType.name }}</span>
                   <span class="task-output-arrow">-&gt;</span>
                   <input
@@ -64,6 +69,7 @@
                     class="task-output-input"
                     v-model="template.task_outputs[taskType.name]"
                     :placeholder="defaultTaskOutput(taskType.name)"
+                    :disabled="!isTaskOutputEnabled(template, taskType.name)"
                   />
                 </div>
               </div>
@@ -102,6 +108,7 @@ import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 import Chip from '@/instances/common/components/Chip.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
@@ -122,8 +129,8 @@ const notificationStore = useNotificationStore();
 // refs
 const activeTemplateId = ref(null);
 const customTemplates = ref([
-  { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {} },
-  { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {} },
+  { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
+  { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
 ]);
 const expandedTaskOutputs = ref({});
 const isLoading = ref(false);
@@ -146,6 +153,7 @@ const serializeState = () => {
       icon: t.icon,
       template: t.template,
       task_outputs: t.task_outputs || {},
+      task_output_enabled: t.task_output_enabled || {},
     })),
   });
 };
@@ -190,6 +198,7 @@ const addTemplate = () => {
     icon: 'folder',
     template: '<CollectionType>/<Asset>/<OutputName><TemplateExtension>',
     task_outputs: {},
+    task_output_enabled: {},
   });
 };
 
@@ -199,8 +208,8 @@ const applyPreset = (preset) => {
   if (preset === '3d-animation') {
     // Reset to default templates
     customTemplates.value = [
-      { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {} },
-      { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {} },
+      { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
+      { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
     ];
   }
 };
@@ -230,14 +239,24 @@ const getTemplatePreview = (template) => {
 };
 
 const configuredTaskOutputCount = (template) => {
-  const visibleTasks = new Set(getTemplateTaskTypes(template).map(taskType => taskType.name));
-  return Object.entries(template.task_outputs || {})
-    .filter(([taskType, value]) => visibleTasks.has(taskType) && String(value || '').trim())
+  return getTemplateTaskTypes(template)
+    .filter(taskType => isTaskOutputEnabled(template, taskType.name))
     .length;
 };
 
 const defaultTaskOutput = (taskType) => {
   return `<Asset>-${String(taskType || '').toLowerCase()}`;
+};
+
+const isTaskOutputEnabled = (template, taskType) => {
+  return template.task_output_enabled?.[taskType] !== false;
+};
+
+const setTaskOutputEnabled = (template, taskType, enabled) => {
+  template.task_output_enabled = {
+    ...(template.task_output_enabled || {}),
+    [taskType]: enabled,
+  };
 };
 
 const isTaskOutputExpanded = (templateId) => {
@@ -342,6 +361,7 @@ const saveMapping = async () => {
         icon: t.icon,
         template: t.template,
         task_outputs: t.task_outputs || {},
+        task_output_enabled: t.task_output_enabled || {},
       };
     });
 
@@ -383,6 +403,7 @@ onMounted(async () => {
           icon: data.icon || 'folder',
           template: data.template || '',
           task_outputs: data.task_outputs || {},
+          task_output_enabled: data.task_output_enabled || {},
         }));
       }
     }
@@ -600,7 +621,7 @@ onMounted(async () => {
 
 .task-output-row {
   display: grid;
-  grid-template-columns: minmax(120px, 1fr) auto minmax(220px, 2fr);
+  grid-template-columns: 24px minmax(120px, 1fr) auto minmax(220px, 2fr);
   align-items: center;
   gap: 0.5rem;
 }
@@ -630,6 +651,11 @@ onMounted(async () => {
 .task-output-input:focus {
   outline: none;
   border-color: var(--border-strong);
+}
+
+.task-output-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .placeholders-grid {

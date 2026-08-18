@@ -71,6 +71,7 @@ export const useIntegrationStore = defineStore('integrations', {
 
       const items = [];
       const groupedAssets = new Map();
+      const actionPriority = { create: 3, link: 2, skip: 1, virtual: 0 };
 
       for (const item of state.syncPreview.preview_items) {
         if (item.item_type !== 'asset') {
@@ -91,6 +92,13 @@ export const useIntegrationStore = defineStore('integrations', {
           }
           existing.external_ids.push(item.external_id);
           existing.external_types.push(item.external_type);
+          if (item.action !== 'skip' && item.external_id) {
+            existing.selectable_ids.push(item.external_id);
+          }
+          existing.selected = existing.selected || item.selected;
+          if ((actionPriority[item.action] || 0) > (actionPriority[existing.action] || 0)) {
+            existing.action = item.action;
+          }
           continue;
         }
 
@@ -100,6 +108,7 @@ export const useIntegrationStore = defineStore('integrations', {
           task_types: taskType ? [taskType] : [],
           external_ids: item.external_id ? [item.external_id] : [],
           external_types: item.external_type ? [item.external_type] : [],
+          selectable_ids: item.action !== 'skip' && item.external_id ? [item.external_id] : [],
         };
         groupedAssets.set(key, grouped);
         items.push(grouped);
@@ -118,9 +127,12 @@ export const useIntegrationStore = defineStore('integrations', {
       // Recursively build tree structure
       const buildNode = (item) => {
         const children = childrenMap.get(item.collection_path) || [];
+        const itemType = item.item_type === 'asset' ? 'asset' : 'collection';
+        const selectableIds = item.selectable_ids
+          || (item.action !== 'skip' && item.external_id ? [item.external_id] : []);
         return {
           id: item.id,
-          type: item.item_type === 'asset' ? 'asset' : 'collection',
+          type: itemType,
           name: item.name,
           collection_type_name: item.type_name,
           collection_type_icon: item.type_icon || 'folder',
@@ -135,6 +147,8 @@ export const useIntegrationStore = defineStore('integrations', {
           collection_path: item.collection_path,
           parent_path: item.parent_path,
           action: item.action,
+          selected: item.selected,
+          selection_keys: selectableIds.map(id => `${itemType}:${id}`),
           is_virtual: item.is_virtual,
           has_children: item.has_children,
           template_id: item.template_id,
@@ -312,7 +326,7 @@ export const useIntegrationStore = defineStore('integrations', {
     },
 
     // Execute sync - creates all items from sync preview
-    async executeSync() {
+    async executeSync(selectedKeys = null) {
       const projectStore = useProjectStore();
       const notificationStore = useNotificationStore();
 
@@ -322,10 +336,18 @@ export const useIntegrationStore = defineStore('integrations', {
 
       this.isSyncing = true;
       try {
+        const selectedCollections = this.collectionsToSync.filter(collection => {
+          if (collection.action === 'skip') return false;
+          return !selectedKeys || selectedKeys.has(`collection:${collection.external_id}`);
+        });
+        const selectedAssets = this.assetsToSync.filter(asset => {
+          if (asset.action === 'skip') return false;
+          return !selectedKeys || selectedKeys.has(`asset:${asset.external_id}`);
+        });
         await IntegrationService.ExecuteSync(
           projectStore.activeProject.uri,
-          JSON.stringify(this.collectionsToSync),
-          JSON.stringify(this.assetsToSync)
+          JSON.stringify(selectedCollections),
+          JSON.stringify(selectedAssets)
         );
         this.lastSyncAt = new Date().toISOString();
         notificationStore.addNotification('Sync completed successfully', '', 'success');

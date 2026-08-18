@@ -63,7 +63,8 @@ const isExpanded = computed(() => {
 
 // Returns whether this item is selected.
 const isItemSelected = computed(() => {
-  return props.selectedItems.has(props.item.id);
+  const keys = props.item.selection_keys || [];
+  return keys.length > 0 && keys.every(key => props.selectedItems.has(key));
 });
 
 // Returns the children of this item.
@@ -73,8 +74,8 @@ const itemChildren = computed(() => {
 
 // methods
 // Handles toggle selection.
-const handleToggleSelection = (id) => {
-  emit('toggle-selection', id);
+const handleToggleSelection = () => {
+  emit('toggle-selection', props.item);
 };
 
 // Toggles the expand state.

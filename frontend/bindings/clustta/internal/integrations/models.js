@@ -940,7 +940,7 @@ export class SyncOptions {
 }
 
 /**
- * SyncPreview contains preview data for what will be synced.
+ * SyncPreview contains the full classified hierarchy for an integration import.
  */
 export class SyncPreview {
     /**

@@ -101,7 +101,7 @@ type ProjectHierarchy struct {
 	Assets      []ExternalAsset      `json:"assets"`
 }
 
-// SyncPreview contains preview data for what will be synced.
+// SyncPreview contains the full classified hierarchy for an integration import.
 type SyncPreview struct {
 	IntegrationID string             `json:"integration_id"`
 	PreviewItems  []PreviewItem      `json:"preview_items"` // Unified list of all items (collections, assets, virtual folders)

@@ -1,22 +1,23 @@
 <template>
-  <div class="preview-collection" :class="{ 'preview-collection-selected': isSelected, 'preview-collection-virtual': isVirtual }">
+  <div class="preview-collection" :class="{ 'preview-collection-virtual': isVirtual }">
     <div class="collection-spacer" :class="{ 'collection-spacer-inactive': !hasChildren }">
       <span @click.stop="toggleExpand" class="single-action-button">
         <img class="small-icons collection-chevron" :class="{ 'collection-expanded': isExpanded }" :src="chevronIcon">
       </span>
     </div>
 
-    <div class="preview-type-icon">
-      <img class="small-icons" :src="typeIcon" v-tooltip="typeName">
-    </div>
-
-    <div class="preview-content" @click="console.log(collection)" >
+    <div class="preview-content">
       <span class="preview-name">{{ collection.name }}</span>
     </div>
 
     <div class="preview-meta">
       <span class="preview-type-label">{{ isVirtual ? 'Folder' : typeName }}</span>
     </div>
+
+    <span v-if="!isVirtual" class="action-badge" :class="`action-${collection.action}`">{{ actionLabel }}</span>
+    <CheckBox v-if="!isVirtual" :modelValue="isSelected" :disabled="!isActionable"
+      :ariaLabel="`${isSelected ? 'Exclude' : 'Include'} ${collection.name}`"
+      @update:modelValue="emit('toggle-selection')" />
 
     <!-- <div v-if="childCount > 0" class="preview-meta">
       <span class="preview-count">{{ childCount }}</span>
@@ -28,6 +29,7 @@
 // imports
 import { computed } from 'vue';
 import utils from '@/services/utils';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useIconStore } from '@/stores/icons';
@@ -44,7 +46,7 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits(['toggle']);
+const emit = defineEmits(['toggle', 'toggle-selection']);
 
 // computed
 // Returns the chevron icon.
@@ -66,6 +68,17 @@ const typeIcon = computed(() => {
 // Returns the capitalized external type name.
 const typeName = computed(() => {
   return utils.capitalizeStr(props.collection.external_type || 'Collection');
+});
+
+const isActionable = computed(() => props.collection.action === 'create' || props.collection.action === 'link');
+
+const actionLabel = computed(() => {
+  const labels = {
+    create: 'New',
+    link: 'Link',
+    skip: 'No action',
+  };
+  return labels[props.collection.action] || 'No action';
 });
 
 // methods
@@ -98,14 +111,6 @@ const toggleExpand = () => {
   background-color: var(--surface-3);
   border-radius: var(--small-radius);
   outline: 1px solid var(--surface-4);
-}
-
-.preview-collection-selected {
-  background-color: var(--selected-soft);
-}
-
-.preview-collection-selected:hover {
-  background-color: var(--selected);
 }
 
 .preview-collection-virtual {
@@ -159,9 +164,6 @@ const toggleExpand = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.1rem 0.4rem;
-  background-color: var(--surface-1);
-  border-radius: var(--tiny-radius);
   margin-right: 0.25rem;
 }
 
@@ -172,9 +174,36 @@ const toggleExpand = () => {
 }
 
 .preview-type-label {
+  padding: 0.1rem 0.4rem;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-tertiary);
+  background-color: var(--surface-1);
+  border-radius: var(--tiny-radius);
   text-transform: capitalize;
+}
+
+.action-badge {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: var(--tiny-radius);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.action-create {
+  color: #4ade80;
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+.action-link {
+  color: #60a5fa;
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.action-skip {
+  color: var(--text-muted);
+  background-color: var(--surface-3);
 }
 </style>

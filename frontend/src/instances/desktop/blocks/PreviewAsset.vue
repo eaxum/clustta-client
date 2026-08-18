@@ -1,14 +1,10 @@
 <template>
-  <div class="preview-asset" :class="{ 'preview-asset-selected': isSelected }">
+  <div class="preview-asset">
     <div class="asset-spacer">
       <img v-if="fileIcon" class="small-icons" :src="fileIcon" v-tooltip="fileExtension">
     </div>
 
-    <div class="preview-type-icon">
-      <img class="small-icons" :src="typeIcon" v-tooltip="typeName">
-    </div>
-
-    <div class="preview-content" @click="console.log(asset)" >
+    <div class="preview-content">
       <span class="preview-name">{{ asset.name }}</span>
       <span v-if="fileExtension" class="preview-extension">{{ fileExtension }}</span>
     </div>
@@ -16,6 +12,10 @@
     <div class="preview-meta">
       <span v-for="taskType in taskTypes" :key="taskType" class="preview-type-label">{{ taskType }}</span>
     </div>
+    <span class="action-badge" :class="`action-${asset.action}`">{{ actionLabel }}</span>
+    <CheckBox :modelValue="isSelected" :disabled="!isActionable"
+      :ariaLabel="`${isSelected ? 'Exclude' : 'Include'} ${asset.name}`"
+      @update:modelValue="emit('toggle-selection')" />
   </div>
 </template>
 
@@ -23,6 +23,7 @@
 // imports
 import { computed, ref, onMounted } from 'vue';
 import utils from '@/services/utils';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useIconStore } from '@/stores/icons';
@@ -36,7 +37,7 @@ const props = defineProps({
 });
 
 // emits
-const emit = defineEmits([]);
+const emit = defineEmits(['toggle-selection']);
 
 // refs
 const fileIcon = ref('');
@@ -61,6 +62,17 @@ const typeName = computed(() => {
 const taskTypes = computed(() => {
   const types = props.asset.task_types?.length ? props.asset.task_types : [typeName.value];
   return [...new Set(types.filter(Boolean).map(type => utils.capitalizeStr(type)))];
+});
+
+const isActionable = computed(() => props.asset.action === 'create' || props.asset.action === 'link');
+
+const actionLabel = computed(() => {
+  const labels = {
+    create: 'New',
+    link: 'Link',
+    skip: 'No action',
+  };
+  return labels[props.asset.action] || 'No action';
 });
 
 // methods
@@ -102,14 +114,6 @@ onMounted(() => {
   background-color: var(--surface-3);
   border-radius: var(--small-radius);
   outline: 1px solid var(--surface-4);
-}
-
-.preview-asset-selected {
-  background-color: var(--selected-soft);
-}
-
-.preview-asset-selected:hover {
-  background-color: var(--selected);
 }
 
 .asset-spacer {
@@ -154,16 +158,40 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  padding: 0.1rem 0.4rem;
-  background-color: var(--surface-1);
-  border-radius: var(--tiny-radius);
   margin-right: 0.25rem;
 }
 
 .preview-type-label {
+  padding: 0.1rem 0.4rem;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-tertiary);
+  background-color: var(--surface-1);
+  border-radius: var(--tiny-radius);
   text-transform: capitalize;
+}
+
+.action-badge {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border-radius: var(--tiny-radius);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.action-create {
+  color: #4ade80;
+  background-color: rgba(34, 197, 94, 0.15);
+}
+
+.action-link {
+  color: #60a5fa;
+  background-color: rgba(59, 130, 246, 0.15);
+}
+
+.action-skip {
+  color: var(--text-muted);
+  background-color: var(--surface-3);
 }
 </style>

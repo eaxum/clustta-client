@@ -149,8 +149,8 @@ export function GetMissingTypes(projectPath, token) {
 }
 
 /**
- * GetSyncPreview fetches external hierarchy and compares with local state.
- * Applies type mappings, auto-matches by path/name, returns only NEW items.
+ * GetSyncPreview fetches the external hierarchy and classifies every enabled item.
+ * Items are marked for creation, linking to a local match, or no action.
  * @param {string} projectPath
  * @param {string} token
  * @returns {$CancellablePromise<integrations$0.SyncPreview>}

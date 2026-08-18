@@ -145,8 +145,8 @@ func (s *IntegrationService) UnlinkProject(projectPath string) error {
 	return nil
 }
 
-// GetSyncPreview fetches external hierarchy and compares with local state.
-// Applies type mappings, auto-matches by path/name, returns only NEW items.
+// GetSyncPreview fetches the external hierarchy and classifies every enabled item.
+// Items are marked for creation, linking to a local match, or no action.
 func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrations.SyncPreview, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -257,7 +257,7 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		collectionPaths[collection.ID] = path
 	}
 
-	// Build sync preview - only includes items to CREATE
+	// Build the full sync preview.
 	preview := integrations.SyncPreview{
 		IntegrationID: integrationProject.IntegrationId,
 		Collections:   []integrations.SyncCollection{},
@@ -269,25 +269,22 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 	missingCollectionTypes := make(map[string]bool)
 	missingAssetTypes := make(map[string]bool)
 
-	// Process collections (collections) - only add if needs to be created
+	// Process every collection so the preview can distinguish create, link, and no-op rows.
 	for _, collection := range externalCollections {
 		// Skip virtual folder collections (asset type containers) - they're only for path building
 		if strings.HasPrefix(collection.ID, "asset-type-") {
 			continue
 		}
 
-		// Skip if already mapped
-		if _, exists := existingCollectionMap[collection.ID]; exists {
-			continue
-		}
-
 		fullPath := collectionPaths[collection.ID]
-
-		// Try to auto-match by path in Clustta
-		existingCollection, err := repository.GetCollectionByPath(tx, fullPath)
-		if err == nil && existingCollection.Id != "" {
-			// Found matching collection - skip (not a new item)
-			continue
+		action := "create"
+		collectionID := ""
+		if mapping, exists := existingCollectionMap[collection.ID]; exists {
+			action = "skip"
+			collectionID = mapping.CollectionId
+		} else if existingCollection, lookupErr := repository.GetCollectionByPath(tx, fullPath); lookupErr == nil && existingCollection.Id != "" {
+			action = "link"
+			collectionID = existingCollection.Id
 		}
 
 		// Get type mapping
@@ -297,14 +294,13 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		if hasMaping {
 			collectionTypeName = typeMapping.ClustttaName
 			collectionTypeIcon = typeMapping.ClustttaIcon
-		} else {
+		} else if action == "create" {
 			collectionTypeName = collection.Type
 			collectionTypeIcon = "folder"
 			// Track missing type
 			missingCollectionTypes[collection.Type] = true
 		}
 
-		// This is a new collection to create
 		preview.Collections = append(preview.Collections, integrations.SyncCollection{
 			TempID:             collection.ID,
 			ExternalID:         collection.ID,
@@ -313,23 +309,24 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			ExternalParentID:   collection.ParentID,
 			ExternalPath:       fullPath,
 			CollectionPath:     fullPath,
-			Action:             "create",
+			Action:             action,
+			CollectionID:       collectionID,
 			CollectionTypeName: collectionTypeName,
 			CollectionTypeIcon: collectionTypeIcon,
-			Selected:           true,
+			Selected:           action != "skip",
 		})
 	}
 
-	// Process assets (assets) - only add if needs to be created
+	// Process enabled task outputs and retain all resulting action states in the preview.
 	for _, asset := range externalAssets {
-		// Skip if already mapped
-		if _, exists := existingAssetMap[asset.ID]; exists {
+		parentCollection, hasParentCollection := collectionByID[asset.ParentID]
+		if hasParentCollection && !isTaskOutputEnabled(parentCollection, asset, syncOptions.DirectoryStructure) {
 			continue
 		}
 
 		// Get parent collection path
 		parentPath := ""
-		if parentCollection, exists := collectionByID[asset.ParentID]; exists {
+		if hasParentCollection {
 			parentPath = collectionPaths[parentCollection.ID]
 		}
 
@@ -346,19 +343,22 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		}
 
 		assetName := asset.Name
-		if parentCollection, exists := collectionByID[asset.ParentID]; exists {
+		if hasParentCollection {
 			assetName = resolveAssetNameFromTemplate(assetName, parentCollection, asset, collectionByID, syncOptions.DirectoryStructure, templateExtension)
 		}
 
-		// Try to auto-match by name+parent in Clustta
-		if parentPath != "" {
+		action := "create"
+		assetID := ""
+		if mapping, exists := existingAssetMap[asset.ID]; exists {
+			action = "skip"
+			assetID = mapping.AssetId
+		} else if parentPath != "" {
 			parentCollection, err := repository.GetCollectionByPath(tx, parentPath)
 			if err == nil && parentCollection.Id != "" {
-				// Check if asset exists in this collection
 				existingAsset, err := repository.GetAssetByName(tx, assetName, parentCollection.Id, templateExtension)
 				if err == nil && existingAsset.Id != "" {
-					// Found matching asset - skip (not a new item)
-					continue
+					action = "link"
+					assetID = existingAsset.Id
 				}
 			}
 		}
@@ -370,14 +370,13 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		if hasMapping {
 			assetTypeName = typeMapping.ClustttaName
 			assetTypeIcon = typeMapping.ClustttaIcon
-		} else if asset.AssetType != "" {
+		} else if asset.AssetType != "" && action == "create" {
 			assetTypeName = asset.AssetType
 			assetTypeIcon = "generic"
 			// Track missing type
 			missingAssetTypes[asset.AssetType] = true
 		}
 
-		// This is a new asset to create
 		preview.Assets = append(preview.Assets, integrations.SyncAsset{
 			TempID:            asset.ID,
 			ExternalID:        asset.ID,
@@ -388,10 +387,11 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			ExternalStatus:    asset.Status,
 			ExternalAssignees: asset.Assignees,
 			CollectionPath:    parentPath,
-			Action:            "create",
+			Action:            action,
+			AssetID:           assetID,
 			AssetTypeName:     assetTypeName,
 			AssetTypeIcon:     assetTypeIcon,
-			Selected:          true,
+			Selected:          action != "skip",
 			TemplateID:        templateID,
 			TemplateExtension: templateExtension,
 		})
@@ -428,9 +428,11 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 	// Build summary
 	preview.Summary = integrations.SyncPreviewSummary{
 		TotalCollections:    len(externalCollections),
-		TotalAssets:         len(externalAssets),
-		CollectionsToCreate: len(preview.Collections),
-		AssetsToCreate:      len(preview.Assets),
+		TotalAssets:         len(preview.Assets),
+		CollectionsToCreate: countCollectionActions(preview.Collections, "create"),
+		CollectionsToLink:   countCollectionActions(preview.Collections, "link"),
+		AssetsToCreate:      countAssetActions(preview.Assets, "create"),
+		AssetsToLink:        countAssetActions(preview.Assets, "link"),
 	}
 
 	// Generate unified PreviewItems from collections and assets
@@ -723,6 +725,61 @@ func normalizeStringMap(raw interface{}) map[string]string {
 	return result
 }
 
+func isTaskOutputEnabled(parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, dirStructure integrations.DirectoryStructure) bool {
+	config := findMatchingPathConfig(parentCollection.Type, dirStructure)
+	if config == nil {
+		return true
+	}
+	rawSelection, exists := config["task_output_enabled"]
+	if !exists {
+		return true
+	}
+	selection := normalizeBoolMap(rawSelection)
+	for _, key := range []string{asset.AssetType, asset.AssetTypeID, asset.Name} {
+		if enabled, found := selection[strings.ToLower(strings.TrimSpace(key))]; found {
+			return enabled
+		}
+	}
+	return true
+}
+
+func normalizeBoolMap(raw interface{}) map[string]bool {
+	result := make(map[string]bool)
+	switch value := raw.(type) {
+	case map[string]bool:
+		for key, enabled := range value {
+			result[strings.ToLower(key)] = enabled
+		}
+	case map[string]interface{}:
+		for key, rawEnabled := range value {
+			if enabled, ok := rawEnabled.(bool); ok {
+				result[strings.ToLower(key)] = enabled
+			}
+		}
+	}
+	return result
+}
+
+func countCollectionActions(collections []integrations.SyncCollection, action string) int {
+	count := 0
+	for _, collection := range collections {
+		if collection.Action == action {
+			count++
+		}
+	}
+	return count
+}
+
+func countAssetActions(assets []integrations.SyncAsset, action string) int {
+	count := 0
+	for _, asset := range assets {
+		if asset.Action == action {
+			count++
+		}
+	}
+	return count
+}
+
 func resolveAssetTemplateVariablesWithoutOutput(template string, parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, style, templateExtension string) string {
 	result := template
 
@@ -819,9 +876,13 @@ func buildPreviewItems(collections []integrations.SyncCollection, assets []integ
 	// First pass: convert collections to PreviewItems and track paths
 	for _, c := range collections {
 		parentPath := getParentPath(c.CollectionPath)
+		displayName := getPathSegmentName(c.CollectionPath)
+		if displayName == "" {
+			displayName = c.ExternalName
+		}
 		items = append(items, integrations.PreviewItem{
 			ID:             c.ExternalID,
-			Name:           c.ExternalName,
+			Name:           displayName,
 			ItemType:       "collection",
 			CollectionPath: c.CollectionPath,
 			ParentPath:     parentPath,
@@ -1007,18 +1068,24 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 
 	// Count items to create for progress tracking
 	collectionsToCreate := 0
+	collectionsToLink := 0
 	for _, c := range collections {
 		if c.Action == "create" {
 			collectionsToCreate++
+		} else if c.Action == "link" {
+			collectionsToLink++
 		}
 	}
 	assetsToCreate := 0
+	assetsToLink := 0
 	for _, a := range assets {
 		if a.Action == "create" {
 			assetsToCreate++
+		} else if a.Action == "link" {
+			assetsToLink++
 		}
 	}
-	totalItems := collectionsToCreate + assetsToCreate
+	totalItems := collectionsToCreate + collectionsToLink + assetsToCreate + assetsToLink
 
 	// Load current sync options
 	syncOptions := integrations.SyncOptions{}
@@ -1079,11 +1146,14 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	})
 
 	for _, coll := range collections {
-		if coll.Action != "create" {
+		if coll.Action != "create" && coll.Action != "link" {
 			continue
 		}
-		collectionID, exists := collectionMap[coll.ExternalID]
-		if !exists {
+		collectionID := coll.CollectionID
+		if coll.Action == "create" {
+			collectionID = collectionMap[coll.ExternalID]
+		}
+		if collectionID == "" {
 			continue
 		}
 
@@ -1108,11 +1178,14 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 
 	// Phase 3b: Create mappings for assets
 	for _, asset := range assets {
-		if asset.Action != "create" {
+		if asset.Action != "create" && asset.Action != "link" {
 			continue
 		}
-		assetID, exists := assetMap[asset.ExternalID]
-		if !exists {
+		assetID := asset.AssetID
+		if asset.Action == "create" {
+			assetID = assetMap[asset.ExternalID]
+		}
+		if assetID == "" {
 			continue
 		}
 
@@ -1128,7 +1201,7 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 			integrationProject.IntegrationId,
 			asset.ExternalID,
 			asset.ExternalName,
-			"", // parent_id not needed
+			asset.ExternalParentID,
 			asset.ExternalType,
 			asset.ExternalStatus,
 			assigneesStr,
