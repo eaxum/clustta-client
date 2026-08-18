@@ -424,7 +424,7 @@ const visibleWarning = (item) => String(item?.warnings || '')
   .filter(warning => warning && warning.toLowerCase() !== 'case-only rename will use a temporary path')
   .join('; ');
 
-const itemKey = (item) => `${item?.type || ''}:${item?.id || ''}`;
+const itemKey = (item) => item?.key || `${item?.type || ''}:${item?.id || ''}`;
 
 const isSelected = (item) => selectedKeys.value.has(itemKey(item));
 

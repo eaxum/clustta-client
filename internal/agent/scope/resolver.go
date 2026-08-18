@@ -571,6 +571,12 @@ func matches(entity Entity, filters map[string]interface{}) bool {
 	if unassigned, ok := filters["unassigned"].(bool); ok && unassigned && metadataString(entity, "assignee_id") != "" {
 		return false
 	}
+	if isResource, ok := filters["is_resource"].(bool); ok {
+		actual, _ := entity.Metadata["is_resource"].(bool)
+		if actual != isResource {
+			return false
+		}
+	}
 	return true
 }
 

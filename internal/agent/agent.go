@@ -413,8 +413,10 @@ func buildSystemPrompt(projectContext string) string {
   - whole project: source="project"
 - For rename, move, delete, status, type, assignment, tags, dependencies, and task/resource requests, use one batch_* command for the complete scope.
 - batch_* commands resolve scope, compute a deterministic local plan, show an approval preview, revalidate it, and apply locally. The user must manually sync afterward.
-- For batch_add_dependency and batch_remove_dependency, target_scope is the one asset receiving or losing dependencies. Use source="entity" with the returned ID for a named target such as "Zeus". Use source="selection" only when exactly one selected asset is the target. Never use source="here" or source="project" for target_scope.
-- For dependency prompts such as "make all assets here dependencies of Zeus", use context.here_scope for dependency_scope, use Zeus as target_scope, and let the command exclude Zeus from its own dependencies.
+- For batch_add_dependency and batch_remove_dependency, target_scope contains the assets receiving or losing dependencies and dependency_scope contains the assets or collections being linked. Without pairing, target_scope must resolve exactly one asset.
+- Use pairing.strategy="all_to_each" when every dependency_scope item should be linked to every target_scope asset. Use pairing.strategy="same_name_sibling" when each target should use its same-name sibling collection; dependency_scope may be omitted for this strategy.
+- For "every Blender task here recursively", copy context.here_scope, set recursive=true, target assets with extension=".blend" and is_resource=false, then use same_name_sibling pairing.
+- For dependency prompts such as "make all assets here dependencies of Zeus", use context.here_scope for dependency_scope, use Zeus as target_scope, omit pairing, and let the command exclude Zeus from its own dependencies.
 - Agent-created dependencies always use the project's "linked" dependency type. Do not call list_dependency_types before batch_add_dependency and never choose blocking, working, waiting, or another dependency type.
 - Use entity type values exactly as provided: asset, collection, untracked_asset, untracked_collection.
 - Status changes only support asset. Type changes support asset and collection. Assignment supports tracked asset and collection with their different semantics.

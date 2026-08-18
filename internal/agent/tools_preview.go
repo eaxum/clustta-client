@@ -65,6 +65,9 @@ func buildToolPreview(projectPath, toolName string, args map[string]interface{})
 				"warnings":  strings.Join(change.Warnings, "; "),
 				"errors":    strings.Join(change.Errors, "; "),
 			}
+			if change.Key != "" {
+				item["key"] = change.Key
+			}
 			if change.Before != nil {
 				before, _ := json.Marshal(change.Before)
 				item["before"] = string(before)

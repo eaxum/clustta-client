@@ -6,6 +6,7 @@ import (
 )
 
 type Change struct {
+	Key      string                 `json:"key,omitempty"`
 	Entity   scope.Entity           `json:"entity"`
 	Action   string                 `json:"action"`
 	Before   map[string]interface{} `json:"before,omitempty"`

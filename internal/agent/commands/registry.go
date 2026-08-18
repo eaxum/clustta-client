@@ -122,7 +122,7 @@ func PrepareSelection(projectPath, name string, args map[string]interface{}, sel
 	entities := make([]scope.Entity, 0, len(selected))
 	selectedChanges := make([]planning.Change, 0, len(selected))
 	for _, change := range approved.Changes {
-		key := string(change.Entity.Type) + ":" + change.Entity.ID
+		key := changeSelectionKey(change)
 		if _, ok := selected[key]; ok && change.Valid {
 			entities = append(entities, change.Entity)
 			selectedChanges = append(selectedChanges, change)
@@ -142,6 +142,13 @@ func PrepareSelection(projectPath, name string, args map[string]interface{}, sel
 	delete(args, "_plan_id")
 	_, err := Prepare(projectPath, name, args)
 	return err
+}
+
+func changeSelectionKey(change planning.Change) string {
+	if change.Key != "" {
+		return change.Key
+	}
+	return string(change.Entity.Type) + ":" + change.Entity.ID
 }
 
 func authorize(projectPath, name string, plan planning.Plan) error {
@@ -319,7 +326,7 @@ func validateScopeFilters(req scope.Request) error {
 		}
 	}
 	if hasCollection && !hasAsset {
-		for _, key := range []string{"asset_type", "asset_type_id", "status", "status_id"} {
+		for _, key := range []string{"asset_type", "asset_type_id", "status", "status_id", "is_resource"} {
 			if value, exists := req.Filters[key]; exists && scopeFilterHasValue(value) {
 				return fmt.Errorf("filter %q is incompatible with collection scope", key)
 			}
@@ -388,6 +395,7 @@ func ScopeSchema(typeEnums []string) map[string]interface{} {
 					"collection_type_id": map[string]interface{}{"type": "string"},
 					"assignee_id":        map[string]interface{}{"type": "string"},
 					"unassigned":         map[string]interface{}{"type": "boolean"},
+					"is_resource":        map[string]interface{}{"type": "boolean"},
 					"extension":          map[string]interface{}{"type": "string"},
 					"tag":                map[string]interface{}{"type": "string"},
 					"state":              map[string]interface{}{"type": "string"},
