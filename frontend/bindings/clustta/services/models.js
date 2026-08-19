@@ -1286,6 +1286,13 @@ export class ExportRequest {
              */
             this["columns"] = [];
         }
+        if (!("name_format" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name_format"] = "";
+        }
         if (!("page" in $$source)) {
             /**
              * @member

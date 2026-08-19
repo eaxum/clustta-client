@@ -681,6 +681,8 @@
       "title": "Daten exportieren",
       "itemCount": "{count} Elemente",
       "format": "Format",
+      "nameFormat": "Namensformat",
+      "original": "Original",
       "plainText": "Nur Text",
       "columns": "Spalten",
       "required": "Erforderlich",

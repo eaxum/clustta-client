@@ -681,6 +681,8 @@
       "title": "Esporta dati",
       "itemCount": "{count} elementi",
       "format": "Formato",
+      "nameFormat": "Formato nome",
+      "original": "Originale",
       "plainText": "Testo semplice",
       "columns": "Colonne",
       "required": "Obbligatorio",

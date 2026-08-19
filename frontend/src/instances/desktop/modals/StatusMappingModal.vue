@@ -23,27 +23,19 @@
           <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
         </div>
 
-        <!-- Mapping Table -->
-        <div class="mapping-table">
-          <div class="table-header">
-            <span class="col-local">Clustta Status</span>
-            <span class="col-external">{{ integrationName }} Status</span>
-          </div>
-
-          <div class="table-body">
-            <div v-for="status in localStatuses" :key="status.id" class="mapping-row">
-              <div class="col-local">
+        <DataTable :columns="mappingColumns" :rows="localStatuses" maxHeight="300px">
+          <template #cell-local="{ row: status }">
+            <div class="mapping-cell">
                 <span class="status-dot" :style="{ backgroundColor: status.color }"></span>
                 <span class="type-name">{{ status.name }}</span>
-              </div>
-              <div class="col-external">
+            </div>
+          </template>
+          <template #cell-external="{ row: status }">
                 <DropDownBox :items="externalStatusOptions" :selectedItem="getSelectedExternalName(status.id)"
                   :onSelect="(val) => setMapping(status.id, val)" :placeHolder="'None'"
                   :useFilter="true" :fullWidth="true" />
-              </div>
-            </div>
-          </div>
-        </div>
+          </template>
+        </DataTable>
 
         <!-- Unmapped Info -->
         <div v-if="unmappedCount > 0" class="warning-banner">
@@ -68,6 +60,7 @@ import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import DataTable from '@/instances/common/components/DataTable.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -89,6 +82,11 @@ const isLoading = ref(false);
 const isSaving = ref(false);
 const mappings = ref({});
 const originalMappings = ref({});
+
+const mappingColumns = computed(() => [
+  { key: 'local', label: 'Clustta Status', width: '50%' },
+  { key: 'external', label: `${integrationName.value} Status`, width: '50%' },
+]);
 
 // computed
 // Returns the display name of the linked integration.
@@ -293,61 +291,10 @@ onMounted(async () => {
   margin: 0;
 }
 
-.mapping-table {
-  display: flex;
-  flex-direction: column;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  border-radius: var(--large-radius);
-  overflow: hidden;
-}
-
-.table-header {
-  display: flex;
-  padding: 0.75rem 1rem;
-  background-color: var(--bg);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text);
-  text-transform: uppercase;
-}
-
-.table-body {
-  display: flex;
-  flex-direction: column;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.table-body::-webkit-scrollbar {
-  width: 4px;
-}
-
-.table-body::-webkit-scrollbar-thumb {
-  border-radius: var(--small-radius);
-  background-color: var(--surface-5);
-}
-
-.mapping-row {
-  display: flex;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--surface-3);
-  align-items: center;
-}
-
-.mapping-row:hover {
-  background-color: var(--surface-3);
-}
-
-.col-local {
-  flex: 1;
+.mapping-cell {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.col-external {
-  flex: 1;
 }
 
 .status-dot {

@@ -21,27 +21,19 @@
           <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
         </div>
 
-        <!-- Mapping Table -->
-        <div class="mapping-table">
-          <div class="table-header">
-            <span class="col-asset-type">Kitsu Asset Type</span>
-            <span class="col-template">Asset template</span>
-          </div>
-
-          <div class="table-body">
-            <div v-for="assetType in externalAssetTypes" :key="assetType.id" class="mapping-row">
-              <div class="col-asset-type">
+        <DataTable :columns="mappingColumns" :rows="externalAssetTypes" maxHeight="300px">
+          <template #cell-asset_type="{ row: assetType }">
+            <div class="mapping-cell">
                 <img :src="getAssetTypeIcon(assetType.id)" alt="" class="row-icon small-icons" :class="{ 'no-filter': mappings[assetType.id] }" />
                 <span class="type-name">{{ assetType.name }}</span>
-              </div>
-              <div class="col-template">
+            </div>
+          </template>
+          <template #cell-template="{ row: assetType }">
                 <DropDownBox :items="templateOptions" :selectedItem="getSelectedTemplateName(assetType.id)"
                   :onSelect="(val) => setMapping(assetType.id, val)" :placeHolder="'Select template'"
                   :useFilter="true" :fullWidth="true" />
-              </div>
-            </div>
-          </div>
-        </div>
+          </template>
+        </DataTable>
 
         <!-- Unmapped Warning -->
         <div v-if="unmappedCount > 0" class="warning-banner">
@@ -67,6 +59,7 @@ import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import DataTable from '@/instances/common/components/DataTable.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -91,6 +84,11 @@ const isLoading = ref(false);
 const isSaving = ref(false);
 const mappings = ref({});
 const originalMappings = ref({});
+
+const mappingColumns = [
+  { key: 'asset_type', label: 'Kitsu Asset Type', width: '50%' },
+  { key: 'template', label: 'Asset template', width: '50%' },
+];
 
 // computed
 const externalAssetTypes = computed(() => {
@@ -348,62 +346,10 @@ onMounted(async () => {
   color: var(--text);
 }
 
-.mapping-table {
-  display: flex;
-  flex-direction: column;
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-  border-radius: var(--large-radius);
-  overflow: hidden;
-}
-
-.table-header {
-  display: flex;
-  padding: 0.75rem 1rem;
-  background-color: var(--bg);
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--surface-5);
-  text-transform: uppercase;
-}
-
-.table-body {
-  display: flex;
-  flex-direction: column;
-  max-height: 300px;
-  overflow-y: auto;
-}
-
-.table-body::-webkit-scrollbar {
-  width: 4px;
-}
-
-.table-body::-webkit-scrollbar-thumb {
-  border-radius: var(--small-radius);
-  background-color: var(--surface-5);
-}
-
-.mapping-row {
-  display: flex;
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--surface-3);
-  align-items: center;
-}
-
-.mapping-row:hover {
-  background-color: var(--surface-3);
-}
-
-.col-asset-type {
-  flex: 1;
+.mapping-cell {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--text);
-}
-
-.col-template {
-  flex: 1;
   color: var(--text);
 }
 

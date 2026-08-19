@@ -681,6 +681,8 @@
       "title": "Exportar datos",
       "itemCount": "{count} elementos",
       "format": "Formato",
+      "nameFormat": "Formato de nombre",
+      "original": "Original",
       "plainText": "Texto sin formato",
       "columns": "Columnas",
       "required": "Obligatorio",

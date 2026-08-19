@@ -6,58 +6,47 @@
       <div class="export-toolbar">
         <span class="item-count">{{ $t('modals.export.itemCount', { count: exportStore.preview.total }) }}</span>
         <div class="toolbar-actions">
-          <label class="format-control">
+          <label class="toolbar-control">
             <span>{{ $t('modals.export.format') }}</span>
-            <select v-model="exportStore.format">
-              <option value="json">JSON</option>
-              <option value="csv">CSV</option>
-              <option value="txt">{{ $t('modals.export.plainText') }}</option>
-            </select>
+            <DropDownBox
+              :items="formatOptions"
+              :selectedItem="selectedFormatLabel"
+              :onSelect="selectFormat"
+              :useFilter="false"
+              :fullWidth="false"
+              :fixedWidth="true"
+            />
           </label>
-          <div class="columns-control">
-            <button type="button" class="columns-button" @click="columnsOpen = !columnsOpen">
-              {{ $t('modals.export.columns') }}
-            </button>
-            <div v-if="columnsOpen" class="columns-menu" v-stop-propagation>
-              <label v-for="column in exportStore.preview.columns" :key="column.key" class="column-option">
-                <CheckBox
-                  :modelValue="exportStore.selectedColumns.includes(column.key)"
-                  :disabled="column.required"
-                  :ariaLabel="column.label"
-                  @update:modelValue="exportStore.toggleColumn(column)"
-                />
-                <span>{{ column.label }}</span>
-                <span v-if="column.required" class="required-label">{{ $t('modals.export.required') }}</span>
-              </label>
-            </div>
-          </div>
+          <label class="toolbar-control name-format-control">
+            <span>{{ $t('modals.export.nameFormat') }}</span>
+            <DropDownBox
+              :items="nameFormatOptions"
+              :selectedItem="selectedNameFormatLabel"
+              :onSelect="selectNameFormat"
+              :useFilter="false"
+              :fullWidth="false"
+              :fixedWidth="true"
+            />
+          </label>
+          <FilterButton
+            :icon="getAppIcon('list')"
+            :label="$t('modals.export.columns')"
+            :showLabel="true"
+            :buttonFunction="openColumnsMenu"
+          />
         </div>
       </div>
 
-      <div class="export-table">
-        <div class="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th v-for="column in visibleColumns" :key="column.key">{{ column.label }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="exportStore.loading">
-                <td :colspan="visibleColumns.length">{{ $t('common.loading') }}</td>
-              </tr>
-              <tr v-else-if="!exportStore.preview.rows.length">
-                <td :colspan="visibleColumns.length">{{ $t('modals.export.noItems') }}</td>
-              </tr>
-              <tr v-for="(row, index) in exportStore.preview.rows" v-else :key="`${exportStore.preview.page}-${index}`">
-                <td v-for="column in visibleColumns" :key="column.key" :title="formatCell(row[column.key])">
-                  {{ formatCell(row[column.key]) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DataTable
+        :columns="visibleColumns"
+        :rows="exportStore.preview.rows"
+        :rowKey="previewRowKey"
+        :loading="exportStore.loading"
+        :loadingText="$t('common.loading')"
+        :emptyText="$t('modals.export.noItems')"
+        maxHeight="430px"
+        minWidth="680px"
+      />
 
       <div v-if="totalPages > 1" class="pagination-controls">
         <button type="button" :disabled="exportStore.preview.page === 1" @click="changePage(exportStore.preview.page - 1)">
@@ -79,38 +68,64 @@
           :loading="exportStore.exporting"
         />
       </div>
-
     </div>
-
-    
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
-import CheckBox from '@/instances/common/components/CheckBox.vue';
+import DataTable from '@/instances/common/components/DataTable.vue';
+import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import FilterButton from '@/instances/desktop/components/FilterButton.vue';
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useExportStore } from '@/stores/exports';
 import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
 
 const desktopModals = useDesktopModalStore();
 const exportStore = useExportStore();
 const iconStore = useIconStore();
-const columnsOpen = ref(false);
+const menu = useMenu();
+const { t } = useI18n();
 
-const visibleColumns = computed(() => exportStore.preview.columns.filter((column) => (
-  exportStore.selectedColumns.includes(column.key)
-)));
+const formatOptions = computed(() => [
+  { name: 'JSON', value: 'json' },
+  { name: 'CSV', value: 'csv' },
+  { name: t('modals.export.plainText'), value: 'txt' },
+]);
+const nameFormatOptions = computed(() => [
+  { name: t('modals.export.original'), value: 'original' },
+  { name: 'kebab-case', value: 'kebab' },
+  { name: 'snake_case', value: 'snake' },
+  { name: 'camelCase', value: 'camel' },
+  { name: 'PascalCase', value: 'pascal' },
+  { name: 'UPPERCASE', value: 'uppercase' },
+  { name: 'lowercase', value: 'lowercase' },
+  { name: 'Title Case', value: 'title' },
+]);
+const selectedFormatLabel = computed(() => formatOptions.value.find((option) => option.value === exportStore.format)?.name || 'CSV');
+const selectedNameFormatLabel = computed(() => nameFormatOptions.value.find((option) => option.value === exportStore.nameFormat)?.name || t('modals.export.original'));
+const visibleColumns = computed(() => exportStore.preview.columns.filter((column) => exportStore.selectedColumns.includes(column.key)));
 const totalPages = computed(() => Math.max(1, Math.ceil(exportStore.preview.total / exportStore.preview.page_size)));
 
-const closeModal = () => desktopModals.setModalVisibility('exportModal', false);
+const closeModal = () => {
+  menu.disableAllMenus();
+  desktopModals.setModalVisibility('exportModal', false);
+};
 const getAppIcon = (name) => iconStore.getAppIcon(name);
 const changePage = (page) => exportStore.loadPreview(page);
-const formatCell = (value) => Array.isArray(value) ? value.join(', ') : String(value ?? '');
+const previewRowKey = (_, index) => `${exportStore.preview.page}-${index}`;
+const selectFormat = (label) => exportStore.format = formatOptions.value.find((option) => option.name === label)?.value || 'csv';
+const selectNameFormat = (label) => {
+  const nameFormat = nameFormatOptions.value.find((option) => option.name === label)?.value || 'original';
+  exportStore.setNameFormat(nameFormat);
+};
+const openColumnsMenu = (event) => menu.showContextMenu(event, 'exportColumnsMenu', true, true);
 </script>
 
 <style scoped>
@@ -135,8 +150,7 @@ const formatCell = (value) => Array.isArray(value) ? value.join(', ') : String(v
 
 .export-toolbar,
 .toolbar-actions,
-.format-control,
-.column-option,
+.toolbar-control,
 .pagination-controls {
   display: flex;
   align-items: center;
@@ -156,101 +170,13 @@ const formatCell = (value) => Array.isArray(value) ? value.join(', ') : String(v
   gap: .75rem;
 }
 
-.format-control {
+.toolbar-control {
   gap: .5rem;
   color: var(--text-muted);
 }
 
-select,
-.columns-button,
-.pagination-controls button {
-  color: var(--text);
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  border-radius: var(--small-radius);
-  padding: .45rem .7rem;
-}
-
-.columns-control {
-  position: relative;
-}
-
-.columns-button,
-.pagination-controls button {
-  cursor: pointer;
-}
-
-.columns-menu {
-  position: absolute;
-  z-index: 4;
-  top: calc(100% + .35rem);
-  right: 0;
-  width: 230px;
-  max-height: 300px;
-  overflow-y: auto;
-  padding: .4rem;
-  color: var(--text);
-  background: var(--surface-1);
-  border: 1px solid var(--border);
-  border-radius: var(--normal-radius);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
-}
-
-.column-option {
-  gap: .45rem;
-  min-height: 34px;
-  padding: .2rem .35rem;
-}
-
-.required-label {
-  margin-left: auto;
-  color: var(--text-muted);
-  font-size: .75rem;
-}
-
-.export-table {
-  width: 100%;
-  height: 430px;
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--normal-radius);
-  background: var(--surface-2);
-}
-
-.table-scroll {
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-}
-
-table {
-  width: 100%;
-  min-width: 680px;
-  border-collapse: collapse;
-  table-layout: fixed;
-}
-
-th,
-td {
-  padding: .65rem .75rem;
-  text-align: left;
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  color: var(--text-muted);
-  background: var(--surface-3);
-  font-weight: 600;
-}
-
-tbody tr:hover {
-  background: var(--surface-3);
+.name-format-control :deep(.list-box-container) {
+  min-width: 150px;
 }
 
 .pagination-controls {
@@ -259,14 +185,17 @@ tbody tr:hover {
   width: 100%;
 }
 
+.pagination-controls button {
+  cursor: pointer;
+  color: var(--text);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--small-radius);
+  padding: .45rem .7rem;
+}
+
 .pagination-controls button:disabled {
   cursor: default;
   opacity: .45;
-}
-
-.table-scroll,
-.columns-menu {
-  scrollbar-color: var(--surface-5) transparent;
-  scrollbar-width: thin;
 }
 </style>

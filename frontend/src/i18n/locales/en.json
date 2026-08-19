@@ -728,6 +728,8 @@
       "title": "Export data",
       "itemCount": "{count} items",
       "format": "Format",
+      "nameFormat": "Name format",
+      "original": "Original",
       "plainText": "Plain text",
       "columns": "Columns",
       "required": "Required",

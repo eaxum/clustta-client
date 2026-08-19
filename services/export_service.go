@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -24,13 +25,19 @@ const (
 
 var requiredExportColumns = []string{"name", "extension", "parent"}
 
+var (
+	nameBoundaryPattern  = regexp.MustCompile(`([\p{Ll}\p{N}])([\p{Lu}])`)
+	nameSeparatorPattern = regexp.MustCompile(`[^\p{L}\p{N}]+`)
+)
+
 type ExportService struct{}
 
 type ExportRequest struct {
-	AssetIDs []string `json:"asset_ids"`
-	Scope    string   `json:"scope"`
-	Columns  []string `json:"columns"`
-	Page     int      `json:"page"`
+	AssetIDs   []string `json:"asset_ids"`
+	Scope      string   `json:"scope"`
+	Columns    []string `json:"columns"`
+	NameFormat string   `json:"name_format"`
+	Page       int      `json:"page"`
 }
 
 type ExportColumn struct {
@@ -71,6 +78,9 @@ func (s *ExportService) Preview(projectPath string, request ExportRequest) (Expo
 	if err != nil {
 		return ExportPreview{}, err
 	}
+	if err := validateNameFormat(request.NameFormat); err != nil {
+		return ExportPreview{}, err
+	}
 	page := request.Page
 	if page < 1 {
 		page = 1
@@ -80,7 +90,7 @@ func (s *ExportService) Preview(projectPath string, request ExportRequest) (Expo
 		start = len(assets)
 	}
 	end := min(start+exportPageSize, len(assets))
-	rows := exportRows(assets[start:end], columns)
+	rows := exportRows(assets[start:end], columns, request.NameFormat)
 
 	return ExportPreview{
 		Columns:  availableExportColumns,
@@ -100,6 +110,9 @@ func (s *ExportService) Export(projectPath, destinationPath, format string, requ
 	if err != nil {
 		return "", err
 	}
+	if err := validateNameFormat(request.NameFormat); err != nil {
+		return "", err
+	}
 	format = strings.ToLower(strings.TrimSpace(format))
 	if format != exportFormatCSV && format != exportFormatJSON && format != exportFormatText {
 		return "", fmt.Errorf("unsupported export format %q", format)
@@ -109,7 +122,7 @@ func (s *ExportService) Export(projectPath, destinationPath, format string, requ
 	}
 
 	outputPath := ensureExportExtension(destinationPath, format)
-	data, err := serializeExportRows(exportRows(assets, columns), columns, format)
+	data, err := serializeExportRows(exportRows(assets, columns, request.NameFormat), columns, format)
 	if err != nil {
 		return "", err
 	}
@@ -195,11 +208,11 @@ func normalizeExportColumns(columns []string) ([]string, error) {
 	return ordered, nil
 }
 
-func exportRows(assets []models.Asset, columns []string) []map[string]interface{} {
+func exportRows(assets []models.Asset, columns []string, nameFormat string) []map[string]interface{} {
 	rows := make([]map[string]interface{}, 0, len(assets))
 	for _, asset := range assets {
 		allValues := map[string]interface{}{
-			"name":        asset.Name,
+			"name":        formatExportName(asset.Name, nameFormat),
 			"extension":   asset.Extension,
 			"parent":      asset.CollectionPath,
 			"status":      asset.StatusShortName,
@@ -219,6 +232,77 @@ func exportRows(assets []models.Asset, columns []string) []map[string]interface{
 		rows = append(rows, row)
 	}
 	return rows
+}
+
+func validateNameFormat(nameFormat string) error {
+	switch nameFormat {
+	case "", "original", "kebab", "snake", "camel", "pascal", "uppercase", "lowercase", "title":
+		return nil
+	default:
+		return fmt.Errorf("unsupported name format %q", nameFormat)
+	}
+}
+
+func formatExportName(name, nameFormat string) string {
+	if nameFormat == "" || nameFormat == "original" {
+		return name
+	}
+	words := exportNameWords(name)
+	if len(words) == 0 {
+		return name
+	}
+	switch nameFormat {
+	case "kebab":
+		return strings.Join(lowercaseWords(words), "-")
+	case "snake":
+		return strings.Join(lowercaseWords(words), "_")
+	case "camel":
+		formatted := lowercaseWords(words)
+		for index := 1; index < len(formatted); index++ {
+			formatted[index] = uppercaseFirst(formatted[index])
+		}
+		return strings.Join(formatted, "")
+	case "pascal":
+		formatted := lowercaseWords(words)
+		for index := range formatted {
+			formatted[index] = uppercaseFirst(formatted[index])
+		}
+		return strings.Join(formatted, "")
+	case "uppercase":
+		return strings.ToUpper(strings.Join(words, " "))
+	case "lowercase":
+		return strings.Join(lowercaseWords(words), " ")
+	case "title":
+		formatted := lowercaseWords(words)
+		for index := range formatted {
+			formatted[index] = uppercaseFirst(formatted[index])
+		}
+		return strings.Join(formatted, " ")
+	default:
+		return name
+	}
+}
+
+func exportNameWords(name string) []string {
+	withBoundaries := nameBoundaryPattern.ReplaceAllString(name, `${1} ${2}`)
+	return strings.Fields(nameSeparatorPattern.ReplaceAllString(withBoundaries, " "))
+}
+
+func lowercaseWords(words []string) []string {
+	formatted := make([]string, len(words))
+	for index, word := range words {
+		formatted[index] = strings.ToLower(word)
+	}
+	return formatted
+}
+
+func uppercaseFirst(value string) string {
+	runes := []rune(value)
+	if len(runes) == 0 {
+		return value
+	}
+	runes[0] = []rune(strings.ToUpper(string(runes[0])))[0]
+	return string(runes)
 }
 
 func serializeExportRows(rows []map[string]interface{}, columns []string, format string) ([]byte, error) {

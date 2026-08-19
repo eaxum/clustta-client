@@ -681,6 +681,8 @@
       "title": "Экспорт данных",
       "itemCount": "Элементов: {count}",
       "format": "Формат",
+      "nameFormat": "Формат имени",
+      "original": "Исходный",
       "plainText": "Обычный текст",
       "columns": "Столбцы",
       "required": "Обязательно",

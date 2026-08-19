@@ -12,6 +12,7 @@ export const useMenu = defineStore("useMenu", {
       statusFilterMenu: false,
       stateFilterMenu: false,
       extensionFilterMenu: false,
+      exportColumnsMenu: false,
       tagsFilterMenu: false,
       assigneeFilterMenu: false,
 

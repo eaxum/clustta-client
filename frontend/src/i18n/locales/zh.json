@@ -681,6 +681,8 @@
       "title": "导出数据",
       "itemCount": "{count} 个项目",
       "format": "格式",
+      "nameFormat": "名称格式",
+      "original": "原始",
       "plainText": "纯文本",
       "columns": "列",
       "required": "必需",

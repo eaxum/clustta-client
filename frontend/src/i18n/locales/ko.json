@@ -699,6 +699,8 @@
       "title": "데이터 내보내기",
       "itemCount": "항목 {count}개",
       "format": "형식",
+      "nameFormat": "이름 형식",
+      "original": "원본",
       "plainText": "일반 텍스트",
       "columns": "열",
       "required": "필수",

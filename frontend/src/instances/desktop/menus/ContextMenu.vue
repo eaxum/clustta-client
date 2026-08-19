@@ -24,6 +24,7 @@ import CollectionTypeFilterMenu from '@/instances/desktop/menus/CollectionTypeFi
 import CopyToProjectSubMenu from '@/instances/desktop/menus/CopyToProjectSubMenu.vue';
 import DependencySearchFilterMenu from '@/instances/desktop/menus/DependencySearchFilterMenu.vue';
 import ExtensionFilterMenu from '@/instances/desktop/menus/ExtensionFilterMenu.vue';
+import ExportColumnsMenu from '@/instances/desktop/menus/ExportColumnsMenu.vue';
 import ManageTagsMenu from '@/instances/desktop/menus/ManageTagsMenu.vue';
 import MoveToCollectionSubMenu from '@/instances/desktop/menus/MoveToCollectionSubMenu.vue';
 import ProjectItemMenu from '@/instances/desktop/menus/ProjectItemMenu.vue';
@@ -58,6 +59,7 @@ const menuComponents = {
   copyToProjectSubMenu: CopyToProjectSubMenu,
   dependencySearchFilterMenu: DependencySearchFilterMenu,
   extensionFilterMenu: ExtensionFilterMenu,
+  exportColumnsMenu: ExportColumnsMenu,
   manageTagsMenu: ManageTagsMenu,
   moveToCollectionSubMenu: MoveToCollectionSubMenu,
   projectItemMenu: ProjectItemMenu,

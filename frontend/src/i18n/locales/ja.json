@@ -681,6 +681,8 @@
       "title": "データをエクスポート",
       "itemCount": "{count} 項目",
       "format": "形式",
+      "nameFormat": "名前の形式",
+      "original": "元の形式",
       "plainText": "プレーンテキスト",
       "columns": "列",
       "required": "必須",

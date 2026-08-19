@@ -9,9 +9,16 @@ import { useProjectStore } from '@/stores/projects';
 const defaultColumns = ['name', 'extension', 'parent', 'status', 'assignee', 'tags', 'asset_type'];
 
 const formatOptions = {
-  json: { filename: 'clustta-export.json', filterName: 'JSON', pattern: '*.json' },
-  csv: { filename: 'clustta-export.csv', filterName: 'CSV', pattern: '*.csv' },
-  txt: { filename: 'clustta-export.txt', filterName: 'Text', pattern: '*.txt' },
+  json: { filterName: 'JSON', pattern: '*.json' },
+  csv: { filterName: 'CSV', pattern: '*.csv' },
+  txt: { filterName: 'Text', pattern: '*.txt' },
+};
+
+const exportFilename = (projectName, format) => {
+  const safeName = String(projectName || 'clustta-export')
+    .replace(/[<>:"/\\|?*]/g, '-')
+    .replace(/[. ]+$/g, '') || 'clustta-export';
+  return `${safeName}.${format}`;
 };
 
 export const useExportStore = defineStore('exports', {
@@ -20,6 +27,7 @@ export const useExportStore = defineStore('exports', {
     assetIds: [],
     selectedColumns: [...defaultColumns],
     format: 'csv',
+    nameFormat: 'original',
     preview: { columns: [], rows: [], total: 0, page: 1, page_size: 20 },
     loading: false,
     exporting: false,
@@ -32,6 +40,7 @@ export const useExportStore = defineStore('exports', {
         : [];
       this.selectedColumns = [...defaultColumns];
       this.format = 'csv';
+      this.nameFormat = 'original';
       useDesktopModalStore().setModalVisibility('exportModal', true);
       await this.loadPreview(1);
     },
@@ -56,6 +65,10 @@ export const useExportStore = defineStore('exports', {
       }
       await this.loadPreview(1);
     },
+    async setNameFormat(nameFormat) {
+      this.nameFormat = nameFormat;
+      await this.loadPreview(1);
+    },
     async save() {
       const projectPath = useProjectStore().activeProject?.uri;
       const option = formatOptions[this.format];
@@ -64,7 +77,7 @@ export const useExportStore = defineStore('exports', {
       try {
         const destination = await DialogService.SaveFileDialog(
           'Export Clustta data',
-          option.filename,
+          exportFilename(useProjectStore().activeProject?.name, this.format),
           option.filterName,
           option.pattern,
         );
@@ -83,6 +96,7 @@ export const useExportStore = defineStore('exports', {
         asset_ids: this.assetIds,
         scope: this.scope,
         columns: this.selectedColumns,
+        name_format: this.nameFormat,
         page,
       };
     },

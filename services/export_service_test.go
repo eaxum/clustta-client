@@ -66,3 +66,20 @@ func TestValidateExportScopeRejectsUnknownScope(t *testing.T) {
 		t.Fatal("expected unsupported scope error")
 	}
 }
+
+func TestFormatExportName(t *testing.T) {
+	tests := map[string]string{
+		"kebab":     "hero-house-model",
+		"snake":     "hero_house_model",
+		"camel":     "heroHouseModel",
+		"pascal":    "HeroHouseModel",
+		"uppercase": "HERO HOUSE MODEL",
+		"lowercase": "hero house model",
+		"title":     "Hero House Model",
+	}
+	for format, expected := range tests {
+		if actual := formatExportName("Hero_houseModel", format); actual != expected {
+			t.Errorf("formatExportName(%q) = %q, want %q", format, actual, expected)
+		}
+	}
+}

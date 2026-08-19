@@ -681,6 +681,8 @@
       "title": "डेटा निर्यात करें",
       "itemCount": "{count} आइटम",
       "format": "प्रारूप",
+      "nameFormat": "नाम प्रारूप",
+      "original": "मूल",
       "plainText": "सादा पाठ",
       "columns": "कॉलम",
       "required": "आवश्यक",
