@@ -1,7 +1,15 @@
 <template>
   <div ref="collectionMenu" class="filter-menu-container" v-stop-propagation>
 
-    <span v-for="tag in tagStore.tags" class="filter-menu-item" @click="toggleFilter(tag)">
+    <span class="filter-menu-item" @click="toggleFilter(noTagsFilter)">
+      <img class="small-icons" src="/icons/tags.svg">
+      <div class="horizontal-flex">
+        <div>{{ noTagsFilter.name }}</div>
+        <ToggleSwitch :switchValueProp="isFilterActive(noTagsFilter)" />
+      </div>
+    </span>
+
+    <span v-for="tag in tagStore.tags" :key="tag.id" class="filter-menu-item" @click="toggleFilter(tag)">
       <img class="small-icons" src="/icons/tags.svg">
       <div class="horizontal-flex">
         <div> {{ utils.capitalizeStr(tag.name) }} </div>
@@ -31,6 +39,12 @@ const commonStore = useCommonStore();
 const menu = useMenu();
 const tagStore = useTagStore();
 
+const noTagsFilter = {
+  name: 'No Tags',
+  type: 'tags',
+  withoutTags: true,
+};
+
 // refs
 const collectionMenu = ref(null);
 
@@ -40,14 +54,21 @@ const addFilter = (filter) => {
   commonStore.assetFilters.push(filter);
 };
 
-// Checks if a filter is currently active by name.
-const isFilterActive = (filter) => {
-  return commonStore.assetFilters.some((f) => f.type === 'tags' && f.name === filter.name);
+// Checks if two tag filters represent the same option.
+const isSameTagFilter = (item, filter) => {
+  return item.type === 'tags'
+    && item.name === filter.name
+    && Boolean(item.withoutTags) === Boolean(filter.withoutTags);
 };
 
-// Removes a filter from the asset filters list by name.
+// Checks if a filter is currently active.
+const isFilterActive = (filter) => {
+  return commonStore.assetFilters.some((item) => isSameTagFilter(item, filter));
+};
+
+// Removes a filter from the asset filters list.
 const removeFilter = (filter) => {
-  commonStore.assetFilters = commonStore.assetFilters.filter((f) => !(f.type === 'tags' && f.name === filter.name));
+  commonStore.assetFilters = commonStore.assetFilters.filter((item) => !isSameTagFilter(item, filter));
 };
 
 // Toggles a filter on or off.

@@ -30,6 +30,20 @@ const matchesAssetSearch = (asset, viewSearchQuery, workspaceSearchQuery) => {
     && matchesAssetQuery(asset, workspaceSearchQuery);
 };
 
+const matchesTagFilters = (assetTags, tagFilters) => {
+  if (!tagFilters.length) return true;
+
+  const tags = Array.isArray(assetTags) ? assetTags : [];
+  return tagFilters.some((filter) => {
+    if (filter.withoutTags) return tags.length === 0;
+
+    const filterName = filter.name.replace(/\s+/g, "").toLowerCase();
+    return tags.some((tag) => {
+      return tag.replace(/\s+/g, "").toLowerCase() === filterName;
+    });
+  });
+};
+
 export const useAssetStore = defineStore("asset", {
   state: () => ({
     assets: [],
@@ -152,9 +166,8 @@ export const useAssetStore = defineStore("asset", {
         const selectedStatus = commonStore.assetFilters
           .filter((filter) => filter.type === "status")
           .map((filter) => filter.name.toLowerCase());
-        const selectedTags = commonStore.assetFilters
-          .filter((filter) => filter.type === "tags")
-          .map((filter) => filter.name.toLowerCase());
+        const tagFilters = commonStore.assetFilters
+          .filter((filter) => filter.type === "tags");
         const selectedAssignees = commonStore.assetFilters
           .filter((filter) => filter.type === "assignation")
           .map((filter) => String(filter.id));
@@ -175,30 +188,7 @@ export const useAssetStore = defineStore("asset", {
               selectedStatus.length === 0 ||
               selectedStatus.includes(asset.status_short_name.toLowerCase());
 
-            // matched tags
-            let tagMatch;
-            const matchAll = true;
-            if (matchAll) {
-              tagMatch =
-                selectedTags.length === 0 ||
-                selectedTags.some((tag) =>
-                  asset.tags.some(
-                    (assetTag) =>
-                      assetTag.replace(/\s+/g, "").toLowerCase() ===
-                      tag.replace(/\s+/g, "").toLowerCase()
-                  )
-                );
-            } else {
-              tagMatch =
-                selectedTags.length === 0 ||
-                selectedTags.every((tag) =>
-                  asset.tags.some(
-                    (assetTag) =>
-                      assetTag.replace(/\s+/g, "").toLowerCase() ===
-                      tag.replace(/\s+/g, "").toLowerCase()
-                  )
-                );
-            }
+            const tagMatch = matchesTagFilters(asset.tags, tagFilters);
 
             // matched assignees
             let assigneeMatch;
@@ -347,9 +337,8 @@ export const useAssetStore = defineStore("asset", {
         const selectedStatus = commonStore.assetFilters
           .filter((filter) => filter.type === "status")
           .map((filter) => filter.name.toLowerCase());
-        const selectedTags = commonStore.assetFilters
-          .filter((filter) => filter.type === "tags")
-          .map((filter) => filter.name.toLowerCase());
+        const tagFilters = commonStore.assetFilters
+          .filter((filter) => filter.type === "tags");
         const selectedAssignees = commonStore.assetFilters
           .filter((filter) => filter.type === "assignation")
           .map((filter) => String(filter.id));
@@ -370,30 +359,7 @@ export const useAssetStore = defineStore("asset", {
               selectedStatus.length === 0 ||
               selectedStatus.includes(asset.status_short_name.toLowerCase());
 
-            // matched tags
-            let tagMatch;
-            const matchAll = true;
-            if (matchAll) {
-              tagMatch =
-                selectedTags.length === 0 ||
-                selectedTags.some((tag) =>
-                  asset.tags.some(
-                    (assetTag) =>
-                      assetTag.replace(/\s+/g, "").toLowerCase() ===
-                      tag.replace(/\s+/g, "").toLowerCase()
-                  )
-                );
-            } else {
-              tagMatch =
-                selectedTags.length === 0 ||
-                selectedTags.every((tag) =>
-                  asset.tags.some(
-                    (assetTag) =>
-                      assetTag.replace(/\s+/g, "").toLowerCase() ===
-                      tag.replace(/\s+/g, "").toLowerCase()
-                  )
-                );
-            }
+            const tagMatch = matchesTagFilters(asset.tags, tagFilters);
 
             // matched assignees
             let assigneeMatch;
