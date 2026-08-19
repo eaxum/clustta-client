@@ -6,6 +6,8 @@
 			@click="createCollection" v-tooltip="{ text: $t('components.createMenu.addCollection'), shortcut: 'newCollection' }" />
 		<ActionButton :icon="getAppIcon('data-download')" v-if="!(platformStore.isWeb || kanbanView)"  :isDisabled="props.disabled || !canCreateAsset"
 			@click="importItemsWithPermission" v-tooltip="$t('components.createMenu.importItems')" />
+		<ActionButton :icon="getAppIcon('data-upload')" v-if="!(platformStore.isWeb || kanbanView)"
+			@click="openExport" v-tooltip="$t('components.createMenu.exportItems')" />
 		<ActionButton :icon="getAppIcon('workflow-plus')" :isDisabled="props.disabled || kanbanView || !canCreateWorkflow"
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
 		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="props.disabled || kanbanView || !canCreateAsset"
@@ -29,11 +31,13 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
+import { useExportStore } from '@/stores/exports';
 import { usePlatformStore } from '@/stores/platform';
 import { useStageStore } from '@/stores/stages';
 
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
+const exportStore = useExportStore();
 const modals = useDesktopModalStore();
 const platformStore = usePlatformStore();
 const stage = useStageStore();
@@ -97,6 +101,9 @@ const importItemsWithPermission = () => {
 	if (props.disabled || !canCreateAsset.value) return;
 	return props.importItems();
 };
+
+// Opens an export preview for the assets currently displayed in the browser.
+const openExport = () => exportStore.open('selection');
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);

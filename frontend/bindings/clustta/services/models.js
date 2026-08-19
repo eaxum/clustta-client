@@ -1153,6 +1153,169 @@ export class EntitlementUsage {
     }
 }
 
+export class ExportColumn {
+    /**
+     * Creates a new ExportColumn instance.
+     * @param {Partial<ExportColumn>} [$$source = {}] - The source object to create the ExportColumn.
+     */
+    constructor($$source = {}) {
+        if (!("key" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["key"] = "";
+        }
+        if (!("label" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["label"] = "";
+        }
+        if (!("required" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["required"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ExportColumn instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ExportColumn}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new ExportColumn(/** @type {Partial<ExportColumn>} */($$parsedSource));
+    }
+}
+
+export class ExportPreview {
+    /**
+     * Creates a new ExportPreview instance.
+     * @param {Partial<ExportPreview>} [$$source = {}] - The source object to create the ExportPreview.
+     */
+    constructor($$source = {}) {
+        if (!("columns" in $$source)) {
+            /**
+             * @member
+             * @type {ExportColumn[]}
+             */
+            this["columns"] = [];
+        }
+        if (!("rows" in $$source)) {
+            /**
+             * @member
+             * @type {{ [_: string]: any }[]}
+             */
+            this["rows"] = [];
+        }
+        if (!("total" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["total"] = 0;
+        }
+        if (!("page" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["page"] = 0;
+        }
+        if (!("page_size" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["page_size"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ExportPreview instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ExportPreview}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType10;
+        const $$createField1_0 = $$createType12;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("columns" in $$parsedSource) {
+            $$parsedSource["columns"] = $$createField0_0($$parsedSource["columns"]);
+        }
+        if ("rows" in $$parsedSource) {
+            $$parsedSource["rows"] = $$createField1_0($$parsedSource["rows"]);
+        }
+        return new ExportPreview(/** @type {Partial<ExportPreview>} */($$parsedSource));
+    }
+}
+
+export class ExportRequest {
+    /**
+     * Creates a new ExportRequest instance.
+     * @param {Partial<ExportRequest>} [$$source = {}] - The source object to create the ExportRequest.
+     */
+    constructor($$source = {}) {
+        if (!("asset_ids" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["asset_ids"] = [];
+        }
+        if (!("scope" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["scope"] = "";
+        }
+        if (!("columns" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["columns"] = [];
+        }
+        if (!("page" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["page"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ExportRequest instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ExportRequest}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType8;
+        const $$createField2_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("asset_ids" in $$parsedSource) {
+            $$parsedSource["asset_ids"] = $$createField0_0($$parsedSource["asset_ids"]);
+        }
+        if ("columns" in $$parsedSource) {
+            $$parsedSource["columns"] = $$createField2_0($$parsedSource["columns"]);
+        }
+        return new ExportRequest(/** @type {Partial<ExportRequest>} */($$parsedSource));
+    }
+}
+
 /**
  * FetchResult identifies the assets whose working files were successfully
  * restored by a fetch operation.
@@ -2541,11 +2704,11 @@ export class UserProfile {
      * @returns {UserProfile}
      */
     static createFrom($$source = {}) {
-        const $$createField8_0 = $$createType10;
-        const $$createField9_0 = $$createType10;
-        const $$createField25_0 = $$createType12;
-        const $$createField26_0 = $$createType14;
-        const $$createField27_0 = $$createType16;
+        const $$createField8_0 = $$createType14;
+        const $$createField9_0 = $$createType14;
+        const $$createField25_0 = $$createType16;
+        const $$createField26_0 = $$createType18;
+        const $$createField27_0 = $$createType20;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("country_id" in $$parsedSource) {
             $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
@@ -2741,11 +2904,15 @@ const $$createType5 = $Create.Array($Create.Any);
 const $$createType6 = EntitlementLimits.createFrom;
 const $$createType7 = EntitlementUsage.createFrom;
 const $$createType8 = $Create.Array($Create.Any);
-const $$createType9 = NullString.createFrom;
-const $$createType10 = $Create.Nullable($$createType9);
-const $$createType11 = UserTool.createFrom;
+const $$createType9 = ExportColumn.createFrom;
+const $$createType10 = $Create.Array($$createType9);
+const $$createType11 = $Create.Map($Create.Any, $Create.Any);
 const $$createType12 = $Create.Array($$createType11);
-const $$createType13 = UserSkill.createFrom;
-const $$createType14 = $Create.Array($$createType13);
-const $$createType15 = UserStudio.createFrom;
+const $$createType13 = NullString.createFrom;
+const $$createType14 = $Create.Nullable($$createType13);
+const $$createType15 = UserTool.createFrom;
 const $$createType16 = $Create.Array($$createType15);
+const $$createType17 = UserSkill.createFrom;
+const $$createType18 = $Create.Array($$createType17);
+const $$createType19 = UserStudio.createFrom;
+const $$createType20 = $Create.Array($$createType19);

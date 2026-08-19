@@ -74,6 +74,22 @@ func (f *DialogService) SelectFileDialog(title, filters string) (string, error) 
 	return result, nil
 }
 
+// SaveFileDialog opens a file dialog for an export destination.
+// Returns the selected path or an empty string if cancelled.
+func (f *DialogService) SaveFileDialog(title, filename, filterName, filterPattern string) (string, error) {
+	dialog := application.Get().Dialog.SaveFile().
+		AttachToWindow(application.Get().Window.Current()).
+		CanCreateDirectories(true).
+		ShowHiddenFiles(true).
+		SetFilename(filename).
+		AddFilter(filterName, filterPattern)
+	if runtime.GOOS == "darwin" {
+		dialog.SetMessage(title)
+	}
+
+	return dialog.PromptForSingleSelection()
+}
+
 // SelectFilesDialog opens a file dialog to select multiple files.
 // Returns the selected file paths or an empty list if cancelled.
 func (f *DialogService) SelectFilesDialog() ([]string, error) {

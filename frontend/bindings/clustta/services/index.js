@@ -15,6 +15,7 @@ import * as DependencyTypeService from "./dependencytypeservice.js";
 import * as DeploymentService from "./deploymentservice.js";
 import * as DialogService from "./dialogservice.js";
 import * as EntitlementService from "./entitlementservice.js";
+import * as ExportService from "./exportservice.js";
 import * as FSService from "./fsservice.js";
 import * as ImportService from "./importservice.js";
 import * as IntegrationService from "./integrationservice.js";
@@ -47,6 +48,7 @@ export {
     DeploymentService,
     DialogService,
     EntitlementService,
+    ExportService,
     FSService,
     ImportService,
     IntegrationService,
@@ -85,6 +87,9 @@ export {
     EntitlementBundle,
     EntitlementLimits,
     EntitlementUsage,
+    ExportColumn,
+    ExportPreview,
+    ExportRequest,
     FetchResult,
     FileInfo,
     Gender,

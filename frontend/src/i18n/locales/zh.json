@@ -677,6 +677,16 @@
     "overwriteDroppedFilesDescription": "将系统文件拖入 Clustta 时，如果目标位置已有匹配文件，则覆盖它而不是创建带编号的副本。如果该文件属于已跟踪资产，则会创建检查点。"
   },
   "modals": {
+    "export": {
+      "title": "导出数据",
+      "itemCount": "{count} 个项目",
+      "format": "格式",
+      "plainText": "纯文本",
+      "columns": "列",
+      "required": "必需",
+      "noItems": "没有可导出的项目",
+      "export": "导出"
+    },
     "addAssetType": "添加资产类型",
     "addCollectionType": "添加集合类型",
     "addMoreFiles": "添加更多文件",
@@ -1388,6 +1398,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "导出项目",
       "addAsset": "添加资产",
       "addCollection": "添加集合",
       "addWorkflow": "添加工作流",

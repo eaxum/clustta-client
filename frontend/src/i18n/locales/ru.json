@@ -677,6 +677,16 @@
     "overwriteDroppedFilesDescription": "Когда файл ОС перетаскивается в Clustta, совпадающий файл назначения перезаписывается вместо создания нумерованной копии. Если файл относится к отслеживаемому ассету, создается checkpoint."
   },
   "modals": {
+    "export": {
+      "title": "Экспорт данных",
+      "itemCount": "Элементов: {count}",
+      "format": "Формат",
+      "plainText": "Обычный текст",
+      "columns": "Столбцы",
+      "required": "Обязательно",
+      "noItems": "Нет элементов для экспорта",
+      "export": "Экспорт"
+    },
     "addAssetType": "Добавить тип ресурса",
     "addCollectionType": "Добавить тип коллекции",
     "addMoreFiles": "Добавить ещё файлы",
@@ -1388,6 +1398,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "Экспорт элементов",
       "addAsset": "Добавить ресурс",
       "addCollection": "Добавить коллекцию",
       "addWorkflow": "Добавить рабочий процесс",

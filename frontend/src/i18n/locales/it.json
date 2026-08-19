@@ -677,6 +677,16 @@
     "overwriteDroppedFilesDescription": "Quando un file del sistema viene rilasciato in Clustta, sovrascrive il file di destinazione corrispondente invece di creare una copia numerata. Se il file appartiene a un asset tracciato, viene creato un checkpoint."
   },
   "modals": {
+    "export": {
+      "title": "Esporta dati",
+      "itemCount": "{count} elementi",
+      "format": "Formato",
+      "plainText": "Testo semplice",
+      "columns": "Colonne",
+      "required": "Obbligatorio",
+      "noItems": "Nessun elemento da esportare",
+      "export": "Esporta"
+    },
     "addAssetType": "Aggiungi tipo asset",
     "addCollectionType": "Aggiungi tipo collezione",
     "addMoreFiles": "Aggiungi altri file",
@@ -1388,6 +1398,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "Esporta elementi",
       "addAsset": "Aggiungi asset",
       "addCollection": "Aggiungi collezione",
       "addWorkflow": "Aggiungi flusso di lavoro",

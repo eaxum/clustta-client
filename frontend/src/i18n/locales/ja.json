@@ -677,6 +677,16 @@
     "overwriteDroppedFilesDescription": "OS のファイルを Clustta にドロップしたとき、一致する保存先ファイルがあれば番号付きコピーを作成せずに上書きします。追跡中のアセットのファイルであればチェックポイントを作成します。"
   },
   "modals": {
+    "export": {
+      "title": "データをエクスポート",
+      "itemCount": "{count} 項目",
+      "format": "形式",
+      "plainText": "プレーンテキスト",
+      "columns": "列",
+      "required": "必須",
+      "noItems": "エクスポートする項目がありません",
+      "export": "エクスポート"
+    },
     "addAssetType": "アセットタイプを追加",
     "addCollectionType": "コレクションタイプを追加",
     "addMoreFiles": "ファイルを追加",
@@ -1389,6 +1399,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "項目をエクスポート",
       "addAsset": "アセットを追加",
       "addCollection": "コレクションを追加",
       "addWorkflow": "ワークフローを追加",

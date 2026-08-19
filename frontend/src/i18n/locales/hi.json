@@ -677,6 +677,16 @@
     "overwriteDroppedFilesDescription": "Jab OS file Clustta me drop ki jati hai, to numbered copy banane ke bajay matching destination file overwrite hoti hai. Agar file tracked asset se judi hai, to checkpoint banaya jata hai."
   },
   "modals": {
+    "export": {
+      "title": "डेटा निर्यात करें",
+      "itemCount": "{count} आइटम",
+      "format": "प्रारूप",
+      "plainText": "सादा पाठ",
+      "columns": "कॉलम",
+      "required": "आवश्यक",
+      "noItems": "निर्यात करने के लिए कोई आइटम नहीं",
+      "export": "निर्यात"
+    },
     "addAssetType": "एसेट टाइप जोड़ें",
     "addCollectionType": "कलेक्शन टाइप जोड़ें",
     "addMoreFiles": "और फ़ाइलें जोड़ें",
@@ -1388,6 +1398,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "आइटम निर्यात करें",
       "addAsset": "एसेट जोड़ें",
       "addCollection": "कलेक्शन जोड़ें",
       "addWorkflow": "वर्कफ़्लो जोड़ें",

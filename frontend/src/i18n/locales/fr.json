@@ -677,6 +677,16 @@
     "overwriteDroppedFilesDescription": "Lorsqu un fichier du systeme est depose dans Clustta, il ecrase le fichier de destination correspondant au lieu de creer une copie numerotee. Si le fichier appartient a un asset suivi, un checkpoint est cree."
   },
   "modals": {
+    "export": {
+      "title": "Exporter les données",
+      "itemCount": "{count} éléments",
+      "format": "Format",
+      "plainText": "Texte brut",
+      "columns": "Colonnes",
+      "required": "Obligatoire",
+      "noItems": "Aucun élément à exporter",
+      "export": "Exporter"
+    },
     "addAssetType": "Ajouter un type d'actif",
     "addCollectionType": "Ajouter un type de collection",
     "addMoreFiles": "Ajouter plus de fichiers",
@@ -1389,6 +1399,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "Exporter les éléments",
       "addAsset": "Ajouter une ressource",
       "addCollection": "Ajouter une collection",
       "addWorkflow": "Ajouter un flux de travail",

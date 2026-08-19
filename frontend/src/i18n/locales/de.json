@@ -677,6 +677,16 @@
     "overwriteDroppedFilesDescription": "Wenn eine Betriebssystemdatei in Clustta abgelegt wird, wird eine passende Zieldatei ueberschrieben, statt eine nummerierte Kopie zu erstellen. Wenn die Datei zu einem verfolgten Asset gehoert, wird ein Checkpoint erstellt."
   },
   "modals": {
+    "export": {
+      "title": "Daten exportieren",
+      "itemCount": "{count} Elemente",
+      "format": "Format",
+      "plainText": "Nur Text",
+      "columns": "Spalten",
+      "required": "Erforderlich",
+      "noItems": "Keine Elemente zum Exportieren",
+      "export": "Exportieren"
+    },
     "addAssetType": "Asset-Typ hinzufügen",
     "addCollectionType": "Sammlungstyp hinzufügen",
     "addMoreFiles": "Weitere Dateien hinzufügen",
@@ -1389,6 +1399,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "Elemente exportieren",
       "addAsset": "Asset hinzufügen",
       "addCollection": "Sammlung hinzufügen",
       "addWorkflow": "Workflow hinzufügen",

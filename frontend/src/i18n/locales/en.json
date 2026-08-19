@@ -724,6 +724,16 @@
     "overwriteDroppedFilesDescription": "When an OS file is dropped into Clustta, overwrite a matching destination file instead of creating a numbered copy. If the file belongs to a tracked asset, create a checkpoint."
   },
   "modals": {
+    "export": {
+      "title": "Export data",
+      "itemCount": "{count} items",
+      "format": "Format",
+      "plainText": "Plain text",
+      "columns": "Columns",
+      "required": "Required",
+      "noItems": "No items to export",
+      "export": "Export"
+    },
     "addAssetType": "Add Asset type",
     "addCollectionType": "Add Collection type",
     "addTag": "Add Tag",
@@ -1448,6 +1458,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "Export Items",
       "addAsset": "Add Asset",
       "addCollection": "Add Collection",
       "addWorkflow": "Add Workflow",

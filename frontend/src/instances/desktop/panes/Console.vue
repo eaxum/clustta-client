@@ -157,6 +157,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useExportStore } from '@/stores/exports';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
@@ -169,6 +170,7 @@ const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const exportStore = useExportStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const settings = useSettingsStore();
@@ -968,6 +970,12 @@ const sendMessage = async () => {
     addMessage('user', rawInput);
     addMessage('assistant', shortcut.localReply);
     clearComposer();
+    return;
+  }
+  if (shortcut?.action === 'export') {
+    addMessage('user', rawInput);
+    clearComposer();
+    await exportStore.open(shortcut.scope);
     return;
   }
   const expanded = shortcut?.prompt ?? rawInput;

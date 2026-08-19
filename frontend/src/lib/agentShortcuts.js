@@ -14,6 +14,7 @@ export const agentShortcuts = [
   { command: '/status', args: '<name> [filter]', description: 'Bulk-change status of matching assets.' },
   { command: '/clear', args: '', description: 'Clear all browser filters.' },
   { command: '/summary', args: '', description: 'Show a project summary (counts by status, type, assignee).' },
+  { command: '/export', args: '[all tasks|all blender tasks|all assets|all assets here]', description: 'Preview and export project asset data.' },
   { command: '/ignore', args: '<dcc>', description: 'Apply an ignore-list preset (e.g. Maya, Unreal, Blender).' },
   { command: '/who', args: '', description: 'List everyone on this project as clickable user chips.' },
   { command: '/clustta', args: '', description: 'Show what the Clustta agent can do.' },
@@ -46,6 +47,7 @@ const clusttaCapabilities = [
   '',
   'Reporting:',
   '- Project summaries with counts by status, type, and assignee.',
+  '- Preview and export filtered or project-wide asset data as JSON, CSV, or plain text.',
   '',
   'Type /help to see available slash-command shortcuts.',
 ].join('\n');
@@ -151,6 +153,21 @@ export function expandShortcut(rawInput) {
 
     case '/summary':
       return { prompt: 'Give me a project summary with breakdowns by status, asset type, and assignee.' };
+
+    case '/export': {
+      const scopes = {
+        '': 'selection',
+        'all tasks': 'all_tasks',
+        'all blender tasks': 'blender_tasks',
+        'all assets': 'all_assets',
+        'all assets here': 'selection',
+      };
+      const scope = scopes[rest.toLowerCase()];
+      if (!scope) {
+        return { error: 'Usage: /export [all tasks|all blender tasks|all assets|all assets here]' };
+      }
+      return { action: 'export', scope };
+    }
 
     case '/ignore': {
       if (!rest) {

@@ -7,6 +7,19 @@
 import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Create } from "@wailsio/runtime";
 
 /**
+ * SaveFileDialog opens a file dialog for an export destination.
+ * Returns the selected path or an empty string if cancelled.
+ * @param {string} title
+ * @param {string} filename
+ * @param {string} filterName
+ * @param {string} filterPattern
+ * @returns {$CancellablePromise<string>}
+ */
+export function SaveFileDialog(title, filename, filterName, filterPattern) {
+    return $Call.ByID(1432736924, title, filename, filterName, filterPattern);
+}
+
+/**
  * SelectFileDialog opens a file dialog with custom title and filters.
  * Returns the selected file path or an empty string if cancelled.
  * @param {string} title

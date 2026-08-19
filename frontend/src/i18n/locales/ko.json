@@ -695,6 +695,16 @@
     "overwriteDroppedFilesDescription": "OS 파일을 Clustta에 드롭하면 번호가 붙은 복사본을 만들지 않고 일치하는 대상 파일을 덮어씁니다. 파일이 추적 중인 에셋에 속하면 체크포인트를 만듭니다."
   },
   "modals": {
+    "export": {
+      "title": "데이터 내보내기",
+      "itemCount": "항목 {count}개",
+      "format": "형식",
+      "plainText": "일반 텍스트",
+      "columns": "열",
+      "required": "필수",
+      "noItems": "내보낼 항목이 없습니다",
+      "export": "내보내기"
+    },
     "addAssetType": "에셋 유형 추가",
     "addCollectionType": "컬렉션 유형 추가",
     "addMoreFiles": "파일 더 추가",
@@ -1412,6 +1422,7 @@
   },
   "components": {
     "createMenu": {
+      "exportItems": "항목 내보내기",
       "addAsset": "에셋 추가",
       "addCollection": "컬렉션 추가",
       "addWorkflow": "워크플로 추가",

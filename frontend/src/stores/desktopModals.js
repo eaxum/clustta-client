@@ -39,6 +39,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       createMultipleCheckpointsModal: false,
 
       importItemsModal: false,
+      exportModal: false,
       addWorkspaceModal: false,
       addDependencyPresetModal: false,
       saveIgnorePresetModal: false,
