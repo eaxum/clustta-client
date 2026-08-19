@@ -72,6 +72,12 @@ export const useIntegrationStore = defineStore('integrations', {
       const items = [];
       const groupedAssets = new Map();
       const actionPriority = { create: 3, link: 2, skip: 1, virtual: 0 };
+      const sortAlphabetically = (values) => [...values].sort((left, right) => {
+        return String(left.name || '').localeCompare(String(right.name || ''), undefined, {
+          numeric: true,
+          sensitivity: 'base',
+        });
+      });
 
       for (const item of state.syncPreview.preview_items) {
         if (item.item_type !== 'asset') {
@@ -126,7 +132,7 @@ export const useIntegrationStore = defineStore('integrations', {
 
       // Recursively build tree structure
       const buildNode = (item) => {
-        const children = childrenMap.get(item.collection_path) || [];
+        const children = sortAlphabetically(childrenMap.get(item.collection_path) || []);
         const itemType = item.item_type === 'asset' ? 'asset' : 'collection';
         const selectableIds = item.selectable_ids
           || (item.action !== 'skip' && item.external_id ? [item.external_id] : []);
@@ -158,7 +164,7 @@ export const useIntegrationStore = defineStore('integrations', {
       };
 
       // Start from root items
-      const rootItems = childrenMap.get('/') || [];
+      const rootItems = sortAlphabetically(childrenMap.get('/') || []);
       return rootItems.map(buildNode);
     },
   },

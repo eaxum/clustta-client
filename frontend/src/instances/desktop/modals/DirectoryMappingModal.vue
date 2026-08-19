@@ -129,7 +129,7 @@ const notificationStore = useNotificationStore();
 // refs
 const activeTemplateId = ref(null);
 const customTemplates = ref([
-  { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
+  { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Category>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
   { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
 ]);
 const expandedTaskOutputs = ref({});
@@ -169,6 +169,7 @@ const placeholders = computed(() => [
   { key: '<Shot>', label: 'Shot', icon: 'clapboard' },
   { key: '<Asset>', label: 'Asset', icon: 'cube' },
   { key: '<CollectionType>', label: 'CollectionType', icon: 'folder' },
+  { key: '<Category>', label: 'Category', icon: 'folder' },
   { key: '<AssetType>', label: 'AssetType', icon: 'file' },
   { key: '<OutputName>', label: 'OutputName', icon: 'file-name' },
   { key: '<TemplateExtension>', label: 'TemplateExtension', icon: 'extension' },
@@ -208,7 +209,7 @@ const applyPreset = (preset) => {
   if (preset === '3d-animation') {
     // Reset to default templates
     customTemplates.value = [
-      { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
+      { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Category>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
       { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
     ];
   }
@@ -231,6 +232,7 @@ const getTemplatePreview = (template) => {
     Sequence: 'seq001',
     Shot: 'shot010',
     CollectionType: 'character',
+    Category: 'heroes',
     Asset: 'hero',
     AssetType: 'modeling',
     OutputName: 'hero-modeling',

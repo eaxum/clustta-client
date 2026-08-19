@@ -684,6 +684,7 @@ func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap ma
 			Name:      a.Name,
 			Type:      typeName,
 			Path:      a.Name,
+			Metadata:  a.Data,
 			HasAssets: true,
 		})
 	}
@@ -722,10 +723,11 @@ type kitsuShot struct {
 }
 
 type kitsuAsset struct {
-	ID            string `json:"id"`
-	Name          string `json:"name"`
-	AssetTypeID   string `json:"entity_type_id"`
-	AssetTypeName string `json:"asset_type_name"`
+	ID            string                 `json:"id"`
+	Name          string                 `json:"name"`
+	AssetTypeID   string                 `json:"entity_type_id"`
+	AssetTypeName string                 `json:"asset_type_name"`
+	Data          map[string]interface{} `json:"data"`
 }
 
 type kitsuTask struct {

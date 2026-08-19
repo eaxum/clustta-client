@@ -23,6 +23,8 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+const kitsuCategoryMetadataKey = "category"
+
 // IntegrationService handles external integration operations (Kitsu, etc.)
 // Exposed to frontend via Wails bindings.
 type IntegrationService struct {
@@ -192,7 +194,7 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 				"asset": map[string]interface{}{
 					"name":     "Assets",
 					"icon":     "package",
-					"template": "Assets/<CollectionType>/<Asset>/<AssetType><TemplateExtension>",
+					"template": "Assets/<CollectionType>/<Category>/<Asset>/<AssetType><TemplateExtension>",
 				},
 				"shot": map[string]interface{}{
 					"name":     "Shots",
@@ -341,6 +343,9 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 				}
 			}
 		}
+		if hasParentCollection {
+			parentPath = resolveAssetParentPathFromTemplate(parentPath, parentCollection, asset, collectionByID, syncOptions.DirectoryStructure, templateExtension)
+		}
 
 		assetName := asset.Name
 		if hasParentCollection {
@@ -487,6 +492,41 @@ func resolveAssetNameFromTemplate(fallback string, parentCollection integrations
 	return fileName
 }
 
+func resolveAssetParentPathFromTemplate(fallback string, parentCollection integrations.ExternalCollection, asset integrations.ExternalAsset, collectionByID map[string]integrations.ExternalCollection, dirStructure integrations.DirectoryStructure, templateExtension string) string {
+	template := findMatchingTemplate(parentCollection.Type, dirStructure)
+	if template == "" || !hasFilenameSegment(template) {
+		return fallback
+	}
+
+	resolved := resolveAssetTemplateVariables(template, parentCollection, asset, collectionByID, dirStructure, templateExtension)
+	resolved = strings.Trim(removeUnresolvedPathSegments(resolved), "/")
+	lastSeparator := strings.LastIndex(resolved, "/")
+	if lastSeparator < 0 {
+		return fallback
+	}
+
+	parentPath := strings.TrimSpace(resolved[:lastSeparator])
+	if parentPath == "" {
+		return fallback
+	}
+	return normalizeCollectionPath(parentPath)
+}
+
+func hasFilenameSegment(template string) bool {
+	segments := strings.Split(strings.Trim(template, "/"), "/")
+	if len(segments) == 0 {
+		return false
+	}
+	filenameSegment := segments[len(segments)-1]
+	filenameVariables := []string{"<OutputName>", "<AssetType>", "<TemplateExtension>"}
+	for _, variable := range filenameVariables {
+		if strings.Contains(filenameSegment, variable) {
+			return true
+		}
+	}
+	return false
+}
+
 // normalizeCollectionPath ensures the path has leading/trailing slashes.
 // Example: "Episodes/EP01/Sequences" -> "/Episodes/EP01/Sequences/"
 func normalizeCollectionPath(path string) string {
@@ -562,7 +602,7 @@ func findMatchingPathConfig(collectionType string, dirStructure integrations.Dir
 }
 
 // resolveTemplateVariables resolves variables in a template path.
-// Variables like <Episode>, <Sequence>, <Shot>, <Asset>, <CollectionType> are replaced with actual values.
+// Variables like <Episode>, <Sequence>, <Shot>, <Asset>, <CollectionType>, and <Category> are replaced with actual values.
 // The template is truncated at the collection's level to avoid unresolved variables.
 func resolveTemplateVariables(template string, collection integrations.ExternalCollection, collectionByID map[string]integrations.ExternalCollection, style string) string {
 	collectionTypeLower := strings.ToLower(collection.Type)
@@ -609,20 +649,12 @@ func resolveTemplateVariables(template string, collection integrations.ExternalC
 		result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(collection.Name, style))
 		// Resolve <CollectionType> with collection type (like "Character", "Prop")
 		result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(collection.Type, style))
+		result = replaceCategoryVariable(result, collection, style)
 	}
 
 	// Remove any path segments that still contain unresolved variables
 	// This handles cases where parent collections are missing (e.g., sequence without episode)
-	segments := strings.Split(result, "/")
-	var cleanedSegments []string
-	for _, seg := range segments {
-		if !strings.Contains(seg, "<") {
-			cleanedSegments = append(cleanedSegments, seg)
-		}
-	}
-	result = strings.Join(cleanedSegments, "/")
-
-	return result
+	return removeUnresolvedPathSegments(result)
 }
 
 // resolveAssetTemplateVariables resolves the full asset template, including filename placeholders.
@@ -646,6 +678,7 @@ func resolveAssetTemplateVariables(template string, parentCollection integration
 
 	result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(parentCollection.Name, style))
 	result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(parentCollection.Type, style))
+	result = replaceCategoryVariable(result, parentCollection, style)
 	assetType := asset.AssetType
 	if assetType == "" {
 		assetType = asset.Name
@@ -799,11 +832,63 @@ func resolveAssetTemplateVariablesWithoutOutput(template string, parentCollectio
 
 	result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(parentCollection.Name, style))
 	result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(parentCollection.Type, style))
+	result = replaceCategoryVariable(result, parentCollection, style)
 	assetType := fallbackAssetTaskType(asset)
 	result = strings.ReplaceAll(result, "<AssetType>", applyNamingStyle(assetType, style))
 	result = strings.ReplaceAll(result, "<TemplateExtension>", templateExtension)
 
 	return result
+}
+
+func replaceCategoryVariable(template string, collection integrations.ExternalCollection, style string) string {
+	for key, rawValue := range collection.Metadata {
+		if !strings.EqualFold(strings.TrimSpace(key), kitsuCategoryMetadataKey) {
+			continue
+		}
+		category := metadataText(rawValue)
+		if category == "" {
+			return template
+		}
+		return strings.ReplaceAll(template, "<Category>", applyNamingStyle(category, style))
+	}
+	return template
+}
+
+func metadataText(rawValue interface{}) string {
+	switch value := rawValue.(type) {
+	case string:
+		return strings.TrimSpace(value)
+	case []string:
+		for _, item := range value {
+			if text := strings.TrimSpace(item); text != "" {
+				return text
+			}
+		}
+	case []interface{}:
+		for _, item := range value {
+			if text := metadataText(item); text != "" {
+				return text
+			}
+		}
+	case map[string]interface{}:
+		for _, key := range []string{"name", "label", "value"} {
+			if text := metadataText(value[key]); text != "" {
+				return text
+			}
+		}
+	}
+	return ""
+}
+
+func removeUnresolvedPathSegments(path string) string {
+	segments := strings.Split(path, "/")
+	cleanedSegments := make([]string, 0, len(segments))
+	for _, segment := range segments {
+		if !strings.Contains(segment, "<") {
+			cleanedSegments = append(cleanedSegments, segment)
+		}
+	}
+	return strings.Join(cleanedSegments, "/")
 }
 
 // buildCollectionHierarchy returns the collection and all its ancestors from leaf to root.
@@ -978,6 +1063,15 @@ func buildPreviewItems(collections []integrations.SyncCollection, assets []integ
 		}
 	}
 
+	sort.SliceStable(items, func(i, j int) bool {
+		leftName := strings.ToLower(items[i].Name)
+		rightName := strings.ToLower(items[j].Name)
+		if leftName == rightName {
+			return items[i].CollectionPath < items[j].CollectionPath
+		}
+		return leftName < rightName
+	})
+
 	return items
 }
 
@@ -1119,6 +1213,9 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 
 	collectionMap, err := s.createCollectionsWithProgress(tx, collections, &syncOptions, app, totalItems)
 	if err != nil {
+		return err
+	}
+	if err := ensureAssetParentCollections(tx, assets); err != nil {
 		return err
 	}
 
@@ -1544,6 +1641,63 @@ func (s *IntegrationService) createCollectionsWithProgress(tx *sqlx.Tx, collecti
 	}
 
 	return result, nil
+}
+
+func ensureAssetParentCollections(tx *sqlx.Tx, assets []integrations.SyncAsset) error {
+	genericType, err := repository.GetCollectionTypeByName(tx, "generic")
+	if err != nil {
+		return errors.New("generic collection type not found")
+	}
+
+	paths := make(map[string]bool)
+	for _, asset := range assets {
+		if asset.Action != "create" {
+			continue
+		}
+		segments := strings.Split(strings.Trim(asset.CollectionPath, "/"), "/")
+		currentPath := "/"
+		for _, segment := range segments {
+			if segment == "" {
+				continue
+			}
+			currentPath += segment + "/"
+			paths[currentPath] = true
+		}
+	}
+
+	sortedPaths := make([]string, 0, len(paths))
+	for path := range paths {
+		sortedPaths = append(sortedPaths, path)
+	}
+	sort.Slice(sortedPaths, func(i, j int) bool {
+		leftDepth := strings.Count(sortedPaths[i], "/")
+		rightDepth := strings.Count(sortedPaths[j], "/")
+		if leftDepth == rightDepth {
+			return sortedPaths[i] < sortedPaths[j]
+		}
+		return leftDepth < rightDepth
+	})
+
+	for _, path := range sortedPaths {
+		if existingCollection, lookupErr := repository.GetCollectionByPath(tx, path); lookupErr == nil && existingCollection.Id != "" {
+			continue
+		}
+
+		parentID := ""
+		parentPath := getParentPath(path)
+		if parentPath != "" && parentPath != "/" {
+			parentCollection, lookupErr := repository.GetCollectionByPath(tx, parentPath)
+			if lookupErr == nil && parentCollection.Id != "" {
+				parentID = parentCollection.Id
+			}
+		}
+
+		_, err = repository.CreateCollection(tx, uuid.New().String(), getPathSegmentName(path), "", genericType.Id, parentID, "", false)
+		if err != nil && err != error_service.ErrCollectionExists && err != error_service.ErrCollectionExistsInTrash {
+			return err
+		}
+	}
+	return nil
 }
 
 // buildInboundStatusMappings reverses the configured outbound status mappings.

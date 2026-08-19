@@ -109,7 +109,7 @@ Clustta supports ignore rules (similar to `.gitignore`) for excluding files from
 ### Integrations
 
 #### Kitsu (CGWire)
-Clustta integrates with [Kitsu](https://www.cg-wire.com/kitsu), the open-source production tracking tool from CGWire. Studios can link a Clustta project to a Kitsu project, mapping collections and assets to their Kitsu counterparts. This allows production tracking metadata (statuses, assignments) to stay in sync between the two systems.
+Clustta integrates with [Kitsu](https://www.cg-wire.com/kitsu), the open-source production tracking tool from CGWire. Studios can link a Clustta project to a Kitsu project, mapping collections and assets to their Kitsu counterparts. This allows production tracking metadata (statuses, assignments) to stay in sync between the two systems. An optional Kitsu `Category` metadata column can place assets in an additional collection level during import.
 
 #### DCC Bridge
 The client ships with a local HTTP bridge server that exposes project data (accounts, studios, projects, assets, checkpoints) as REST endpoints. This lets DCC tools - Blender, Maya, Unreal, or any tool that can make HTTP calls - query and interact with Clustta projects programmatically, enabling plugin development without coupling to the desktop app's internals.
