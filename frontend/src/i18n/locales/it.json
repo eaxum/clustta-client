@@ -2166,7 +2166,15 @@
     "assetType": "Tipo di asset",
     "actionNew": "Nuovo",
     "actionLink": "Collega",
-    "actionNone": "Nessuna azione"
+    "actionNone": "Nessuna azione",
+    "notLinked": "Non collegato",
+    "openInBrowser": "Apri nel browser",
+    "unlinkAssetTooltip": "Scollega da {integration}",
+    "unlinkAssetTitle": "Scollegare l'asset da {integration}?",
+    "unlinkAssetMessage": "Questa operazione rimuove il collegamento a {integration} per il tipo di asset attualmente selezionato. L'asset non verrà eliminato.",
+    "unlinkAsset": "Scollega asset",
+    "assetUnlinked": "Asset scollegato da {integration}.",
+    "assetUnlinkFailed": "Impossibile scollegare l'asset da {integration}."
   },
   "errors": {
     "badRequest": "Richiesta non valida",

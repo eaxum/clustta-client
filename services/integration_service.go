@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
 	"sort"
 	"strings"
 	"time"
@@ -28,6 +29,15 @@ const kitsuCategoryMetadataKey = "category"
 // IntegrationService handles external integration operations (Kitsu, etc.)
 // Exposed to frontend via Wails bindings.
 type IntegrationService struct {
+}
+
+// AssetIntegrationDetails describes the integration link for an asset's current type.
+type AssetIntegrationDetails struct {
+	Enabled         bool   `json:"enabled"`
+	Mapped          bool   `json:"mapped"`
+	IntegrationID   string `json:"integration_id"`
+	IntegrationName string `json:"integration_name"`
+	ExternalURL     string `json:"external_url"`
 }
 
 // GetAvailableIntegrations returns all registered integrations.
@@ -61,6 +71,107 @@ func (s *IntegrationService) GetLinkedIntegration(projectPath string) (models.In
 	defer tx.Rollback()
 
 	return repository.GetIntegrationProject(tx)
+}
+
+// GetAssetIntegrationDetails returns the mapping matching the asset's current type.
+func (s *IntegrationService) GetAssetIntegrationDetails(projectPath, assetID string) (AssetIntegrationDetails, error) {
+	details := AssetIntegrationDetails{}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return details, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return details, err
+	}
+	defer tx.Rollback()
+
+	integrationProject, err := repository.GetIntegrationProject(tx)
+	if err != nil {
+		return details, nil
+	}
+	integration, err := integrations.Get(integrationProject.IntegrationId)
+	if err != nil {
+		return details, err
+	}
+
+	details.Enabled = integrationProject.Enabled
+	details.IntegrationID = integrationProject.IntegrationId
+	details.IntegrationName = integration.Name()
+
+	mapping, err := s.selectAssetMappingForCurrentType(tx, assetID)
+	if err != nil {
+		return details, nil
+	}
+
+	parentType := ""
+	parentMapping, parentErr := repository.GetCollectionMappingByExternalId(
+		tx,
+		integrationProject.IntegrationId,
+		mapping.ExternalParentId,
+	)
+	if parentErr == nil {
+		parentType = parentMapping.ExternalType
+	}
+
+	details.Mapped = true
+	details.ExternalURL = buildExternalEntityURL(
+		integrationProject,
+		mapping,
+		parentType,
+	)
+	return details, nil
+}
+
+// UnlinkAsset removes the mapping matching the asset's current type.
+func (s *IntegrationService) UnlinkAsset(projectPath, assetID string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	mapping, err := s.selectAssetMappingForCurrentType(tx, assetID)
+	if err != nil {
+		return err
+	}
+	if err := repository.DeleteAssetMapping(tx, mapping.Id); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func buildExternalEntityURL(project models.IntegrationProject, mapping models.IntegrationAssetMapping, parentType string) string {
+	if project.IntegrationId != "kitsu" {
+		return ""
+	}
+	baseURL, err := url.Parse(strings.TrimSpace(project.ApiUrl))
+	if err != nil || (baseURL.Scheme != "http" && baseURL.Scheme != "https") || baseURL.Host == "" {
+		return ""
+	}
+	baseURL.RawQuery = ""
+	baseURL.Fragment = ""
+
+	entitySection := "assets"
+	if strings.EqualFold(strings.TrimSpace(parentType), "shot") {
+		entitySection = "shots"
+	}
+	baseURL.Path = strings.TrimSuffix(baseURL.Path, "/") + fmt.Sprintf(
+		"/productions/%s/%s/%s",
+		url.PathEscape(project.ExternalProjectId),
+		entitySection,
+		url.PathEscape(mapping.ExternalParentId),
+	)
+	return baseURL.String()
 }
 
 // GetExternalProjects fetches available projects from an external integration.
@@ -2330,7 +2441,7 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 	for i, assetId := range assetIds {
 
 		// Look up integration mapping for this asset
-		mapping, err := s.selectAssetMappingForPush(tx, assetId)
+		mapping, err := s.selectAssetMappingForCurrentType(tx, assetId)
 		if err != nil {
 			continue // Asset not mapped to integration — skip
 		}
@@ -2436,16 +2547,10 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 	return nil
 }
 
-func (s *IntegrationService) selectAssetMappingForPush(tx *sqlx.Tx, assetId string) (models.IntegrationAssetMapping, error) {
+func (s *IntegrationService) selectAssetMappingForCurrentType(tx *sqlx.Tx, assetId string) (models.IntegrationAssetMapping, error) {
 	mappings, err := repository.GetAssetMappingsByAssetId(tx, assetId)
 	if err != nil {
 		return models.IntegrationAssetMapping{}, err
-	}
-	if len(mappings) == 0 {
-		return models.IntegrationAssetMapping{}, errors.New("asset mapping not found")
-	}
-	if len(mappings) == 1 {
-		return mappings[0], nil
 	}
 
 	asset, err := repository.GetAsset(tx, assetId)
@@ -2458,13 +2563,25 @@ func (s *IntegrationService) selectAssetMappingForPush(tx *sqlx.Tx, assetId stri
 	}
 
 	currentType := strings.ToLower(strings.TrimSpace(assetType.Name))
+	return selectAssetMappingForType(mappings, currentType)
+}
+
+func selectAssetMappingForType(mappings []models.IntegrationAssetMapping, currentType string) (models.IntegrationAssetMapping, error) {
+	if len(mappings) == 0 {
+		return models.IntegrationAssetMapping{}, errors.New("asset mapping not found")
+	}
+	if len(mappings) == 1 {
+		return mappings[0], nil
+	}
+
+	currentType = strings.ToLower(strings.TrimSpace(currentType))
 	for _, mapping := range mappings {
 		if strings.ToLower(strings.TrimSpace(mapping.ExternalType)) == currentType {
 			return mapping, nil
 		}
 	}
 
-	return mappings[0], nil
+	return models.IntegrationAssetMapping{}, errors.New("asset mapping not found for current asset type")
 }
 
 // formatBytes returns a human-readable byte size string.

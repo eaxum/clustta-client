@@ -2166,7 +2166,15 @@
     "assetType": "Тип ассета",
     "actionNew": "Новый",
     "actionLink": "Связать",
-    "actionNone": "Без действий"
+    "actionNone": "Без действий",
+    "notLinked": "Не привязано",
+    "openInBrowser": "Открыть в браузере",
+    "unlinkAssetTooltip": "Отвязать от {integration}",
+    "unlinkAssetTitle": "Отвязать ассет от {integration}?",
+    "unlinkAssetMessage": "Связь с {integration} для выбранного типа ассета будет удалена. Сам ассет удалён не будет.",
+    "unlinkAsset": "Отвязать ассет",
+    "assetUnlinked": "Ассет отвязан от {integration}.",
+    "assetUnlinkFailed": "Не удалось отвязать ассет от {integration}."
   },
   "errors": {
     "badRequest": "Неверный запрос",

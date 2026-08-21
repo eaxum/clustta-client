@@ -2235,7 +2235,15 @@
     "assetType": "Asset Type",
     "actionNew": "New",
     "actionLink": "Link",
-    "actionNone": "No action"
+    "actionNone": "No action",
+    "notLinked": "Not linked",
+    "openInBrowser": "Open in browser",
+    "unlinkAssetTooltip": "Unlink from {integration}",
+    "unlinkAssetTitle": "Unlink asset from {integration}?",
+    "unlinkAssetMessage": "This removes the {integration} link for the currently selected asset type. The asset itself will not be deleted.",
+    "unlinkAsset": "Unlink asset",
+    "assetUnlinked": "Asset unlinked from {integration}.",
+    "assetUnlinkFailed": "Failed to unlink asset from {integration}."
   },
   "errors": {
     "badRequest": "Bad request",

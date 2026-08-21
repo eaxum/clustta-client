@@ -2166,7 +2166,15 @@
     "assetType": "资产类型",
     "actionNew": "新建",
     "actionLink": "链接",
-    "actionNone": "无需操作"
+    "actionNone": "无需操作",
+    "notLinked": "未链接",
+    "openInBrowser": "在浏览器中打开",
+    "unlinkAssetTooltip": "取消与 {integration} 的链接",
+    "unlinkAssetTitle": "取消资产与 {integration} 的链接？",
+    "unlinkAssetMessage": "这将删除当前所选资产类型与 {integration} 的链接。资产本身不会被删除。",
+    "unlinkAsset": "取消资产链接",
+    "assetUnlinked": "资产已与 {integration} 取消链接。",
+    "assetUnlinkFailed": "无法取消资产与 {integration} 的链接。"
   },
   "errors": {
     "badRequest": "请求错误",

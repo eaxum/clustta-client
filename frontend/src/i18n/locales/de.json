@@ -2167,7 +2167,15 @@
     "assetType": "Asset-Typ",
     "actionNew": "Neu",
     "actionLink": "Verknüpfen",
-    "actionNone": "Keine Aktion"
+    "actionNone": "Keine Aktion",
+    "notLinked": "Nicht verknüpft",
+    "openInBrowser": "Im Browser öffnen",
+    "unlinkAssetTooltip": "Von {integration} trennen",
+    "unlinkAssetTitle": "Asset von {integration} trennen?",
+    "unlinkAssetMessage": "Dadurch wird die {integration}-Verknüpfung für den aktuell ausgewählten Asset-Typ entfernt. Das Asset selbst wird nicht gelöscht.",
+    "unlinkAsset": "Asset trennen",
+    "assetUnlinked": "Asset wurde von {integration} getrennt.",
+    "assetUnlinkFailed": "Asset konnte nicht von {integration} getrennt werden."
   },
   "errors": {
     "badRequest": "Ungültige Anfrage",

@@ -2167,7 +2167,15 @@
     "assetType": "Type d'asset",
     "actionNew": "Nouveau",
     "actionLink": "Lier",
-    "actionNone": "Aucune action"
+    "actionNone": "Aucune action",
+    "notLinked": "Non lié",
+    "openInBrowser": "Ouvrir dans le navigateur",
+    "unlinkAssetTooltip": "Dissocier de {integration}",
+    "unlinkAssetTitle": "Dissocier l'asset de {integration} ?",
+    "unlinkAssetMessage": "Cette action supprime le lien {integration} pour le type d'asset actuellement sélectionné. L'asset lui-même ne sera pas supprimé.",
+    "unlinkAsset": "Dissocier l'asset",
+    "assetUnlinked": "Asset dissocié de {integration}.",
+    "assetUnlinkFailed": "Impossible de dissocier l'asset de {integration}."
   },
   "errors": {
     "badRequest": "Requête incorrecte",

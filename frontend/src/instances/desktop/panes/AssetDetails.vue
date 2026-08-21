@@ -48,6 +48,19 @@
             </div>
           </div>
 
+          <div v-if="assetIntegrationDetails" class="pane-parameter-detail">
+            <div class="simple-text-key">
+              {{ assetIntegrationDetails.integration_name }}
+            </div>
+            <div v-if="!assetIntegrationDetails.mapped" class="simple-text-value">
+              {{ $t('kitsu.notLinked') }}
+            </div>
+            <div v-else class="pane-parameter-actions">
+              <ActionButton v-if="assetIntegrationDetails.external_url" :icon="getAppIcon('website')" v-tooltip="$t('kitsu.openInBrowser')" :buttonFunction="openIntegrationLink" />
+              <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('plug-cancel')" v-tooltip="$t('kitsu.unlinkAssetTooltip', { integration: assetIntegrationDetails.integration_name })" :buttonFunction="confirmUnlinkIntegration" />
+            </div>
+          </div>
+
           <div v-if="!assetStore.selectedAsset.is_link" class="pane-parameter-detail">
             <div class="simple-text-key">
               {{ $t('panes.extension') }}
@@ -177,7 +190,7 @@ import { ref, computed, onMounted, watch, onBeforeUnmount, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { useRevealLabel } from '@/composables/useRevealLabel';
 import { FSService, TagService } from '@/services';
-import { Clipboard } from '@wailsio/runtime';
+import { Browser, Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 import { useAssetThumbnail, getFileTypeIcon } from '@/composables/useAssetThumbnail';
@@ -194,9 +207,10 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useCommonStore } from '@/stores/common';
 import { usePlatformStore } from '@/stores/platform';
 import { useTagStore } from '@/stores/tags';
+import { useTrayStates } from '@/stores/TrayStates';
 
 // services
-import { AssetService, CheckpointService } from "@/services";
+import { AssetService, CheckpointService, IntegrationService } from "@/services";
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -217,11 +231,13 @@ const notificationStore = useNotificationStore();
 const commonStore = useCommonStore();
 const platformStore = usePlatformStore();
 const tagStore = useTagStore();
+const trayStates = useTrayStates();
 const { t } = useI18n();
 const { revealLabel } = useRevealLabel();
 
 // refs
 const assetTags = ref([]);
+const assetIntegrationDetails = ref(null);
 const multiStatusChange = ref(false);
 const latestCheckpoint = ref(null);
 const numberOfSelectedAssets = ref(0);
@@ -379,6 +395,43 @@ const openImageViewer = () => {
     asset?.file_path || '',
     asset?.extension || '',
   );
+};
+
+const openIntegrationLink = () => {
+  const externalURL = assetIntegrationDetails.value?.external_url;
+  if (!externalURL) return;
+  Browser.OpenURL(externalURL);
+};
+
+const confirmUnlinkIntegration = () => {
+  const details = assetIntegrationDetails.value;
+  const asset = assetStore.selectedAsset;
+  const projectPath = projectStore.activeProject?.uri;
+  if (!details?.mapped || !asset?.id || !projectPath) return;
+
+  const integrationName = details.integration_name;
+  trayStates.popUpModalTitle = t('kitsu.unlinkAssetTitle', { integration: integrationName });
+  trayStates.popUpModalMessage = t('kitsu.unlinkAssetMessage', { integration: integrationName });
+  trayStates.popUpModalIcon = 'plug-cancel';
+  trayStates.popUpModalButtons = ['Cancel', t('kitsu.unlinkAsset')];
+  trayStates.popUpModalFunction = async () => {
+    try {
+      await IntegrationService.UnlinkAsset(projectPath, asset.id);
+      modals.disableAllModals();
+      await loadAssetIntegrationDetails();
+      notificationStore.addNotification(
+        t('kitsu.assetUnlinked', { integration: integrationName }),
+        '',
+        'success',
+      );
+    } catch (error) {
+      notificationStore.errorNotification(
+        t('kitsu.assetUnlinkFailed', { integration: integrationName }),
+        error,
+      );
+    }
+  };
+  modals.setModalVisibility('popUpModal', true);
 };
 
 // Removes a tag from the selected asset.
@@ -576,6 +629,26 @@ const loadAssetTags = async () => {
   }
 };
 
+const loadAssetIntegrationDetails = async () => {
+  assetIntegrationDetails.value = null;
+  const asset = assetStore.selectedAsset;
+  const projectPath = projectStore.activeProject?.uri;
+  if (!asset?.id || !projectPath || !singleAsset.value) return;
+
+  const assetID = asset.id;
+  const assetTypeID = asset.asset_type_id;
+  try {
+    const details = await IntegrationService.GetAssetIntegrationDetails(projectPath, assetID);
+    const selectedAsset = assetStore.selectedAsset;
+    if (selectedAsset?.id !== assetID || selectedAsset.asset_type_id !== assetTypeID) return;
+    assetIntegrationDetails.value = details?.integration_name ? details : null;
+  } catch (error) {
+    const selectedAsset = assetStore.selectedAsset;
+    if (selectedAsset?.id !== assetID || selectedAsset.asset_type_id !== assetTypeID) return;
+    assetIntegrationDetails.value = null;
+  }
+};
+
 const assetSize = ref(0);
 
 const assetPath = computed(() => {
@@ -608,11 +681,13 @@ const getProjectData = async () => {
     imageResolution.value = '';
     assetTags.value = [];
     latestCheckpoint.value = null;
+    assetIntegrationDetails.value = null;
     return;
   }
 
   loadAssetTags();
   loadLatestCheckpoint();
+  loadAssetIntegrationDetails();
 
   if (!assetPath.value || !await FSService.Exists(assetPath.value)){
     assetSize.value = t('panes.notOnDisk')
@@ -627,6 +702,10 @@ watch(() => assetStore.selectedAsset, () => {
   assetSize.value = 0;
   imageResolution.value = '';
   getProjectData();
+});
+
+watch(() => assetStore.selectedAsset?.asset_type_id, () => {
+  loadAssetIntegrationDetails();
 });
 
 

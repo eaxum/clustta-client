@@ -2166,7 +2166,15 @@
     "assetType": "एसेट प्रकार",
     "actionNew": "नया",
     "actionLink": "लिंक",
-    "actionNone": "कोई कार्रवाई नहीं"
+    "actionNone": "कोई कार्रवाई नहीं",
+    "notLinked": "लिंक नहीं किया गया",
+    "openInBrowser": "ब्राउज़र में खोलें",
+    "unlinkAssetTooltip": "{integration} से अनलिंक करें",
+    "unlinkAssetTitle": "एसेट को {integration} से अनलिंक करें?",
+    "unlinkAssetMessage": "यह वर्तमान में चुने गए एसेट प्रकार के लिए {integration} लिंक हटाता है। एसेट स्वयं नहीं हटाया जाएगा।",
+    "unlinkAsset": "एसेट अनलिंक करें",
+    "assetUnlinked": "एसेट को {integration} से अनलिंक कर दिया गया।",
+    "assetUnlinkFailed": "एसेट को {integration} से अनलिंक नहीं किया जा सका।"
   },
   "errors": {
     "badRequest": "खराब अनुरोध",

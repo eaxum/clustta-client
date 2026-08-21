@@ -72,6 +72,7 @@ export {
 export {
     AccountInfo,
     AgentKeyStatus,
+    AssetIntegrationDetails,
     AssetStateItem,
     AssetsStates,
     ChatUIMessage,

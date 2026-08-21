@@ -84,7 +84,7 @@ const handleEnterKey = (event) => {
 
 // lifecycle hooks
 onBeforeUnmount(() => {
-  trayStates.usePopUpModalInput = false;
+  trayStates.resetPopUpModal();
 });
 </script>
 

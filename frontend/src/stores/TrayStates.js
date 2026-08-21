@@ -123,6 +123,17 @@ export const useTrayStates = defineStore("useTrayStates", {
     getAllProgress: (state) => state.progress,
   },
   actions: {
+    resetPopUpModal() {
+      this.popUpModalTitle = "";
+      this.popUpModalMessage = "";
+      this.popUpModalIcon = "";
+      this.popUpModalFunction = null;
+      this.popUpModalLoading = false;
+      this.popUpModalInputValue = null;
+      this.popUpModalPlaceholder = "";
+      this.popUpModalButtons = ["Cancel", "Confirm"];
+      this.usePopUpModalInput = false;
+    },
     async togglePin(user = false) {
       Events.Emit("pin-tray-window", !this.pin);
       this.pin = !this.pin;

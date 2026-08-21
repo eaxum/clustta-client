@@ -19,6 +19,10 @@ import * as integrations$0 from "../internal/integrations/models.js";
 // @ts-ignore: Unused imports
 import * as models$0 from "../internal/repository/models/models.js";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as $models from "./models.js";
+
 /**
  * Authenticate authenticates with an external integration.
  * Returns auth result with user info and token on success.
@@ -57,13 +61,25 @@ export function ExecuteSync(projectPath, collectionsJSON, assetsJSON) {
 }
 
 /**
+ * GetAssetIntegrationDetails returns the mapping matching the asset's current type.
+ * @param {string} projectPath
+ * @param {string} assetID
+ * @returns {$CancellablePromise<$models.AssetIntegrationDetails>}
+ */
+export function GetAssetIntegrationDetails(projectPath, assetID) {
+    return $Call.ByID(2110390009, projectPath, assetID).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * GetAvailableIntegrations returns all registered integrations.
  * Each integration contains id, name, description, and auth requirements.
  * @returns {$CancellablePromise<integrations$0.IntegrationInfo[]>}
  */
 export function GetAvailableIntegrations() {
     return $Call.ByID(493987065).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
@@ -77,7 +93,7 @@ export function GetAvailableIntegrations() {
  */
 export function GetExternalProjects(integrationId, token, apiUrl) {
     return $Call.ByID(3926678990, integrationId, token, apiUrl).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
 }
 
@@ -90,7 +106,7 @@ export function GetExternalProjects(integrationId, token, apiUrl) {
  */
 export function GetExternalStatuses(projectPath, token) {
     return $Call.ByID(2866478662, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType7($result);
     }));
 }
 
@@ -103,8 +119,8 @@ export function GetExternalStatuses(projectPath, token) {
  */
 export function GetExternalTypes(projectPath, token) {
     return $Call.ByID(1578626957, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        $result[0] = $$createType8($result[0]);
-        $result[1] = $$createType8($result[1]);
+        $result[0] = $$createType9($result[0]);
+        $result[1] = $$createType9($result[1]);
         return $result;
     }));
 }
@@ -117,7 +133,7 @@ export function GetExternalTypes(projectPath, token) {
  */
 export function GetLinkedIntegration(projectPath) {
     return $Call.ByID(3555362308, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType10($result);
     }));
 }
 
@@ -129,8 +145,8 @@ export function GetLinkedIntegration(projectPath) {
  */
 export function GetLocalTypes(projectPath) {
     return $Call.ByID(443978039, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        $result[0] = $$createType11($result[0]);
-        $result[1] = $$createType13($result[1]);
+        $result[0] = $$createType12($result[0]);
+        $result[1] = $$createType14($result[1]);
         return $result;
     }));
 }
@@ -144,7 +160,7 @@ export function GetLocalTypes(projectPath) {
  */
 export function GetMissingTypes(projectPath, token) {
     return $Call.ByID(3905082754, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType15($result);
+        return $$createType16($result);
     }));
 }
 
@@ -157,7 +173,7 @@ export function GetMissingTypes(projectPath, token) {
  */
 export function GetSyncPreview(projectPath, token) {
     return $Call.ByID(1539504252, projectPath, token).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType16($result);
+        return $$createType17($result);
     }));
 }
 
@@ -169,7 +185,7 @@ export function GetSyncPreview(projectPath, token) {
  */
 export function GetTypeMappings(projectPath) {
     return $Call.ByID(2092174792, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType17($result);
+        return $$createType18($result);
     }));
 }
 
@@ -187,7 +203,7 @@ export function GetTypeMappings(projectPath) {
  */
 export function LinkProject(projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId) {
     return $Call.ByID(3276450698, projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType10($result);
     }));
 }
 
@@ -226,6 +242,16 @@ export function SaveTypeMappings(projectPath, syncOptions) {
 }
 
 /**
+ * UnlinkAsset removes the mapping matching the asset's current type.
+ * @param {string} projectPath
+ * @param {string} assetID
+ * @returns {$CancellablePromise<void>}
+ */
+export function UnlinkAsset(projectPath, assetID) {
+    return $Call.ByID(406403022, projectPath, assetID);
+}
+
+/**
  * UnlinkProject removes the integration link and its project mappings.
  * User-scoped credentials remain available to other linked projects.
  * @param {string} projectPath
@@ -237,20 +263,21 @@ export function UnlinkProject(projectPath) {
 
 // Private type creation functions
 const $$createType0 = integrations$0.AuthResult.createFrom;
-const $$createType1 = integrations$0.IntegrationInfo.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = integrations$0.ExternalProject.createFrom;
-const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = integrations$0.ExternalStatusInfo.createFrom;
-const $$createType6 = $Create.Array($$createType5);
-const $$createType7 = integrations$0.ExternalTypeInfo.createFrom;
-const $$createType8 = $Create.Array($$createType7);
-const $$createType9 = models$0.IntegrationProject.createFrom;
-const $$createType10 = models$0.CollectionType.createFrom;
-const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = models$0.AssetType.createFrom;
-const $$createType13 = $Create.Array($$createType12);
-const $$createType14 = integrations$0.MissingType.createFrom;
-const $$createType15 = $Create.Array($$createType14);
-const $$createType16 = integrations$0.SyncPreview.createFrom;
-const $$createType17 = integrations$0.SyncOptions.createFrom;
+const $$createType1 = $models.AssetIntegrationDetails.createFrom;
+const $$createType2 = integrations$0.IntegrationInfo.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = integrations$0.ExternalProject.createFrom;
+const $$createType5 = $Create.Array($$createType4);
+const $$createType6 = integrations$0.ExternalStatusInfo.createFrom;
+const $$createType7 = $Create.Array($$createType6);
+const $$createType8 = integrations$0.ExternalTypeInfo.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = models$0.IntegrationProject.createFrom;
+const $$createType11 = models$0.CollectionType.createFrom;
+const $$createType12 = $Create.Array($$createType11);
+const $$createType13 = models$0.AssetType.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = integrations$0.MissingType.createFrom;
+const $$createType16 = $Create.Array($$createType15);
+const $$createType17 = integrations$0.SyncPreview.createFrom;
+const $$createType18 = integrations$0.SyncOptions.createFrom;

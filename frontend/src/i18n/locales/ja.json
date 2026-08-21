@@ -2167,7 +2167,15 @@
     "assetType": "アセットタイプ",
     "actionNew": "新規",
     "actionLink": "リンク",
-    "actionNone": "操作なし"
+    "actionNone": "操作なし",
+    "notLinked": "未リンク",
+    "openInBrowser": "ブラウザーで開く",
+    "unlinkAssetTooltip": "{integration} とのリンクを解除",
+    "unlinkAssetTitle": "アセットと {integration} のリンクを解除しますか？",
+    "unlinkAssetMessage": "現在選択されているアセットタイプの {integration} リンクを削除します。アセット自体は削除されません。",
+    "unlinkAsset": "アセットのリンクを解除",
+    "assetUnlinked": "アセットと {integration} のリンクを解除しました。",
+    "assetUnlinkFailed": "アセットと {integration} のリンクを解除できませんでした。"
   },
   "errors": {
     "badRequest": "不正なリクエスト",

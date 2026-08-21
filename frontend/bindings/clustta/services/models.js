@@ -138,6 +138,65 @@ export class AgentKeyStatus {
     }
 }
 
+/**
+ * AssetIntegrationDetails describes the integration link for an asset's current type.
+ */
+export class AssetIntegrationDetails {
+    /**
+     * Creates a new AssetIntegrationDetails instance.
+     * @param {Partial<AssetIntegrationDetails>} [$$source = {}] - The source object to create the AssetIntegrationDetails.
+     */
+    constructor($$source = {}) {
+        if (!("enabled" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["enabled"] = false;
+        }
+        if (!("mapped" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["mapped"] = false;
+        }
+        if (!("integration_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration_id"] = "";
+        }
+        if (!("integration_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["integration_name"] = "";
+        }
+        if (!("external_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["external_url"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AssetIntegrationDetails instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AssetIntegrationDetails}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AssetIntegrationDetails(/** @type {Partial<AssetIntegrationDetails>} */($$parsedSource));
+    }
+}
+
 export class AssetStateItem {
     /**
      * Creates a new AssetStateItem instance.
