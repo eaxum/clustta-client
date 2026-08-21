@@ -192,8 +192,15 @@ export const permissionGroups = {
   sharing: ['manage_share_links'],
 };
 
+const permissionLabels = {
+  view_asset: 'View All Assets',
+  view_collection: 'View All Collections',
+};
+
 // Formats a permission key to a display label.
 export const formatLabel = (key) => {
+  if (permissionLabels[key]) return permissionLabels[key];
+
   return key.replace(/_/g, ' ')
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
