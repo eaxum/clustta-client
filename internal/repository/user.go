@@ -203,6 +203,10 @@ func AddUser(
 	if err != nil {
 		return user, err
 	}
+	err = RemoveItemFromTomb(tx, userData.Id, "user")
+	if err != nil {
+		return user, err
+	}
 	err = base_service.Get(tx, "user", userData.Id, &user)
 	if err != nil {
 		return models.User{}, err
@@ -246,6 +250,10 @@ func AddKnownUser(
 		"photo":      userPhoto,
 	}
 	err = base_service.Create(tx, "user", params)
+	if err != nil {
+		return user, err
+	}
+	err = RemoveItemFromTomb(tx, id, "user")
 	if err != nil {
 		return user, err
 	}

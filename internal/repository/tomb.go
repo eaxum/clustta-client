@@ -67,3 +67,9 @@ func IsItemInTomb(tx *sqlx.Tx, itemID, tableName string) (bool, error) {
 
 	return isItemInTomb, nil
 }
+
+// RemoveItemFromTomb removes a matching tombstone.
+func RemoveItemFromTomb(tx *sqlx.Tx, itemID, tableName string) error {
+	_, err := tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = ?", itemID, tableName)
+	return err
+}
