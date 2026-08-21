@@ -3,11 +3,17 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { IntegrationService, SettingsService, StatusService, StudioIntegrationService } from '@/services';
 
+const INTEGRATION_CREDENTIAL_REQUIRED = 'INTEGRATION_CREDENTIAL_REQUIRED';
+let initializationPromise = null;
+
 export const useIntegrationStore = defineStore('integrations', {
   state: () => ({
     availableIntegrations: [],    // All registered integrations
     linkedIntegration: null,      // Current project's linked integration
     tokens: {},                   // Stored tokens per integration: { kitsu: { token, apiUrl, userId }, ... }
+    isInitialized: false,
+    activeProjectUri: null,
+    authenticationRequest: null,
     isLoading: false,
     isAuthenticating: false,
     syncPreview: null,            // Current sync preview data
@@ -184,15 +190,21 @@ export const useIntegrationStore = defineStore('integrations', {
     // Load linked integration for current project
     async loadLinkedIntegration() {
       const projectStore = useProjectStore();
-      if (!projectStore.activeProject?.uri) {
+      const projectUri = projectStore.activeProject?.uri || null;
+      this.activeProjectUri = projectUri;
+      this.syncPreview = null;
+
+      if (!projectUri) {
         this.linkedIntegration = null;
         return;
       }
 
       try {
-        const integration = await IntegrationService.GetLinkedIntegration(projectStore.activeProject.uri);
+        const integration = await IntegrationService.GetLinkedIntegration(projectUri);
+        if (projectStore.activeProject?.uri !== projectUri) return;
         this.linkedIntegration = integration;
       } catch (error) {
+        if (projectStore.activeProject?.uri !== projectUri) return;
         // No integration linked - this is expected for most projects
         this.linkedIntegration = null;
       }
@@ -235,6 +247,14 @@ export const useIntegrationStore = defineStore('integrations', {
       await SettingsService.DeleteIntegrationCredential(integrationId);
     },
 
+    requestAuthentication(integrationId, returnTo = null) {
+      this.authenticationRequest = { integrationId, returnTo };
+    },
+
+    clearAuthenticationRequest() {
+      this.authenticationRequest = null;
+    },
+
     // Get external projects for an integration
     async getExternalProjects(integrationId) {
       const tokenData = this.tokens[integrationId];
@@ -256,9 +276,6 @@ export const useIntegrationStore = defineStore('integrations', {
 
     // Link current project to an external project
     async linkProject(integrationId, externalProjectId, externalProjectName, syncOptions = {}) {
-      console.log(integrationId)
-      console.log(externalProjectId)
-      console.log(externalProjectName)
       const projectStore = useProjectStore();
       const notificationStore = useNotificationStore();
       const tokenData = this.tokens[integrationId];
@@ -314,8 +331,16 @@ export const useIntegrationStore = defineStore('integrations', {
       const projectStore = useProjectStore();
       const tokenData = this.tokens[this.linkedIntegration?.integration_id];
 
-      if (!projectStore.activeProject?.uri || !tokenData?.token) {
-        throw new Error('Not ready to sync');
+      if (!projectStore.activeProject?.uri) {
+        throw new Error('No active project');
+      }
+      if (!this.linkedIntegration) {
+        throw new Error('No integration linked to this project');
+      }
+      if (!tokenData?.token) {
+        const error = new Error(`Connect ${this.linkedIntegration.integration_id} to continue`);
+        error.code = INTEGRATION_CREDENTIAL_REQUIRED;
+        throw error;
       }
 
       this.isLoading = true;
@@ -337,7 +362,7 @@ export const useIntegrationStore = defineStore('integrations', {
       const notificationStore = useNotificationStore();
 
       if (!projectStore.activeProject?.uri) {
-        throw new Error('Not ready to sync');
+        throw new Error('No active project');
       }
 
       this.isSyncing = true;
@@ -356,7 +381,7 @@ export const useIntegrationStore = defineStore('integrations', {
           JSON.stringify(selectedAssets)
         );
         this.lastSyncAt = new Date().toISOString();
-        notificationStore.addNotification('Sync completed successfully', '', 'success');
+        notificationStore.addNotification('Kitsu import completed', '', 'success');
       } catch (error) {
         notificationStore.addNotification(error.message || 'Sync failed', '', 'error');
         throw error;
@@ -418,8 +443,37 @@ export const useIntegrationStore = defineStore('integrations', {
 
     // Initialize store and load credentials
     async initialize() {
-      await this.loadAvailableIntegrations();
-      await this.loadTokens();
+      if (this.isInitialized) return;
+      if (initializationPromise) return initializationPromise;
+
+      initializationPromise = (async () => {
+        await this.loadAvailableIntegrations();
+        await this.loadTokens();
+        this.isInitialized = true;
+      })();
+
+      try {
+        await initializationPromise;
+      } finally {
+        initializationPromise = null;
+      }
+    },
+
+    async initializeForActiveProject() {
+      const projectStore = useProjectStore();
+      const projectUri = projectStore.activeProject?.uri || null;
+      if (!projectUri) {
+        this.activeProjectUri = null;
+        this.linkedIntegration = null;
+        this.syncPreview = null;
+        return;
+      }
+      if (this.activeProjectUri !== projectUri) {
+        this.linkedIntegration = null;
+        this.syncPreview = null;
+      }
+      await this.initialize();
+      await this.loadLinkedIntegration();
     },
 
     // Load type mappings from backend
@@ -666,6 +720,10 @@ export const useIntegrationStore = defineStore('integrations', {
     // Reset store state (called when project changes)
     // Note: tokens are NOT reset because they are user-level, not project-level
     reset() {
+      initializationPromise = null;
+      this.isInitialized = false;
+      this.activeProjectUri = null;
+      this.authenticationRequest = null;
       this.linkedIntegration = null;
       this.syncPreview = null;
       this.isSyncing = false;

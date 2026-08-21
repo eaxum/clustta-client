@@ -70,12 +70,14 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
+import { useTrayStates } from '@/stores/TrayStates';
 
 const { t } = useI18n();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const trayStates = useTrayStates();
 
 // refs
 const apiUrl = ref('');
@@ -136,6 +138,12 @@ const authenticate = async () => {
 
     if (result.success) {
       notificationStore.addNotification('Connected to ' + selectedIntegration.value.name, '', 'success');
+      const returnTo = integrationStore.authenticationRequest?.returnTo;
+      integrationStore.clearAuthenticationRequest();
+      if (returnTo) {
+        modals.setModalVisibility(returnTo, true);
+        return;
+      }
       clearSelection();
     }
   } finally {
@@ -154,13 +162,28 @@ const clearSelection = () => {
 
 // Closes the modal.
 const closeModal = () => {
+  integrationStore.clearAuthenticationRequest();
   modals.disableAllModals();
 };
 
-// Disconnects from the selected integration.
+// Confirms account-level credential removal.
 const disconnect = () => {
-  integrationStore.disconnect(selectedIntegration.value.id);
-  notificationStore.addNotification('Disconnected from ' + selectedIntegration.value.name, '', 'success');
+  const integration = selectedIntegration.value;
+  trayStates.popUpModalTitle = t('kitsu.disconnectTitle', { name: integration.name });
+  trayStates.popUpModalMessage = t('kitsu.disconnectMessage', { name: integration.name });
+  trayStates.popUpModalIcon = 'plug-cancel';
+  trayStates.popUpModalButtons = ['Cancel', t('kitsu.disconnectAccount')];
+  trayStates.popUpModalFunction = async () => {
+    try {
+      await integrationStore.disconnect(integration.id);
+      notificationStore.addNotification(`Disconnected from ${integration.name}`, '', 'success');
+      integrationStore.clearAuthenticationRequest();
+      modals.disableAllModals();
+    } catch (error) {
+      notificationStore.addNotification(`Failed to disconnect ${integration.name}`, error.message || '', 'error');
+    }
+  };
+  modals.setModalVisibility('popUpModal', true);
 };
 
 // Returns the app icon path.
@@ -198,7 +221,10 @@ const startOAuth = () => {
 
 // lifecycle
 onMounted(async () => {
-  await integrationStore.loadAvailableIntegrations();
+  await integrationStore.initialize();
+  const requestedId = integrationStore.authenticationRequest?.integrationId;
+  const requestedIntegration = availableIntegrations.value.find(integration => integration.id === requestedId);
+  if (requestedIntegration) selectIntegration(requestedIntegration);
 });
 </script>
 

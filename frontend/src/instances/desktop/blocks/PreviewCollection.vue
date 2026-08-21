@@ -15,7 +15,7 @@
     </div>
 
     <span v-if="!isVirtual" class="action-badge" :class="`action-${collection.action}`">{{ actionLabel }}</span>
-    <CheckBox v-if="!isVirtual" :modelValue="isSelected" :disabled="!isActionable"
+    <CheckBox v-if="!isVirtual" :modelValue="isSelected" :disabled="!isActionable || !isSelectable"
       :ariaLabel="`${isSelected ? 'Exclude' : 'Include'} ${collection.name}`"
       @update:modelValue="emit('toggle-selection')" />
 
@@ -28,6 +28,7 @@
 <script setup>
 // imports
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
 
@@ -35,6 +36,7 @@ import CheckBox from '@/instances/common/components/CheckBox.vue';
 import { useIconStore } from '@/stores/icons';
 
 const iconStore = useIconStore();
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -43,6 +45,7 @@ const props = defineProps({
   hasChildren: { type: Boolean, default: false },
   isExpanded: { type: Boolean, default: false },
   isSelected: { type: Boolean, default: false },
+  isSelectable: { type: Boolean, default: true },
 });
 
 // emits
@@ -74,11 +77,11 @@ const isActionable = computed(() => props.collection.action === 'create' || prop
 
 const actionLabel = computed(() => {
   const labels = {
-    create: 'New',
-    link: 'Link',
-    skip: 'No action',
+    create: t('kitsu.actionNew'),
+    link: t('kitsu.actionLink'),
+    skip: t('kitsu.actionNone'),
   };
-  return labels[props.collection.action] || 'No action';
+  return labels[props.collection.action] || t('kitsu.actionNone');
 });
 
 // methods

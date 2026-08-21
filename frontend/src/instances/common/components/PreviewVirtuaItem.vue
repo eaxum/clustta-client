@@ -2,9 +2,9 @@
   <div ref="previewItemRef" class="preview-virtua-item" :style="{ '--depth': depth }">
     <div class="preview-item-header" :style="{ height: `${itemHeight}px` }">
       <PreviewCollection v-if="item.type === 'collection'" :collection="item" :isSelected="isItemSelected" 
-        :hasChildren="hasChildren" :isExpanded="isExpanded" :childCount="childCount" @toggle="toggleExpand" 
+        :hasChildren="hasChildren" :isExpanded="isExpanded" :childCount="childCount" :isSelectable="isItemSelectable" @toggle="toggleExpand"
         @toggle-selection="handleToggleSelection" />
-      <PreviewAsset v-else :asset="item" :isSelected="isItemSelected" @toggle-selection="handleToggleSelection" />
+      <PreviewAsset v-else :asset="item" :isSelected="isItemSelected" :isSelectable="isItemSelectable" @toggle-selection="handleToggleSelection" />
     </div>
     <template v-if="isExpanded && hasChildren">
       <div class="preview-item-children">
@@ -12,7 +12,7 @@
         <div ref="childrenContainerRef" class="preview-children-container">
           <PreviewVirtuaItem v-for="(child, index) in itemChildren" :key="child.id" :item="child" 
             :depth="depth + 1" :itemHeight="itemHeight" :expandedItems="expandedItems" 
-            :selectedItems="selectedItems" @toggle-expand="$emit('toggle-expand', $event)" 
+            :selectedItems="selectedItems" :canSelectItem="canSelectItem" @toggle-expand="$emit('toggle-expand', $event)"
             @toggle-selection="$emit('toggle-selection', $event)" />
         </div>
       </div>
@@ -35,6 +35,7 @@ const props = defineProps({
   item: { type: Object, required: true },
   itemHeight: { type: Number, default: 36 },
   selectedItems: { type: Set, default: () => new Set() },
+  canSelectItem: { type: Function, default: () => true },
 });
 
 // emits
@@ -66,6 +67,8 @@ const isItemSelected = computed(() => {
   const keys = props.item.selection_keys || [];
   return keys.length > 0 && keys.every(key => props.selectedItems.has(key));
 });
+
+const isItemSelectable = computed(() => props.canSelectItem(props.item));
 
 // Returns the children of this item.
 const itemChildren = computed(() => {

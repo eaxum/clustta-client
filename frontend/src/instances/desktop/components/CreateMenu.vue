@@ -12,8 +12,8 @@
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
 		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="props.disabled || kanbanView || !canCreateAsset"
 			@click="createWebLink" v-tooltip="{ text: $t('components.createMenu.addWeblink'), shortcut: 'newLink' }" />
-		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')"  :isDisabled="props.disabled || kanbanView || !canCreateAsset"
-			v-tooltip="'Sync Now'" :buttonFunction="openSyncModal" />
+		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')" :isDisabled="props.disabled || kanbanView"
+			v-tooltip="$t('kitsu.importFromKitsu')" :buttonFunction="openSyncModal" />
 		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateCollection"
 			@click="importItems" v-tooltip="'Import Items'" /> -->
 	</div>
@@ -21,7 +21,7 @@
 
 <script setup>
 // imports
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { canCreateAssetHere, canCreateCollectionHere } from '@/lib/permissions';
 
 // components
@@ -110,14 +110,10 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Opens the integration sync modal.
 const openSyncModal = () => {
-	if (creationBlocked.value || !canCreateAsset.value) return;
+	if (creationBlocked.value) return;
 	modals.setModalVisibility('integrationSyncModal', true);
 };
 
-// lifecycle hooks
-onMounted(async () => {
-	await integrationStore.loadLinkedIntegration();
-});
 </script>
 
 <style scoped>

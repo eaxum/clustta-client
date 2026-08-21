@@ -110,9 +110,8 @@ func (s *IntegrationService) LinkProject(projectPath, integrationId, externalPro
 	return integration, nil
 }
 
-// UnlinkProject removes the integration link from a project.
-// Also deletes all collection and asset mappings, and removes the stored
-// integration credential for this user so the unlink fully revokes access.
+// UnlinkProject removes the integration link and its project mappings.
+// User-scoped credentials remain available to other linked projects.
 func (s *IntegrationService) UnlinkProject(projectPath string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -135,16 +134,7 @@ func (s *IntegrationService) UnlinkProject(projectPath string) error {
 		return err
 	}
 
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	// Best-effort credential cleanup. Credentials are user-scoped and shared
-	// across any other project this user has linked to the same integration;
-	// the user accepted that trade-off in the unlink confirmation dialog.
-	_ = settings.DeleteIntegrationCredential(integration.IntegrationId)
-
-	return nil
+	return tx.Commit()
 }
 
 // GetSyncPreview fetches the external hierarchy and classifies every enabled item.
@@ -1148,6 +1138,15 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	}
 	defer tx.Rollback()
 
+	projectUser, err := repository.GetUser(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	role, err := repository.GetRole(tx, projectUser.RoleId)
+	if err != nil {
+		return err
+	}
+
 	// Emit initial progress
 	app.Event.Emit("progress-update", output.ProgressReport{
 		Title:   "Integration Sync",
@@ -1165,6 +1164,9 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	collectionsToLink := 0
 	for _, c := range collections {
 		if c.Action == "create" {
+			if !role.CreateCollection {
+				return errors.New("user does not have create_collection permission")
+			}
 			collectionsToCreate++
 		} else if c.Action == "link" {
 			collectionsToLink++
@@ -1174,6 +1176,9 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	assetsToLink := 0
 	for _, a := range assets {
 		if a.Action == "create" {
+			if !role.CreateAsset {
+				return errors.New("user does not have create_asset permission")
+			}
 			assetsToCreate++
 		} else if a.Action == "link" {
 			assetsToLink++
@@ -1203,6 +1208,9 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	if err != nil {
 		return err
 	}
+	if syncOptionsModified && !role.ChangeRole {
+		return errors.New("user does not have change_role permission to create or map integration types")
+	}
 
 	// Phase 1: Create collections (sorted by path depth - parents first)
 	app.Event.Emit("progress-update", output.ProgressReport{
@@ -1215,7 +1223,7 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	if err != nil {
 		return err
 	}
-	if err := ensureAssetParentCollections(tx, assets); err != nil {
+	if err := ensureAssetParentCollections(tx, assets, role.CreateCollection); err != nil {
 		return err
 	}
 
@@ -1643,7 +1651,7 @@ func (s *IntegrationService) createCollectionsWithProgress(tx *sqlx.Tx, collecti
 	return result, nil
 }
 
-func ensureAssetParentCollections(tx *sqlx.Tx, assets []integrations.SyncAsset) error {
+func ensureAssetParentCollections(tx *sqlx.Tx, assets []integrations.SyncAsset, canCreateCollection bool) error {
 	genericType, err := repository.GetCollectionTypeByName(tx, "generic")
 	if err != nil {
 		return errors.New("generic collection type not found")
@@ -1681,6 +1689,9 @@ func ensureAssetParentCollections(tx *sqlx.Tx, assets []integrations.SyncAsset) 
 	for _, path := range sortedPaths {
 		if existingCollection, lookupErr := repository.GetCollectionByPath(tx, path); lookupErr == nil && existingCollection.Id != "" {
 			continue
+		}
+		if !canCreateCollection {
+			return errors.New("user does not have create_collection permission for missing asset parent collections")
 		}
 
 		parentID := ""

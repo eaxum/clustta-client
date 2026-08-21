@@ -13,7 +13,7 @@
       <span v-for="taskType in taskTypes" :key="taskType" class="preview-type-label">{{ taskType }}</span>
     </div>
     <span class="action-badge" :class="`action-${asset.action}`">{{ actionLabel }}</span>
-    <CheckBox :modelValue="isSelected" :disabled="!isActionable"
+    <CheckBox :modelValue="isSelected" :disabled="!isActionable || !isSelectable"
       :ariaLabel="`${isSelected ? 'Exclude' : 'Include'} ${asset.name}`"
       @update:modelValue="emit('toggle-selection')" />
   </div>
@@ -22,6 +22,7 @@
 <script setup>
 // imports
 import { computed, ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import CheckBox from '@/instances/common/components/CheckBox.vue';
 
@@ -29,11 +30,13 @@ import CheckBox from '@/instances/common/components/CheckBox.vue';
 import { useIconStore } from '@/stores/icons';
 
 const iconStore = useIconStore();
+const { t } = useI18n();
 
 // props
 const props = defineProps({
   isSelected: { type: Boolean, default: false },
   asset: { type: Object, required: true },
+  isSelectable: { type: Boolean, default: true },
 });
 
 // emits
@@ -68,11 +71,11 @@ const isActionable = computed(() => props.asset.action === 'create' || props.ass
 
 const actionLabel = computed(() => {
   const labels = {
-    create: 'New',
-    link: 'Link',
-    skip: 'No action',
+    create: t('kitsu.actionNew'),
+    link: t('kitsu.actionLink'),
+    skip: t('kitsu.actionNone'),
   };
-  return labels[props.asset.action] || 'No action';
+  return labels[props.asset.action] || t('kitsu.actionNone');
 });
 
 // methods

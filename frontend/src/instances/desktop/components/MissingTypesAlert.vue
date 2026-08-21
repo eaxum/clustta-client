@@ -5,18 +5,15 @@
     </div>
 
     <div class="alert-content">
-      <div class="alert-title">New types will be created</div>
+      <div class="alert-title">{{ $t('kitsu.missingTypesTitle') }}</div>
       <div class="alert-description">
-        <span v-if="collectionCount > 0">{{ collectionCount }} collection type{{ collectionCount > 1 ? 's' : '' }}</span>
-        <span v-if="collectionCount > 0 && assetCount > 0"> and </span>
-        <span v-if="assetCount > 0">{{ assetCount }} asset type{{ assetCount > 1 ? 's' : '' }}</span>
-        <span> will be created to match {{ integrationName }}.</span>
+        {{ missingTypesDescription }}
       </div>
     </div>
 
     <div class="alert-actions">
       <button v-if="showDetails" class="toggle-details" @click="emit('toggle')">
-        {{ expanded ? 'Hide' : 'Show' }} Details
+        {{ expanded ? $t('kitsu.hideDetails') : $t('kitsu.showDetails') }}
       </button>
     </div>
   </div>
@@ -26,7 +23,7 @@
       <img :src="getTypeIcon(typeItem.suggested_icon)" alt="" class="type-icon" />
       <div class="type-info">
         <span class="type-name">{{ typeItem.external_name }}</span>
-        <span class="type-category">{{ typeItem.type_category === 'collection' ? 'Collection Type' : 'Asset Type' }}</span>
+        <span class="type-category">{{ typeItem.type_category === 'collection' ? $t('kitsu.collectionType') : $t('kitsu.assetType') }}</span>
       </div>
       <span class="type-badge">{{ typeItem.suggested_name }}</span>
     </div>
@@ -36,11 +33,13 @@
 <script setup>
 // imports
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 // stores
 import { useIconStore } from '@/stores/icons';
 
 const iconStore = useIconStore();
+const { t } = useI18n();
 
 // props
 const props = defineProps({
@@ -67,6 +66,20 @@ const hasMissingTypes = computed(() => {
 // Count of asset types missing.
 const assetCount = computed(() => {
   return props.missingTypes.filter(t => t.type_category === 'asset').length;
+});
+
+const missingTypesDescription = computed(() => {
+  if (!collectionCount.value) {
+    return t('kitsu.missingAssetTypes', { count: assetCount.value, name: props.integrationName });
+  }
+  if (!assetCount.value) {
+    return t('kitsu.missingCollectionTypes', { count: collectionCount.value, name: props.integrationName });
+  }
+  return t('kitsu.missingBothTypes', {
+    collections: collectionCount.value,
+    assets: assetCount.value,
+    name: props.integrationName,
+  });
 });
 
 // methods

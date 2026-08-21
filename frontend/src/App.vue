@@ -31,11 +31,13 @@ import { useEntitlementStore } from '@/stores/entitlements';
 import { useSettingsStore } from '@/stores/settings';
 import { useThemeStore } from '@/stores/theme';
 import { usePlatformStore } from '@/stores/platform';
+import { useIntegrationStore } from '@/stores/integrations';
 
 // Platform detection
 const menu = useMenu();
 const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
+const integrationStore = useIntegrationStore();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
@@ -48,6 +50,12 @@ const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const stageStore = useStageStore();
 const studioStore = useStudioStore();
+
+watch(
+    () => projectStore.activeProject?.uri || null,
+    () => integrationStore.initializeForActiveProject(),
+    { immediate: true }
+);
 const accountStore = useAccountStore();
 const entitlementStore = useEntitlementStore();
 

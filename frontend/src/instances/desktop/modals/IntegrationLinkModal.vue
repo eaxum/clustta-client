@@ -14,7 +14,7 @@
             </div>
           </div>
           <div class="linked-actions">
-            <ActionButton :icon="getAppIcon('plug')" v-tooltip="'Unlink'" :buttonFunction="unlinkProject" />
+            <ActionButton :icon="getAppIcon('plug')" v-tooltip="$t('kitsu.unlinkTooltip')" :buttonFunction="confirmUnlinkProject" />
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@
 
 <script setup>
 // imports
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
@@ -79,15 +79,13 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
-// services
-import { IntegrationService } from '@/services';
-
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useTrayStates } from '@/stores/TrayStates';
 
 const { t } = useI18n();
 const iconStore = useIconStore();
@@ -95,6 +93,7 @@ const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const trayStates = useTrayStates();
 
 // refs
 const externalProjects = ref([]);
@@ -153,30 +152,16 @@ const getAppIcon = (iconName) => {
 const linkProject = async () => {
   if (!selectedProject.value || !projectStore.activeProject?.uri) return;
 
-  const integrationId = selectedIntegration.value.id;
-  const tokenData = integrationStore.tokens[integrationId];
-
-  if (!tokenData?.token) {
-    notificationStore.addNotification('Not authenticated with ' + integrationId, 'error');
-    return;
-  }
-
   isLinking.value = true;
   try {
-    const result = await IntegrationService.LinkProject(
-      String(projectStore.activeProject.uri),
-      String(integrationId),
-      String(selectedProject.value.id),
-      String(selectedProject.value.name),
-      String(tokenData.apiUrl || ''),
-      JSON.stringify({}),
-      String(tokenData.userId || '')
+    await integrationStore.linkProject(
+      selectedIntegration.value.id,
+      selectedProject.value.id,
+      selectedProject.value.name
     );
-    integrationStore.linkedIntegration = result;
-    notificationStore.addNotification('Project linked to ' + selectedProject.value.name, '', 'success');
     clearSelection();
   } catch (error) {
-    notificationStore.addNotification(error.message || 'Failed to link project', 'error');
+    // Error handled by store
   } finally {
     isLinking.value = false;
   }
@@ -192,7 +177,7 @@ const loadExternalProjects = async () => {
   try {
     externalProjects.value = await integrationStore.getExternalProjects(selectedIntegration.value.id);
   } catch (error) {
-    notificationStore.addNotification('Failed to load projects: ' + error.message, 'error');
+    notificationStore.addNotification('Failed to load projects', error.message || '', 'error');
   } finally {
     isLoadingProjects.value = false;
   }
@@ -215,23 +200,25 @@ const selectProject = (project) => {
 };
 
 // Unlinks the current project from its integration.
-const unlinkProject = async () => {
-  try {
-    await integrationStore.unlinkProject();
-  } catch (error) {
-    // Error handled by store
-  }
+const confirmUnlinkProject = () => {
+  trayStates.popUpModalTitle = t('kitsu.unlinkTitle');
+  trayStates.popUpModalMessage = t('kitsu.unlinkMessage');
+  trayStates.popUpModalIcon = 'plug-cancel';
+  trayStates.popUpModalButtons = ['Cancel', t('kitsu.unlinkProject')];
+  trayStates.popUpModalFunction = async () => {
+    try {
+      await integrationStore.unlinkProject();
+      modals.disableAllModals();
+    } catch (error) {
+      // Error handled by store
+    }
+  };
+  modals.setModalVisibility('popUpModal', true);
 };
-
-// watchers
-watch(() => projectStore.activeProject, async () => {
-  await integrationStore.loadLinkedIntegration();
-});
 
 // lifecycle
 onMounted(async () => {
-  await integrationStore.initialize();
-  await integrationStore.loadLinkedIntegration();
+  await integrationStore.initializeForActiveProject();
 });
 </script>
 

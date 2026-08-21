@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container large-modal" v-esc="closeModal">
-    <HeaderArea :title="'Sync Preview'" :icon="'cloud-sync'" />
+    <HeaderArea :title="$t('kitsu.importTitle')" icon="kitsu" />
 
     <div class="general-container">
       <!-- Loading State -->
@@ -11,19 +11,24 @@
       <!-- Syncing Progress -->
       <ProgressSection v-else-if="isSyncing" />
 
+      <div v-else-if="readinessState" class="readiness-state">
+        <p>{{ readinessMessage }}</p>
+        <GeneralButton :label="readinessActionLabel" :buttonFunction="resolveReadiness" />
+      </div>
+
       <!-- Sync Preview -->
       <div v-else-if="!error" class="step-content">
         <div class="preview-header">
           <div class="preview-summary">
-            <span>{{ selectedCreateCount }} to create</span>
-            <span>{{ selectedLinkCount }} to link</span>
-            <span>{{ noActionCount }} no action</span>
+            <span>{{ $t('kitsu.newCount', { count: selectedCreateCount }) }}</span>
+            <span>{{ $t('kitsu.linkCount', { count: selectedLinkCount }) }}</span>
+            <span>{{ $t('kitsu.noActionCount', { count: noActionCount }) }}</span>
           </div>
           <div class="preview-actions">
-            <button type="button" @click="selectAll">Check all</button>
-            <button type="button" @click="unselectAll">Uncheck all</button>
+            <button type="button" @click="selectAll">{{ $t('kitsu.selectAll') }}</button>
+            <button type="button" @click="unselectAll">{{ $t('kitsu.clearSelection') }}</button>
           </div>
-          <ActionButton :icon="getAppIcon('refresh')" v-tooltip="'Refresh'" :buttonFunction="loadSyncPreview" />
+          <ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('kitsu.refresh')" :buttonFunction="loadSyncPreview" />
         </div>
 
         <div class="preview-divider"></div>
@@ -32,27 +37,32 @@
         <div class="sync-preview-scroll">
           <div v-if="syncPreviewTree.length === 0" class="empty-preview">
             <img :src="getAppIcon('check-circle')" alt="" class="empty-icon" />
-            <span class="empty-text">Everything is up to date</span>
+            <span class="empty-text">{{ $t('kitsu.emptyImport') }}</span>
           </div>
           <div v-else class="preview-tree-content">
             <PreviewVirtuaItem v-for="item in syncPreviewTree" :key="item.id" :item="item" 
               :depth="0" :itemHeight="48" :expandedItems="expandedItems" 
-              :selectedItems="selectedKeys" @toggle-expand="toggleExpand"
+              :selectedItems="selectedKeys" :canSelectItem="canSelectItem" @toggle-expand="toggleExpand"
               @toggle-selection="toggleSelection" />
           </div>
         </div>
+
+        <MissingTypesAlert v-if="selectedMissingTypes.length" :missingTypes="selectedMissingTypes"
+          integrationName="Kitsu" :expanded="showMissingTypes" @toggle="showMissingTypes = !showMissingTypes" />
+        <p v-if="permissionMessage" class="permission-message">{{ permissionMessage }}</p>
+        <p v-if="executionError" class="inline-error">{{ executionError }}</p>
       </div>
 
       <!-- Error State -->
       <div v-else-if="error" class="error-state">
         <p>{{ error }}</p>
-        <GeneralButton :label="'Retry'" :buttonFunction="loadSyncPreview" />
+        <GeneralButton :label="$t('kitsu.retry')" :buttonFunction="loadSyncPreview" />
       </div>
 
       <!-- Actions -->
       <div class="pop-up-actions">
-        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" />
-        <GeneralButton :label="`Process selected (${selectedCount})`" :fullWidth="true" :buttonFunction="executeSync" :isActive="hasSelectedItems && !isLoading" :loading="isSyncing" />
+        <GeneralButton :label="$t('common.cancel')" :fullWidth="true" :buttonFunction="closeModal" :colored="false" :isActive="!isSyncing" />
+        <GeneralButton :label="$t('kitsu.importSelected', { count: selectedCount })" :fullWidth="true" :buttonFunction="executeSync" :isActive="hasSelectedItems && !isLoading && !isSyncing" :loading="isSyncing" />
       </div>
     </div>
   </div>
@@ -61,6 +71,7 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import emitter from '@/lib/mitt';
 
 // components
@@ -69,6 +80,7 @@ import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import PreviewVirtuaItem from '@/instances/common/components/PreviewVirtuaItem.vue';
 import ProgressSection from '@/instances/common/components/ProgressSection.vue';
+import MissingTypesAlert from '@/instances/desktop/components/MissingTypesAlert.vue';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
@@ -76,12 +88,15 @@ import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useStageStore } from '@/stores/stages';
 import { useTemplateStore } from '@/stores/template';
+import { useUserStore } from '@/stores/users';
 
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const modals = useDesktopModalStore();
 const stageStore = useStageStore();
 const templateStore = useTemplateStore();
+const userStore = useUserStore();
+const { t } = useI18n();
 
 // refs
 const error = ref(null);
@@ -89,7 +104,10 @@ const expandedItems = ref(new Set());
 const isLoading = ref(false);
 const isSyncing = ref(false);
 const loadingMessage = ref('');
+const readinessState = ref(null);
 const selectedKeys = ref(new Set());
+const executionError = ref(null);
+const showMissingTypes = ref(false);
 
 // computed
 // Returns the hierarchical tree for sync preview.
@@ -111,9 +129,35 @@ const selectedLinkCount = computed(() => countSelectedActions('link'));
 
 const noActionCount = computed(() => allTreeItems.value.filter(item => item.action === 'skip').length);
 
+const missingTypes = computed(() => integrationStore.syncPreview?.missing_types || []);
+
+const selectedMissingTypes = computed(() => missingTypes.value.filter(type => {
+  return allTreeItems.value.some(item => {
+    const selected = (item.selection_keys || []).some(key => selectedKeys.value.has(key));
+    const externalTypes = item.external_types || [item.external_type];
+    return selected && item.action === 'create' && externalTypes.includes(type.external_name) && item.type === type.type_category;
+  });
+}));
+
+const blockedItemCount = computed(() => allTreeItems.value.filter(item => isActionable(item) && !canSelectItem(item)).length);
+
+const permissionMessage = computed(() => {
+  if (!blockedItemCount.value) return '';
+  return t('kitsu.permissionBlocked', { count: blockedItemCount.value });
+});
+
+const readinessMessage = computed(() => {
+  if (readinessState.value === 'credentialRequired') return t('kitsu.connectToPreview');
+  if (readinessState.value === 'unlinked') return t('kitsu.linkToPreview');
+  return t('kitsu.openProjectToImport');
+});
+
+const readinessActionLabel = computed(() => readinessState.value === 'credentialRequired' ? t('kitsu.connectKitsu') : t('kitsu.manageIntegration'));
+
 // methods
 // Closes the modal.
 const closeModal = () => {
+  if (isSyncing.value) return;
   modals.disableAllModals();
 };
 
@@ -122,13 +166,14 @@ const executeSync = async () => {
   if (!hasSelectedItems.value) return;
 
   isSyncing.value = true;
+  executionError.value = null;
   stageStore.operationActive = true;
   try {
     await integrationStore.executeSync(selectedKeys.value);
     emitter.emit('refresh-browser');
-    closeModal();
+    modals.disableAllModals();
   } catch (err) {
-    // Error handled by store
+    executionError.value = err.message || t('kitsu.importFailed');
   } finally {
     stageStore.operationActive = false;
     isSyncing.value = false;
@@ -151,6 +196,30 @@ const flattenTree = (items) => {
 
 const isActionable = (item) => item.action === 'create' || item.action === 'link';
 
+const itemNeedsMissingType = (item) => {
+  const externalTypes = item.external_types || [item.external_type];
+  return missingTypes.value.some(type => {
+    return externalTypes.includes(type.external_name) && type.type_category === item.type;
+  });
+};
+
+const canSelectItem = (item) => {
+  if (!isActionable(item)) return false;
+  if (item.action === 'create' && item.type === 'asset' && !userStore.canDo('create_asset')) return false;
+  if (item.action === 'create' && item.type === 'collection' && !userStore.canDo('create_collection')) return false;
+  if (item.action === 'create' && itemNeedsMissingType(item) && !userStore.canDo('change_role')) return false;
+
+  let parentPath = item.parent_path;
+  while (parentPath && parentPath !== '/') {
+    const parent = allTreeItems.value.find(candidate => candidate.collection_path === parentPath);
+    if (!parent) break;
+    if (parent.action === 'create' && !userStore.canDo('create_collection')) return false;
+    if (parent.action === 'create' && itemNeedsMissingType(parent) && !userStore.canDo('change_role')) return false;
+    parentPath = parent.parent_path;
+  }
+  return true;
+};
+
 const countSelectedActions = (action) => {
   return allTreeItems.value.filter(item => {
     if (item.action !== action) return false;
@@ -159,7 +228,7 @@ const countSelectedActions = (action) => {
 };
 
 const selectItem = (item, selected, nextSelection) => {
-  if (isActionable(item)) {
+  if (canSelectItem(item)) {
     for (const key of item.selection_keys || []) {
       if (selected) nextSelection.add(key);
       else nextSelection.delete(key);
@@ -175,7 +244,7 @@ const selectRequiredParents = (item, nextSelection) => {
   while (parentPath && parentPath !== '/') {
     const parent = allTreeItems.value.find(candidate => candidate.collection_path === parentPath);
     if (!parent) break;
-    if (isActionable(parent)) {
+    if (canSelectItem(parent)) {
       for (const key of parent.selection_keys || []) nextSelection.add(key);
     }
     parentPath = parent.parent_path;
@@ -183,7 +252,7 @@ const selectRequiredParents = (item, nextSelection) => {
 };
 
 const toggleSelection = (item) => {
-  if (!isActionable(item)) return;
+  if (!canSelectItem(item)) return;
   const keys = item.selection_keys || [];
   const selected = !keys.every(key => selectedKeys.value.has(key));
   const nextSelection = new Set(selectedKeys.value);
@@ -195,7 +264,7 @@ const toggleSelection = (item) => {
 const selectAll = () => {
   const nextSelection = new Set();
   for (const item of allTreeItems.value) {
-    if (!isActionable(item)) continue;
+    if (!canSelectItem(item)) continue;
     for (const key of item.selection_keys || []) nextSelection.add(key);
   }
   selectedKeys.value = nextSelection;
@@ -208,11 +277,28 @@ const unselectAll = () => {
 // Loads the sync preview without changing project data.
 const loadSyncPreview = async () => {
   isLoading.value = true;
-  loadingMessage.value = 'Loading...';
+  loadingMessage.value = t('kitsu.loadingImport');
   error.value = null;
+  executionError.value = null;
+  readinessState.value = null;
 
   try {
-    loadingMessage.value = 'Fetching integration data...';
+    await integrationStore.initializeForActiveProject();
+    if (!integrationStore.activeProjectUri) {
+      readinessState.value = 'noProject';
+      return;
+    }
+    if (!integrationStore.linkedIntegration) {
+      readinessState.value = 'unlinked';
+      return;
+    }
+    const integrationId = integrationStore.linkedIntegration.integration_id;
+    if (!integrationStore.isAuthenticated(integrationId)) {
+      readinessState.value = 'credentialRequired';
+      return;
+    }
+
+    loadingMessage.value = t('kitsu.fetchingData');
     await integrationStore.getSyncPreview();
 
     // Load templates for extension display
@@ -225,10 +311,24 @@ const loadSyncPreview = async () => {
     );
   } catch (err) {
     console.error('loadSyncPreview error:', err);
-    error.value = err.message || 'Failed to load sync preview';
+    if (err.code === 'INTEGRATION_CREDENTIAL_REQUIRED' || /unauthor|forbidden|token|session|401|403/i.test(err.message || '')) {
+      readinessState.value = 'credentialRequired';
+      return;
+    }
+    error.value = err.message || t('kitsu.previewFailed');
   } finally {
     isLoading.value = false;
   }
+};
+
+const resolveReadiness = () => {
+  if (readinessState.value === 'credentialRequired') {
+    const integrationId = integrationStore.linkedIntegration?.integration_id || 'kitsu';
+    integrationStore.requestAuthentication(integrationId, 'integrationSyncModal');
+    modals.setModalVisibility('integrationAuthModal', true);
+    return;
+  }
+  modals.setModalVisibility('integrationLinkModal', true);
 };
 
 // Toggles item expand state.
@@ -358,7 +458,8 @@ onMounted(() => {
 }
 
 .loading-state,
-.error-state {
+.error-state,
+.readiness-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -366,6 +467,20 @@ onMounted(() => {
   padding: 48px;
   gap: 16px;
   color: var(--text-secondary);
+}
+
+.permission-message,
+.inline-error {
+  margin: 0;
+  font-size: 12px;
+}
+
+.permission-message {
+  color: var(--text-secondary);
+}
+
+.inline-error {
+  color: var(--error);
 }
 
 .sync-preview-scroll {
