@@ -400,6 +400,10 @@ onBeforeUnmount(() => {
   background-color: #F5A623;
 }
 
+.message.info {
+  background-color: #2C75E2;
+}
+
 .success {
   background-color:  #20A41C;
 }
