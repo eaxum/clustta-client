@@ -72,6 +72,10 @@ func (a *AgentService) ListScriptReferences(projectPath string) ([]agent.ScriptR
 	return agent.ListScriptReferences(projectPath)
 }
 
+func (a *AgentService) ListEntityReferenceChildren(projectPath, parentID string) ([]agent.EntityReference, error) {
+	return agent.ListEntityReferenceChildren(projectPath, parentID)
+}
+
 // ChatUIMessage represents a message in the format the frontend expects for rendering.
 type ChatUIMessage struct {
 	Type      string `json:"type"` // "user", "assistant", "tool-group"

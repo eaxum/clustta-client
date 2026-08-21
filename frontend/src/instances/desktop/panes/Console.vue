@@ -95,13 +95,13 @@
               v-html="composerHighlightHtml"></div>
             <textarea ref="textareaRef" v-model="currentMessage" class="console-input console-input-editor" type="text"
               :placeholder="inputPlaceholder" spellcheck="false" @input="handleInput" @click="updateComposerMenu"
-              @keyup.stop="updateComposerMenu" @scroll="syncComposerScroll" @keydown.stop="handleComposerKeydown" @blur="closeComposerMenu"
+              @keyup.stop="handleComposerKeyup" @scroll="syncComposerScroll" @keydown.stop="handleComposerKeydown" @blur="closeComposerMenu"
               :disabled="isProcessing" />
           </div>
 
           <AgentComposerMenu :visible="composerMenuVisible" :title="composerMenuTitle" :items="composerMenuItems"
             :activeIndex="composerMenuIndex" :menuStyle="composerMenuStyle" :emptyText="composerMenuEmptyText"
-            @select="selectComposerItem" />
+            @active-change="setComposerMenuIndex" @select="selectComposerItem" />
 
           <div class="console-toolbar">
             <div class="console-toolbar-left">
@@ -164,6 +164,8 @@ import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 import { useAgentEntityCacheStore } from '@/stores/agentEntityCache';
+import { useAgentReferencesStore } from '@/stores/agentReferences';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -176,6 +178,8 @@ const projectStore = useProjectStore();
 const settings = useSettingsStore();
 const stage = useStageStore();
 const agentEntityCache = useAgentEntityCacheStore();
+const agentReferences = useAgentReferencesStore();
+const browserTree = useBrowserTreeStore();
 
 // props
 const props = defineProps({
@@ -205,6 +209,9 @@ const scriptReferences = ref([]);
 const scriptReferencesLoadedFor = ref('');
 const scriptReferencesLoadingFor = ref('');
 const selectedScriptReferences = ref(new Map());
+const entityReferenceItems = ref([]);
+const entityReferenceRequestVersion = ref(0);
+const selectedEntityReferences = ref(new Map());
 const selectedModel = ref('');
 const textareaRef = ref(null);
 
@@ -242,6 +249,33 @@ const composerMenuItems = computed(() => {
         type: 'command',
       }));
   }
+  if (trigger.character === '@') {
+    const filter = (trigger.filter || '').toLowerCase();
+    return entityReferenceItems.value
+      .filter((reference) => entityReferencePathSegment(reference).toLowerCase().includes(filter))
+      .sort((left, right) => {
+        const leftName = entityReferencePathSegment(left).toLowerCase();
+        const rightName = entityReferencePathSegment(right).toLowerCase();
+        const leftPrefix = leftName.startsWith(filter) ? 0 : 1;
+        const rightPrefix = rightName.startsWith(filter) ? 0 : 1;
+        if (leftPrefix !== rightPrefix) return leftPrefix - rightPrefix;
+        if (left.type !== right.type) return left.type === 'collection' ? -1 : 1;
+        return leftName.localeCompare(rightName);
+      })
+      .slice(0, MAX_ENTITY_REFERENCE_RESULTS)
+      .map((reference) => ({
+        key: `${reference.type}:${reference.id}`,
+        icon: reference.icon || getAppIcon(reference.type === 'collection' ? 'folder' : 'file'),
+        noFilter: reference.type === 'asset',
+        label: entityReferenceLabel(reference),
+        meta: reference.path || '',
+        reference: {
+          ...reference,
+          tokenPath: `${trigger.parentPath || ''}${entityReferencePathSegment(reference)}`,
+        },
+        type: 'entity',
+      }));
+  }
   return scriptReferences.value
     .filter((reference) => reference.name.toLowerCase().includes(query))
     .map((reference) => ({
@@ -261,9 +295,11 @@ const composerMenuEmptyText = computed(() => {
   return t('panes.noMatches');
 });
 
-const composerMenuTitle = computed(() => composerTrigger.value?.character === '~'
-  ? t('panes.scripts')
-  : t('panes.quickCommands'));
+const composerMenuTitle = computed(() => {
+  if (composerTrigger.value?.character === '~') return t('panes.scripts');
+  if (composerTrigger.value?.character === '@') return t('panes.entityReferences');
+  return t('panes.quickCommands');
+});
 const composerMenuVisible = computed(() => !!composerTrigger.value && !isProcessing.value);
 
 const isConsoleModalOpen = computed(() => modals.modalStates.consoleModal);
@@ -280,6 +316,7 @@ const itemType = computed(() => {
 });
 
 // constants
+const MAX_ENTITY_REFERENCE_RESULTS = 50;
 const toolIconMap = {
   add_dependency: 'link',
   add_ignore_pattern: 'file-watch',
@@ -422,7 +459,7 @@ const escapeHtml = (text) => {
 
 const protectAgentTokens = (text) => {
   const tokens = [];
-  const protectedText = `${text || ''}`.replace(/(^|[\s(,])((?:\/[A-Za-z][\w-]*)|(?:~(?:"[^"\n]+"|[^\s,\n]+)))/g, (match, prefix, token) => {
+  const protectedText = `${text || ''}`.replace(/(^|[\s(,])((?:\/[A-Za-z][\w-]*)|(?:[~@](?:"[^"\n]+"|[^\s,\n]+)))/g, (match, prefix, token) => {
     if (token.startsWith('/') && !isAgentShortcut(token)) return match;
     const index = tokens.push(token) - 1;
     return `${prefix}\uE000${index}\uE001`;
@@ -432,7 +469,7 @@ const protectAgentTokens = (text) => {
 
 const restoreAgentTokens = (html, tokens) => html.replace(/\uE000(\d+)\uE001/g, (match, index) => {
   const token = tokens[Number(index)];
-  const kind = token?.startsWith('/') ? 'command' : 'script';
+  const kind = token?.startsWith('/') ? 'command' : (token?.startsWith('@') ? 'entity' : 'script');
   return `<span class="agent-inline-token agent-inline-token-${kind}">${escapeHtml(token)}</span>`;
 });
 
@@ -626,7 +663,9 @@ const saveComposerDraft = (projectPath = projectStore.activeProject?.uri) => {
     }
     const scriptReferences = [...selectedScriptReferences.value.values()]
       .filter((reference) => currentMessage.value.includes(reference.token));
-    localStorage.setItem(key, JSON.stringify({ message: currentMessage.value, scriptReferences }));
+    const entityReferences = [...selectedEntityReferences.value.values()]
+      .filter((reference) => currentMessage.value.includes(reference.token));
+    localStorage.setItem(key, JSON.stringify({ message: currentMessage.value, scriptReferences, entityReferences }));
   } catch (error) {
     console.warn('Failed to save agent draft:', error);
   }
@@ -635,6 +674,7 @@ const saveComposerDraft = (projectPath = projectStore.activeProject?.uri) => {
 const restoreComposerDraft = (projectPath) => {
   currentMessage.value = '';
   selectedScriptReferences.value = new Map();
+  selectedEntityReferences.value = new Map();
   if (!projectPath) return;
   try {
     const savedDraft = localStorage.getItem(draftStorageKey(projectPath));
@@ -643,6 +683,10 @@ const restoreComposerDraft = (projectPath) => {
     currentMessage.value = typeof draft?.message === 'string' ? draft.message : '';
     const references = Array.isArray(draft?.scriptReferences) ? draft.scriptReferences : [];
     selectedScriptReferences.value = new Map(references
+      .filter((reference) => reference?.token && currentMessage.value.includes(reference.token))
+      .map((reference) => [reference.token, reference]));
+    const entityReferences = Array.isArray(draft?.entityReferences) ? draft.entityReferences : [];
+    selectedEntityReferences.value = new Map(entityReferences
       .filter((reference) => reference?.token && currentMessage.value.includes(reference.token))
       .map((reference) => [reference.token, reference]));
   } catch (error) {
@@ -671,7 +715,7 @@ const findComposerTrigger = () => {
   if (!input) return null;
   const cursor = input.selectionStart;
   const prefix = currentMessage.value.slice(0, cursor);
-  const match = prefix.match(/(^|[\s,(])([/~])([^\s,]*)$/);
+  const match = prefix.match(/(^|[\s,(])([/~@])((?:"[^"\n]*)|(?:[^\s,\n]*))$/);
   if (!match) return null;
   return {
     character: match[2],
@@ -679,6 +723,104 @@ const findComposerTrigger = () => {
     start: cursor - match[2].length - match[3].length,
     end: cursor,
   };
+};
+
+const entityReferenceLabel = (reference) => {
+  const name = reference?.name || '';
+  const extension = reference?.extension || '';
+  if (extension && name.toLowerCase().endsWith(extension.toLowerCase())) {
+    return name.slice(0, -extension.length);
+  }
+  return name;
+};
+
+const entityReferencePathSegment = (reference) => {
+  const label = entityReferenceLabel(reference);
+  if (reference?.type !== 'asset' || !reference.extension) return label;
+  return `${label}${reference.extension}`;
+};
+
+const normalizeEntityReference = (item) => {
+  const type = item?.type || item?.item_type
+    || (item?.asset_type_id ? 'asset' : '')
+    || (item?.collection_type_id ? 'collection' : '');
+  if (!item?.id || (type !== 'asset' && type !== 'collection')) return null;
+  const collectionPath = `${item.collection_path || item.item_path || ''}`
+    .replace(/\\/g, '/')
+    .replace(/^\/+|\/+$/g, '');
+  const displayName = entityReferencePathSegment({ ...item, type });
+  return {
+    id: item.id,
+    type,
+    name: item.name || '',
+    extension: item.extension || '',
+    parent_id: item.parent_id || item.collection_id || '',
+    path: type === 'asset'
+      ? [collectionPath, displayName].filter(Boolean).join('/')
+      : (collectionPath || displayName),
+  };
+};
+
+const currentViewEntityReferences = () => browserTree.rootItems
+  .map(normalizeEntityReference)
+  .filter(Boolean);
+
+const parseEntityReferenceQuery = (query) => {
+  const unquotedQuery = `${query || ''}`.replace(/^"/, '').replace(/"$/, '');
+  const segments = unquotedQuery.split('/');
+  const filter = segments.pop() || '';
+  return { parentSegments: segments.filter(Boolean), filter };
+};
+
+const resolveEntityReferenceIcons = async (references, requestVersion) => {
+  const resolved = await Promise.all(references.map(async (reference) => {
+    if (reference.type !== 'asset') {
+      return { ...reference, icon: getAppIcon('folder') };
+    }
+    const extension = `${reference.extension || ''}`.replace(/^\./, '').toLowerCase();
+    if (!extension) return { ...reference, icon: getAppIcon('file') };
+    const icon = await iconStore.getIcon(extension);
+    return { ...reference, icon: icon || getAppIcon('file') };
+  }));
+  if (requestVersion === entityReferenceRequestVersion.value) {
+    entityReferenceItems.value = resolved;
+  }
+};
+
+const loadEntityReferenceItems = async (trigger) => {
+  const projectUri = projectStore.activeProject?.uri;
+  if (!projectUri) return;
+  const requestVersion = ++entityReferenceRequestVersion.value;
+  const { parentSegments, filter } = parseEntityReferenceQuery(trigger.query);
+  let references = currentViewEntityReferences();
+  const resolvedSegments = [];
+
+  for (const segment of parentSegments) {
+    const parent = references.find((reference) => reference.type === 'collection'
+      && entityReferenceLabel(reference).toLowerCase() === segment.toLowerCase());
+    if (!parent) {
+      references = [];
+      break;
+    }
+    resolvedSegments.push(entityReferenceLabel(parent));
+    try {
+      references = await agentReferences.getChildren(projectUri, parent.id);
+    } catch (error) {
+      console.error('AgentService.ListEntityReferenceChildren failed:', error);
+      references = [];
+      break;
+    }
+  }
+  if (requestVersion !== entityReferenceRequestVersion.value) return;
+  trigger.filter = filter;
+  trigger.parentPath = resolvedSegments.length ? `${resolvedSegments.join('/')}/` : '';
+  entityReferenceItems.value = references.map((reference) => ({
+    ...reference,
+    icon: getAppIcon(reference.type === 'collection' ? 'folder' : 'file'),
+  }));
+  resolveEntityReferenceIcons(references, requestVersion).catch((error) => {
+    console.error('Failed to resolve entity reference icons:', error);
+  });
 };
 
 const updateComposerMenuAnchor = () => {
@@ -699,6 +841,7 @@ const updateComposerMenu = async () => {
   composerTrigger.value = findComposerTrigger();
   if (!composerTrigger.value) return;
   if (composerTrigger.value.character === '~') await loadScriptReferences();
+  if (composerTrigger.value.character === '@') await loadEntityReferenceItems(composerTrigger.value);
   composerMenuIndex.value = Math.min(composerMenuIndex.value, Math.max(0, composerMenuItems.value.length - 1));
   await nextTick();
   updateComposerMenuAnchor();
@@ -709,20 +852,36 @@ const closeComposerMenu = () => {
 };
 
 const scriptToken = (reference) => reference.name.includes(' ') ? `~"${reference.name}"` : `~${reference.name}`;
+const entityToken = (reference) => reference.tokenPath.includes(' ')
+  ? `@"${reference.tokenPath}"`
+  : `@${reference.tokenPath}`;
 
-const selectComposerItem = async (item) => {
+const selectComposerItem = async (item, drillIntoCollection = false) => {
   const trigger = composerTrigger.value;
   if (!trigger) return;
-  const inserted = item.type === 'script' ? scriptToken(item.reference) : item.value;
-  currentMessage.value = `${currentMessage.value.slice(0, trigger.start)}${inserted} ${currentMessage.value.slice(trigger.end)}`;
+  let inserted = item.type === 'script'
+    ? scriptToken(item.reference)
+    : (item.type === 'entity' ? entityToken(item.reference) : item.value);
+  if (drillIntoCollection) {
+    inserted = item.reference.tokenPath.includes(' ')
+      ? `@"${item.reference.tokenPath}/`
+      : `@${item.reference.tokenPath}/`;
+  }
+  const suffix = drillIntoCollection ? '' : ' ';
+  currentMessage.value = `${currentMessage.value.slice(0, trigger.start)}${inserted}${suffix}${currentMessage.value.slice(trigger.end)}`;
   if (item.type === 'script') {
     const selected = new Map(selectedScriptReferences.value);
     selected.set(inserted, { ...item.reference, token: inserted });
     selectedScriptReferences.value = selected;
   }
+  if (item.type === 'entity' && !drillIntoCollection) {
+    const selected = new Map(selectedEntityReferences.value);
+    selected.set(inserted, { ...item.reference, token: inserted });
+    selectedEntityReferences.value = selected;
+  }
   composerTrigger.value = null;
   await nextTick();
-  const cursor = trigger.start + inserted.length + 1;
+  const cursor = trigger.start + inserted.length + suffix.length;
   textareaRef.value?.focus();
   textareaRef.value?.setSelectionRange(cursor, cursor);
   handleInput();
@@ -730,6 +889,13 @@ const selectComposerItem = async (item) => {
 
 const handleComposerKeydown = (event) => {
   if (composerMenuVisible.value) {
+    const activeItem = composerMenuItems.value[composerMenuIndex.value];
+    if (event.key === '/' && activeItem?.type === 'entity' && activeItem.reference.type === 'collection') {
+      event.preventDefault();
+      event.stopPropagation();
+      selectComposerItem(activeItem, true);
+      return;
+    }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       event.stopPropagation();
@@ -738,10 +904,16 @@ const handleComposerKeydown = (event) => {
       if (length) composerMenuIndex.value = (composerMenuIndex.value + direction + length) % length;
       return;
     }
-    if ((event.key === 'Enter' || event.key === 'Tab') && composerMenuItems.value.length) {
+    if (event.key === 'Tab' && activeItem) {
       event.preventDefault();
       event.stopPropagation();
-      selectComposerItem(composerMenuItems.value[composerMenuIndex.value]);
+      selectComposerItem(activeItem, activeItem.type === 'entity' && activeItem.reference.type === 'collection');
+      return;
+    }
+    if (event.key === 'Enter' && activeItem) {
+      event.preventDefault();
+      event.stopPropagation();
+      selectComposerItem(activeItem);
       return;
     }
     if (event.key === 'Escape') {
@@ -757,6 +929,15 @@ const handleComposerKeydown = (event) => {
   }
 };
 
+const handleComposerKeyup = (event) => {
+  if (['ArrowDown', 'ArrowUp', 'Enter', 'Tab', 'Escape'].includes(event.key)) return;
+  updateComposerMenu();
+};
+
+const setComposerMenuIndex = (index) => {
+  composerMenuIndex.value = index;
+};
+
 const syncComposerScroll = () => {
   if (!textareaRef.value || !inputHighlightRef.value) return;
   inputHighlightRef.value.scrollTop = textareaRef.value.scrollTop;
@@ -768,10 +949,15 @@ const clearComposer = () => {
   currentMessage.value = '';
   composerTrigger.value = null;
   selectedScriptReferences.value = new Map();
+  selectedEntityReferences.value = new Map();
   if (textareaRef.value) textareaRef.value.style.height = 'auto';
 };
 
 const activeScriptReferences = () => [...selectedScriptReferences.value.entries()]
+  .filter(([token]) => currentMessage.value.includes(token))
+  .map(([, reference]) => reference);
+
+const activeEntityReferences = () => [...selectedEntityReferences.value.entries()]
   .filter(([token]) => currentMessage.value.includes(token))
   .map(([, reference]) => reference);
 
@@ -782,6 +968,9 @@ const handleInput = () => {
   textareaRef.value.style.height = textareaRef.value.scrollHeight + 'px';
   const selected = new Map([...selectedScriptReferences.value].filter(([token]) => currentMessage.value.includes(token)));
   selectedScriptReferences.value = selected;
+  const selectedEntities = new Map([...selectedEntityReferences.value]
+    .filter(([token]) => currentMessage.value.includes(token)));
+  selectedEntityReferences.value = selectedEntities;
   nextTick(() => {
     syncComposerScroll();
     updateComposerMenu();
@@ -885,7 +1074,7 @@ const onFilesDropped = async (event) => {
 };
 
 // Describes the user's current selection (collection, items, active stage) for the agent.
-const buildSelectionContext = (referencedScripts = []) => {
+const buildSelectionContext = (referencedScripts = [], referencedEntities = []) => {
   const context = {
     current_location: null,
     here_scope: { source: 'here', recursive: !!commonStore.onlyAssets },
@@ -893,6 +1082,9 @@ const buildSelectionContext = (referencedScripts = []) => {
     active_view: stage.activeStage || '',
     script_references: referencedScripts.map(({ token, type, id, name, path, extension, tracked }) => ({
       token, type, id, name, path, extension, tracked,
+    })),
+    entity_references: referencedEntities.map(({ token, type, id, name, path, extension, parent_id }) => ({
+      token, type, id, name, path, extension, parent_id,
     })),
   };
 
@@ -944,7 +1136,8 @@ const buildSelectionContext = (referencedScripts = []) => {
     },
   }));
 
-  if (!context.current_location && !context.selection.length && !context.active_view && !context.script_references.length) return '';
+  if (!context.current_location && !context.selection.length && !context.active_view
+    && !context.script_references.length && !context.entity_references.length) return '';
   return `[Context JSON]\n${JSON.stringify(context)}\n`;
 };
 
@@ -983,7 +1176,7 @@ const sendMessage = async () => {
 
   const turnIndex = nextTurnIndex();
   addMessage('user', rawInput, { turnIndex });
-  const context = buildSelectionContext(activeScriptReferences());
+  const context = buildSelectionContext(activeScriptReferences(), activeEntityReferences());
   const messageContent = context + expanded;
   clearComposer();
   isProcessing.value = true;
@@ -1225,6 +1418,11 @@ const onAgentClearFilter = () => {
   emitter.emit('refresh-browser');
 };
 
+const invalidateEntityReferences = () => {
+  entityReferenceRequestVersion.value++;
+  agentReferences.invalidate();
+};
+
 // watchers
 watch(() => projectStore.activeProject?.uri, async (projectPath, previousProjectPath) => {
   saveComposerDraft(previousProjectPath);
@@ -1232,6 +1430,8 @@ watch(() => projectStore.activeProject?.uri, async (projectPath, previousProject
   scriptReferences.value = [];
   scriptReferencesLoadedFor.value = '';
   scriptReferencesLoadingFor.value = '';
+  entityReferenceItems.value = [];
+  agentReferences.setProject(projectPath);
   restoreComposerDraft(projectPath);
   await checkApiKeyStatus();
   await loadChatHistory();
@@ -1268,6 +1468,7 @@ onMounted(async () => {
   Events.On('agent-apply-filter', onAgentApplyFilter);
   Events.On('agent-clear-filter', onAgentClearFilter);
   Events.On('files-dropped', onFilesDropped);
+  emitter.on('refresh-browser', invalidateEntityReferences);
   window.addEventListener('resize', updateComposerMenuAnchor);
 });
 
@@ -1287,6 +1488,7 @@ onUnmounted(() => {
   Events.Off('agent-apply-filter');
   Events.Off('agent-clear-filter');
   Events.Off('files-dropped');
+  emitter.off('refresh-browser', invalidateEntityReferences);
   window.removeEventListener('resize', updateComposerMenuAnchor);
 });
 </script>

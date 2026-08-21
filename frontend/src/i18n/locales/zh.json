@@ -1075,6 +1075,7 @@
     "agentHelpHintAfter": "以查看快捷命令。",
     "scripts": "脚本",
     "quickCommands": "快捷命令",
+    "entityReferences": "实体引用",
     "noConfiguredScripts": "未找到已配置的脚本文件",
     "noMatches": "无匹配项",
     "type": "类型",

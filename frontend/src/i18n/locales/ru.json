@@ -1075,6 +1075,7 @@
     "agentHelpHintAfter": "чтобы увидеть быстрые команды.",
     "scripts": "Скрипты",
     "quickCommands": "Быстрые команды",
+    "entityReferences": "Ссылки на сущности",
     "noConfiguredScripts": "Настроенные файлы скриптов не найдены",
     "noMatches": "Совпадений нет",
     "type": "Тип",

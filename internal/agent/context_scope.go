@@ -10,6 +10,7 @@ type turnContext struct {
 	HereScope        map[string]interface{}   `json:"here_scope"`
 	Selection        []map[string]interface{} `json:"selection"`
 	ScriptReferences []map[string]interface{} `json:"script_references"`
+	EntityReferences []map[string]interface{} `json:"entity_references"`
 }
 
 func parseTurnContext(message string) turnContext {
@@ -78,7 +79,107 @@ func applyAuthoritativeScopeField(args map[string]interface{}, key string, conte
 		}
 	case "selection":
 		scopeArgs["selection"] = context.Selection
+	case "entity":
+		applyAuthoritativeEntityReference(scopeArgs, context.EntityReferences)
+	case "entities":
+		applyAuthoritativeEntityReferences(scopeArgs, context.EntityReferences)
 	}
+}
+
+func applyAuthoritativeEntityReference(scopeArgs map[string]interface{}, references []map[string]interface{}) {
+	if len(references) == 0 {
+		return
+	}
+	candidates := []string{
+		contextString(scopeArgs, "entity_id"),
+		contextString(scopeArgs, "path"),
+	}
+	for _, reference := range references {
+		if referenceMatchesCandidates(reference, candidates) {
+			setAuthoritativeEntityReference(scopeArgs, reference)
+			return
+		}
+	}
+	if len(references) == 1 && candidates[0] == "" && candidates[1] == "" {
+		setAuthoritativeEntityReference(scopeArgs, references[0])
+	}
+}
+
+func applyAuthoritativeEntityReferences(scopeArgs map[string]interface{}, references []map[string]interface{}) {
+	rawIDs, _ := scopeArgs["entity_ids"].([]interface{})
+	if len(rawIDs) == 0 || len(references) == 0 {
+		return
+	}
+	resolvedIDs := make([]interface{}, 0, len(rawIDs))
+	for _, rawID := range rawIDs {
+		candidate, _ := rawID.(string)
+		resolvedID := candidate
+		for _, reference := range references {
+			if referenceMatchesCandidates(reference, []string{candidate}) {
+				resolvedID = contextString(reference, "id")
+				break
+			}
+		}
+		if resolvedID != "" {
+			resolvedIDs = append(resolvedIDs, resolvedID)
+		}
+	}
+	scopeArgs["entity_ids"] = resolvedIDs
+}
+
+func setAuthoritativeEntityReference(scopeArgs, reference map[string]interface{}) {
+	entityID := contextString(reference, "id")
+	if entityID == "" {
+		return
+	}
+	scopeArgs["entity_id"] = entityID
+	delete(scopeArgs, "path")
+	if contextString(reference, "type") == "collection" && scopeExcludesCollection(scopeArgs) {
+		scopeArgs["recursive"] = true
+	}
+}
+
+func scopeExcludesCollection(scopeArgs map[string]interface{}) bool {
+	rawTypes, _ := scopeArgs["types"].([]interface{})
+	if len(rawTypes) == 0 {
+		return false
+	}
+	for _, rawType := range rawTypes {
+		if entityType, _ := rawType.(string); entityType == "collection" {
+			return false
+		}
+	}
+	return true
+}
+
+func referenceMatchesCandidates(reference map[string]interface{}, candidates []string) bool {
+	referenceValues := []string{
+		contextString(reference, "id"),
+		contextString(reference, "path"),
+		contextString(reference, "token"),
+		contextString(reference, "name") + contextString(reference, "extension"),
+	}
+	for _, candidate := range candidates {
+		candidate = normalizeReferenceIdentity(candidate)
+		if candidate == "" {
+			continue
+		}
+		for _, referenceValue := range referenceValues {
+			normalizedReference := normalizeReferenceIdentity(referenceValue)
+			if normalizedReference == candidate || strings.HasSuffix(candidate, "/"+normalizedReference) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func normalizeReferenceIdentity(value string) string {
+	normalized := strings.TrimSpace(strings.ReplaceAll(value, "\\", "/"))
+	normalized = strings.TrimPrefix(normalized, "@")
+	normalized = strings.Trim(normalized, "\"")
+	normalized = strings.Trim(normalized, "/")
+	return strings.ToLower(normalized)
 }
 
 func normalizeScopeTypes(scopeArgs map[string]interface{}) {

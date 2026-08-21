@@ -116,11 +116,22 @@ export function GetSelectedModel(provider) {
 
 /**
  * @param {string} projectPath
+ * @param {string} parentID
+ * @returns {$CancellablePromise<agent$0.EntityReference[]>}
+ */
+export function ListEntityReferenceChildren(projectPath, parentID) {
+    return $Call.ByID(4012408445, projectPath, parentID).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
+ * @param {string} projectPath
  * @returns {$CancellablePromise<agent$0.ScriptReference[]>}
  */
 export function ListScriptReferences(projectPath) {
     return $Call.ByID(1114395811, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType7($result);
     }));
 }
 
@@ -190,5 +201,7 @@ const $$createType0 = $models.AgentKeyStatus.createFrom;
 const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = $models.ChatUIMessage.createFrom;
 const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = agent$0.ScriptReference.createFrom;
+const $$createType4 = agent$0.EntityReference.createFrom;
 const $$createType5 = $Create.Array($$createType4);
+const $$createType6 = agent$0.ScriptReference.createFrom;
+const $$createType7 = $Create.Array($$createType6);

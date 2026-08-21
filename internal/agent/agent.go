@@ -411,6 +411,8 @@ func buildSystemPrompt(projectContext string) string {
   - "here": copy context.here_scope and only change recursive when the user explicitly requests recursion
   - one explicit entity: source="entity"
   - whole project: source="project"
+- A structured entity_references entry maps the user's @token to a tracked asset or collection. Use its stable ID and type directly; do not search for or infer the referenced entity from its visible path.
+- For a contents or count question about an @collection, query its stable collection ID with an entity scope, recursive=true, and the requested entity types.
 - For rename, move, delete, status, type, assignment, tags, dependencies, and task/resource requests, use one batch_* command for the complete scope.
 - batch_* commands resolve scope, compute a deterministic local plan, show an approval preview, revalidate it, and apply locally. The user must manually sync afterward.
 - For batch_move, omit destination_match and use target_collection_id or target_path when every source has one destination. Use destination_match.strategy="same_name_sibling" when every source should move into its eponymous sibling collection. Use one move_mappings array for explicit per-source destinations.

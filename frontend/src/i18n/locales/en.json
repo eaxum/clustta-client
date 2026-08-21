@@ -1190,6 +1190,7 @@
     "agentHelpHintAfter": "to see quick commands.",
     "scripts": "Scripts",
     "quickCommands": "Quick commands",
+    "entityReferences": "Entity references",
     "noConfiguredScripts": "No configured script files found",
     "noMatches": "No matches",
     "you": "You",

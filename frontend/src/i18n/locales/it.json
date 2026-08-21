@@ -1075,6 +1075,7 @@
     "agentHelpHintAfter": "per visualizzare i comandi rapidi.",
     "scripts": "Script",
     "quickCommands": "Comandi rapidi",
+    "entityReferences": "Riferimenti alle entità",
     "noConfiguredScripts": "Nessun file di script configurato trovato",
     "noMatches": "Nessuna corrispondenza",
     "type": "Tipo",

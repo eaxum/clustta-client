@@ -1091,6 +1091,7 @@
     "agentHelpHintAfter": "빠른 명령을 표시합니다.",
     "scripts": "스크립트",
     "quickCommands": "빠른 명령",
+    "entityReferences": "엔터티 참조",
     "noConfiguredScripts": "설정된 스크립트 파일을 찾을 수 없습니다",
     "noMatches": "일치하는 항목 없음",
     "type": "유형",

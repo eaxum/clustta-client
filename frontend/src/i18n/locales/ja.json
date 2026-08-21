@@ -1076,6 +1076,7 @@
     "agentHelpHintAfter": "クイックコマンドを表示します。",
     "scripts": "スクリプト",
     "quickCommands": "クイックコマンド",
+    "entityReferences": "エンティティ参照",
     "noConfiguredScripts": "設定されたスクリプトファイルがありません",
     "noMatches": "一致する項目はありません",
     "type": "タイプ",
