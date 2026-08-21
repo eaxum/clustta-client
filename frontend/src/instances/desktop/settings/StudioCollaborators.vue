@@ -4,8 +4,8 @@
 
         <div class="asset-header">
 			<div class="create-menu">
-				<ActionButton :isDisabled="studioInactive" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
-					@click="addCollaborator" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('settings.addCollaborator')" />
+				<ActionButton :isDisabled="studioInactive || studioCollaboratorLimitReached" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+					@click="addCollaborator" v-tooltip="addCollaboratorTooltip" />
 				<ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
 					:buttonFunction="refresh" />
 			</div>
@@ -71,6 +71,25 @@ const { t } = useI18n();
 const searchQuery = ref('');
 
 const studioInactive = computed(() => !entitlementStore.isStudioActive);
+const studioCollaboratorLimit = computed(() => {
+  const studio = projectStore.selectedStudio;
+  if (!studio?.id || (studio.hosting_mode && studio.hosting_mode !== 'cloud')) return -1;
+  return entitlementStore.studioEntitlements[studio.id]?.limits?.max_collaborators ?? -1;
+});
+const studioCollaboratorLimitReached = computed(() => {
+  const limit = studioCollaboratorLimit.value;
+  return limit !== -1 && studioStore.studioUsers.length >= limit;
+});
+const addCollaboratorTooltip = computed(() => {
+  if (studioInactive.value) return t('notifications.studioInactive');
+  if (studioCollaboratorLimitReached.value) {
+    return t('settings.collaboratorsOf', {
+      used: studioStore.studioUsers.length,
+      limit: studioCollaboratorLimit.value,
+    });
+  }
+  return t('settings.addCollaborator');
+});
 
 // Studio roles
 const studioRoles = computed(() => ['Admin', 'User']);
@@ -93,6 +112,7 @@ const addCollaborator = () => {
     notificationStore.addNotification(t('notifications.studioInactive'), "", "error");
     return;
   }
+  if (studioCollaboratorLimitReached.value) return;
   modals.setModalVisibility('addCollaboratorModal', true);
 };
 
@@ -151,8 +171,12 @@ const message = () => {
 };
 
 onMounted( async () => {
+    const studio = projectStore.selectedStudio;
     await studioStore.getStudioUsers();
-})
+    if (studio?.id && (!studio.hosting_mode || studio.hosting_mode === 'cloud')) {
+      await entitlementStore.getStudioEntitlements(studio.id);
+    }
+});
 
 </script>
 

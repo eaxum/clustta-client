@@ -22,6 +22,15 @@
 
       <!-- Notification section for non-studio users -->
       <div class="notification-area">
+      <div v-if="personalCollaboratorLimitReached" class="horizontal-flex">
+        <NotificationBox
+          type="warning"
+          :icon="getAppIcon('alert')"
+          :iconAlt="$t('common.alert')"
+          :title="$t('settings.collaborators')"
+          :message="collaboratorUsageLabel"
+        />
+      </div>
       <div v-if="!isCloudHosted && nonStudioUsers.length > 0" class="horizontal-flex">
         <NotificationBox 
           type="warning"
@@ -46,7 +55,7 @@
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.close')" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
-        <GeneralButton :label="$t('common.add')" :buttonFunction="addCollaborators" :isActive="!!selectedUsers.length"
+        <GeneralButton :label="$t('common.add')" :buttonFunction="addCollaborators" :isActive="canAddCollaborators"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -76,6 +85,7 @@ const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const entitlementStore = useEntitlementStore();
 const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
@@ -83,6 +93,7 @@ const userStore = useUserStore();
 const { t } = useI18n();
 
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
@@ -119,6 +130,37 @@ const isCloudHosted = computed(() => projectStore.isCloudHosted);
 // Whether the active project is a studio project (cloud or private).
 const isStudioProject = computed(() => {
   return projectStore.selectedStudio && projectStore.selectedStudio.name !== 'Personal';
+});
+
+const personalCollaboratorLimit = computed(() => {
+  if (!isCloudHosted.value || isStudioProject.value) return -1;
+  return entitlementStore.activeLimits.max_collaborators;
+});
+
+const personalCollaboratorCount = computed(() => {
+  return userStore.getProjectCollaborators.filter(user => user.id !== userStore.user?.id).length;
+});
+
+const remainingPersonalCollaborators = computed(() => {
+  if (personalCollaboratorLimit.value === -1) return -1;
+  return Math.max(personalCollaboratorLimit.value - personalCollaboratorCount.value, 0);
+});
+
+const personalCollaboratorLimitReached = computed(() => {
+  return remainingPersonalCollaborators.value === 0;
+});
+
+const collaboratorUsageLabel = computed(() => {
+  return t('settings.collaboratorsOf', {
+    used: personalCollaboratorCount.value,
+    limit: personalCollaboratorLimit.value,
+  });
+});
+
+const canAddCollaborators = computed(() => {
+  if (!selectedUsers.value.length) return false;
+  if (remainingPersonalCollaborators.value === -1) return true;
+  return selectedUsers.value.length <= remainingPersonalCollaborators.value;
 });
 
 const newUsers = computed(() => {
@@ -198,6 +240,10 @@ const studioUsers = computed(() => {
 
 // Adds collaborators to the project, handling studio users, global users, and new invites.
 const addCollaborators = async () => {
+  if (!canAddCollaborators.value) {
+    notificationStore.addNotification(collaboratorUsageLabel.value, "", "error");
+    return;
+  }
   isAwaitingResponse.value = true;
 
   try {
@@ -444,6 +490,11 @@ const addUser = async (user) => {
   
   if (projectUserEmails.includes(userEmail)) {
     notificationStore.addNotification(t('notifications.userAlreadyInProject'), "", "success");
+    return;
+  }
+
+  if (remainingPersonalCollaborators.value !== -1 && selectedUsers.value.length >= remainingPersonalCollaborators.value) {
+    notificationStore.addNotification(collaboratorUsageLabel.value, "", "error");
     return;
   }
 

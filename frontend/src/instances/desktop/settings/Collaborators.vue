@@ -3,8 +3,8 @@
     <div class="settings-component-container">
       <div class="asset-header">
         <div class="create-menu">
-          <ActionButton v-if="projectStore.isCloudHosted || userStore.canDo('add_user')" :isDisabled="studioInactive" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
-            @click="addCollaborator" v-tooltip="studioInactive ? $t('notifications.studioInactive') : $t('settings.addCollaborator')" />
+          <ActionButton v-if="projectStore.isCloudHosted || userStore.canDo('add_user')" :isDisabled="studioInactive || personalCollaboratorLimitReached" :icon="getAppIcon('person-plus')" :label="$t('settings.addCollaborator')" :showLabel="true"
+            @click="addCollaborator" v-tooltip="addCollaboratorTooltip" />
           <ActionButton :icon="getAppIcon('refresh')" :label="$t('common.refresh')" v-tooltip="$t('common.refresh')"
             :buttonFunction="refresh" />
         </div>
@@ -72,12 +72,31 @@ const userStore = useUserStore();
 const { t } = useI18n();
 
 const studioInactive = computed(() => !entitlementStore.isStudioActive);
+const personalCollaboratorLimit = computed(() => entitlementStore.activeLimits.max_collaborators);
+const personalCollaboratorCount = computed(() => {
+  return userStore.getProjectCollaborators.filter(user => user.id !== userStore.user?.id).length;
+});
+const personalCollaboratorLimitReached = computed(() => {
+  const limit = personalCollaboratorLimit.value;
+  return projectStore.isPersonalRemote && limit !== -1 && personalCollaboratorCount.value >= limit;
+});
+const addCollaboratorTooltip = computed(() => {
+  if (studioInactive.value) return t('notifications.studioInactive');
+  if (personalCollaboratorLimitReached.value) {
+    return t('settings.collaboratorsOf', {
+      used: personalCollaboratorCount.value,
+      limit: personalCollaboratorLimit.value,
+    });
+  }
+  return t('settings.addCollaborator');
+});
 
 const addCollaborator = () => {
   if (studioInactive.value) {
     notificationStore.addNotification(t('notifications.studioInactive'), "", "error");
     return;
   }
+  if (personalCollaboratorLimitReached.value) return;
   modals.setModalVisibility('manageCollaboratorModal', true);
 };
 

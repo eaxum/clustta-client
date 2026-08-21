@@ -30,7 +30,7 @@
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.close')" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
-        <GeneralButton :label="$t('common.add')" :buttonFunction="addCollaborators" :isActive="!!selectedUsers.length"
+        <GeneralButton :label="$t('common.add')" :buttonFunction="addCollaborators" :isActive="canAddCollaborators"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -93,6 +93,27 @@ const newUsers = computed(() => {
   return selectedUsers.value.filter(user => user.userType === 'new');
 });
 
+const studioCollaboratorLimit = computed(() => {
+  const studio = projectStore.selectedStudio;
+  if (!studio?.id || (studio.hosting_mode && studio.hosting_mode !== 'cloud')) return -1;
+  return entitlementStore.studioEntitlements[studio.id]?.limits?.max_collaborators ?? -1;
+});
+const remainingStudioCollaborators = computed(() => {
+  if (studioCollaboratorLimit.value === -1) return -1;
+  return Math.max(studioCollaboratorLimit.value - studioStore.studioUsers.length, 0);
+});
+const studioCollaboratorUsageLabel = computed(() => {
+  return t('settings.collaboratorsOf', {
+    used: studioStore.studioUsers.length,
+    limit: studioCollaboratorLimit.value,
+  });
+});
+const canAddCollaborators = computed(() => {
+  if (!selectedUsers.value.length || !entitlementStore.isStudioActive) return false;
+  if (remainingStudioCollaborators.value === -1) return true;
+  return selectedUsers.value.length <= remainingStudioCollaborators.value;
+});
+
 // Aggregates selected users from different sources.
 const selectedUsers = computed(() => {
   const studioUsers = studioStore.studioUsers
@@ -136,6 +157,10 @@ const selectedUsers = computed(() => {
 const addCollaborators = async () => {
   if (!entitlementStore.isStudioActive) {
     notificationStore.addNotification(t('notifications.studioInactive'), "", "error");
+    return;
+  }
+  if (!canAddCollaborators.value) {
+    notificationStore.addNotification(studioCollaboratorUsageLabel.value, "", "error");
     return;
   }
 
@@ -225,6 +250,10 @@ const addUser = (user) => {
   }
   if (studioUserEmails.includes(userEmail)) {
     notificationStore.addNotification(t('notifications.userAlreadyInStudio'), "", "success");
+    return;
+  }
+  if (remainingStudioCollaborators.value !== -1 && selectedUsers.value.length >= remainingStudioCollaborators.value) {
+    notificationStore.addNotification(studioCollaboratorUsageLabel.value, "", "error");
     return;
   } else {
     if (!user.userType) {
