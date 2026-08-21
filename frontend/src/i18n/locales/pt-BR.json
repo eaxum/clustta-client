@@ -704,6 +704,7 @@
       "deleteWorkingFilesOn": "Seu diretório de trabalho e todos os seus arquivos também serão permanentemente excluídos."
     },
     "duplicateProjectTemplate": "Duplicar modelo de projeto",
+    "duplicateRole": "Duplicar função",
     "duplicateTemplateName": "Nome de modelo duplicado",
     "editAssetType": "Editar tipo de tarefa",
     "editCollectionType": "Editar Tipo de coleção",
@@ -714,6 +715,7 @@
     "invitationRequired": "Convite Necessário",
     "manageCollaborators": "Gerenciar Colaboradores",
     "permissionCount": "{count} permissões",
+    "roleNameExists": "Já existe uma função com este nome.",
     "selectAFile": "Selecionar um arquivo",
     "selectFiles": "Selecionar arquivos",
     "studioAdditionMessage": "1 usuário não está atualmente neste estúdio. Este usuário será adicionado ao estúdio primeiro, depois ao projeto. | {n} usuários não estão atualmente neste estúdio. Eles serão adicionados ao estúdio primeiro, depois ao projeto.",

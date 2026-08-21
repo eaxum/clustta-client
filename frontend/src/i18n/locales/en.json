@@ -824,6 +824,7 @@
       "deleteWorkingFilesOn": "Your working directory and all its files will also be permanently deleted."
     },
     "duplicateProjectTemplate": "Duplicate project template",
+    "duplicateRole": "Duplicate role",
     "duplicateTemplateName": "Duplicate template name",
     "editAssetType": "Edit asset type",
     "editCollectionType": "Edit Collection type",
@@ -835,6 +836,7 @@
     "invitationRequired": "Invitation Required",
     "manageCollaborators": "Manage Collaborators",
     "permissionCount": "{count} permissions",
+    "roleNameExists": "A role with this name already exists.",
     "selectAFile": "Select a file",
     "selectFiles": "Select files",
     "studioAdditionMessage": "1 user is not currently in this studio. This user will be added to the studio first, then to the project. | {n} users are not currently in this studio. They will be added to the studio first, then to the project.",

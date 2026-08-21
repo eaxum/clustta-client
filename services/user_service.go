@@ -6,9 +6,39 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type UserService struct{}
+
+const roleManagementPermission = "change_role"
+
+func authorizeRoleManagementTx(tx *sqlx.Tx) error {
+	_, role, err := activeAssetRole(tx)
+	if err != nil {
+		return err
+	}
+	if !role.ChangeRole {
+		return fmt.Errorf("user does not have %s permission", roleManagementPermission)
+	}
+	return nil
+}
+
+func normalizeRoleName(name string) (string, error) {
+	trimmedName := strings.TrimSpace(name)
+	if trimmedName == "" {
+		return "", errors.New("role name is required")
+	}
+	return trimmedName, nil
+}
+
+func isRoleNameCollision(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "UNIQUE constraint failed: role.name")
+}
 
 // Retrieves all users from the project database
 func (u *UserService) GetUsers(projectPath string) ([]models.User, error) {
@@ -88,6 +118,10 @@ func (u *UserService) GetRoles(projectPath string) ([]models.Role, error) {
 
 // Creates a new role with name and permission attributes
 func (u *UserService) AddRole(projectPath, name string, attributes models.RoleAttributes) (models.Role, error) {
+	name, err := normalizeRoleName(name)
+	if err != nil {
+		return models.Role{}, err
+	}
 	if !utils.FileExists(projectPath) {
 		return models.Role{}, error_service.ErrProjectNotFound
 	}
@@ -102,7 +136,13 @@ func (u *UserService) AddRole(projectPath, name string, attributes models.RoleAt
 		return models.Role{}, err
 	}
 	defer tx.Rollback()
+	if err = authorizeRoleManagementTx(tx); err != nil {
+		return models.Role{}, err
+	}
 	role, err := repository.CreateRole(tx, "", name, attributes)
+	if isRoleNameCollision(err) {
+		return models.Role{}, error_service.ErrRoleExists
+	}
 	if err != nil {
 		return models.Role{}, err
 	}

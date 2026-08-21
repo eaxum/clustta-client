@@ -65,6 +65,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       addCollaboratorModal: false,
 
       addRoleModal: false,
+      duplicateRoleModal: false,
       editRoleModal: false,
 
       composeWorkflowModal: false,

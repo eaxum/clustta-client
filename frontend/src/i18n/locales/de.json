@@ -704,6 +704,7 @@
       "deleteWorkingFilesOn": "Ihr Arbeitsverzeichnis und alle darin enthaltenen Dateien werden ebenfalls dauerhaft gelöscht."
     },
     "duplicateProjectTemplate": "Projektvorlage duplizieren",
+    "duplicateRole": "Rolle duplizieren",
     "duplicateTemplateName": "Doppelter Vorlagenname",
     "editAssetType": "Aufgabentyp bearbeiten",
     "editCollectionType": "Sammlungstyp bearbeiten",
@@ -714,6 +715,7 @@
     "invitationRequired": "Einladung erforderlich",
     "manageCollaborators": "Mitarbeiter verwalten",
     "permissionCount": "{count} Berechtigungen",
+    "roleNameExists": "Eine Rolle mit diesem Namen existiert bereits.",
     "selectAFile": "Eine Datei auswählen",
     "selectFiles": "Dateien auswählen",
     "studioAdditionMessage": "1 Benutzer ist derzeit nicht in diesem Studio. Der Benutzer wird zuerst zum Studio und dann zum Projekt hinzugefügt. | {n} Benutzer sind derzeit nicht in diesem Studio. Sie werden zuerst zum Studio und dann zum Projekt hinzugefügt.",

@@ -704,6 +704,7 @@
       "deleteWorkingFilesOn": "作業ディレクトリとそのすべてのファイルも完全に削除されます。"
     },
     "duplicateProjectTemplate": "プロジェクトテンプレートを複製",
+    "duplicateRole": "ロールを複製",
     "duplicateTemplateName": "テンプレート名が重複",
     "editAssetType": "タスクタイプを編集",
     "editCollectionType": "コレクションタイプを編集",
@@ -715,6 +716,7 @@
     "invitationRequired": "招待が必要",
     "manageCollaborators": "コラボレーターを管理",
     "permissionCount": "{count}個の権限",
+    "roleNameExists": "この名前のロールはすでに存在します。",
     "selectAFile": "ファイルを選択",
     "selectFiles": "ファイルを選択",
     "studioAdditionMessage": "1人のユーザーがこのスタジオに参加していません。まずスタジオに追加され、その後プロジェクトに追加されます。 | {n}人のユーザーがこのスタジオに参加していません。まずスタジオに追加され、その後プロジェクトに追加されます。",

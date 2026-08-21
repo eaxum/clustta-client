@@ -14,6 +14,7 @@
         </div>
 
         <div class="role-item-actions">
+          <ActionButton v-if="canDuplicate" class="duplicate-role-action" :icon="getAppIcon('copy')" @click="onDuplicate(role.id)" v-tooltip="$t('common.duplicate')" />
           <ActionButton v-if="canEdit" :icon="getAppIcon('edit')" @click="onEdit(role.id)" v-tooltip="$t('common.edit')" />
           <ActionButton v-if="canDelete" :icon="getAppIcon('trash')" @click="onDelete(role.id)" v-tooltip="$t('common.delete')" />
         </div>
@@ -38,8 +39,10 @@ const iconStore = useIconStore();
 // props
 const props = defineProps({
   canDelete: { type: Boolean, default: true },
+  canDuplicate: { type: Boolean, default: false },
   canEdit: { type: Boolean, default: true },
   onDelete: { type: Function, default: () => {} },
+  onDuplicate: { type: Function, default: () => {} },
   onEdit: { type: Function, default: () => {} },
   role: { type: Object, required: true },
 });
@@ -178,5 +181,16 @@ const getAppIcon = (iconName) => {
   min-width: max-content;
   gap: .5rem;
   height: 100%;
+}
+
+.duplicate-role-action {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s ease-out;
+}
+
+.role-item-main:hover .duplicate-role-action {
+  opacity: 1;
+  pointer-events: auto;
 }
 </style>

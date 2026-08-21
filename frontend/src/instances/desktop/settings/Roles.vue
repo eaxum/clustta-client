@@ -6,7 +6,7 @@
 
       <div v-if="projectRoles.length" class="roles-list-wrapper">
         <div class="roles-list">
-          <RoleItem v-for="role in projectRoles" :key="role.id" :role="role" :canEdit="role.can_edit" :canDelete="role.can_delete" :onEdit="prepEditRole" :onDelete="deleteRole" />
+          <RoleItem v-for="role in projectRoles" :key="role.id" :role="role" :canDuplicate="role.can_duplicate" :canEdit="role.can_edit" :canDelete="role.can_delete" :onDuplicate="prepDuplicateRole" :onEdit="prepEditRole" :onDelete="deleteRole" />
         </div>
       </div>
 
@@ -45,6 +45,8 @@ import { useUserStore } from '@/stores/users';
 
 const { t } = useI18n();
 
+const ADMIN_ROLE_NAME = 'admin';
+
 // computed
 const projectRoles = computed(() => {
   let projectRoles = userStore.getProjectRoles;
@@ -61,7 +63,8 @@ const projectRoles = computed(() => {
     ...role,
     name: utils.capitalizeStr(role.name),
     can_delete: !usedProjectRoleIds.includes(role.id),
-    can_edit: role.name !== 'admin',
+    can_duplicate: userStore.canDo('change_role') && role.name.toLowerCase() !== ADMIN_ROLE_NAME,
+    can_edit: role.name.toLowerCase() !== ADMIN_ROLE_NAME,
   }));
 });
 
@@ -105,6 +108,17 @@ const prepEditRole = (roleId) => {
   const selectedRole = allRoles.find((item) => item.id === roleId);
   userStore.selectedRole = selectedRole;
   modals.setModalVisibility('editRoleModal', true);
+};
+
+// Opens the duplicate role modal for the given role.
+const prepDuplicateRole = (roleId) => {
+  if (!userStore.canDo('change_role')) return;
+
+  const selectedRole = userStore.getProjectRoles.find(role => role.id === roleId);
+  if (!selectedRole || selectedRole.name.toLowerCase() === ADMIN_ROLE_NAME) return;
+
+  userStore.selectedRole = selectedRole;
+  modals.setModalVisibility('duplicateRoleModal', true);
 };
 
 // Returns the empty state secondary action label.

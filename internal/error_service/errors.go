@@ -34,6 +34,7 @@ var (
 	ErrStatusNotFound               = errors.New("asset status not found")
 	ErrUserNotFound                 = errors.New("user not found")
 	ErrRoleNotFound                 = errors.New("role not found")
+	ErrRoleExists                   = errors.New("role already exists")
 	ErrUserHaveAssetAssigned        = errors.New("user have asset assigned")
 	ErrDependencyTypeNotFound       = errors.New("asset dependency type not found")
 	ErrAssetDependencyNotFound      = errors.New("asset dependency not found")

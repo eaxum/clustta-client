@@ -704,6 +704,7 @@
       "deleteWorkingFilesOn": "La directory di lavoro e tutti i suoi file verranno eliminati permanentemente."
     },
     "duplicateProjectTemplate": "Duplica modello progetto",
+    "duplicateRole": "Duplica ruolo",
     "duplicateTemplateName": "Nome modello duplicato",
     "editAssetType": "Modifica tipo attività",
     "editCollectionType": "Modifica tipo collezione",
@@ -714,6 +715,7 @@
     "invitationRequired": "Invito richiesto",
     "manageCollaborators": "Gestisci collaboratori",
     "permissionCount": "{count} permessi",
+    "roleNameExists": "Esiste già un ruolo con questo nome.",
     "selectAFile": "Seleziona un file",
     "selectFiles": "Seleziona file",
     "studioAdditionMessage": "1 utente non è attualmente in questo studio. Verrà aggiunto prima allo studio, poi al progetto. | {n} utenti non sono attualmente in questo studio. Verranno aggiunti prima allo studio, poi al progetto.",

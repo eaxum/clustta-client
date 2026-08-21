@@ -722,6 +722,7 @@
       "deleteWorkingFilesOn": "작업 디렉터리와 모든 파일도 영구적으로 삭제됩니다."
     },
     "duplicateProjectTemplate": "프로젝트 템플릿 복제",
+    "duplicateRole": "역할 복제",
     "duplicateTemplateName": "템플릿 이름 복제",
     "editAssetType": "작업 유형 편집",
     "editCollectionType": "컬렉션 유형 편집",
@@ -732,6 +733,7 @@
     "invitationRequired": "초대 필요",
     "manageCollaborators": "협업자 관리",
     "permissionCount": "{count}개의 권한",
+    "roleNameExists": "이 이름의 역할이 이미 존재합니다.",
     "selectAFile": "파일 선택",
     "selectFiles": "파일 선택",
     "studioAdditionMessage": "현재 이 스튜디오에 없는 사용자가 1명 있습니다. 이 사용자는 먼저 스튜디오에 추가된 후 프로젝트에 추가됩니다. | 현재 이 스튜디오에 없는 사용자가 {n}명 있습니다. 먼저 스튜디오에 추가된 후 프로젝트에 추가됩니다.",
