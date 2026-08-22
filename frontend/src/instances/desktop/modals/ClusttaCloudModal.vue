@@ -375,11 +375,6 @@ const selectPlan = async (plan) => {
     isChanging.value = false;
     changingPlanId.value = null;
     if (subscriptionUpdated) {
-      if (studioId) {
-        await entitlementStore.fetchStudioEntitlements(studioId);
-      } else {
-        await entitlementStore.fetchEntitlements();
-      }
       notificationStore.addNotification('Plan changed', 'Your subscription has been updated.', 'success', false);
       closeModal();
       return;

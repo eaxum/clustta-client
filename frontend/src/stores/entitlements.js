@@ -176,6 +176,12 @@ export const useEntitlementStore = defineStore("entitlements", {
       }
     },
 
+    // Reloads entitlements for the entity affected by a billing action.
+    async refreshEntitlements(studioId = '') {
+      if (studioId) return await this.fetchStudioEntitlements(studioId);
+      return await this.fetchEntitlements();
+    },
+
     // Fetches VM-local usage for a private/self-hosted studio.
     async fetchPrivateStudioUsage(studio) {
       if (!studio?.id) return null;
@@ -286,6 +292,7 @@ export const useEntitlementStore = defineStore("entitlements", {
           this.applyBundle(bundle);
         }
         this.lastFetched = Date.now();
+        await this.refreshEntitlements(studioId);
         return true;
       } catch (error) {
         console.error('Failed to change plan:', error);
@@ -297,9 +304,13 @@ export const useEntitlementStore = defineStore("entitlements", {
     async createCheckout(planId, studioId = '') {
       try {
         const result = await EntitlementService.CreateCheckout(planId, studioId);
+        const subscriptionUpdated = result?.subscription_updated || false;
+        if (subscriptionUpdated) {
+          await this.refreshEntitlements(studioId);
+        }
         return {
           checkoutUrl: result?.checkout_url || '',
-          subscriptionUpdated: result?.subscription_updated || false,
+          subscriptionUpdated,
         };
       } catch (error) {
         console.error('Failed to create checkout:', error);
@@ -341,6 +352,7 @@ export const useEntitlementStore = defineStore("entitlements", {
           this.cancelAtPeriodEnd = result?.cancel_at_period_end || false;
           this.currentPeriodEnd = result?.current_period_end || this.currentPeriodEnd;
         }
+        await this.refreshEntitlements(studioId);
         return true;
       } catch (error) {
         console.error('Failed to update subscription cancellation:', error);

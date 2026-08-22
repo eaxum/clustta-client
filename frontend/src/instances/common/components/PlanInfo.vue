@@ -19,8 +19,7 @@
         <circle class="storage-donut-track" cx="8" cy="8" r="6" />
         <circle class="storage-donut-fill" :class="storageBarClass" cx="8" cy="8" r="6" :style="{ strokeDashoffset: storageDashOffset }" />
       </svg>
-      <!-- <span class="plan-label">{{ planDisplayName }}</span> -->
-      <span class="plan-label">Storage</span>
+      <span class="plan-label">{{ planDisplayName }}</span>
       <span class="storage-text">{{ storageUsedFormatted }} / {{ storageLimitFormatted }}</span>
     </template>
   </div>
@@ -96,7 +95,7 @@ const needsPaymentAttention = computed(() => {
 // Returns the display name for the current plan.
 const planDisplayName = computed(() => {
   const name = (isCloudStudio.value && studioBundle.value) ? (studioBundle.value.plan || 'free') : (entitlementStore.plan || 'free');
-  return name.charAt(0).toUpperCase() + name.slice(1).replace(/_/g, ' ');
+  return name.replace(/_/g, ' ').replace(/\b\w/g, character => character.toUpperCase());
 });
 
 // Returns storage usage as a percentage.

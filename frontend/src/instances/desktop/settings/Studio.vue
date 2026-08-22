@@ -67,7 +67,7 @@
           <div
             v-if="isCloudHosted && studioStore.isStudioAdmin && studioEntitlements?.plan !== 'free'"
             class="settings-item"
-            @click="toggleSubscriptionCancellation"
+            @click.stop="toggleSubscriptionCancellation"
           >
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon(studioEntitlements?.cancel_at_period_end ? 'refresh' : 'close-circle')"></div>
             <div class="settings-content">
