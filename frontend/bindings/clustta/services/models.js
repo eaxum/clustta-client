@@ -297,6 +297,44 @@ export class AssetsStates {
 }
 
 /**
+ * CancellationResult describes the current end-of-period cancellation state.
+ */
+export class CancellationResult {
+    /**
+     * Creates a new CancellationResult instance.
+     * @param {Partial<CancellationResult>} [$$source = {}] - The source object to create the CancellationResult.
+     */
+    constructor($$source = {}) {
+        if (!("cancel_at_period_end" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["cancel_at_period_end"] = false;
+        }
+        if (!("current_period_end" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["current_period_end"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CancellationResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CancellationResult}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CancellationResult(/** @type {Partial<CancellationResult>} */($$parsedSource));
+    }
+}
+
+/**
  * ChatUIMessage represents a message in the format the frontend expects for rendering.
  */
 export class ChatUIMessage {
@@ -356,6 +394,44 @@ export class ChatUIMessage {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new ChatUIMessage(/** @type {Partial<ChatUIMessage>} */($$parsedSource));
+    }
+}
+
+/**
+ * CheckoutResult describes whether Stripe Checkout is required for a plan change.
+ */
+export class CheckoutResult {
+    /**
+     * Creates a new CheckoutResult instance.
+     * @param {Partial<CheckoutResult>} [$$source = {}] - The source object to create the CheckoutResult.
+     */
+    constructor($$source = {}) {
+        if (!("checkout_url" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["checkout_url"] = "";
+        }
+        if (!("subscription_updated" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["subscription_updated"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CheckoutResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CheckoutResult}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CheckoutResult(/** @type {Partial<CheckoutResult>} */($$parsedSource));
     }
 }
 
@@ -1056,6 +1132,55 @@ export class EntitlementBundle {
              */
             this["status"] = "";
         }
+        if (!("access_status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["access_status"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | null | undefined}
+             */
+            this["current_period_end"] = undefined;
+        }
+        if (!("cancel_at_period_end" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["cancel_at_period_end"] = false;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | null | undefined}
+             */
+            this["payment_failed_at"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | null | undefined}
+             */
+            this["grace_ends_at"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | null | undefined}
+             */
+            this["data_delete_at"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | null | undefined}
+             */
+            this["next_payment_attempt"] = undefined;
+        }
         if (!("limits" in $$source)) {
             /**
              * @member
@@ -1094,22 +1219,22 @@ export class EntitlementBundle {
      * @returns {EntitlementBundle}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType6;
-        const $$createField4_0 = $$createType7;
-        const $$createField5_0 = $$createType8;
-        const $$createField6_0 = $$createType8;
+        const $$createField10_0 = $$createType6;
+        const $$createField11_0 = $$createType7;
+        const $$createField12_0 = $$createType8;
+        const $$createField13_0 = $$createType8;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("limits" in $$parsedSource) {
-            $$parsedSource["limits"] = $$createField3_0($$parsedSource["limits"]);
+            $$parsedSource["limits"] = $$createField10_0($$parsedSource["limits"]);
         }
         if ("usage" in $$parsedSource) {
-            $$parsedSource["usage"] = $$createField4_0($$parsedSource["usage"]);
+            $$parsedSource["usage"] = $$createField11_0($$parsedSource["usage"]);
         }
         if ("features" in $$parsedSource) {
-            $$parsedSource["features"] = $$createField5_0($$parsedSource["features"]);
+            $$parsedSource["features"] = $$createField12_0($$parsedSource["features"]);
         }
         if ("effective_features" in $$parsedSource) {
-            $$parsedSource["effective_features"] = $$createField6_0($$parsedSource["effective_features"]);
+            $$parsedSource["effective_features"] = $$createField13_0($$parsedSource["effective_features"]);
         }
         return new EntitlementBundle(/** @type {Partial<EntitlementBundle>} */($$parsedSource));
     }

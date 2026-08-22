@@ -51,6 +51,13 @@ export const useEntitlementStore = defineStore("entitlements", {
     plan: 'free',
     planType: 'individual',
     status: 'active',
+    accessStatus: 'active',
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
+    paymentFailedAt: null,
+    graceEndsAt: null,
+    dataDeleteAt: null,
+    nextPaymentAttempt: null,
     limits: {
       storage_bytes: 0,
       max_remote_projects: 0,
@@ -193,6 +200,13 @@ export const useEntitlementStore = defineStore("entitlements", {
       this.plan = bundle.plan || 'free';
       this.planType = bundle.plan_type || 'individual';
       this.status = bundle.status || 'active';
+      this.accessStatus = bundle.access_status || 'active';
+      this.currentPeriodEnd = bundle.current_period_end || null;
+      this.cancelAtPeriodEnd = bundle.cancel_at_period_end || false;
+      this.paymentFailedAt = bundle.payment_failed_at || null;
+      this.graceEndsAt = bundle.grace_ends_at || null;
+      this.dataDeleteAt = bundle.data_delete_at || null;
+      this.nextPaymentAttempt = bundle.next_payment_attempt || null;
       this.limits = bundle.limits || this.limits;
       this.usage = bundle.usage || this.usage;
       this.features = bundle.features || [];
@@ -233,6 +247,13 @@ export const useEntitlementStore = defineStore("entitlements", {
       this.plan = 'free';
       this.planType = 'individual';
       this.status = 'active';
+      this.accessStatus = 'active';
+      this.currentPeriodEnd = null;
+      this.cancelAtPeriodEnd = false;
+      this.paymentFailedAt = null;
+      this.graceEndsAt = null;
+      this.dataDeleteAt = null;
+      this.nextPaymentAttempt = null;
       this.limits = { storage_bytes: 0, max_remote_projects: 1, max_collaborators: 0, ai_credits_monthly: 0 };
       this.usage = { storage_bytes: 0, project_count: 0, ai_credits_used: 0 };
       this.features = [];
@@ -256,10 +277,14 @@ export const useEntitlementStore = defineStore("entitlements", {
 
     // Changes the user's plan and applies the returned entitlement bundle.
     // Only works for free plan downgrades; paid upgrades use createCheckout.
-    async changePlan(planId) {
+    async changePlan(planId, studioId = '') {
       try {
-        const bundle = await EntitlementService.ChangePlan(planId);
-        this.applyBundle(bundle);
+        const bundle = await EntitlementService.ChangePlan(planId, studioId);
+        if (studioId) {
+          this.studioEntitlements[studioId] = bundle;
+        } else {
+          this.applyBundle(bundle);
+        }
         this.lastFetched = Date.now();
         return true;
       } catch (error) {
@@ -271,22 +296,55 @@ export const useEntitlementStore = defineStore("entitlements", {
     // Creates a Stripe Checkout Session for upgrading to a paid plan.
     async createCheckout(planId, studioId = '') {
       try {
-        const url = await EntitlementService.CreateCheckout(planId, studioId);
-        return url || '';
+        const result = await EntitlementService.CreateCheckout(planId, studioId);
+        return {
+          checkoutUrl: result?.checkout_url || '',
+          subscriptionUpdated: result?.subscription_updated || false,
+        };
       } catch (error) {
         console.error('Failed to create checkout:', error);
-        return '';
+        return { checkoutUrl: '', subscriptionUpdated: false };
       }
     },
 
     // Opens the Stripe billing portal for managing subscriptions.
-    async openBillingPortal() {
+    async openBillingPortal(studioId = '') {
       try {
-        const url = await EntitlementService.OpenBillingPortal();
+        const url = await EntitlementService.OpenBillingPortal(studioId);
         return url || '';
       } catch (error) {
         console.error('Failed to open billing portal:', error);
         return '';
+      }
+    },
+
+    // Schedules cancellation at the end of the billing period.
+    async cancelSubscription(studioId = '') {
+      return await this.setSubscriptionCancellation(true, studioId);
+    },
+
+    // Removes a scheduled end-of-period cancellation.
+    async resumeSubscription(studioId = '') {
+      return await this.setSubscriptionCancellation(false, studioId);
+    },
+
+    async setSubscriptionCancellation(shouldCancel, studioId = '') {
+      try {
+        const action = shouldCancel
+          ? EntitlementService.CancelSubscription
+          : EntitlementService.ResumeSubscription;
+        const result = await action(studioId);
+        if (studioId && this.studioEntitlements[studioId]) {
+          this.studioEntitlements[studioId].cancel_at_period_end = result?.cancel_at_period_end || false;
+          this.studioEntitlements[studioId].current_period_end = result?.current_period_end || null;
+        } else {
+          this.cancelAtPeriodEnd = result?.cancel_at_period_end || false;
+          this.currentPeriodEnd = result?.current_period_end || this.currentPeriodEnd;
+        }
+        return true;
+      } catch (error) {
+        console.error('Failed to update subscription cancellation:', error);
+        return false;
       }
     },
   },

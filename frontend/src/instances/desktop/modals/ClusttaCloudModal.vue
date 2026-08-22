@@ -371,9 +371,19 @@ const selectPlan = async (plan) => {
 
   // Paid plans go through Stripe Checkout; free plan is a direct downgrade
   if (plan.price_cents > 0) {
-    const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
+    const { checkoutUrl, subscriptionUpdated } = await entitlementStore.createCheckout(plan.id, studioId);
     isChanging.value = false;
     changingPlanId.value = null;
+    if (subscriptionUpdated) {
+      if (studioId) {
+        await entitlementStore.fetchStudioEntitlements(studioId);
+      } else {
+        await entitlementStore.fetchEntitlements();
+      }
+      notificationStore.addNotification('Plan changed', 'Your subscription has been updated.', 'success', false);
+      closeModal();
+      return;
+    }
     if (checkoutUrl) {
       Browser.OpenURL(checkoutUrl);
       notificationStore.addNotification('Checkout', 'Complete your payment in the browser', 'success', false);
@@ -381,22 +391,28 @@ const selectPlan = async (plan) => {
     } else {
       notificationStore.addNotification('Error', 'Failed to start checkout. Please try again.', 'error', false);
     }
-  } else {
-    const success = await entitlementStore.changePlan(plan.id);
+  } else if (currentPlanName.value !== 'free') {
+    const success = await entitlementStore.cancelSubscription(studioId);
     isChanging.value = false;
     changingPlanId.value = null;
     if (success) {
-      notificationStore.addNotification('Plan changed', 'You are now on the ' + formatPlanName(plan.name) + ' plan', 'success', false);
+      notificationStore.addNotification('Cancellation scheduled', 'Your current plan remains active until the end of the billing period.', 'success', false);
       closeModal();
     } else {
-      notificationStore.addNotification('Error', 'Failed to change plan. Please try again.', 'error', false);
+      notificationStore.addNotification('Error', 'Failed to schedule cancellation. Please try again.', 'error', false);
     }
+  } else {
+    isChanging.value = false;
+    changingPlanId.value = null;
   }
 };
 
 // Opens the Stripe billing portal in the system browser.
 const openBillingPortal = async () => {
-  const portalUrl = await entitlementStore.openBillingPortal();
+  const studioId = activeTab.value === 'studio' && isCloudStudio.value
+    ? projectStore.selectedStudio?.id
+    : '';
+  const portalUrl = await entitlementStore.openBillingPortal(studioId);
   if (portalUrl) {
     Browser.OpenURL(portalUrl);
   } else {

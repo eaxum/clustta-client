@@ -55,13 +55,27 @@
       <!-- Administration Card -->
       <ProfileCard :title="$t('settings.administration')">
         <div class="admin-list">
-          <div v-if="isCloudHosted" class="settings-item" @click="openBillingPortal">
+          <div v-if="isCloudHosted && studioStore.isStudioAdmin" class="settings-item" @click="openBillingPortal">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('credit-card')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.billing') }}</div>
-              <div class="settings-body">{{ $t('settings.manageBilling') }}</div>
+              <div class="settings-body">{{ billingStatusText }}</div>
             </div>
             <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+          </div>
+
+          <div
+            v-if="isCloudHosted && studioStore.isStudioAdmin && studioEntitlements?.plan !== 'free'"
+            class="settings-item"
+            @click="toggleSubscriptionCancellation"
+          >
+            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(studioEntitlements?.cancel_at_period_end ? 'refresh' : 'close-circle')"></div>
+            <div class="settings-content">
+              <div class="settings-header">{{ studioEntitlements?.cancel_at_period_end ? 'Keep subscription' : 'Cancel subscription' }}</div>
+              <div class="settings-body">
+                {{ studioEntitlements?.cancel_at_period_end ? 'Continue the subscription beyond the current billing period.' : 'Your plan remains available until the end of the billing period.' }}
+              </div>
+            </div>
           </div>
 
           <div class="settings-item disabled">
@@ -110,6 +124,7 @@ const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const studioStore = useStudioStore();
 const settings = useSettingsStore();
+const trayStates = useTrayStates();
 const { t } = useI18n();
 
 // stores/state imports
@@ -120,6 +135,7 @@ import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
 import { useSettingsStore } from '@/stores/settings';
 import { useStudioStore } from '@/stores/studio';
+import { useTrayStates } from '@/stores/TrayStates';
 
 // refs
 const idCopied = ref(false);
@@ -176,6 +192,20 @@ const planLabel = computed(() => {
   if (!studioEntitlements.value) return '';
   const plan = studioEntitlements.value.plan || 'free';
   return plan.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+});
+
+const billingStatusText = computed(() => {
+  const subscription = studioEntitlements.value;
+  if (!subscription) return t('settings.manageBilling');
+  if (subscription.access_status === 'grace') return 'Payment failed - update the payment method to avoid suspension.';
+  if (subscription.access_status === 'suspended') return 'Subscription suspended - update billing to restore access.';
+  if (subscription.cancel_at_period_end) {
+    return `Cancels ${formatBillingDate(subscription.current_period_end)}.`;
+  }
+  if (subscription.current_period_end) {
+    return `Renews ${formatBillingDate(subscription.current_period_end)}.`;
+  }
+  return t('settings.manageBilling');
 });
 
 // Returns the storage usage as a percentage (0–100).
@@ -249,6 +279,11 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
+const formatBillingDate = (timestamp) => {
+  if (!timestamp) return 'at the end of the billing period';
+  return new Date(timestamp * 1000).toLocaleDateString();
+};
+
 // Opens the update studio modal.
 const launchUpdateStudioModal = () => {
   modals.setModalVisibility('updateStudioModal', true);
@@ -256,10 +291,46 @@ const launchUpdateStudioModal = () => {
 
 // Opens the Stripe billing portal in the system browser.
 const openBillingPortal = async () => {
-  const portalUrl = await entitlementStore.openBillingPortal();
+  const portalUrl = await entitlementStore.openBillingPortal(studioInfo.value?.id || '');
   if (portalUrl) {
     Browser.OpenURL(portalUrl);
+    return;
   }
+  notificationStore.addNotification('Billing unavailable', 'Failed to open the billing portal.', 'error');
+};
+
+const toggleSubscriptionCancellation = async () => {
+  const studioId = studioInfo.value?.id;
+  if (!studioId) return;
+  const shouldResume = studioEntitlements.value?.cancel_at_period_end;
+  if (!shouldResume) {
+    trayStates.popUpModalIcon = 'close-circle';
+    trayStates.popUpModalTitle = 'Cancel studio subscription?';
+    trayStates.popUpModalMessage = 'The studio remains active until the end of the current billing period. You can reverse this before then.';
+    trayStates.popUpModalFunction = updateSubscriptionCancellation;
+    modals.setModalVisibility('popUpModal', true);
+    return;
+  }
+  await updateSubscriptionCancellation();
+};
+
+const updateSubscriptionCancellation = async () => {
+  const studioId = studioInfo.value?.id;
+  if (!studioId) return;
+  const shouldResume = studioEntitlements.value?.cancel_at_period_end;
+  const success = shouldResume
+    ? await entitlementStore.resumeSubscription(studioId)
+    : await entitlementStore.cancelSubscription(studioId);
+  if (!success) {
+    notificationStore.addNotification('Subscription unchanged', 'Please try again or manage billing in Stripe.', 'error');
+    return;
+  }
+  notificationStore.addNotification(
+    shouldResume ? 'Subscription resumed' : 'Cancellation scheduled',
+    shouldResume ? 'Your subscription will continue.' : 'Your plan remains active until the end of the billing period.',
+    'success',
+  );
+  modals.setModalVisibility('popUpModal', false);
 };
 
 // Prepares the delete studio confirmation.

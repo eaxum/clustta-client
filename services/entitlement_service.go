@@ -29,13 +29,20 @@ type EntitlementUsage struct {
 
 // EntitlementBundle is the complete entitlement state for an entity.
 type EntitlementBundle struct {
-	Plan              string            `json:"plan"`
-	PlanType          string            `json:"plan_type"`
-	Status            string            `json:"status"`
-	Limits            EntitlementLimits `json:"limits"`
-	Usage             EntitlementUsage  `json:"usage"`
-	Features          []string          `json:"features"`
-	EffectiveFeatures []string          `json:"effective_features,omitempty"`
+	Plan               string            `json:"plan"`
+	PlanType           string            `json:"plan_type"`
+	Status             string            `json:"status"`
+	AccessStatus       string            `json:"access_status"`
+	CurrentPeriodEnd   *int64            `json:"current_period_end,omitempty"`
+	CancelAtPeriodEnd  bool              `json:"cancel_at_period_end"`
+	PaymentFailedAt    *int64            `json:"payment_failed_at,omitempty"`
+	GraceEndsAt        *int64            `json:"grace_ends_at,omitempty"`
+	DataDeleteAt       *int64            `json:"data_delete_at,omitempty"`
+	NextPaymentAttempt *int64            `json:"next_payment_attempt,omitempty"`
+	Limits             EntitlementLimits `json:"limits"`
+	Usage              EntitlementUsage  `json:"usage"`
+	Features           []string          `json:"features"`
+	EffectiveFeatures  []string          `json:"effective_features,omitempty"`
 }
 
 // privateServerEntitlements returns a default entitlement bundle for private studio servers.
@@ -127,6 +134,18 @@ type Plan struct {
 	FeatureKeys       []string `json:"feature_keys"`
 }
 
+// CheckoutResult describes whether Stripe Checkout is required for a plan change.
+type CheckoutResult struct {
+	CheckoutURL         string `json:"checkout_url"`
+	SubscriptionUpdated bool   `json:"subscription_updated"`
+}
+
+// CancellationResult describes the current end-of-period cancellation state.
+type CancellationResult struct {
+	CancelAtPeriodEnd bool  `json:"cancel_at_period_end"`
+	CurrentPeriodEnd  int64 `json:"current_period_end"`
+}
+
 // GetPlans fetches all available plans from the server.
 func (e *EntitlementService) GetPlans() ([]Plan, error) {
 	url := constants.HOST + "/plans"
@@ -160,10 +179,13 @@ func (e *EntitlementService) GetPlans() ([]Plan, error) {
 }
 
 // ChangePlan changes the subscription to a new plan and returns the updated entitlements.
-func (e *EntitlementService) ChangePlan(planId string) (EntitlementBundle, error) {
+func (e *EntitlementService) ChangePlan(planId, studioId string) (EntitlementBundle, error) {
 	url := constants.HOST + "/subscription/change-plan"
 
 	body := map[string]string{"plan_id": planId}
+	if studioId != "" {
+		body["studio_id"] = studioId
+	}
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return EntitlementBundle{}, fmt.Errorf("error marshalling request: %w", err)
@@ -200,7 +222,7 @@ func (e *EntitlementService) ChangePlan(planId string) (EntitlementBundle, error
 }
 
 // CreateCheckout creates a Stripe Checkout Session and returns the checkout URL.
-func (e *EntitlementService) CreateCheckout(planId, studioId string) (string, error) {
+func (e *EntitlementService) CreateCheckout(planId, studioId string) (CheckoutResult, error) {
 	url := constants.HOST + "/subscription/create-checkout"
 
 	body := map[string]string{"plan_id": planId}
@@ -209,12 +231,12 @@ func (e *EntitlementService) CreateCheckout(planId, studioId string) (string, er
 	}
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
-		return "", fmt.Errorf("error marshalling request: %w", err)
+		return CheckoutResult{}, fmt.Errorf("error marshalling request: %w", err)
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonBody))
 	if err != nil {
-		return "", fmt.Errorf("error creating request: %w", err)
+		return CheckoutResult{}, fmt.Errorf("error creating request: %w", err)
 	}
 
 	auth_service.AttachBearerToken(req)
@@ -224,31 +246,32 @@ func (e *EntitlementService) CreateCheckout(planId, studioId string) (string, er
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("error creating checkout: %w", err)
+		return CheckoutResult{}, fmt.Errorf("error creating checkout: %w", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("server returned %d: %s", resp.StatusCode, string(respBody))
+		return CheckoutResult{}, fmt.Errorf("server returned %d: %s", resp.StatusCode, string(respBody))
 	}
 
-	var result struct {
-		CheckoutURL string `json:"checkout_url"`
-	}
+	var result CheckoutResult
 	err = json.NewDecoder(resp.Body).Decode(&result)
 	if err != nil {
-		return "", fmt.Errorf("error decoding response: %w", err)
+		return CheckoutResult{}, fmt.Errorf("error decoding response: %w", err)
 	}
 
-	return result.CheckoutURL, nil
+	return result, nil
 }
 
 // OpenBillingPortal creates a Stripe Billing Portal session and returns the portal URL.
-func (e *EntitlementService) OpenBillingPortal() (string, error) {
+func (e *EntitlementService) OpenBillingPortal(studioId string) (string, error) {
 	url := constants.HOST + "/subscription/portal"
 
 	body := map[string]string{}
+	if studioId != "" {
+		body["studio_id"] = studioId
+	}
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return "", fmt.Errorf("error marshalling request: %w", err)
@@ -284,4 +307,50 @@ func (e *EntitlementService) OpenBillingPortal() (string, error) {
 	}
 
 	return result.PortalURL, nil
+}
+
+// CancelSubscription schedules cancellation at the end of the current billing period.
+func (e *EntitlementService) CancelSubscription(studioId string) (CancellationResult, error) {
+	return e.setSubscriptionCancellation("/subscription/cancel", studioId)
+}
+
+// ResumeSubscription removes a scheduled subscription cancellation.
+func (e *EntitlementService) ResumeSubscription(studioId string) (CancellationResult, error) {
+	return e.setSubscriptionCancellation("/subscription/resume", studioId)
+}
+
+func (e *EntitlementService) setSubscriptionCancellation(path, studioId string) (CancellationResult, error) {
+	url := constants.HOST + path
+	body := map[string]string{}
+	if studioId != "" {
+		body["studio_id"] = studioId
+	}
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return CancellationResult{}, fmt.Errorf("error marshalling request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewReader(jsonBody))
+	if err != nil {
+		return CancellationResult{}, fmt.Errorf("error creating request: %w", err)
+	}
+	auth_service.AttachBearerToken(req)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
+
+	resp, err := (&http.Client{}).Do(req)
+	if err != nil {
+		return CancellationResult{}, fmt.Errorf("error updating subscription cancellation: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return CancellationResult{}, fmt.Errorf("server returned %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var result CancellationResult
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return CancellationResult{}, fmt.Errorf("error decoding response: %w", err)
+	}
+	return result, nil
 }

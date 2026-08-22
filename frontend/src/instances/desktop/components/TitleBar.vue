@@ -1,6 +1,6 @@
 <template>
   <div style="--wails-draggable:drag" @dblclick="toggleMaximize" class="titlebar"
-    :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || locationsStale }"
+    :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || paymentNeedsAttention || locationsStale }"
     v-stop-propagation>
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
@@ -189,6 +189,12 @@ const projectStages = ['browser', 'trash', 'projectSettings'];
 const showUnsyncedBar = computed(() => { return projectStore.getActiveProject?.has_remote && projectStore.getActiveProject?.is_unsynced && projectStages.includes(stage.activeStage) });
 
 const studioInactive = computed(() => !entitlementStore.isStudioActive);
+
+const paymentNeedsAttention = computed(() => {
+  if (!studioStore.isStudioAdmin || !projectStore.isCloudHosted) return false;
+  const studioId = projectStore.selectedStudio?.id;
+  return entitlementStore.studioEntitlements[studioId]?.access_status === 'grace';
+});
 
 const locationsStale = computed(() => settingsStore.locationsStale);
 

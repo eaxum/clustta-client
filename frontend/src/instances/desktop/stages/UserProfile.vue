@@ -147,6 +147,34 @@
             </div>
           </ProfileCard>
 
+          <ProfileCard v-if="!accountStore.isStudioAuth" title="Subscription">
+            <div class="subscription-section">
+              <div class="subscription-summary">
+                <div>
+                  <div class="subscription-plan">{{ subscriptionPlanLabel }}</div>
+                  <div class="subscription-status">{{ subscriptionStatusText }}</div>
+                </div>
+                <div class="subscription-actions">
+                  <ActionButton
+                    v-if="entitlementStore.isPaidPlan"
+                    :icon="getAppIcon('credit-card')"
+                    label="Manage billing"
+                    :useOutline="true"
+                    @click="openBillingPortal"
+                  />
+                  <ActionButton
+                    v-if="entitlementStore.isPaidPlan"
+                    :icon="getAppIcon(entitlementStore.cancelAtPeriodEnd ? 'refresh' : 'close-circle')"
+                    :label="entitlementStore.cancelAtPeriodEnd ? 'Keep subscription' : 'Cancel subscription'"
+                    :color="entitlementStore.cancelAtPeriodEnd ? undefined : 'crimson'"
+                    :useBackground="true"
+                    @click="toggleSubscriptionCancellation"
+                  />
+                </div>
+              </div>
+            </div>
+          </ProfileCard>
+
           <!-- Studios Card -->
           <ProfileCard v-if="formData.studios.length" :title="$t('stages.studios')">
             <div class="studios-container">
@@ -325,6 +353,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useStageStore } from '@/stores/stages';
 import { useAccountStore } from '@/stores/accounts';
+import { useEntitlementStore } from '@/stores/entitlements';
 
 // Components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -340,6 +369,7 @@ import utils from '@/services/utils';
 
 // Stores
 const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const userStore = useUserStore();
@@ -366,6 +396,27 @@ const isUsernameTaken = ref(false);
 const isSavingChanges = ref(false);
 const areLinksValid = ref(true);
 const profileSnapshot = ref(null);
+
+const subscriptionPlanLabel = computed(() => {
+  const name = entitlementStore.plan || 'free';
+  return name.replace(/_/g, ' ').replace(/\b\w/g, character => character.toUpperCase());
+});
+
+const subscriptionStatusText = computed(() => {
+  if (entitlementStore.accessStatus === 'grace') {
+    return 'Payment failed - update your payment method to avoid suspension.';
+  }
+  if (entitlementStore.accessStatus === 'suspended') {
+    return 'Subscription suspended - update billing to restore access.';
+  }
+  if (entitlementStore.cancelAtPeriodEnd) {
+    return `Cancels ${formatSubscriptionDate(entitlementStore.currentPeriodEnd)}.`;
+  }
+  if (entitlementStore.currentPeriodEnd) {
+    return `Renews ${formatSubscriptionDate(entitlementStore.currentPeriodEnd)}.`;
+  }
+  return entitlementStore.isPaidPlan ? 'Active subscription' : 'Free plan';
+});
 
 // Section-specific edit states
 const editingSections = reactive({
@@ -840,6 +891,54 @@ const openProfileInBrowser = () => {
   }
 };
 
+const formatSubscriptionDate = (timestamp) => {
+  if (!timestamp) return 'at the end of the billing period';
+  return new Date(timestamp * 1000).toLocaleDateString();
+};
+
+const openBillingPortal = async () => {
+  const portalUrl = await entitlementStore.openBillingPortal();
+  if (!portalUrl) {
+    notificationStore.errorNotification('Billing unavailable', 'Failed to open the billing portal.');
+    return;
+  }
+  if (isWebMode) {
+    window.open(portalUrl, '_blank');
+  } else if (Browser) {
+    Browser.OpenURL(portalUrl);
+  }
+};
+
+const toggleSubscriptionCancellation = async () => {
+  const shouldResume = entitlementStore.cancelAtPeriodEnd;
+  if (!shouldResume) {
+    trayStates.popUpModalIcon = 'close-circle';
+    trayStates.popUpModalTitle = 'Cancel subscription?';
+    trayStates.popUpModalMessage = 'Your paid plan remains active until the end of the current billing period. You can reverse this before then.';
+    trayStates.popUpModalFunction = updateSubscriptionCancellation;
+    modals.setModalVisibility('popUpModal', true);
+    return;
+  }
+  await updateSubscriptionCancellation();
+};
+
+const updateSubscriptionCancellation = async () => {
+  const shouldResume = entitlementStore.cancelAtPeriodEnd;
+  const success = shouldResume
+    ? await entitlementStore.resumeSubscription()
+    : await entitlementStore.cancelSubscription();
+  if (!success) {
+    notificationStore.errorNotification('Subscription unchanged', 'Please try again or manage billing in Stripe.');
+    return;
+  }
+  notificationStore.addNotification(
+    shouldResume ? 'Subscription resumed' : 'Cancellation scheduled',
+    shouldResume ? 'Your subscription will continue.' : 'Your plan remains active until the end of the billing period.',
+    'success',
+  );
+  modals.setModalVisibility('popUpModal', false);
+};
+
 const updateLinks = (newLinks) => {
   profileStore.updateLinks(newLinks);
 };
@@ -927,6 +1026,7 @@ onBeforeMount(async () => {
     const loaders = [loadUserProfile()];
     if (!accountStore.isStudioAuth) {
       loaders.push(loadReferenceData());
+      loaders.push(entitlementStore.fetchEntitlements());
     }
     await Promise.all(loaders);
   } else {
@@ -998,6 +1098,36 @@ onBeforeMount(async () => {
   height: 100%;
   height: min-content;
   border-radius: 0px;
+}
+
+.subscription-section {
+  padding: 0.25rem;
+}
+
+.subscription-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.subscription-plan {
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.subscription-status {
+  margin-top: 0.3rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.subscription-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 /* Edit Controls */

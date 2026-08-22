@@ -11,13 +11,25 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 import * as $models from "./models.js";
 
 /**
+ * CancelSubscription schedules cancellation at the end of the current billing period.
+ * @param {string} studioId
+ * @returns {$CancellablePromise<$models.CancellationResult>}
+ */
+export function CancelSubscription(studioId) {
+    return $Call.ByID(3453444251, studioId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * ChangePlan changes the subscription to a new plan and returns the updated entitlements.
  * @param {string} planId
+ * @param {string} studioId
  * @returns {$CancellablePromise<$models.EntitlementBundle>}
  */
-export function ChangePlan(planId) {
-    return $Call.ByID(1517853031, planId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+export function ChangePlan(planId, studioId) {
+    return $Call.ByID(1517853031, planId, studioId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
     }));
 }
 
@@ -25,10 +37,12 @@ export function ChangePlan(planId) {
  * CreateCheckout creates a Stripe Checkout Session and returns the checkout URL.
  * @param {string} planId
  * @param {string} studioId
- * @returns {$CancellablePromise<string>}
+ * @returns {$CancellablePromise<$models.CheckoutResult>}
  */
 export function CreateCheckout(planId, studioId) {
-    return $Call.ByID(2200075884, planId, studioId);
+    return $Call.ByID(2200075884, planId, studioId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
 }
 
 /**
@@ -38,7 +52,7 @@ export function CreateCheckout(planId, studioId) {
  */
 export function GetEntitlements() {
     return $Call.ByID(2005214572).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
 }
 
@@ -48,7 +62,7 @@ export function GetEntitlements() {
  */
 export function GetPlans() {
     return $Call.ByID(3186353408).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType4($result);
     }));
 }
 
@@ -60,19 +74,33 @@ export function GetPlans() {
  */
 export function GetStudioEntitlements(studioId) {
     return $Call.ByID(1004503926, studioId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
 }
 
 /**
  * OpenBillingPortal creates a Stripe Billing Portal session and returns the portal URL.
+ * @param {string} studioId
  * @returns {$CancellablePromise<string>}
  */
-export function OpenBillingPortal() {
-    return $Call.ByID(308026693);
+export function OpenBillingPortal(studioId) {
+    return $Call.ByID(308026693, studioId);
+}
+
+/**
+ * ResumeSubscription removes a scheduled subscription cancellation.
+ * @param {string} studioId
+ * @returns {$CancellablePromise<$models.CancellationResult>}
+ */
+export function ResumeSubscription(studioId) {
+    return $Call.ByID(786441370, studioId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
 }
 
 // Private type creation functions
-const $$createType0 = $models.EntitlementBundle.createFrom;
-const $$createType1 = $models.Plan.createFrom;
-const $$createType2 = $Create.Array($$createType1);
+const $$createType0 = $models.CancellationResult.createFrom;
+const $$createType1 = $models.EntitlementBundle.createFrom;
+const $$createType2 = $models.CheckoutResult.createFrom;
+const $$createType3 = $models.Plan.createFrom;
+const $$createType4 = $Create.Array($$createType3);

@@ -1,9 +1,9 @@
 <template>
-  <div v-if="visible" class="plan-info" :class="{ 'plan-free': !isPaid && !isInactive, 'plan-inactive': isInactive }" @click="handleClick" v-stop-propagation>
-    <template v-if="isInactive">
+  <div v-if="visible" class="plan-info" :class="{ 'plan-free': !isPaid && !isInactive && !needsPaymentAttention, 'plan-inactive': isInactive || needsPaymentAttention }" @click="handleClick" v-stop-propagation>
+    <template v-if="isInactive || needsPaymentAttention">
       <div class="plan-free-content">
         <img class="plan-free-icon" :src="getAppIcon('alert')" />
-        <span class="plan-upgrade">Inactive. Click to fix</span>
+        <span class="plan-upgrade">{{ needsPaymentAttention ? 'Payment failed. Click to fix' : 'Inactive. Click to fix' }}</span>
       </div>
     </template>
 
@@ -84,6 +84,13 @@ const isInactive = computed(() => {
   const studio = projectStore.selectedStudio;
   if (!studio || studio.name === 'Personal') return false;
   return studio.active === false;
+});
+
+const needsPaymentAttention = computed(() => {
+  if (isCloudStudio.value) {
+    return studioStore.isStudioAdmin && studioBundle.value?.access_status === 'grace';
+  }
+  return entitlementStore.accessStatus === 'grace';
 });
 
 // Returns the display name for the current plan.

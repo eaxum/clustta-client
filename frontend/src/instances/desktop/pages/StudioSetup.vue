@@ -455,7 +455,7 @@ const createCloudStudioAndCheckout = async () => {
     // Get the studio ID from the creation response
     const studioId = result?.id || '';
 
-    const checkoutUrl = await entitlementStore.createCheckout(plan.id, studioId);
+    const { checkoutUrl } = await entitlementStore.createCheckout(plan.id, studioId);
     if (checkoutUrl) {
       Browser.OpenURL(checkoutUrl);
       notificationStore.addNotification('Checkout', 'Complete your payment in the browser. Your studio will be activated once payment is confirmed.', 'info', false);
