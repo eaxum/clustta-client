@@ -4,6 +4,22 @@ import { useProjectStore } from "@/stores/projects";
 import utils from "@/services/utils";
 
 let entitlementFetchPromise = null;
+const entitlementReconciliationDelays = [1000, 3000, 7000];
+const entitlementReconciliationVersions = new Map();
+
+function wait(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+function planLimits(plan, currentLimits = {}) {
+  return {
+    ...currentLimits,
+    storage_bytes: plan.storage_bytes ?? currentLimits.storage_bytes ?? 0,
+    max_remote_projects: plan.max_remote_projects ?? currentLimits.max_remote_projects ?? 0,
+    max_collaborators: plan.max_collaborators ?? currentLimits.max_collaborators ?? 0,
+    ai_credits_monthly: plan.ai_credits_monthly ?? currentLimits.ai_credits_monthly ?? 0,
+  };
+}
 
 // Builds a synthetic bundle for self-hosted (private) studios.
 function createPrivateStudioBundle(usage = {}, usageUnavailable = false) {
@@ -219,6 +235,68 @@ export const useEntitlementStore = defineStore("entitlements", {
       this.effectiveFeatures = bundle.effective_features || bundle.features || [];
     },
 
+    // Applies a Stripe-accepted plan immediately while preserving current usage.
+    applyPlanLocally(planId, studioId = "") {
+      const plan = this.plans.find(candidate => candidate.id === planId);
+      if (!plan) return "";
+
+      const features = [...(plan.feature_keys || [])];
+      if (studioId) {
+        const currentBundle = this.studioEntitlements[studioId] || {};
+        this.studioEntitlements[studioId] = {
+          ...currentBundle,
+          plan: plan.name,
+          plan_type: plan.type,
+          cancel_at_period_end: false,
+          limits: planLimits(plan, currentBundle.limits),
+          features,
+        };
+        return plan.name;
+      }
+
+      this.plan = plan.name;
+      this.planType = plan.type;
+      this.cancelAtPeriodEnd = false;
+      this.limits = planLimits(plan, this.limits);
+      this.features = features;
+      return plan.name;
+    },
+
+    // Reconciles optimistic plan state after Stripe webhooks update the server.
+    async reconcilePlan(expectedPlan, studioId = "") {
+      const entityKey = studioId || "individual";
+      const version = (entitlementReconciliationVersions.get(entityKey) || 0) + 1;
+      entitlementReconciliationVersions.set(entityKey, version);
+      let lastError = null;
+
+      for (const [index, delay] of entitlementReconciliationDelays.entries()) {
+        await wait(delay);
+        if (entitlementReconciliationVersions.get(entityKey) !== version) return;
+
+        try {
+          const bundle = studioId
+            ? await EntitlementService.GetStudioEntitlements(studioId)
+            : await EntitlementService.GetEntitlements();
+          const isFinalAttempt = index === entitlementReconciliationDelays.length - 1;
+          if (bundle?.plan !== expectedPlan && !isFinalAttempt) continue;
+
+          if (studioId) {
+            this.studioEntitlements[studioId] = bundle;
+          } else {
+            this.applyBundle(bundle);
+          }
+          this.lastFetched = Date.now();
+          entitlementReconciliationVersions.delete(entityKey);
+          return;
+        } catch (error) {
+          lastError = error;
+        }
+      }
+
+      entitlementReconciliationVersions.delete(entityKey);
+      if (lastError) console.error("Failed to reconcile plan entitlements:", lastError);
+    },
+
     // Returns studio entitlements, fetching if not cached.
     async getStudioEntitlements(studioId) {
       if (this.studioEntitlements[studioId]) {
@@ -267,6 +345,7 @@ export const useEntitlementStore = defineStore("entitlements", {
       this.plans = [];
       this.studioEntitlements = {};
       this.lastFetched = null;
+      entitlementReconciliationVersions.clear();
     },
 
     // Fetches all available plans from the server.
@@ -306,7 +385,12 @@ export const useEntitlementStore = defineStore("entitlements", {
         const result = await EntitlementService.CreateCheckout(planId, studioId);
         const subscriptionUpdated = result?.subscription_updated || false;
         if (subscriptionUpdated) {
-          await this.refreshEntitlements(studioId);
+          const expectedPlan = this.applyPlanLocally(planId, studioId);
+          if (expectedPlan) {
+            void this.reconcilePlan(expectedPlan, studioId);
+          } else {
+            await this.refreshEntitlements(studioId);
+          }
         }
         return {
           checkoutUrl: result?.checkout_url || '',
