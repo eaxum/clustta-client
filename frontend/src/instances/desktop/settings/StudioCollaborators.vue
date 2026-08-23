@@ -60,6 +60,7 @@ import PageState from '@/instances/common/components/PageState.vue';
 
 // states
 const studioStore = useStudioStore();
+const projectStore = useProjectStore();
 const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
