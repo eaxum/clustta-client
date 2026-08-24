@@ -10,11 +10,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/mattn/go-sqlite3"
 )
+
+const checkpointVersionWidth = 4
 
 type Timeline struct {
 	CreatedAt string `db:"created_at" json:"created_at"`
@@ -224,6 +227,10 @@ func CreateCheckpoint(
 		timeModified = int(fileInfo.ModTime().Unix())
 		fileSize = int(fileInfo.Size())
 	}
+	message, err = resolveCheckpointComment(tx, assetId, message)
+	if err != nil {
+		return models.Checkpoint{}, err
+	}
 	createdAt, err := nextCheckpointTime(tx, utils.GetEpochTime())
 	if err != nil {
 		return models.Checkpoint{}, err
@@ -263,6 +270,20 @@ func CreateCheckpoint(
 	// 	return models.Checkpoint{}, error_service.ErrCheckpointExists
 	// }
 	return checkpoint, nil
+}
+
+func resolveCheckpointComment(tx *sqlx.Tx, assetId, message string) (string, error) {
+	trimmedMessage := strings.TrimSpace(message)
+	if trimmedMessage != "" {
+		return trimmedMessage, nil
+	}
+
+	checkpointCount := 0
+	if err := tx.Get(&checkpointCount, "SELECT COUNT(*) FROM asset_checkpoint WHERE asset_id = ?", assetId); err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("v%0*d", checkpointVersionWidth, checkpointCount+1), nil
 }
 
 func AddCheckpoint(

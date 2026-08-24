@@ -5,12 +5,10 @@
 
       <div class="checkpoint-create-layout">
         <div class="checkpoint-create-form">
-          <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.makeAComment')" v-focus
+          <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="suggestedComment" v-focus
             @keydown.enter="handleEnterKey" />
 
           <div class="checkpoint-create-controls">
-            <InputAlert :show="!isValueChanged" :message="validationMessage" />
-
             <div v-if="!statusMenuDisplayed" class="attachment-area">
               <div class="asset-item-status-container" v-stop-propagation>
                 <div class="asset-item-status" @click="toggleDisplayStatusMenu()"
@@ -68,7 +66,7 @@
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.close')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
-        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCheckPoint" :isActive="isValueChanged"
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCheckPoint" :isActive="!isAwaitingResponse"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -88,7 +86,6 @@ import utils from '@/services/utils';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import InputAlert from '@/instances/common/components/InputAlert.vue';
 import Checkpoints from '@/instances/desktop/panes/Checkpoints.vue';
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -125,11 +122,13 @@ const isAwaitingResponse = ref(false);
 const message = ref('');
 const modalContainer = ref(null);
 const sendToIntegrationEnabled = ref(true);
+const suggestedComment = ref('');
 const syncAfterCheckpointEnabled = ref(false);
 const useImageAsCover = ref(true);
 
 // constants
-const forbiddenComments = ['wip', 'wfa', 'retake', 'retook', 'todo', 'fmf'];
+const checkpointVersionWidth = 4;
+const firstCheckpointVersion = 1;
 const fallbackStatus = {
   color: 'var(--item-border)',
   short_name: '',
@@ -141,15 +140,6 @@ const isAttachmentImage = computed(() => {
   if (!trayStates.previewFullPath) return false;
   const ext = trayStates.previewFullPath.split('.').pop().toLowerCase();
   return ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'tiff', 'webp'].includes(ext);
-});
-
-// Returns whether the message is valid for submission.
-const isValueChanged = computed(() => {
-  const messageWords = message.value.toLowerCase().split(/\s+/);
-  const hasForbiddenWord = forbiddenComments.some(comment =>
-    messageWords.includes(comment.toLowerCase())
-  );
-  return message.value.trim().length > 6 && !hasForbiddenWord;
 });
 
 // Returns whether the status menu should be displayed.
@@ -191,21 +181,6 @@ const assetStatus = computed(() => {
     return statusStore.statuses.find((item) => item.name === 'todo') || fallbackStatus;
   }
   return assetStore.selectedAsset.status || fallbackStatus;
-});
-
-// Returns the validation message for the comment field.
-const validationMessage = computed(() => {
-  if (message.value.trim().length <= 6) {
-    return t('notifications.messageTooShort');
-  }
-  const messageWords = message.value.toLowerCase().split(/\s+/);
-  const foundForbidden = forbiddenComments.find(comment =>
-    messageWords.includes(comment.toLowerCase())
-  );
-  if (foundForbidden) {
-    return t('notifications.avoidForbiddenWord', { word: foundForbidden.toUpperCase() });
-  }
-  return '';
 });
 
 // methods
@@ -285,8 +260,28 @@ const getAppIcon = (iconName) => {
 
 // Handles enter key press to submit form.
 const handleEnterKey = (event) => {
-  if (event.key === 'Enter' && isValueChanged.value) {
+  if (event.key === 'Enter' && !isAwaitingResponse.value) {
     createCheckPoint();
+  }
+};
+
+// Suggests the next visible checkpoint version without making it authoritative.
+const suggestCheckpointComment = async () => {
+  if (!canShowExistingCheckpoints.value) {
+    suggestedComment.value = `v${String(firstCheckpointVersion).padStart(checkpointVersionWidth, '0')}`;
+    return;
+  }
+
+  try {
+    const checkpoints = await CheckpointService.GetCheckpoints(
+      projectStore.activeProject.uri,
+      assetStore.selectedAsset.id
+    );
+    const nextVersion = (checkpoints?.length || 0) + firstCheckpointVersion;
+    suggestedComment.value = `v${String(nextVersion).padStart(checkpointVersionWidth, '0')}`;
+  } catch (error) {
+    console.error('Failed to suggest checkpoint comment:', error);
+    suggestedComment.value = t('placeholders.makeAComment');
   }
 };
 
@@ -376,6 +371,7 @@ onMounted(async () => {
   trayStates.screenshot = null;
   trayStates.previewFile = '';
   trayStates.previewFullPath = '';
+  await suggestCheckpointComment();
   try {
     syncAfterCheckpointEnabled.value = await SettingsService.GetSyncAfterCheckpoint();
   } catch (error) {

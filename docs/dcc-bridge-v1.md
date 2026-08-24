@@ -62,6 +62,10 @@ Checkpoint requests accept:
 }
 ```
 
+`message` is optional. When it is omitted or blank, the bridge stores the next
+asset version as the comment, starting at `v0001`. Explicit comments are
+trimmed and stored as provided.
+
 The bridge verifies that `filePath` is the tracked asset path. Integration
 publishing and comment forwarding happen in the bridge.
 

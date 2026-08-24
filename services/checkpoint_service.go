@@ -333,7 +333,7 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 	if sendToIntegration && len(checkpoints) == 1 {
 		go func() {
 			integrationSvc := &IntegrationService{}
-			if err := integrationSvc.PushToIntegration(projectPath, []string{checkpoints[0].AssetId}, checkpoints[0].Id, previewPath, message); err != nil {
+			if err := integrationSvc.PushToIntegration(projectPath, []string{checkpoints[0].AssetId}, checkpoints[0].Id, previewPath, checkpoints[0].Comment); err != nil {
 				log.Printf("integration push failed (checkpoint still created): %v", err)
 				app.Event.Emit("integration-push-failed", map[string]interface{}{
 					"error": err.Error(),

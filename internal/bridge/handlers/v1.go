@@ -419,10 +419,6 @@ func V1CreateCheckpoint(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if strings.TrimSpace(body.Message) == "" {
-		jsonError(w, http.StatusBadRequest, "message is required")
-		return
-	}
 	if body.FilePath == "" || !samePath(body.FilePath, asset.GetFilePath()) {
 		jsonError(w, http.StatusBadRequest, "filePath does not match the tracked asset")
 		return
@@ -454,7 +450,7 @@ func V1CreateCheckpoint(w http.ResponseWriter, r *http.Request) {
 			project.Uri,
 			[]string{asset.AssetPath},
 			[]string{asset.Extension},
-			strings.TrimSpace(body.Message),
+			body.Message,
 			body.PreviewPath,
 			uuid.NewString(),
 			body.UseAsThumbnail,

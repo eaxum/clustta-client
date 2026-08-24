@@ -9,8 +9,6 @@
             @keydown.enter="handleEnterKey" />
 
           <div class="checkpoint-create-controls">
-            <InputAlert :show="!isValueChanged" :message="validationMessage" />
-
             <div v-if="assetStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
               <ActionButton :isLoading="true" :icon="getAppIcon('loading')"
                 v-tooltip="$t('modals.loadingCollectionStates')" />
@@ -102,7 +100,7 @@
 
     <div class="pop-up-actions">
       <GeneralButton :label="$t('common.close')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
-      <GeneralButton :label="$t('common.confirm')" :fullWidth="true" @click="createCheckPoints" :isActive="isValueChanged"
+      <GeneralButton :label="$t('common.confirm')" :fullWidth="true" @click="createCheckPoints" :isActive="canCreateCheckpoints"
         :loading="isAwaitingResponse" />
     </div>
     
@@ -125,7 +123,6 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetItem from '@/instances/desktop/components/AssetItem.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import InputAlert from '@/instances/common/components/InputAlert.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -169,7 +166,6 @@ const showFullPath = ref(false);
 const useImageAsCover = ref(true);
 
 // constants
-const forbiddenComments = ['wip', 'wfa', 'retake', 'retook', 'todo', 'fmf'];
 const modifiedItemTabs = [
   { name: 'all', icon: 'plus-stone' },
   { name: 'modified', icon: 'plus-stone', iconClass: 'modified-items-tab-alert' },
@@ -320,28 +316,9 @@ const totalCheckpointItems = computed(() => {
   return currentModifiedDisplayPaths.value.length + currentUntrackedPaths.value.length;
 });
 
-// Returns whether the message is valid for submission.
-const isValueChanged = computed(() => {
-  const messageWords = message.value.toLowerCase().split(/\s+/);
-  const hasForbiddenWord = forbiddenComments.some(comment =>
-    messageWords.includes(comment.toLowerCase())
-  );
-  return !assetStore.loadingAssetStates && message.value.trim().length > 6 && !hasForbiddenWord;
-});
-
-// Returns the validation message for the comment field.
-const validationMessage = computed(() => {
-  if (message.value.trim().length <= 6) {
-    return t('notifications.messageTooShort');
-  }
-  const messageWords = message.value.toLowerCase().split(/\s+/);
-  const foundForbidden = forbiddenComments.find(comment =>
-    messageWords.includes(comment.toLowerCase())
-  );
-  if (foundForbidden) {
-    return t('notifications.avoidForbiddenWord', { word: foundForbidden.toUpperCase() });
-  }
-  return '';
+// Returns whether the current checkpoint selection can be submitted.
+const canCreateCheckpoints = computed(() => {
+  return !assetStore.loadingAssetStates && totalCheckpointItems.value > 0;
 });
 
 // methods
@@ -591,7 +568,7 @@ const goToItem = async (item) => {
 
 // Handles enter key press to submit form.
 const handleEnterKey = (event) => {
-  if (event.key === 'Enter' && isValueChanged.value) {
+  if (event.key === 'Enter' && canCreateCheckpoints.value) {
     createCheckPoints();
   }
 };
