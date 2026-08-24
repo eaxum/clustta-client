@@ -2,6 +2,7 @@ package services
 
 import (
 	"clustta/internal/agent"
+	dcctools "clustta/internal/dcc"
 	"clustta/internal/repository"
 	"clustta/internal/utils"
 	"crypto/sha256"
@@ -30,7 +31,7 @@ func (f *FSService) GetPreLaunchTrust(projectPath, assetID string) (PreLaunchTru
 	if err != nil {
 		return PreLaunchTrustInfo{}, err
 	}
-	_, _, hook, scripts, err := resolvePreLaunch(projectPath, targetPath)
+	_, _, hook, scripts, variables, err := resolvePreLaunch(projectPath, targetPath)
 	if err != nil {
 		return PreLaunchTrustInfo{}, err
 	}
@@ -43,6 +44,11 @@ func (f *FSService) GetPreLaunchTrust(projectPath, assetID string) (PreLaunchTru
 		return PreLaunchTrustInfo{}, err
 	}
 	hash.Write(hookJSON)
+	variablesJSON, err := json.Marshal(variables)
+	if err != nil {
+		return PreLaunchTrustInfo{}, err
+	}
+	hash.Write(variablesJSON)
 	scriptNames := make([]string, 0, len(scripts))
 	for _, scriptPath := range scripts {
 		scriptHash, err := utils.GenerateXXHashChecksum(scriptPath)
@@ -92,44 +98,49 @@ func resolveAssetLaunchTarget(projectPath, assetID string) (string, error) {
 }
 
 func (f *FSService) launchProjectFile(projectPath, targetPath string) error {
-	targetPath, projectRoot, hook, scripts, err := resolvePreLaunch(projectPath, targetPath)
+	targetPath, projectRoot, hook, scripts, variables, err := resolvePreLaunch(projectPath, targetPath)
 	if err != nil {
 		return err
 	}
 	if hook == nil {
 		return f.LaunchFile(targetPath)
 	}
-	if err := launchWithPreLaunchHook(targetPath, projectRoot, *hook, scripts); err != nil {
+	if err := launchWithPreLaunchHook(targetPath, projectRoot, *hook, scripts, variables); err != nil {
+		if dcctools.IsExecutableNotFound(err) {
+			return err
+		}
 		if hook.FailurePolicy == repository.PreLaunchFailureWarn {
-			return launchWithEnvironment(targetPath, buildHookEnvironment(projectRoot, hook.EnvironmentVariables))
+			return launchWithEnvironment(targetPath, buildHookEnvironment(projectRoot, variables))
 		}
 		return err
 	}
 	return nil
 }
 
-func resolvePreLaunch(projectPath, targetPath string) (string, string, *repository.PreLaunchHook, []string, error) {
+func resolvePreLaunch(projectPath, targetPath string) (
+	string, string, *repository.PreLaunchHook, []string, []repository.PreLaunchEnvironmentVariable, error,
+) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, nil, nil, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, nil, nil, err
 	}
 	defer tx.Rollback()
 	projectRoot, err := utils.GetProjectWorkingDir(tx)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, nil, nil, err
 	}
 	targetPath, err = validateLaunchPath(projectRoot, targetPath)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, nil, nil, err
 	}
 	settings, err := repository.GetPreLaunchHookSettings(tx)
 	if err != nil {
-		return "", "", nil, nil, err
+		return "", "", nil, nil, nil, err
 	}
 	extension := strings.ToLower(filepath.Ext(targetPath))
 	for index := range settings.Hooks {
@@ -139,11 +150,28 @@ func resolvePreLaunch(projectPath, targetPath string) (string, string, *reposito
 		}
 		scripts, err := agent.ResolveTrackedScriptPaths(projectPath, hook.ScriptAssetIDs)
 		if err != nil {
-			return "", "", nil, nil, err
+			return "", "", nil, nil, nil, err
 		}
-		return targetPath, projectRoot, hook, scripts, nil
+		variables := resolveHookEnvironmentVariables(settings.EnvironmentVariables, hook.EnvironmentVariableIDs)
+		return targetPath, projectRoot, hook, scripts, variables, nil
 	}
-	return targetPath, projectRoot, nil, nil, nil
+	return targetPath, projectRoot, nil, nil, nil, nil
+}
+
+func resolveHookEnvironmentVariables(
+	variables []repository.PreLaunchEnvironmentVariable, selectedIDs []string,
+) []repository.PreLaunchEnvironmentVariable {
+	selected := make(map[string]bool, len(selectedIDs))
+	for _, variableID := range selectedIDs {
+		selected[variableID] = true
+	}
+	result := make([]repository.PreLaunchEnvironmentVariable, 0, len(selectedIDs))
+	for _, variable := range variables {
+		if selected[variable.ID] {
+			result = append(result, variable)
+		}
+	}
+	return result
 }
 
 func validateLaunchPath(projectRoot, targetPath string) (string, error) {
@@ -165,11 +193,16 @@ func validateLaunchPath(projectRoot, targetPath string) (string, error) {
 	return target, nil
 }
 
-func launchWithPreLaunchHook(targetPath, projectRoot string, hook repository.PreLaunchHook, scripts []string) error {
-	environment := buildHookEnvironment(projectRoot, hook.EnvironmentVariables)
+func launchWithPreLaunchHook(
+	targetPath, projectRoot string,
+	hook repository.PreLaunchHook,
+	scripts []string,
+	variables []repository.PreLaunchEnvironmentVariable,
+) error {
+	environment := buildHookEnvironment(projectRoot, variables)
 	dcc := repository.PreLaunchDCCForExtension(filepath.Ext(targetPath))
 	if len(scripts) == 0 {
-		return launchDCCFile(dcc, targetPath, environment)
+		return launchDCCFile(dcc, hook.ApplicationVersion, targetPath, environment)
 	}
 	if dcc == "" {
 		return fmt.Errorf("pre-launch scripts do not support %s files", filepath.Ext(targetPath))
@@ -178,7 +211,7 @@ func launchWithPreLaunchHook(targetPath, projectRoot string, hook repository.Pre
 	if err != nil {
 		return err
 	}
-	executable, err := agent.FindDCCExecutable(dcc)
+	executable, err := dcctools.FindExecutable(dcc, hook.ApplicationVersion)
 	if err != nil {
 		return err
 	}
@@ -261,9 +294,9 @@ func setEnvironmentValue(environment []string, name, value string) []string {
 	return append(environment, prefix+value)
 }
 
-func launchDCCFile(dcc, targetPath string, environment []string) error {
+func launchDCCFile(dcc, version, targetPath string, environment []string) error {
 	if dcc != "" {
-		executable, err := agent.FindDCCExecutable(dcc)
+		executable, err := dcctools.FindExecutable(dcc, version)
 		if err != nil {
 			return err
 		}

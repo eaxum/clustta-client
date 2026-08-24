@@ -9,6 +9,7 @@ export const useSettingsStore = defineStore("settings", {
     pendingTab: null,
     showTypeIcons: true,
     locationsStale: false,
+    projectEnvironmentVariables: [],
     preLaunchHooks: [],
     selectedPreLaunchHook: null,
     systemBookmarksHealth: { projects_dir_stale: false, shared_projects_dir_stale: false },
@@ -88,14 +89,33 @@ export const useSettingsStore = defineStore("settings", {
     async loadPreLaunchHooks(projectPath) {
       const settings = await SettingsService.GetPreLaunchHookSettings(projectPath);
       this.preLaunchHooks = settings?.hooks || [];
+      this.projectEnvironmentVariables = settings?.environment_variables || [];
     },
 
     async savePreLaunchHooks(projectPath, hooks) {
       const settings = await SettingsService.SetPreLaunchHookSettings(projectPath, {
         version: 1,
+        environment_variables: this.projectEnvironmentVariables,
         hooks,
       });
       this.preLaunchHooks = settings?.hooks || [];
+      this.projectEnvironmentVariables = settings?.environment_variables || [];
+      return settings;
+    },
+
+    async saveProjectEnvironmentVariables(projectPath, environmentVariables) {
+      const availableIDs = new Set(environmentVariables.map((variable) => variable.id));
+      const hooks = this.preLaunchHooks.map((hook) => ({
+        ...hook,
+        environment_variable_ids: (hook.environment_variable_ids || []).filter((id) => availableIDs.has(id)),
+      }));
+      const settings = await SettingsService.SetPreLaunchHookSettings(projectPath, {
+        version: 1,
+        environment_variables: environmentVariables,
+        hooks,
+      });
+      this.preLaunchHooks = settings?.hooks || [];
+      this.projectEnvironmentVariables = settings?.environment_variables || [];
       return settings;
     },
 

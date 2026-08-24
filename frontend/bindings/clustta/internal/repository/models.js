@@ -6,45 +6,6 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
-export class AgentScriptSettings {
-    /**
-     * Creates a new AgentScriptSettings instance.
-     * @param {Partial<AgentScriptSettings>} [$$source = {}] - The source object to create the AgentScriptSettings.
-     */
-    constructor($$source = {}) {
-        if (!("directory" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["directory"] = "";
-        }
-        if (!("extensions" in $$source)) {
-            /**
-             * @member
-             * @type {string[]}
-             */
-            this["extensions"] = [];
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new AgentScriptSettings instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {AgentScriptSettings}
-     */
-    static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType0;
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("extensions" in $$parsedSource) {
-            $$parsedSource["extensions"] = $$createField1_0($$parsedSource["extensions"]);
-        }
-        return new AgentScriptSettings(/** @type {Partial<AgentScriptSettings>} */($$parsedSource));
-    }
-}
-
 export class CompatTimeline {
     /**
      * Creates a new CompatTimeline instance.
@@ -133,6 +94,13 @@ export class PreLaunchEnvironmentVariable {
      * @param {Partial<PreLaunchEnvironmentVariable>} [$$source = {}] - The source object to create the PreLaunchEnvironmentVariable.
      */
     constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
         if (!("name" in $$source)) {
             /**
              * @member
@@ -196,6 +164,13 @@ export class PreLaunchHook {
              */
             this["extensions"] = [];
         }
+        if (!("application_version" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["application_version"] = "";
+        }
         if (!("script_asset_ids" in $$source)) {
             /**
              * @member
@@ -203,12 +178,12 @@ export class PreLaunchHook {
              */
             this["script_asset_ids"] = [];
         }
-        if (!("environment_variables" in $$source)) {
+        if (!("environment_variable_ids" in $$source)) {
             /**
              * @member
-             * @type {PreLaunchEnvironmentVariable[]}
+             * @type {string[]}
              */
-            this["environment_variables"] = [];
+            this["environment_variable_ids"] = [];
         }
         if (!("failure_policy" in $$source)) {
             /**
@@ -228,17 +203,17 @@ export class PreLaunchHook {
      */
     static createFrom($$source = {}) {
         const $$createField3_0 = $$createType0;
-        const $$createField4_0 = $$createType0;
-        const $$createField5_0 = $$createType2;
+        const $$createField5_0 = $$createType0;
+        const $$createField6_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("extensions" in $$parsedSource) {
             $$parsedSource["extensions"] = $$createField3_0($$parsedSource["extensions"]);
         }
         if ("script_asset_ids" in $$parsedSource) {
-            $$parsedSource["script_asset_ids"] = $$createField4_0($$parsedSource["script_asset_ids"]);
+            $$parsedSource["script_asset_ids"] = $$createField5_0($$parsedSource["script_asset_ids"]);
         }
-        if ("environment_variables" in $$parsedSource) {
-            $$parsedSource["environment_variables"] = $$createField5_0($$parsedSource["environment_variables"]);
+        if ("environment_variable_ids" in $$parsedSource) {
+            $$parsedSource["environment_variable_ids"] = $$createField6_0($$parsedSource["environment_variable_ids"]);
         }
         return new PreLaunchHook(/** @type {Partial<PreLaunchHook>} */($$parsedSource));
     }
@@ -257,6 +232,13 @@ export class PreLaunchHookSettings {
              */
             this["version"] = 0;
         }
+        if (!("environment_variables" in $$source)) {
+            /**
+             * @member
+             * @type {PreLaunchEnvironmentVariable[]}
+             */
+            this["environment_variables"] = [];
+        }
         if (!("hooks" in $$source)) {
             /**
              * @member
@@ -274,10 +256,14 @@ export class PreLaunchHookSettings {
      * @returns {PreLaunchHookSettings}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType4;
+        const $$createField1_0 = $$createType2;
+        const $$createField2_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("environment_variables" in $$parsedSource) {
+            $$parsedSource["environment_variables"] = $$createField1_0($$parsedSource["environment_variables"]);
+        }
         if ("hooks" in $$parsedSource) {
-            $$parsedSource["hooks"] = $$createField1_0($$parsedSource["hooks"]);
+            $$parsedSource["hooks"] = $$createField2_0($$parsedSource["hooks"]);
         }
         return new PreLaunchHookSettings(/** @type {Partial<PreLaunchHookSettings>} */($$parsedSource));
     }
@@ -466,6 +452,52 @@ export class ProjectInfo {
             $$parsedSource["ignore_list"] = $$createField19_0($$parsedSource["ignore_list"]);
         }
         return new ProjectInfo(/** @type {Partial<ProjectInfo>} */($$parsedSource));
+    }
+}
+
+export class ProjectScriptSettings {
+    /**
+     * Creates a new ProjectScriptSettings instance.
+     * @param {Partial<ProjectScriptSettings>} [$$source = {}] - The source object to create the ProjectScriptSettings.
+     */
+    constructor($$source = {}) {
+        if (!("version" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["version"] = 0;
+        }
+        if (!("directory" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["directory"] = "";
+        }
+        if (!("extensions" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["extensions"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new ProjectScriptSettings instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {ProjectScriptSettings}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("extensions" in $$parsedSource) {
+            $$parsedSource["extensions"] = $$createField2_0($$parsedSource["extensions"]);
+        }
+        return new ProjectScriptSettings(/** @type {Partial<ProjectScriptSettings>} */($$parsedSource));
     }
 }
 

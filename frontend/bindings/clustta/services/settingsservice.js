@@ -137,22 +137,12 @@ export function DeleteIntegrationCredential(integrationId) {
 }
 
 /**
- * @param {string} projectPath
- * @returns {$CancellablePromise<repository$0.AgentScriptSettings>}
- */
-export function GetAgentScriptSettings(projectPath) {
-    return $Call.ByID(2430138693, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
-    }));
-}
-
-/**
  * GetAllLocationPaths retrieves all configured project locations.
  * @returns {$CancellablePromise<settings$0.ProjectLocation[]>}
  */
 export function GetAllLocationPaths() {
     return $Call.ByID(1879856430).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType6($result);
+        return $$createType5($result);
     }));
 }
 
@@ -213,7 +203,7 @@ export function GetIconScheme() {
  */
 export function GetIgnoreListPresets() {
     return $Call.ByID(4182633768).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType6($result);
     }));
 }
 
@@ -225,7 +215,7 @@ export function GetIgnoreListPresets() {
  */
 export function GetIntegrationCredential(integrationId) {
     return $Call.ByID(3906565165, integrationId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType8($result);
+        return $$createType7($result);
     }));
 }
 
@@ -314,7 +304,7 @@ export function GetPinnedProjects(studioName) {
  */
 export function GetPreLaunchHookSettings(projectPath) {
     return $Call.ByID(2597509702, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType8($result);
     }));
 }
 
@@ -325,7 +315,7 @@ export function GetPreLaunchHookSettings(projectPath) {
  */
 export function GetProjectDependencyPresets(projectId) {
     return $Call.ByID(3058392474, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType10($result);
+        return $$createType9($result);
     }));
 }
 
@@ -347,13 +337,23 @@ export function GetProjectLocation(projectID) {
 }
 
 /**
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<repository$0.ProjectScriptSettings>}
+ */
+export function GetProjectScriptSettings(projectPath) {
+    return $Call.ByID(2229122081, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType10($result);
+    }));
+}
+
+/**
  * GetProjectWorkspaces retrieves all workspace configurations for a project.
  * @param {string} projectId
  * @returns {$CancellablePromise<any[]>}
  */
 export function GetProjectWorkspaces(projectId) {
     return $Call.ByID(2164081225, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType10($result);
+        return $$createType9($result);
     }));
 }
 
@@ -545,16 +545,6 @@ export function SaveIntegrationCredential(cred) {
 }
 
 /**
- * @param {string} projectPath
- * @param {string} directory
- * @param {string[]} extensions
- * @returns {$CancellablePromise<void>}
- */
-export function SetAgentScriptSettings(projectPath, directory, extensions) {
-    return $Call.ByID(2656688553, projectPath, directory, extensions);
-}
-
-/**
  * SetBridgeEnabled sets the bridge HTTP server enabled preference.
  * Starts or stops the bridge server accordingly.
  * @param {boolean} enabled
@@ -661,7 +651,7 @@ export function SetOverwriteDroppedFiles(enabled) {
  */
 export function SetPreLaunchHookSettings(projectPath, settings) {
     return $Call.ByID(2914005234, projectPath, settings).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType8($result);
     }));
 }
 
@@ -672,6 +662,16 @@ export function SetPreLaunchHookSettings(projectPath, settings) {
  */
 export function SetProjectDirectory(dir) {
     return $Call.ByID(3694495326, dir);
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string} directory
+ * @param {string[]} extensions
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetProjectScriptSettings(projectPath, directory, extensions) {
+    return $Call.ByID(1825425197, projectPath, directory, extensions);
 }
 
 /**
@@ -823,11 +823,11 @@ const $$createType1 = $Create.Array($Create.Any);
 const $$createType2 = settings$0.LocationHealth.createFrom;
 const $$createType3 = $Create.Array($$createType2);
 const $$createType4 = settings$0.SystemBookmarksHealth.createFrom;
-const $$createType5 = repository$0.AgentScriptSettings.createFrom;
-const $$createType6 = $Create.Array($$createType0);
-const $$createType7 = $Create.Map($Create.Any, $$createType1);
-const $$createType8 = settings$0.IntegrationCredential.createFrom;
-const $$createType9 = repository$0.PreLaunchHookSettings.createFrom;
-const $$createType10 = $Create.Array($Create.Any);
+const $$createType5 = $Create.Array($$createType0);
+const $$createType6 = $Create.Map($Create.Any, $$createType1);
+const $$createType7 = settings$0.IntegrationCredential.createFrom;
+const $$createType8 = repository$0.PreLaunchHookSettings.createFrom;
+const $$createType9 = $Create.Array($Create.Any);
+const $$createType10 = repository$0.ProjectScriptSettings.createFrom;
 const $$createType11 = settings$0.Studio.createFrom;
 const $$createType12 = $Create.Array($$createType11);

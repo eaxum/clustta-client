@@ -3399,16 +3399,6 @@
         ]
       },
       {
-        "name": "GetAgentScriptSettings",
-        "params": [
-          "projectPath:string"
-        ],
-        "returns": [
-          "repository.AgentScriptSettings",
-          "error"
-        ]
-      },
-      {
         "name": "GetAllLocationPaths",
         "params": null,
         "returns": [
@@ -3595,6 +3585,16 @@
         ],
         "returns": [
           "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetProjectScriptSettings",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "repository.ProjectScriptSettings",
           "error"
         ]
       },
@@ -3791,17 +3791,6 @@
         ]
       },
       {
-        "name": "SetAgentScriptSettings",
-        "params": [
-          "projectPath:string",
-          "directory:string",
-          "extensions:[]string"
-        ],
-        "returns": [
-          "error"
-        ]
-      },
-      {
         "name": "SetBridgeEnabled",
         "params": [
           "enabled:bool"
@@ -3915,6 +3904,17 @@
         "name": "SetProjectDirectory",
         "params": [
           "dir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetProjectScriptSettings",
+        "params": [
+          "projectPath:string",
+          "directory:string",
+          "extensions:[]string"
         ],
         "returns": [
           "error"

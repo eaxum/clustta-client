@@ -891,7 +891,7 @@ const launchProjectAsset = async (assetId) => {
     const projectPath = projectStore.activeProject.uri;
     const trust = await FSService.GetPreLaunchTrust(projectPath, assetId);
     if (trust?.required && localStorage.getItem(preLaunchTrustKey(trust)) !== trust.digest) {
-      confirmPreLaunchTrust(projectPath, assetId, trust);
+      confirmPreLaunchTrust(assetId, trust);
       return;
     }
     await FSService.LaunchProjectAsset(projectPath, assetId);
@@ -904,7 +904,7 @@ const preLaunchTrustKey = (trust) => {
   return `clustta-prelaunch-trust:${projectStore.activeProject.id}:${trust.hook_id}`;
 };
 
-const confirmPreLaunchTrust = (projectPath, assetId, trust) => {
+const confirmPreLaunchTrust = (assetId, trust) => {
   trayStates.dangerousActionTitle = t('blocks.trustLaunchHookTitle', { name: trust.hook_name });
   trayStates.dangerousActionMessage = t('blocks.trustLaunchHookMessage', {
     scripts: trust.scripts.join(', '),
@@ -916,7 +916,7 @@ const confirmPreLaunchTrust = (projectPath, assetId, trust) => {
   trayStates.dangerousActionShowToggle = false;
   trayStates.dangerousActionFunction = async () => {
     localStorage.setItem(preLaunchTrustKey(trust), trust.digest);
-    await FSService.LaunchProjectAsset(projectPath, assetId);
+    await launchProjectAsset(assetId);
   };
   modals.setModalVisibility('confirmDangerousActionModal', true);
 };

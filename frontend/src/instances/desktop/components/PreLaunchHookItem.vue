@@ -49,7 +49,10 @@ const summary = computed(() => {
   const details = [
     (props.hook.extensions || []).join(', '),
   ];
-  const variableCount = props.hook.environment_variables?.length || 0;
+  if (props.hook.application_version) {
+    details.push(t('settings.hookApplicationVersion', { version: props.hook.application_version }));
+  }
+  const variableCount = props.hook.environment_variable_ids?.length || 0;
   if (variableCount) details.push(t('settings.hookVariableCount', { count: variableCount }));
   details.push(props.hook.failure_policy === 'warn' ? t('settings.hookWarns') : t('settings.hookBlocks'));
   return details.filter(Boolean).join(' - ');

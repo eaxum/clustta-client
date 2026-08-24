@@ -24,6 +24,38 @@
         </div>
       </div>
 
+      <div class="settings-section-card">
+        <div class="settings-section-card-header environment-card-header">
+          <div>
+            <h2 class="settings-section-card-title">{{ $t('settings.environmentVariables') }}</h2>
+            <div class="settings-body environment-card-help">
+              {{ $t('settings.environmentVariablesHelp', { projectRoot: '<ProjectRoot>' }) }}
+            </div>
+          </div>
+          <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('common.add')"
+            :buttonFunction="addEnvironmentVariable" />
+        </div>
+        <div class="settings-section-card-content environment-settings">
+          <div v-if="environmentVariables.length" class="environment-variable-list">
+            <div v-for="variable in environmentVariables" :key="variable.id" class="environment-variable-row">
+              <input v-model="variable.name" class="input-short environment-variable-name" type="text"
+                :placeholder="$t('settings.environmentVariableNamePlaceholder')" />
+              <input v-model="variable.value" class="input-short" type="text"
+                :placeholder="$t('settings.environmentVariableValuePlaceholder', { projectRoot: '<ProjectRoot>' })" />
+              <ActionButton :icon="getAppIcon('trash')"
+                :buttonFunction="() => removeEnvironmentVariable(variable.id)" />
+            </div>
+          </div>
+          <div v-else class="settings-body environment-empty">
+            {{ $t('settings.noEnvironmentVariables') }}
+          </div>
+          <div class="script-settings-actions">
+            <ActionButton :icon="getAppIcon('floppy-disk')" :label="$t('settings.saveEnvironmentVariables')"
+              :buttonFunction="saveEnvironmentVariables" />
+          </div>
+        </div>
+      </div>
+
       <!-- External Integrations Card -->
       <div v-if="entitlementStore.hasIntegrations" class="settings-section-card">
         <div class="settings-section-card-header">
@@ -103,12 +135,14 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { v4 as uuidv4 } from 'uuid';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
 
@@ -126,9 +160,11 @@ const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const settingsStore = useSettingsStore();
 const { t } = useI18n();
 const scriptDirectory = ref('Scripts');
 const scriptExtensions = ref(['.py']);
+const environmentVariables = ref([]);
 
 // computed
 const linkedIntegration = computed(() => integrationStore.linkedIntegration);
@@ -160,7 +196,7 @@ const removeScriptExtension = (extension) => {
 const loadScriptSettings = async () => {
   const projectPath = projectStore.activeProject?.uri;
   if (!projectPath) return;
-  const settings = await SettingsService.GetAgentScriptSettings(projectPath);
+  const settings = await SettingsService.GetProjectScriptSettings(projectPath);
   scriptDirectory.value = settings?.directory || 'Scripts';
   scriptExtensions.value = Array.isArray(settings?.extensions) ? settings.extensions : ['.py'];
 };
@@ -169,11 +205,38 @@ const saveScriptSettings = async () => {
   const projectPath = projectStore.activeProject?.uri;
   if (!projectPath) return;
   try {
-    await SettingsService.SetAgentScriptSettings(projectPath, scriptDirectory.value, scriptExtensions.value);
+    await SettingsService.SetProjectScriptSettings(projectPath, scriptDirectory.value, scriptExtensions.value);
     await loadScriptSettings();
     notificationStore.addNotification(t('settings.scriptSettingsSaved'), '', 'success');
   } catch (error) {
     notificationStore.errorNotification(t('settings.scriptSettingsSaveFailed'), error);
+  }
+};
+
+const loadEnvironmentVariables = async () => {
+  const projectPath = projectStore.activeProject?.uri;
+  if (!projectPath) return;
+  await settingsStore.loadPreLaunchHooks(projectPath);
+  environmentVariables.value = JSON.parse(JSON.stringify(settingsStore.projectEnvironmentVariables));
+};
+
+const addEnvironmentVariable = () => {
+  environmentVariables.value.push({ id: uuidv4(), name: '', value: '' });
+};
+
+const removeEnvironmentVariable = (variableID) => {
+  environmentVariables.value = environmentVariables.value.filter((variable) => variable.id !== variableID);
+};
+
+const saveEnvironmentVariables = async () => {
+  const projectPath = projectStore.activeProject?.uri;
+  if (!projectPath) return;
+  try {
+    await settingsStore.saveProjectEnvironmentVariables(projectPath, environmentVariables.value);
+    environmentVariables.value = JSON.parse(JSON.stringify(settingsStore.projectEnvironmentVariables));
+    notificationStore.addNotification(t('settings.environmentVariablesSaved'), '', 'success');
+  } catch (error) {
+    notificationStore.errorNotification(t('settings.environmentVariablesSaveFailed'), error);
   }
 };
 
@@ -205,6 +268,7 @@ onMounted(async () => {
       await Promise.all([
         integrationStore.loadLinkedIntegration(),
         loadScriptSettings(),
+        loadEnvironmentVariables(),
       ]);
     }
   } catch (error) {
@@ -256,6 +320,38 @@ onMounted(async () => {
 .script-settings-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.environment-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.environment-card-help {
+  padding: .15rem 0 0;
+}
+
+.environment-settings,
+.environment-variable-list {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.environment-variable-row {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.environment-variable-name {
+  max-width: 180px;
+}
+
+.environment-empty {
+  padding: .5rem 0;
 }
 
 .settings-component-root::-webkit-scrollbar {

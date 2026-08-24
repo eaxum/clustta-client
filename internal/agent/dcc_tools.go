@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"clustta/internal/dcc"
 	"clustta/internal/repository"
 	"clustta/internal/utils"
 	"fmt"
@@ -40,7 +41,7 @@ func execOpenInDCC(projectPath string, args map[string]interface{}) ToolResult {
 			continue
 		}
 
-		exePath, err := findDCCExecutable(app)
+		exePath, err := dcc.FindExecutable(app, "")
 		if err != nil {
 			return ToolResult{Success: false, Error: fmt.Sprintf("%s not found: %s", app, err.Error())}
 		}
@@ -63,7 +64,7 @@ func execBlenderRender(projectPath string, args map[string]interface{}) ToolResu
 		return ToolResult{Success: false, Error: "asset_ids is required"}
 	}
 
-	blenderPath, err := findDCCExecutable("blender")
+	blenderPath, err := dcc.FindExecutable("blender", "")
 	if err != nil {
 		return ToolResult{Success: false, Error: "Blender not found: " + err.Error()}
 	}
@@ -116,7 +117,7 @@ func execBlenderExport(projectPath string, args map[string]interface{}) ToolResu
 		return ToolResult{Success: false, Error: "asset_ids and format are required"}
 	}
 
-	blenderPath, err := findDCCExecutable("blender")
+	blenderPath, err := dcc.FindExecutable("blender", "")
 	if err != nil {
 		return ToolResult{Success: false, Error: "Blender not found: " + err.Error()}
 	}
@@ -180,7 +181,7 @@ func execBlenderRunScript(projectPath string, args map[string]interface{}) ToolR
 	}
 	scriptPath = resolvedScriptPath
 
-	blenderPath, err := findDCCExecutable("blender")
+	blenderPath, err := dcc.FindExecutable("blender", "")
 	if err != nil {
 		return ToolResult{Success: false, Error: "Blender not found: " + err.Error()}
 	}
@@ -217,7 +218,7 @@ func execBlenderRunPython(projectPath string, args map[string]interface{}) ToolR
 
 	description := getStringArg(args, "description", "Python script")
 
-	blenderPath, err := findDCCExecutable("blender")
+	blenderPath, err := dcc.FindExecutable("blender", "")
 	if err != nil {
 		return ToolResult{Success: false, Error: "Blender not found: " + err.Error()}
 	}
@@ -263,7 +264,7 @@ func execBlenderSetSettings(projectPath string, args map[string]interface{}) Too
 		return ToolResult{Success: false, Error: "asset_ids is required"}
 	}
 
-	blenderPath, err := findDCCExecutable("blender")
+	blenderPath, err := dcc.FindExecutable("blender", "")
 	if err != nil {
 		return ToolResult{Success: false, Error: "Blender not found: " + err.Error()}
 	}
@@ -345,7 +346,7 @@ func execBlenderLink(projectPath string, args map[string]interface{}) ToolResult
 
 	dataNames := getStringSliceArg(args, "data_names")
 
-	blenderPath, err := findDCCExecutable("blender")
+	blenderPath, err := dcc.FindExecutable("blender", "")
 	if err != nil {
 		return ToolResult{Success: false, Error: "Blender not found: " + err.Error()}
 	}
@@ -608,115 +609,6 @@ func detectDCCFromExtension(ext string) string {
 		return "cinema4d"
 	default:
 		return ""
-	}
-}
-
-// findDCCExecutable locates a DCC application executable on the system.
-func findDCCExecutable(name string) (string, error) {
-	envKey := strings.ToUpper(name) + "_PATH"
-	if envPath := os.Getenv(envKey); envPath != "" {
-		if _, err := os.Stat(envPath); err == nil {
-			return envPath, nil
-		}
-	}
-
-	for _, p := range dccDefaultPaths(name) {
-		if _, err := os.Stat(p); err == nil {
-			return p, nil
-		}
-	}
-
-	if p, err := exec.LookPath(name); err == nil {
-		return p, nil
-	}
-
-	return "", fmt.Errorf("%s not found - set %s environment variable or add it to PATH", name, envKey)
-}
-
-// FindDCCExecutable locates a DCC application using Clustta's shared discovery rules.
-func FindDCCExecutable(name string) (string, error) {
-	return findDCCExecutable(name)
-}
-
-// dccDefaultPaths returns common installation paths for a DCC application.
-func dccDefaultPaths(name string) []string {
-	switch runtime.GOOS {
-	case "windows":
-		return dccWindowsPaths(name)
-	case "darwin":
-		return dccDarwinPaths(name)
-	default:
-		return dccLinuxPaths(name)
-	}
-}
-
-func dccWindowsPaths(name string) []string {
-	programFiles := os.Getenv("ProgramFiles")
-	if programFiles == "" {
-		programFiles = `C:\Program Files`
-	}
-
-	switch strings.ToLower(name) {
-	case "blender":
-		var paths []string
-		base := filepath.Join(programFiles, "Blender Foundation")
-		if entries, err := os.ReadDir(base); err == nil {
-			for i := len(entries) - 1; i >= 0; i-- {
-				paths = append(paths, filepath.Join(base, entries[i].Name(), "blender.exe"))
-			}
-		}
-		return paths
-	case "maya":
-		var paths []string
-		for year := 2026; year >= 2020; year-- {
-			paths = append(paths, filepath.Join(programFiles, fmt.Sprintf(`Autodesk\Maya%d\bin\maya.exe`, year)))
-		}
-		return paths
-	case "houdini":
-		var paths []string
-		base := filepath.Join(programFiles, "Side Effects Software")
-		if entries, err := os.ReadDir(base); err == nil {
-			for i := len(entries) - 1; i >= 0; i-- {
-				paths = append(paths, filepath.Join(base, entries[i].Name(), "bin", "houdini.exe"))
-			}
-		}
-		return paths
-	default:
-		return nil
-	}
-}
-
-func dccDarwinPaths(name string) []string {
-	switch strings.ToLower(name) {
-	case "blender":
-		return []string{"/Applications/Blender.app/Contents/MacOS/Blender"}
-	case "maya":
-		var paths []string
-		for year := 2026; year >= 2020; year-- {
-			paths = append(paths, fmt.Sprintf("/Applications/Autodesk/maya%d/Maya.app/Contents/bin/maya", year))
-		}
-		return paths
-	case "houdini":
-		return []string{"/Applications/Houdini/Current/Houdini FX.app/Contents/MacOS/houdini"}
-	default:
-		return nil
-	}
-}
-
-func dccLinuxPaths(name string) []string {
-	switch strings.ToLower(name) {
-	case "blender":
-		return []string{"/usr/bin/blender", "/snap/bin/blender", "/usr/local/bin/blender"}
-	case "maya":
-		var paths []string
-		for year := 2026; year >= 2020; year-- {
-			paths = append(paths, fmt.Sprintf("/usr/autodesk/maya%d/bin/maya", year))
-		}
-		return paths
-	case "houdini":
-		return []string{"/opt/hfs/bin/houdini"}
-	default:
-		return nil
 	}
 }
 

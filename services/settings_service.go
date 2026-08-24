@@ -27,21 +27,21 @@ func requireChangeRolePermission(tx *sqlx.Tx) error {
 	return nil
 }
 
-func (s *SettingsService) GetAgentScriptSettings(projectPath string) (repository.AgentScriptSettings, error) {
+func (s *SettingsService) GetProjectScriptSettings(projectPath string) (repository.ProjectScriptSettings, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return repository.AgentScriptSettings{}, err
+		return repository.ProjectScriptSettings{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return repository.AgentScriptSettings{}, err
+		return repository.ProjectScriptSettings{}, err
 	}
 	defer tx.Rollback()
-	return repository.GetAgentScriptSettings(tx)
+	return repository.GetProjectScriptSettings(tx)
 }
 
-func (s *SettingsService) SetAgentScriptSettings(projectPath, directory string, extensions []string) error {
+func (s *SettingsService) SetProjectScriptSettings(projectPath, directory string, extensions []string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (s *SettingsService) SetAgentScriptSettings(projectPath, directory string, 
 	if err := requireChangeRolePermission(tx); err != nil {
 		return err
 	}
-	if err := repository.SetAgentScriptSettings(tx, repository.AgentScriptSettings{
+	if err := repository.SetProjectScriptSettings(tx, repository.ProjectScriptSettings{
 		Directory: directory, Extensions: extensions,
 	}); err != nil {
 		return err

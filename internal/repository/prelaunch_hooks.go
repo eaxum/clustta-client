@@ -24,31 +24,34 @@ const (
 )
 
 var environmentVariableNamePattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*$`)
+var applicationVersionPattern = regexp.MustCompile(`^[0-9]+(?:\.[0-9]+){0,2}$`)
 
 var SyncableProjectConfigNames = []string{
-	AgentScriptDirectoryConfig,
-	AgentScriptExtensionsConfig,
+	ProjectScriptSettingsConfig,
 	PreLaunchHooksConfig,
 }
 
 type PreLaunchEnvironmentVariable struct {
+	ID    string `json:"id"`
 	Name  string `json:"name"`
 	Value string `json:"value"`
 }
 
 type PreLaunchHook struct {
-	ID                   string                         `json:"id"`
-	Name                 string                         `json:"name"`
-	Enabled              bool                           `json:"enabled"`
-	Extensions           []string                       `json:"extensions"`
-	ScriptAssetIDs       []string                       `json:"script_asset_ids"`
-	EnvironmentVariables []PreLaunchEnvironmentVariable `json:"environment_variables"`
-	FailurePolicy        string                         `json:"failure_policy"`
+	ID                     string   `json:"id"`
+	Name                   string   `json:"name"`
+	Enabled                bool     `json:"enabled"`
+	Extensions             []string `json:"extensions"`
+	ApplicationVersion     string   `json:"application_version"`
+	ScriptAssetIDs         []string `json:"script_asset_ids"`
+	EnvironmentVariableIDs []string `json:"environment_variable_ids"`
+	FailurePolicy          string   `json:"failure_policy"`
 }
 
 type PreLaunchHookSettings struct {
-	Version int             `json:"version"`
-	Hooks   []PreLaunchHook `json:"hooks"`
+	Version              int                            `json:"version"`
+	EnvironmentVariables []PreLaunchEnvironmentVariable `json:"environment_variables"`
+	Hooks                []PreLaunchHook                `json:"hooks"`
 }
 
 func GetSyncableProjectConfigs(tx *sqlx.Tx, changedOnly bool) ([]ProjectConfig, error) {
@@ -133,10 +136,19 @@ func SetPreLaunchHookSettings(tx *sqlx.Tx, settings PreLaunchHookSettings) error
 
 func NormalizePreLaunchHookSettings(settings PreLaunchHookSettings) (PreLaunchHookSettings, error) {
 	settings.Version = PreLaunchHooksVersion
+	variables, err := normalizeEnvironmentVariables(settings.EnvironmentVariables)
+	if err != nil {
+		return PreLaunchHookSettings{}, err
+	}
+	settings.EnvironmentVariables = variables
+	variableIDs := make(map[string]bool, len(variables))
+	for _, variable := range variables {
+		variableIDs[variable.ID] = true
+	}
 	seenIDs := map[string]bool{}
 	seenExtensions := map[string]string{}
 	for index := range settings.Hooks {
-		hook, err := normalizePreLaunchHook(settings.Hooks[index])
+		hook, err := normalizePreLaunchHook(settings.Hooks[index], variableIDs)
 		if err != nil {
 			return PreLaunchHookSettings{}, fmt.Errorf("hook %d: %w", index+1, err)
 		}
@@ -160,9 +172,10 @@ func NormalizePreLaunchHookSettings(settings PreLaunchHookSettings) (PreLaunchHo
 	return settings, nil
 }
 
-func normalizePreLaunchHook(hook PreLaunchHook) (PreLaunchHook, error) {
+func normalizePreLaunchHook(hook PreLaunchHook, environmentVariableIDs map[string]bool) (PreLaunchHook, error) {
 	hook.ID = strings.TrimSpace(hook.ID)
 	hook.Name = strings.TrimSpace(hook.Name)
+	hook.ApplicationVersion = strings.TrimSpace(hook.ApplicationVersion)
 	hook.FailurePolicy = strings.ToLower(strings.TrimSpace(hook.FailurePolicy))
 	if hook.Name == "" {
 		return PreLaunchHook{}, fmt.Errorf("name is required")
@@ -181,19 +194,43 @@ func normalizePreLaunchHook(hook PreLaunchHook) (PreLaunchHook, error) {
 		return PreLaunchHook{}, fmt.Errorf("at least one file extension is required")
 	}
 	hook.Extensions = extensions
+	if hook.ApplicationVersion != "" {
+		if !applicationVersionPattern.MatchString(hook.ApplicationVersion) {
+			return PreLaunchHook{}, fmt.Errorf("application version must contain only numeric version components")
+		}
+		if err := validateVersionedHookExtensions(hook.Extensions); err != nil {
+			return PreLaunchHook{}, err
+		}
+	}
 	hook.ScriptAssetIDs = normalizeUniqueStrings(hook.ScriptAssetIDs)
 	if len(hook.ScriptAssetIDs) > 1 {
 		return PreLaunchHook{}, fmt.Errorf("only one script asset can be attached")
 	}
-	variables, err := normalizeEnvironmentVariables(hook.EnvironmentVariables)
-	if err != nil {
-		return PreLaunchHook{}, err
+	hook.EnvironmentVariableIDs = normalizeUniqueStrings(hook.EnvironmentVariableIDs)
+	for _, variableID := range hook.EnvironmentVariableIDs {
+		if !environmentVariableIDs[variableID] {
+			return PreLaunchHook{}, fmt.Errorf("environment variable %q does not exist", variableID)
+		}
 	}
-	hook.EnvironmentVariables = variables
-	if len(hook.ScriptAssetIDs) == 0 && len(hook.EnvironmentVariables) == 0 {
+	if len(hook.ScriptAssetIDs) == 0 && len(hook.EnvironmentVariableIDs) == 0 {
 		return PreLaunchHook{}, fmt.Errorf("at least one script asset or environment variable is required")
 	}
 	return hook, nil
+}
+
+func validateVersionedHookExtensions(extensions []string) error {
+	dcc := ""
+	for _, extension := range extensions {
+		extensionDCC := PreLaunchDCCForExtension(extension)
+		if extensionDCC == "" {
+			return fmt.Errorf("application version requires Maya or Blender file extensions")
+		}
+		if dcc != "" && extensionDCC != dcc {
+			return fmt.Errorf("application version cannot apply to multiple DCC applications")
+		}
+		dcc = extensionDCC
+	}
+	return nil
 }
 
 func PreLaunchDCCForExtension(extension string) string {
@@ -245,12 +282,20 @@ func normalizeUniqueStrings(values []string) []string {
 
 func normalizeEnvironmentVariables(values []PreLaunchEnvironmentVariable) ([]PreLaunchEnvironmentVariable, error) {
 	result := make([]PreLaunchEnvironmentVariable, 0, len(values))
-	seen := map[string]bool{}
+	seenIDs := map[string]bool{}
+	seenNames := map[string]bool{}
 	for _, variable := range values {
+		variable.ID = strings.TrimSpace(variable.ID)
 		variable.Name = strings.TrimSpace(variable.Name)
 		variable.Value = strings.TrimSpace(variable.Value)
-		if variable.Name == "" && variable.Value == "" {
+		if variable.ID == "" && variable.Name == "" && variable.Value == "" {
 			continue
+		}
+		if variable.ID == "" {
+			variable.ID = uuid.NewString()
+		}
+		if seenIDs[variable.ID] {
+			return nil, fmt.Errorf("duplicate environment variable ID %q", variable.ID)
 		}
 		if !environmentVariableNamePattern.MatchString(variable.Name) {
 			return nil, fmt.Errorf("invalid environment variable name %q", variable.Name)
@@ -258,10 +303,12 @@ func normalizeEnvironmentVariables(values []PreLaunchEnvironmentVariable) ([]Pre
 		if variable.Value == "" {
 			return nil, fmt.Errorf("environment variable %s requires a value", variable.Name)
 		}
-		if seen[variable.Name] {
+		normalizedName := strings.ToUpper(variable.Name)
+		if seenNames[normalizedName] {
 			return nil, fmt.Errorf("duplicate environment variable %q", variable.Name)
 		}
-		seen[variable.Name] = true
+		seenIDs[variable.ID] = true
+		seenNames[normalizedName] = true
 		result = append(result, variable)
 	}
 	return result, nil

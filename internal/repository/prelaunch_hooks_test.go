@@ -32,12 +32,27 @@ func TestNormalizePreLaunchHookSettingsRejectsAmbiguousMatches(t *testing.T) {
 }
 
 func TestNormalizePreLaunchHookSettingsValidatesEnvironmentVariables(t *testing.T) {
-	_, err := NormalizePreLaunchHookSettings(PreLaunchHookSettings{Hooks: []PreLaunchHook{{
-		Name: "OCIO", Enabled: true, Extensions: []string{".blend"},
-		EnvironmentVariables: []PreLaunchEnvironmentVariable{{Name: "OCIO", Value: "<ProjectRoot>/config.ocio"}},
-	}}})
+	settings, err := NormalizePreLaunchHookSettings(PreLaunchHookSettings{
+		EnvironmentVariables: []PreLaunchEnvironmentVariable{{
+			ID: "ocio", Name: "OCIO", Value: "<ProjectRoot>/config.ocio",
+		}},
+		Hooks: []PreLaunchHook{{
+			Name: "OCIO", Enabled: true, Extensions: []string{".blend"},
+			EnvironmentVariableIDs: []string{"ocio"},
+		}},
+	})
 
 	require.NoError(t, err)
+	require.Equal(t, "ocio", settings.Hooks[0].EnvironmentVariableIDs[0])
+}
+
+func TestNormalizePreLaunchHookSettingsRejectsMissingEnvironmentReference(t *testing.T) {
+	_, err := NormalizePreLaunchHookSettings(PreLaunchHookSettings{Hooks: []PreLaunchHook{{
+		Name: "OCIO", Enabled: true, Extensions: []string{".blend"},
+		EnvironmentVariableIDs: []string{"missing"},
+	}}})
+
+	require.ErrorContains(t, err, "does not exist")
 }
 
 func TestNormalizePreLaunchHookSettingsRequiresTrackedScriptReference(t *testing.T) {
@@ -61,6 +76,25 @@ func TestNormalizePreLaunchHookSettingsRejectsMultipleScripts(t *testing.T) {
 	}}})
 
 	require.ErrorContains(t, err, "only one script asset")
+}
+
+func TestNormalizePreLaunchHookSettingsAcceptsApplicationVersion(t *testing.T) {
+	settings, err := NormalizePreLaunchHookSettings(PreLaunchHookSettings{Hooks: []PreLaunchHook{{
+		Name: "Blender", Enabled: true, Extensions: []string{".blend"},
+		ApplicationVersion: " 5.2.0 ", ScriptAssetIDs: []string{"script"},
+	}}})
+
+	require.NoError(t, err)
+	require.Equal(t, "5.2.0", settings.Hooks[0].ApplicationVersion)
+}
+
+func TestNormalizePreLaunchHookSettingsRejectsVersionAcrossDCCs(t *testing.T) {
+	_, err := NormalizePreLaunchHookSettings(PreLaunchHookSettings{Hooks: []PreLaunchHook{{
+		Name: "Mixed", Enabled: true, Extensions: []string{".blend", ".ma"},
+		ApplicationVersion: "2025", ScriptAssetIDs: []string{"script"},
+	}}})
+
+	require.ErrorContains(t, err, "cannot apply to multiple DCC")
 }
 
 func TestApplySyncableProjectConfigsUsesExistingConfigTable(t *testing.T) {

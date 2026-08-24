@@ -15,26 +15,27 @@
         </div>
 
         <div class="input-section">
+          <input v-model="hook.application_version" class="input-short" type="text"
+            :placeholder="$t('settings.hookApplicationVersionPlaceholder')" />
+        </div>
+
+        <div class="input-section">
           <DropDownBox :items="availableScriptOptions" :selectedItem="selectedScriptName"
             :onSelect="selectScript" :placeHolder="$t('settings.selectHookScript')" />
         </div>
 
         <div class="input-section">
-          <div class="hook-section-heading">
-            <div>
-              <div class="input-label">{{ $t('settings.hookEnvironment') }}</div>
-              <div class="hook-help">{{ $t('settings.hookEnvironmentHelp') }}</div>
-            </div>
-            <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('common.add')"
-              :buttonFunction="addEnvironmentVariable" />
-          </div>
+          <DropDownBox :items="availableEnvironmentOptions" :selectedItem="''"
+            :onSelect="selectEnvironmentVariable" :placeHolder="$t('settings.selectHookEnvironmentVariable')" />
 
-          <div v-if="hook.environment_variables.length" class="environment-list">
-            <div v-for="(variable, index) in hook.environment_variables" :key="index" class="environment-row">
-              <input v-model="variable.name" class="input-short environment-name" type="text" placeholder="OCIO" />
-              <input v-model="variable.value" class="input-short" type="text"
-                placeholder="<ProjectRoot>/configs/project.ocio" />
-              <ActionButton :icon="getAppIcon('trash')" :buttonFunction="() => removeEnvironmentVariable(index)" />
+          <div v-if="selectedEnvironmentVariables.length" class="environment-list">
+            <div v-for="variable in selectedEnvironmentVariables" :key="variable.id" class="environment-row">
+              <div class="selected-environment-details">
+                <span>{{ variable.name }}</span>
+                <span class="selected-environment-value">{{ variable.value }}</span>
+              </div>
+              <ActionButton :icon="getAppIcon('trash')"
+                :buttonFunction="() => removeEnvironmentVariable(variable.id)" />
             </div>
           </div>
         </div>
@@ -101,8 +102,9 @@ const createDefaultHook = () => ({
   name: '',
   enabled: true,
   extensions: [],
+  application_version: '',
   script_asset_ids: [],
-  environment_variables: [],
+  environment_variable_ids: [],
   failure_policy: 'block',
 });
 
@@ -115,13 +117,16 @@ const saveLabel = computed(() => isEditing.value ? t('common.update') : t('commo
 const selectedFailurePolicyName = computed(() => hook.value.failure_policy === 'warn'
   ? t('settings.hookWarnAndContinue')
   : t('settings.hookBlockLaunch'));
-const hasEnvironment = computed(() => hook.value.environment_variables.some((variable) => (
-  variable.name.trim() && variable.value.trim()
-)));
+const selectedEnvironmentVariables = computed(() => settingsStore.projectEnvironmentVariables.filter(
+  (variable) => hook.value.environment_variable_ids.includes(variable.id),
+));
+const availableEnvironmentOptions = computed(() => settingsStore.projectEnvironmentVariables
+  .filter((variable) => !hook.value.environment_variable_ids.includes(variable.id))
+  .map((variable) => ({ id: variable.id, name: variable.name, icon: getAppIcon('code-bracket') })));
 const canSave = computed(() => (
   Boolean(hook.value.name.trim())
   && hook.value.extensions.length > 0
-  && (hook.value.script_asset_ids.length > 0 || hasEnvironment.value)
+  && (hook.value.script_asset_ids.length > 0 || hook.value.environment_variable_ids.length > 0)
   && !isAwaitingResponse.value
 ));
 
@@ -146,8 +151,15 @@ const selectScript = (scriptName) => {
   selectedScripts.value = script ? [script] : [];
   hook.value.script_asset_ids = script ? [script.id] : [];
 };
-const addEnvironmentVariable = () => hook.value.environment_variables.push({ name: '', value: '' });
-const removeEnvironmentVariable = (index) => hook.value.environment_variables.splice(index, 1);
+const selectEnvironmentVariable = (variableName) => {
+  const variable = settingsStore.projectEnvironmentVariables.find((item) => item.name === variableName);
+  if (variable && !hook.value.environment_variable_ids.includes(variable.id)) {
+    hook.value.environment_variable_ids.push(variable.id);
+  }
+};
+const removeEnvironmentVariable = (variableID) => {
+  hook.value.environment_variable_ids = hook.value.environment_variable_ids.filter((id) => id !== variableID);
+};
 const closeModal = () => modals.setModalVisibility('preLaunchHookModal', false);
 
 const saveHook = async () => {
@@ -242,19 +254,6 @@ onMounted(async () => {
   font-weight: 500;
 }
 
-.hook-help {
-  margin-top: .15rem;
-  color: var(--text-muted);
-  font-size: 11px;
-}
-
-.hook-section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-}
-
 .environment-list {
   display: flex;
   flex-direction: column;
@@ -270,8 +269,20 @@ onMounted(async () => {
   border-radius: var(--small-radius);
 }
 
-.environment-name {
-  max-width: 150px;
+.selected-environment-details {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: .15rem;
+}
+
+.selected-environment-value {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .input-short {

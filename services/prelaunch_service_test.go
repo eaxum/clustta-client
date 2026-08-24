@@ -24,6 +24,17 @@ func TestBuildHookEnvironmentExpandsProjectRoot(t *testing.T) {
 	require.Equal(t, "OCIO="+projectRoot+"/configs/show.ocio", ocio)
 }
 
+func TestResolveHookEnvironmentVariablesUsesSelectedIDs(t *testing.T) {
+	variables := []repository.PreLaunchEnvironmentVariable{
+		{ID: "ocio", Name: "OCIO", Value: "config.ocio"},
+		{ID: "cache", Name: "CACHE", Value: "cache"},
+	}
+
+	selected := resolveHookEnvironmentVariables(variables, []string{"cache"})
+
+	require.Equal(t, []repository.PreLaunchEnvironmentVariable{variables[1]}, selected)
+}
+
 func TestBlenderBootstrapOpensSceneBeforeScripts(t *testing.T) {
 	source, err := buildDCCBootstrap("shot.blend", "project", repository.PreLaunchHook{
 		FailurePolicy: repository.PreLaunchFailureBlock,

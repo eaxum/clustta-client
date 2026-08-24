@@ -31,7 +31,7 @@ func ListScriptReferences(projectPath string) ([]ScriptReference, error) {
 	}
 	defer tx.Rollback()
 
-	settings, err := repository.GetAgentScriptSettings(tx)
+	settings, err := repository.GetProjectScriptSettings(tx)
 	if err != nil {
 		return nil, err
 	}
