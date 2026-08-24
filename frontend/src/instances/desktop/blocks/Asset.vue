@@ -889,7 +889,11 @@ const launchAssetFile = async (asset) => {
 const launchProjectAsset = async (assetId) => {
   try {
     const projectPath = projectStore.activeProject.uri;
-    const trust = await FSService.GetPreLaunchTrust(projectPath, assetId);
+    const trust = await FSService.PreparePreLaunch(
+      projectPath,
+      projectStore.getActiveProjectUrl,
+      assetId,
+    );
     if (trust?.required && localStorage.getItem(preLaunchTrustKey(trust)) !== trust.digest) {
       confirmPreLaunchTrust(assetId, trust);
       return;

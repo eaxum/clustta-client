@@ -62,6 +62,26 @@ func TestResolveHookEnvironmentVariablesUsesSelectedIDs(t *testing.T) {
 	require.Equal(t, []repository.PreLaunchEnvironmentVariable{variables[1]}, selected)
 }
 
+func TestResolveHookEnvironmentPathExpandsProjectRoot(t *testing.T) {
+	projectRoot := t.TempDir()
+
+	value, isProjectPath := resolveHookEnvironmentPath(projectRoot, repository.PreLaunchEnvironmentVariable{
+		Name: "CACHE", Value: "<ProjectRoot>/cache",
+	})
+
+	require.True(t, isProjectPath)
+	require.Equal(t, filepath.Join(projectRoot, "cache"), value)
+}
+
+func TestPathContainsNestedAsset(t *testing.T) {
+	projectRoot := t.TempDir()
+	configDirectory := filepath.Join(projectRoot, "Configs")
+
+	require.True(t, pathContains(projectRoot, filepath.Join(configDirectory, "show.ocio")))
+	require.True(t, pathContains(configDirectory, filepath.Join(configDirectory, "show.ocio")))
+	require.False(t, pathContains(configDirectory, filepath.Join(projectRoot, "Scripts", "setup.py")))
+}
+
 func TestBlenderBootstrapOpensSceneBeforeScripts(t *testing.T) {
 	source, err := buildDCCBootstrap("shot.blend", "project", repository.PreLaunchHook{
 		FailurePolicy: repository.PreLaunchFailureBlock,

@@ -319,6 +319,18 @@ export function MakeDirs(path) {
 }
 
 /**
+ * @param {string} projectPath
+ * @param {string} remoteURL
+ * @param {string} assetID
+ * @returns {$CancellablePromise<$models.PreLaunchTrustInfo>}
+ */
+export function PreparePreLaunch(projectPath, remoteURL, assetID) {
+    return $Call.ByID(3115365191, projectPath, remoteURL, assetID).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
+}
+
+/**
  * ReadFile reads a file and returns its contents as base64-encoded string.
  * @param {string} path
  * @returns {$CancellablePromise<string>}

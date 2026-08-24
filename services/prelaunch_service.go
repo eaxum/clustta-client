@@ -14,11 +14,14 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/jmoiron/sqlx"
 )
 
 const (
 	projectRootToken        = "<ProjectRoot>"
 	ocioEnvironmentVariable = "OCIO"
+	fetchableAssetStatus    = "fetchable"
 )
 
 type PreLaunchTrustInfo struct {
@@ -27,6 +30,31 @@ type PreLaunchTrustInfo struct {
 	HookName string   `json:"hook_name"`
 	Digest   string   `json:"digest"`
 	Scripts  []string `json:"scripts"`
+}
+
+type preLaunchAssetPath struct {
+	ID             string `db:"id"`
+	Name           string `db:"name"`
+	Extension      string `db:"extension"`
+	Pointer        string `db:"pointer"`
+	CollectionPath string `db:"collection_path"`
+}
+
+func (f *FSService) PreparePreLaunch(projectPath, remoteURL, assetID string) (PreLaunchTrustInfo, error) {
+	targetPath, err := resolveAssetLaunchTarget(projectPath, assetID)
+	if err != nil {
+		return PreLaunchTrustInfo{}, err
+	}
+	assetIDs, err := resolvePreLaunchFetchableAssetIDs(projectPath, targetPath)
+	if err != nil {
+		return PreLaunchTrustInfo{}, err
+	}
+	if len(assetIDs) > 0 {
+		if _, err := (&CheckpointService{}).Revert(projectPath, remoteURL, assetIDs); err != nil {
+			return PreLaunchTrustInfo{}, fmt.Errorf("fetch pre-launch assets: %w", err)
+		}
+	}
+	return f.GetPreLaunchTrust(projectPath, assetID)
 }
 
 func (f *FSService) GetPreLaunchTrust(projectPath, assetID string) (PreLaunchTrustInfo, error) {
@@ -149,12 +177,8 @@ func resolvePreLaunch(projectPath, targetPath string) (
 	if err != nil {
 		return "", "", nil, nil, nil, err
 	}
-	extension := strings.ToLower(filepath.Ext(targetPath))
-	for index := range settings.Hooks {
-		hook := &settings.Hooks[index]
-		if !hook.Enabled || !containsString(hook.Extensions, extension) {
-			continue
-		}
+	hook := matchingPreLaunchHook(settings, filepath.Ext(targetPath))
+	if hook != nil {
 		scripts, err := agent.ResolveTrackedScriptPaths(projectPath, hook.ScriptAssetIDs)
 		if err != nil {
 			return "", "", nil, nil, nil, err
@@ -163,6 +187,131 @@ func resolvePreLaunch(projectPath, targetPath string) (
 		return targetPath, projectRoot, hook, scripts, variables, nil
 	}
 	return targetPath, projectRoot, nil, nil, nil, nil
+}
+
+func resolvePreLaunchFetchableAssetIDs(projectPath, targetPath string) ([]string, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	projectRoot, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return nil, err
+	}
+	settings, err := repository.GetPreLaunchHookSettings(tx)
+	if err != nil {
+		return nil, err
+	}
+	hook := matchingPreLaunchHook(settings, filepath.Ext(targetPath))
+	if hook == nil {
+		return nil, nil
+	}
+	rootAssetIDs := append([]string(nil), hook.ScriptAssetIDs...)
+	variables := resolveHookEnvironmentVariables(settings.EnvironmentVariables, hook.EnvironmentVariableIDs)
+	environmentAssetIDs, err := resolveEnvironmentAssetIDs(tx, projectRoot, variables)
+	if err != nil {
+		return nil, err
+	}
+	rootAssetIDs = append(rootAssetIDs, environmentAssetIDs...)
+	return resolveFetchableDependencyIDs(tx, rootAssetIDs)
+}
+
+func matchingPreLaunchHook(settings repository.PreLaunchHookSettings, extension string) *repository.PreLaunchHook {
+	extension = strings.ToLower(extension)
+	for index := range settings.Hooks {
+		hook := &settings.Hooks[index]
+		if hook.Enabled && containsString(hook.Extensions, extension) {
+			return hook
+		}
+	}
+	return nil
+}
+
+func resolveEnvironmentAssetIDs(
+	tx *sqlx.Tx, projectRoot string, variables []repository.PreLaunchEnvironmentVariable,
+) ([]string, error) {
+	assets := []preLaunchAssetPath{}
+	err := tx.Select(&assets, `
+		SELECT a.id, a.name, a.extension, a.pointer, COALESCE(c.collection_path, '') AS collection_path
+		FROM asset a
+		LEFT JOIN collection c ON c.id = a.collection_id
+		WHERE a.trashed = 0
+	`)
+	if err != nil {
+		return nil, err
+	}
+	result := []string{}
+	seen := map[string]bool{}
+	for _, variable := range variables {
+		targetPath, isProjectPath := resolveHookEnvironmentPath(projectRoot, variable)
+		if !isProjectPath || !pathContains(projectRoot, targetPath) {
+			continue
+		}
+		for _, asset := range assets {
+			assetPath, err := asset.resolvePath(projectRoot)
+			if err != nil || !pathContains(targetPath, assetPath) || seen[asset.ID] {
+				continue
+			}
+			seen[asset.ID] = true
+			result = append(result, asset.ID)
+		}
+	}
+	return result, nil
+}
+
+func (asset preLaunchAssetPath) resolvePath(projectRoot string) (string, error) {
+	if asset.Pointer != "" {
+		if filepath.IsAbs(asset.Pointer) {
+			return filepath.Clean(asset.Pointer), nil
+		}
+		return filepath.Join(projectRoot, asset.Pointer), nil
+	}
+	return utils.BuildAssetPath(projectRoot, asset.CollectionPath, asset.Name, asset.Extension)
+}
+
+func resolveFetchableDependencyIDs(tx *sqlx.Tx, rootAssetIDs []string) ([]string, error) {
+	result := []string{}
+	seen := map[string]bool{}
+	for _, rootAssetID := range rootAssetIDs {
+		dependencyIDs, err := repository.ResolveBuildDependencies(tx, rootAssetID)
+		if err != nil {
+			return nil, err
+		}
+		for _, dependencyID := range dependencyIDs {
+			if seen[dependencyID] {
+				continue
+			}
+			seen[dependencyID] = true
+			status, err := repository.GetAssetState(tx, dependencyID)
+			if err != nil {
+				return nil, err
+			}
+			if status == fetchableAssetStatus {
+				result = append(result, dependencyID)
+			}
+		}
+	}
+	return result, nil
+}
+
+func pathContains(parent, child string) bool {
+	parent, err := filepath.Abs(filepath.Clean(parent))
+	if err != nil {
+		return false
+	}
+	child, err = filepath.Abs(filepath.Clean(child))
+	if err != nil {
+		return false
+	}
+	relative, err := filepath.Rel(parent, child)
+	return err == nil && !filepath.IsAbs(relative) && relative != ".." &&
+		!strings.HasPrefix(relative, ".."+string(filepath.Separator))
 }
 
 func resolveHookEnvironmentVariables(
@@ -285,14 +434,9 @@ func buildHookEnvironment(
 ) ([]string, error) {
 	environment := append([]string(nil), os.Environ()...)
 	for _, variable := range variables {
-		value := strings.ReplaceAll(variable.Value, projectRootToken, projectRoot)
-		isProjectPath := strings.Contains(variable.Value, projectRootToken)
+		value, isProjectPath := resolveHookEnvironmentPath(projectRoot, variable)
 		isOCIOConfig := strings.EqualFold(variable.Name, ocioEnvironmentVariable)
-		if isOCIOConfig && !filepath.IsAbs(value) {
-			value = filepath.Join(projectRoot, value)
-		}
 		if isProjectPath || isOCIOConfig {
-			value = filepath.Clean(value)
 			if _, err := os.Stat(value); err != nil {
 				if os.IsNotExist(err) {
 					return nil, fmt.Errorf(
@@ -307,6 +451,18 @@ func buildHookEnvironment(
 		environment = setEnvironmentValue(environment, variable.Name, value)
 	}
 	return environment, nil
+}
+
+func resolveHookEnvironmentPath(
+	projectRoot string, variable repository.PreLaunchEnvironmentVariable,
+) (string, bool) {
+	value := strings.ReplaceAll(variable.Value, projectRootToken, projectRoot)
+	isProjectPath := strings.Contains(variable.Value, projectRootToken)
+	isOCIOConfig := strings.EqualFold(variable.Name, ocioEnvironmentVariable)
+	if isOCIOConfig && !filepath.IsAbs(value) {
+		value = filepath.Join(projectRoot, value)
+	}
+	return filepath.Clean(value), isProjectPath || isOCIOConfig
 }
 
 func setEnvironmentValue(environment []string, name, value string) []string {
