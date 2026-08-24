@@ -2681,6 +2681,66 @@ func (x *Tomb) GetSynced() bool {
 	return false
 }
 
+type ProjectConfig struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Value         string                 `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Mtime         int64                  `protobuf:"varint,3,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ProjectConfig) Reset() {
+	*x = ProjectConfig{}
+	mi := &file_internal_repository_schema_proto_msgTypes[25]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ProjectConfig) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ProjectConfig) ProtoMessage() {}
+
+func (x *ProjectConfig) ProtoReflect() protoreflect.Message {
+	mi := &file_internal_repository_schema_proto_msgTypes[25]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ProjectConfig.ProtoReflect.Descriptor instead.
+func (*ProjectConfig) Descriptor() ([]byte, []int) {
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{25}
+}
+
+func (x *ProjectConfig) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ProjectConfig) GetValue() string {
+	if x != nil {
+		return x.Value
+	}
+	return ""
+}
+
+func (x *ProjectConfig) GetMtime() int64 {
+	if x != nil {
+		return x.Mtime
+	}
+	return 0
+}
+
 type ProjectData struct {
 	state                         protoimpl.MessageState          `protogen:"open.v1"`
 	ProjectPreview                string                          `protobuf:"bytes,1,opt,name=project_preview,json=projectPreview,proto3" json:"project_preview,omitempty"`
@@ -2707,13 +2767,14 @@ type ProjectData struct {
 	IntegrationProjects           []*IntegrationProject           `protobuf:"bytes,22,rep,name=integration_projects,json=integrationProjects,proto3" json:"integration_projects,omitempty"`
 	IntegrationCollectionMappings []*IntegrationCollectionMapping `protobuf:"bytes,23,rep,name=integration_collection_mappings,json=integrationCollectionMappings,proto3" json:"integration_collection_mappings,omitempty"`
 	IntegrationAssetMappings      []*IntegrationAssetMapping      `protobuf:"bytes,24,rep,name=integration_asset_mappings,json=integrationAssetMappings,proto3" json:"integration_asset_mappings,omitempty"`
+	ProjectConfigs                []*ProjectConfig                `protobuf:"bytes,25,rep,name=project_configs,json=projectConfigs,proto3" json:"project_configs,omitempty"`
 	unknownFields                 protoimpl.UnknownFields
 	sizeCache                     protoimpl.SizeCache
 }
 
 func (x *ProjectData) Reset() {
 	*x = ProjectData{}
-	mi := &file_internal_repository_schema_proto_msgTypes[25]
+	mi := &file_internal_repository_schema_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2725,7 +2786,7 @@ func (x *ProjectData) String() string {
 func (*ProjectData) ProtoMessage() {}
 
 func (x *ProjectData) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_repository_schema_proto_msgTypes[25]
+	mi := &file_internal_repository_schema_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2738,7 +2799,7 @@ func (x *ProjectData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ProjectData.ProtoReflect.Descriptor instead.
 func (*ProjectData) Descriptor() ([]byte, []int) {
-	return file_internal_repository_schema_proto_rawDescGZIP(), []int{25}
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *ProjectData) GetProjectPreview() string {
@@ -2909,6 +2970,13 @@ func (x *ProjectData) GetIntegrationAssetMappings() []*IntegrationAssetMapping {
 	return nil
 }
 
+func (x *ProjectData) GetProjectConfigs() []*ProjectConfig {
+	if x != nil {
+		return x.ProjectConfigs
+	}
+	return nil
+}
+
 type FullAsset struct {
 	state                     protoimpl.MessageState `protogen:"open.v1"`
 	Id                        string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
@@ -2959,7 +3027,7 @@ type FullAsset struct {
 
 func (x *FullAsset) Reset() {
 	*x = FullAsset{}
-	mi := &file_internal_repository_schema_proto_msgTypes[26]
+	mi := &file_internal_repository_schema_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2971,7 +3039,7 @@ func (x *FullAsset) String() string {
 func (*FullAsset) ProtoMessage() {}
 
 func (x *FullAsset) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_repository_schema_proto_msgTypes[26]
+	mi := &file_internal_repository_schema_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2984,7 +3052,7 @@ func (x *FullAsset) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FullAsset.ProtoReflect.Descriptor instead.
 func (*FullAsset) Descriptor() ([]byte, []int) {
-	return file_internal_repository_schema_proto_rawDescGZIP(), []int{26}
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *FullAsset) GetId() string {
@@ -3291,7 +3359,7 @@ type ChunkInfo struct {
 
 func (x *ChunkInfo) Reset() {
 	*x = ChunkInfo{}
-	mi := &file_internal_repository_schema_proto_msgTypes[27]
+	mi := &file_internal_repository_schema_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3303,7 +3371,7 @@ func (x *ChunkInfo) String() string {
 func (*ChunkInfo) ProtoMessage() {}
 
 func (x *ChunkInfo) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_repository_schema_proto_msgTypes[27]
+	mi := &file_internal_repository_schema_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3316,7 +3384,7 @@ func (x *ChunkInfo) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkInfo.ProtoReflect.Descriptor instead.
 func (*ChunkInfo) Descriptor() ([]byte, []int) {
-	return file_internal_repository_schema_proto_rawDescGZIP(), []int{27}
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ChunkInfo) GetHash() string {
@@ -3342,7 +3410,7 @@ type FullAssetList struct {
 
 func (x *FullAssetList) Reset() {
 	*x = FullAssetList{}
-	mi := &file_internal_repository_schema_proto_msgTypes[28]
+	mi := &file_internal_repository_schema_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3354,7 +3422,7 @@ func (x *FullAssetList) String() string {
 func (*FullAssetList) ProtoMessage() {}
 
 func (x *FullAssetList) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_repository_schema_proto_msgTypes[28]
+	mi := &file_internal_repository_schema_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3367,7 +3435,7 @@ func (x *FullAssetList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FullAssetList.ProtoReflect.Descriptor instead.
 func (*FullAssetList) Descriptor() ([]byte, []int) {
-	return file_internal_repository_schema_proto_rawDescGZIP(), []int{28}
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *FullAssetList) GetFullAssets() []*FullAsset {
@@ -3386,7 +3454,7 @@ type Previews struct {
 
 func (x *Previews) Reset() {
 	*x = Previews{}
-	mi := &file_internal_repository_schema_proto_msgTypes[29]
+	mi := &file_internal_repository_schema_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3398,7 +3466,7 @@ func (x *Previews) String() string {
 func (*Previews) ProtoMessage() {}
 
 func (x *Previews) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_repository_schema_proto_msgTypes[29]
+	mi := &file_internal_repository_schema_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3411,7 +3479,7 @@ func (x *Previews) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Previews.ProtoReflect.Descriptor instead.
 func (*Previews) Descriptor() ([]byte, []int) {
-	return file_internal_repository_schema_proto_rawDescGZIP(), []int{29}
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *Previews) GetPreviews() []*Preview {
@@ -3430,7 +3498,7 @@ type ChunkHashes struct {
 
 func (x *ChunkHashes) Reset() {
 	*x = ChunkHashes{}
-	mi := &file_internal_repository_schema_proto_msgTypes[30]
+	mi := &file_internal_repository_schema_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3442,7 +3510,7 @@ func (x *ChunkHashes) String() string {
 func (*ChunkHashes) ProtoMessage() {}
 
 func (x *ChunkHashes) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_repository_schema_proto_msgTypes[30]
+	mi := &file_internal_repository_schema_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3455,7 +3523,7 @@ func (x *ChunkHashes) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkHashes.ProtoReflect.Descriptor instead.
 func (*ChunkHashes) Descriptor() ([]byte, []int) {
-	return file_internal_repository_schema_proto_rawDescGZIP(), []int{30}
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ChunkHashes) GetChunkHashes() []string {
@@ -3474,7 +3542,7 @@ type ChunkInfos struct {
 
 func (x *ChunkInfos) Reset() {
 	*x = ChunkInfos{}
-	mi := &file_internal_repository_schema_proto_msgTypes[31]
+	mi := &file_internal_repository_schema_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3486,7 +3554,7 @@ func (x *ChunkInfos) String() string {
 func (*ChunkInfos) ProtoMessage() {}
 
 func (x *ChunkInfos) ProtoReflect() protoreflect.Message {
-	mi := &file_internal_repository_schema_proto_msgTypes[31]
+	mi := &file_internal_repository_schema_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3499,7 +3567,7 @@ func (x *ChunkInfos) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ChunkInfos.ProtoReflect.Descriptor instead.
 func (*ChunkInfos) Descriptor() ([]byte, []int) {
-	return file_internal_repository_schema_proto_rawDescGZIP(), []int{31}
+	return file_internal_repository_schema_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *ChunkInfos) GetChunkInfos() []*ChunkInfo {
@@ -3796,7 +3864,11 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1d\n" +
 	"\n" +
 	"table_name\x18\x03 \x01(\tR\ttableName\x12\x16\n" +
-	"\x06synced\x18\x04 \x01(\bR\x06synced\"\x88\f\n" +
+	"\x06synced\x18\x04 \x01(\bR\x06synced\"O\n" +
+	"\rProjectConfig\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value\x12\x14\n" +
+	"\x05mtime\x18\x03 \x01(\x03R\x05mtime\"\xcc\f\n" +
 	"\vProjectData\x12'\n" +
 	"\x0fproject_preview\x18\x01 \x01(\tR\x0eprojectPreview\x12)\n" +
 	"\x06assets\x18\x02 \x03(\v2\x11.repository.AssetR\x06assets\x126\n" +
@@ -3824,7 +3896,8 @@ const file_internal_repository_schema_proto_rawDesc = "" +
 	"\x04tomb\x18\x15 \x03(\v2\x10.repository.TombR\x04tomb\x12Q\n" +
 	"\x14integration_projects\x18\x16 \x03(\v2\x1e.repository.IntegrationProjectR\x13integrationProjects\x12p\n" +
 	"\x1fintegration_collection_mappings\x18\x17 \x03(\v2(.repository.IntegrationCollectionMappingR\x1dintegrationCollectionMappings\x12a\n" +
-	"\x1aintegration_asset_mappings\x18\x18 \x03(\v2#.repository.IntegrationAssetMappingR\x18integrationAssetMappings\"\xc7\v\n" +
+	"\x1aintegration_asset_mappings\x18\x18 \x03(\v2#.repository.IntegrationAssetMappingR\x18integrationAssetMappings\x12B\n" +
+	"\x0fproject_configs\x18\x19 \x03(\v2\x19.repository.ProjectConfigR\x0eprojectConfigs\"\xc7\v\n" +
 	"\tFullAsset\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x1e\n" +
@@ -3903,7 +3976,7 @@ func file_internal_repository_schema_proto_rawDescGZIP() []byte {
 	return file_internal_repository_schema_proto_rawDescData
 }
 
-var file_internal_repository_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
+var file_internal_repository_schema_proto_msgTypes = make([]protoimpl.MessageInfo, 33)
 var file_internal_repository_schema_proto_goTypes = []any{
 	(*User)(nil),                         // 0: repository.User
 	(*CollectionType)(nil),               // 1: repository.CollectionType
@@ -3930,13 +4003,14 @@ var file_internal_repository_schema_proto_goTypes = []any{
 	(*IntegrationCollectionMapping)(nil), // 22: repository.IntegrationCollectionMapping
 	(*IntegrationAssetMapping)(nil),      // 23: repository.IntegrationAssetMapping
 	(*Tomb)(nil),                         // 24: repository.Tomb
-	(*ProjectData)(nil),                  // 25: repository.ProjectData
-	(*FullAsset)(nil),                    // 26: repository.FullAsset
-	(*ChunkInfo)(nil),                    // 27: repository.ChunkInfo
-	(*FullAssetList)(nil),                // 28: repository.FullAssetList
-	(*Previews)(nil),                     // 29: repository.Previews
-	(*ChunkHashes)(nil),                  // 30: repository.ChunkHashes
-	(*ChunkInfos)(nil),                   // 31: repository.ChunkInfos
+	(*ProjectConfig)(nil),                // 25: repository.ProjectConfig
+	(*ProjectData)(nil),                  // 26: repository.ProjectData
+	(*FullAsset)(nil),                    // 27: repository.FullAsset
+	(*ChunkInfo)(nil),                    // 28: repository.ChunkInfo
+	(*FullAssetList)(nil),                // 29: repository.FullAssetList
+	(*Previews)(nil),                     // 30: repository.Previews
+	(*ChunkHashes)(nil),                  // 31: repository.ChunkHashes
+	(*ChunkInfos)(nil),                   // 32: repository.ChunkInfos
 }
 var file_internal_repository_schema_proto_depIdxs = []int32{
 	3,  // 0: repository.ProjectData.assets:type_name -> repository.Asset
@@ -3962,16 +4036,17 @@ var file_internal_repository_schema_proto_depIdxs = []int32{
 	21, // 20: repository.ProjectData.integration_projects:type_name -> repository.IntegrationProject
 	22, // 21: repository.ProjectData.integration_collection_mappings:type_name -> repository.IntegrationCollectionMapping
 	23, // 22: repository.ProjectData.integration_asset_mappings:type_name -> repository.IntegrationAssetMapping
-	13, // 23: repository.FullAsset.status:type_name -> repository.Status
-	16, // 24: repository.FullAsset.checkpoints:type_name -> repository.Checkpoint
-	26, // 25: repository.FullAssetList.full_assets:type_name -> repository.FullAsset
-	20, // 26: repository.Previews.previews:type_name -> repository.Preview
-	27, // 27: repository.ChunkInfos.chunk_infos:type_name -> repository.ChunkInfo
-	28, // [28:28] is the sub-list for method output_type
-	28, // [28:28] is the sub-list for method input_type
-	28, // [28:28] is the sub-list for extension type_name
-	28, // [28:28] is the sub-list for extension extendee
-	0,  // [0:28] is the sub-list for field type_name
+	25, // 23: repository.ProjectData.project_configs:type_name -> repository.ProjectConfig
+	13, // 24: repository.FullAsset.status:type_name -> repository.Status
+	16, // 25: repository.FullAsset.checkpoints:type_name -> repository.Checkpoint
+	27, // 26: repository.FullAssetList.full_assets:type_name -> repository.FullAsset
+	20, // 27: repository.Previews.previews:type_name -> repository.Preview
+	28, // 28: repository.ChunkInfos.chunk_infos:type_name -> repository.ChunkInfo
+	29, // [29:29] is the sub-list for method output_type
+	29, // [29:29] is the sub-list for method input_type
+	29, // [29:29] is the sub-list for extension type_name
+	29, // [29:29] is the sub-list for extension extendee
+	0,  // [0:29] is the sub-list for field type_name
 }
 
 func init() { file_internal_repository_schema_proto_init() }
@@ -3985,7 +4060,7 @@ func file_internal_repository_schema_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_internal_repository_schema_proto_rawDesc), len(file_internal_repository_schema_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   32,
+			NumMessages:   33,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

@@ -127,6 +127,162 @@ export class CompatTimeline {
     }
 }
 
+export class PreLaunchEnvironmentVariable {
+    /**
+     * Creates a new PreLaunchEnvironmentVariable instance.
+     * @param {Partial<PreLaunchEnvironmentVariable>} [$$source = {}] - The source object to create the PreLaunchEnvironmentVariable.
+     */
+    constructor($$source = {}) {
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("value" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["value"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreLaunchEnvironmentVariable instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreLaunchEnvironmentVariable}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new PreLaunchEnvironmentVariable(/** @type {Partial<PreLaunchEnvironmentVariable>} */($$parsedSource));
+    }
+}
+
+export class PreLaunchHook {
+    /**
+     * Creates a new PreLaunchHook instance.
+     * @param {Partial<PreLaunchHook>} [$$source = {}] - The source object to create the PreLaunchHook.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("enabled" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["enabled"] = false;
+        }
+        if (!("extensions" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["extensions"] = [];
+        }
+        if (!("script_asset_ids" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["script_asset_ids"] = [];
+        }
+        if (!("environment_variables" in $$source)) {
+            /**
+             * @member
+             * @type {PreLaunchEnvironmentVariable[]}
+             */
+            this["environment_variables"] = [];
+        }
+        if (!("failure_policy" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["failure_policy"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreLaunchHook instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreLaunchHook}
+     */
+    static createFrom($$source = {}) {
+        const $$createField3_0 = $$createType0;
+        const $$createField4_0 = $$createType0;
+        const $$createField5_0 = $$createType2;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("extensions" in $$parsedSource) {
+            $$parsedSource["extensions"] = $$createField3_0($$parsedSource["extensions"]);
+        }
+        if ("script_asset_ids" in $$parsedSource) {
+            $$parsedSource["script_asset_ids"] = $$createField4_0($$parsedSource["script_asset_ids"]);
+        }
+        if ("environment_variables" in $$parsedSource) {
+            $$parsedSource["environment_variables"] = $$createField5_0($$parsedSource["environment_variables"]);
+        }
+        return new PreLaunchHook(/** @type {Partial<PreLaunchHook>} */($$parsedSource));
+    }
+}
+
+export class PreLaunchHookSettings {
+    /**
+     * Creates a new PreLaunchHookSettings instance.
+     * @param {Partial<PreLaunchHookSettings>} [$$source = {}] - The source object to create the PreLaunchHookSettings.
+     */
+    constructor($$source = {}) {
+        if (!("version" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["version"] = 0;
+        }
+        if (!("hooks" in $$source)) {
+            /**
+             * @member
+             * @type {PreLaunchHook[]}
+             */
+            this["hooks"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreLaunchHookSettings instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreLaunchHookSettings}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType4;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("hooks" in $$parsedSource) {
+            $$parsedSource["hooks"] = $$createField1_0($$parsedSource["hooks"]);
+        }
+        return new PreLaunchHookSettings(/** @type {Partial<PreLaunchHookSettings>} */($$parsedSource));
+    }
+}
+
 export class ProjectInfo {
     /**
      * Creates a new ProjectInfo instance.
@@ -315,3 +471,7 @@ export class ProjectInfo {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = PreLaunchEnvironmentVariable.createFrom;
+const $$createType2 = $Create.Array($$createType1);
+const $$createType3 = PreLaunchHook.createFrom;
+const $$createType4 = $Create.Array($$createType3);

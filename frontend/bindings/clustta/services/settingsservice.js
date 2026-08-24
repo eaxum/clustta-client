@@ -309,13 +309,23 @@ export function GetPinnedProjects(studioName) {
 }
 
 /**
+ * @param {string} projectPath
+ * @returns {$CancellablePromise<repository$0.PreLaunchHookSettings>}
+ */
+export function GetPreLaunchHookSettings(projectPath) {
+    return $Call.ByID(2597509702, projectPath).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType9($result);
+    }));
+}
+
+/**
  * GetProjectDependencyPresets retrieves all dependency presets for a project.
  * @param {string} projectId
  * @returns {$CancellablePromise<any[]>}
  */
 export function GetProjectDependencyPresets(projectId) {
     return $Call.ByID(3058392474, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType10($result);
     }));
 }
 
@@ -343,7 +353,7 @@ export function GetProjectLocation(projectID) {
  */
 export function GetProjectWorkspaces(projectId) {
     return $Call.ByID(2164081225, projectId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType9($result);
+        return $$createType10($result);
     }));
 }
 
@@ -381,7 +391,7 @@ export function GetShowTypeIcons() {
  */
 export function GetStudios(path) {
     return $Call.ByID(2852753313, path).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType11($result);
+        return $$createType12($result);
     }));
 }
 
@@ -645,6 +655,17 @@ export function SetOverwriteDroppedFiles(enabled) {
 }
 
 /**
+ * @param {string} projectPath
+ * @param {repository$0.PreLaunchHookSettings} settings
+ * @returns {$CancellablePromise<repository$0.PreLaunchHookSettings>}
+ */
+export function SetPreLaunchHookSettings(projectPath, settings) {
+    return $Call.ByID(2914005234, projectPath, settings).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType9($result);
+    }));
+}
+
+/**
  * SetProjectDirectory sets the default project directory path.
  * @param {string} dir
  * @returns {$CancellablePromise<void>}
@@ -806,6 +827,7 @@ const $$createType5 = repository$0.AgentScriptSettings.createFrom;
 const $$createType6 = $Create.Array($$createType0);
 const $$createType7 = $Create.Map($Create.Any, $$createType1);
 const $$createType8 = settings$0.IntegrationCredential.createFrom;
-const $$createType9 = $Create.Array($Create.Any);
-const $$createType10 = settings$0.Studio.createFrom;
-const $$createType11 = $Create.Array($$createType10);
+const $$createType9 = repository$0.PreLaunchHookSettings.createFrom;
+const $$createType10 = $Create.Array($Create.Any);
+const $$createType11 = settings$0.Studio.createFrom;
+const $$createType12 = $Create.Array($$createType11);

@@ -237,6 +237,17 @@ export function GetPersonalProjectsDirectory() {
 }
 
 /**
+ * @param {string} projectPath
+ * @param {string} assetID
+ * @returns {$CancellablePromise<$models.PreLaunchTrustInfo>}
+ */
+export function GetPreLaunchTrust(projectPath, assetID) {
+    return $Call.ByID(1649701236, projectPath, assetID).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
+}
+
+/**
  * ImportClusttaFiles imports multiple .clst files to the destination directory with progress reporting.
  * Validates file extensions, checks for existing files, and copies each file with progress updates.
  * Returns an array of destination file paths and any error encountered.
@@ -246,7 +257,7 @@ export function GetPersonalProjectsDirectory() {
  */
 export function ImportClusttaFiles(sourcePaths, destinationDirectory) {
     return $Call.ByID(2186594820, sourcePaths, destinationDirectory).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -287,6 +298,15 @@ export function LaunchFile(path) {
  */
 export function LaunchFileWith(path) {
     return $Call.ByID(469279585, path);
+}
+
+/**
+ * @param {string} projectPath
+ * @param {string} assetID
+ * @returns {$CancellablePromise<void>}
+ */
+export function LaunchProjectAsset(projectPath, assetID) {
+    return $Call.ByID(1917562256, projectPath, assetID);
 }
 
 /**
@@ -406,4 +426,5 @@ export function WriteFile(path, data) {
 const $$createType0 = $models.FileInfo.createFrom;
 const $$createType1 = $models.ImageResolution.createFrom;
 const $$createType2 = $Create.Map($Create.Any, $Create.Any);
-const $$createType3 = $Create.Array($Create.Any);
+const $$createType3 = $models.PreLaunchTrustInfo.createFrom;
+const $$createType4 = $Create.Array($Create.Any);

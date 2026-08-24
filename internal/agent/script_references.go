@@ -90,6 +90,45 @@ func ListScriptReferences(projectPath string) ([]ScriptReference, error) {
 	return references, nil
 }
 
+func ResolveTrackedScriptPaths(projectPath string, assetIDs []string) ([]string, error) {
+	references, err := ListScriptReferences(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	pathsByID := make(map[string]string, len(references))
+	for _, reference := range references {
+		if reference.Tracked {
+			pathsByID[reference.ID] = reference.Path
+		}
+	}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	paths := make([]string, 0, len(assetIDs))
+	for _, assetID := range assetIDs {
+		path, exists := pathsByID[assetID]
+		if !exists {
+			return nil, fmt.Errorf("script asset %s is not tracked in the configured Scripts directory", assetID)
+		}
+		asset, err := repository.GetAsset(tx, assetID)
+		if err != nil {
+			return nil, err
+		}
+		if asset.FileStatus != "normal" {
+			return nil, fmt.Errorf("script asset %s must be current before launch, status is %s", asset.Name, asset.FileStatus)
+		}
+		paths = append(paths, path)
+	}
+	return paths, nil
+}
+
 type trackedScript struct {
 	ID   string
 	Name string

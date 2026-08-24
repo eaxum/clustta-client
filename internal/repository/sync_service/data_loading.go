@@ -242,6 +242,11 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 
 	userData.Tags = tags
 	userData.AssetTags = assetsTags
+	projectConfigs, err := repository.GetSyncableProjectConfigs(tx, false)
+	if err != nil {
+		return ProjectData{}, err
+	}
+	userData.ProjectConfigs = projectConfigs
 	return userData, nil
 }
 
@@ -475,6 +480,11 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 
 	userData.Tags = tags
 	userData.AssetTags = assetsTags
+	projectConfigs, err := repository.GetSyncableProjectConfigs(tx, false)
+	if err != nil {
+		return ProjectData{}, err
+	}
+	userData.ProjectConfigs = projectConfigs
 	return userData, nil
 }
 
@@ -695,9 +705,14 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 	if err != nil {
 		return []byte{}, err
 	}
+	projectConfigs, err := repository.GetSyncableProjectConfigs(tx, false)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	userData := &repositorypb.ProjectData{
 		ProjectPreview:      projectPreview.Hash,
+		ProjectConfigs:      repository.ToPbProjectConfigs(projectConfigs),
 		CollectionTypes:     repository.ToPbCollectionTypes(collectionTypes),
 		Collections:         repository.ToPbCollections(collections),
 		CollectionAssignees: repository.ToPbCollectionAssignees(collectionAssignees),
@@ -766,10 +781,15 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 
 func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	userData := ProjectData{}
+	projectConfigs, err := repository.GetSyncableProjectConfigs(tx, true)
+	if err != nil {
+		return userData, err
+	}
+	userData.ProjectConfigs = projectConfigs
 
 	assetQuery := "SELECT * FROM asset WHERE synced = 0"
 	assets := []models.Asset{}
-	err := tx.Select(&assets, assetQuery)
+	err = tx.Select(&assets, assetQuery)
 	if err != nil && err != sql.ErrNoRows {
 		return userData, err
 	}
@@ -1138,9 +1158,14 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 			return []byte{}, err
 		}
 	}
+	projectConfigs, err := repository.GetSyncableProjectConfigs(tx, true)
+	if err != nil {
+		return []byte{}, err
+	}
 
 	userData := &repositorypb.ProjectData{
 		ProjectPreview:      projectPreview.Hash,
+		ProjectConfigs:      repository.ToPbProjectConfigs(projectConfigs),
 		CollectionTypes:     repository.ToPbCollectionTypes(collectionTypes),
 		Collections:         repository.ToPbCollections(collections),
 		CollectionAssignees: repository.ToPbCollectionAssignees(collectionAssignees),

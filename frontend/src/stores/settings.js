@@ -9,6 +9,8 @@ export const useSettingsStore = defineStore("settings", {
     pendingTab: null,
     showTypeIcons: true,
     locationsStale: false,
+    preLaunchHooks: [],
+    selectedPreLaunchHook: null,
     systemBookmarksHealth: { projects_dir_stale: false, shared_projects_dir_stale: false },
     modalStates: {
       general: false,
@@ -25,6 +27,7 @@ export const useSettingsStore = defineStore("settings", {
       projecttemplates: false,
       directories: false,
       advanced: false,
+      hooks: false,
 
       
       studio: false,
@@ -56,6 +59,7 @@ export const useSettingsStore = defineStore("settings", {
       { id: "templates", nameKey: "settings.templates", name: "Templates", icon: "file" },
       { id: "collaborators", nameKey: "settings.collaborators", name: "Collaborators", icon: "person" },
       { id: "roles", nameKey: "settings.roles", name: "Roles", icon: "scale" },
+      { id: "hooks", nameKey: "settings.launchHooks", name: "Hooks", icon: "hook" },
 
       { id: "assettypes", nameKey: "settings.assetTypes", name: "Asset types", icon: "brush" },
       { id: "collectiontypes", nameKey: "settings.collectionTypes", name: "Collection types", icon: "folder" },
@@ -81,6 +85,20 @@ export const useSettingsStore = defineStore("settings", {
   }),
   getters: {},
   actions: {
+    async loadPreLaunchHooks(projectPath) {
+      const settings = await SettingsService.GetPreLaunchHookSettings(projectPath);
+      this.preLaunchHooks = settings?.hooks || [];
+    },
+
+    async savePreLaunchHooks(projectPath, hooks) {
+      const settings = await SettingsService.SetPreLaunchHookSettings(projectPath, {
+        version: 1,
+        hooks,
+      });
+      this.preLaunchHooks = settings?.hooks || [];
+      return settings;
+    },
+
     // Refreshes the stale state of project locations (macOS security-scoped bookmarks).
     // Sets locationsStale to true when any configured location's bookmark needs re-selection.
     async refreshLocationsHealth() {

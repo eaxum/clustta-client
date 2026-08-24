@@ -4,6 +4,18 @@
       "name": "3D Animation",
       "icon": "cube",
       "description": "Template for 3D animation projects including modeling, rigging, and animation workflows",
+      "preLaunchHooks": [
+        {
+          "name": "Maya - Set Project",
+          "extensions": [".ma", ".mb"],
+          "script": "maya_prelaunch.py"
+        },
+        {
+          "name": "Blender - Initialize Scene",
+          "extensions": [".blend"],
+          "script": "blender_prelaunch.py"
+        }
+      ],
       "assetTypes": [
         {
           "name": "Modeling",
@@ -47,6 +59,10 @@
         }
       ],
       "collectionTypes": [
+        {
+          "name": "Scripts",
+          "icon": "code-bracket"
+        },
         {
           "name": "Sequence",
           "icon": "film-reel"

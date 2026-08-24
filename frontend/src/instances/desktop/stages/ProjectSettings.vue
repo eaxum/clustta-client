@@ -42,6 +42,7 @@ import Roles from '@/instances/desktop/settings/Roles.vue';
 import CollectionTypes from '@/instances/desktop/settings/CollectionTypes.vue';
 import IgnoreList from '@/instances/desktop/settings/IgnoreList.vue';
 import Advanced from '@/instances/desktop/settings/Advanced.vue';
+import Hooks from '@/instances/desktop/settings/Hooks.vue';
 
 const selectedSettingsContext = ref('');
 
@@ -57,6 +58,7 @@ const settingsComponents = {
 	collectiontypes: CollectionTypes,
 	ignorelist: IgnoreList,
 	advanced: Advanced,
+	hooks: Hooks,
 };
 
 // computed props
@@ -65,17 +67,14 @@ const settingsItems = computed(() => {
 
 	const canCollaborate = entitlementStore.canCollaborate;
 	const hasCustomRoles = entitlementStore.hasCustomRoles;
-	const hasIntegrations = entitlementStore.hasIntegrations;
-
 	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'studio', 'studiocollaborators', 'studiointegrations'];
-	const remoteProjectIds = ['collaborators', 'roles', 'advanced'];
+	const remoteProjectIds = ['collaborators', 'roles'];
 
 	const projectSettings = settings.settingsItems.filter((item) => 
 		!userSettingsIds.includes(item.id) &&
 		canAccessProjectSettingsTab(item.id) &&
 		(canCollaborate || item.id !== 'collaborators') &&
-		(hasCustomRoles || item.id !== 'roles') &&
-		(hasIntegrations || item.id !== 'advanced')
+		(hasCustomRoles || item.id !== 'roles')
 	);
 	
 	const localProjectSettings = projectSettings.filter((item) => !remoteProjectIds.includes(item.id));

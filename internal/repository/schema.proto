@@ -309,6 +309,12 @@ message Tomb {
   bool synced = 4;
 }
 
+message ProjectConfig {
+  string name = 1;
+  string value = 2;
+  int64 mtime = 3;
+}
+
 message ProjectData {
     string project_preview = 1;
     repeated Asset assets = 2;
@@ -341,6 +347,7 @@ message ProjectData {
     repeated IntegrationProject integration_projects = 22;
     repeated IntegrationCollectionMapping integration_collection_mappings = 23;
     repeated IntegrationAssetMapping integration_asset_mappings = 24;
+    repeated ProjectConfig project_configs = 25;
 }
 
 message FullAsset {

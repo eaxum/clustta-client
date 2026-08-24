@@ -155,6 +155,17 @@
         ]
       },
       {
+        "name": "ListEntityReferenceChildren",
+        "params": [
+          "projectPath:string",
+          "parentID:string"
+        ],
+        "returns": [
+          "[]agent.EntityReference",
+          "error"
+        ]
+      },
+      {
         "name": "ListScriptReferences",
         "params": [
           "projectPath:string"
@@ -1808,6 +1819,19 @@
     "file": "services/dialog_service.go",
     "methods": [
       {
+        "name": "SaveFileDialog",
+        "params": [
+          "title:string",
+          "filename:string",
+          "filterName:string",
+          "filterPattern:string"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
         "name": "SelectFileDialog",
         "params": [
           "title:string",
@@ -1869,9 +1893,20 @@
     "file": "services/entitlement_service.go",
     "methods": [
       {
+        "name": "CancelSubscription",
+        "params": [
+          "studioId:string"
+        ],
+        "returns": [
+          "CancellationResult",
+          "error"
+        ]
+      },
+      {
         "name": "ChangePlan",
         "params": [
-          "planId:string"
+          "planId:string",
+          "studioId:string"
         ],
         "returns": [
           "EntitlementBundle",
@@ -1885,7 +1920,7 @@
           "studioId:string"
         ],
         "returns": [
-          "string",
+          "CheckoutResult",
           "error"
         ]
       },
@@ -1917,9 +1952,50 @@
       },
       {
         "name": "OpenBillingPortal",
-        "params": null,
+        "params": [
+          "studioId:string"
+        ],
         "returns": [
           "string",
+          "error"
+        ]
+      },
+      {
+        "name": "ResumeSubscription",
+        "params": [
+          "studioId:string"
+        ],
+        "returns": [
+          "CancellationResult",
+          "error"
+        ]
+      }
+    ]
+  },
+  "ExportService": {
+    "file": "services/export_service.go",
+    "methods": [
+      {
+        "name": "Export",
+        "params": [
+          "projectPath:string",
+          "destinationPath:string",
+          "format:string",
+          "request:ExportRequest"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "Preview",
+        "params": [
+          "projectPath:string",
+          "request:ExportRequest"
+        ],
+        "returns": [
+          "ExportPreview",
           "error"
         ]
       }
@@ -2144,6 +2220,17 @@
         ]
       },
       {
+        "name": "GetPreLaunchTrust",
+        "params": [
+          "projectPath:string",
+          "assetID:string"
+        ],
+        "returns": [
+          "PreLaunchTrustInfo",
+          "error"
+        ]
+      },
+      {
         "name": "ImportClusttaFiles",
         "params": [
           "sourcePaths:[]string",
@@ -2204,6 +2291,16 @@
         "name": "LaunchFileWith",
         "params": [
           "path:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "LaunchProjectAsset",
+        "params": [
+          "projectPath:string",
+          "assetID:string"
         ],
         "returns": [
           "error"
@@ -2404,6 +2501,17 @@
         ]
       },
       {
+        "name": "GetAssetIntegrationDetails",
+        "params": [
+          "projectPath:string",
+          "assetID:string"
+        ],
+        "returns": [
+          "AssetIntegrationDetails",
+          "error"
+        ]
+      },
+      {
         "name": "GetAvailableIntegrations",
         "params": null,
         "returns": [
@@ -2542,6 +2650,16 @@
         "params": [
           "projectPath:string",
           "syncOptions:integrations.SyncOptions"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "UnlinkAsset",
+        "params": [
+          "projectPath:string",
+          "assetID:string"
         ],
         "returns": [
           "error"
@@ -3443,6 +3561,16 @@
         ]
       },
       {
+        "name": "GetPreLaunchHookSettings",
+        "params": [
+          "projectPath:string"
+        ],
+        "returns": [
+          "repository.PreLaunchHookSettings",
+          "error"
+        ]
+      },
+      {
         "name": "GetProjectDependencyPresets",
         "params": [
           "projectId:string"
@@ -3769,6 +3897,17 @@
           "enabled:bool"
         ],
         "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetPreLaunchHookSettings",
+        "params": [
+          "projectPath:string",
+          "settings:repository.PreLaunchHookSettings"
+        ],
+        "returns": [
+          "repository.PreLaunchHookSettings",
           "error"
         ]
       },

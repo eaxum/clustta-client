@@ -1993,6 +1993,66 @@ export class Plan {
     }
 }
 
+export class PreLaunchTrustInfo {
+    /**
+     * Creates a new PreLaunchTrustInfo instance.
+     * @param {Partial<PreLaunchTrustInfo>} [$$source = {}] - The source object to create the PreLaunchTrustInfo.
+     */
+    constructor($$source = {}) {
+        if (!("required" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["required"] = false;
+        }
+        if (!("hook_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["hook_id"] = "";
+        }
+        if (!("hook_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["hook_name"] = "";
+        }
+        if (!("digest" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["digest"] = "";
+        }
+        if (!("scripts" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["scripts"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new PreLaunchTrustInfo instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {PreLaunchTrustInfo}
+     */
+    static createFrom($$source = {}) {
+        const $$createField4_0 = $$createType8;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("scripts" in $$parsedSource) {
+            $$parsedSource["scripts"] = $$createField4_0($$parsedSource["scripts"]);
+        }
+        return new PreLaunchTrustInfo(/** @type {Partial<PreLaunchTrustInfo>} */($$parsedSource));
+    }
+}
+
 export class ProfileUpdateData {
     /**
      * Creates a new ProfileUpdateData instance.

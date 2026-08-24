@@ -862,9 +862,15 @@ const launchAssetCommand = async () => {
 const launchAssetFile = async (asset) => {
   const filePath = asset.pointer || asset.file_path;
   if (await FSService.Exists(filePath)) {
-    await FSService.LaunchFile(filePath);
+    if (asset.type === 'untracked_asset') {
+      await FSService.LaunchFile(filePath);
+      return;
+    }
+    await launchProjectAsset(asset.id);
     return;
   }
+
+  if (asset.type === 'untracked_asset') return;
 
   try {
     const response = await CheckpointService.Revert(
@@ -874,10 +880,45 @@ const launchAssetFile = async (asset) => {
     );
     if (!response?.restored_asset_ids?.includes(asset.id)) return;
     browserTreeStore.markAssetsAvailable(response.restored_asset_ids);
-    await FSService.LaunchFile(filePath);
+    await launchProjectAsset(asset.id);
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorFetchingAsset'), error);
   }
+};
+
+const launchProjectAsset = async (assetId) => {
+  try {
+    const projectPath = projectStore.activeProject.uri;
+    const trust = await FSService.GetPreLaunchTrust(projectPath, assetId);
+    if (trust?.required && localStorage.getItem(preLaunchTrustKey(trust)) !== trust.digest) {
+      confirmPreLaunchTrust(projectPath, assetId, trust);
+      return;
+    }
+    await FSService.LaunchProjectAsset(projectPath, assetId);
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorLaunchingAsset'), error);
+  }
+};
+
+const preLaunchTrustKey = (trust) => {
+  return `clustta-prelaunch-trust:${projectStore.activeProject.id}:${trust.hook_id}`;
+};
+
+const confirmPreLaunchTrust = (projectPath, assetId, trust) => {
+  trayStates.dangerousActionTitle = t('blocks.trustLaunchHookTitle', { name: trust.hook_name });
+  trayStates.dangerousActionMessage = t('blocks.trustLaunchHookMessage', {
+    scripts: trust.scripts.join(', '),
+  });
+  trayStates.dangerousActionIcon = 'alert';
+  trayStates.dangerousActionConfirmLabel = t('blocks.trustAndLaunch');
+  trayStates.dangerousActionConfirmText = '';
+  trayStates.dangerousActionShowInput = false;
+  trayStates.dangerousActionShowToggle = false;
+  trayStates.dangerousActionFunction = async () => {
+    localStorage.setItem(preLaunchTrustKey(trust), trust.digest);
+    await FSService.LaunchProjectAsset(projectPath, assetId);
+  };
+  modals.setModalVisibility('confirmDangerousActionModal', true);
 };
 
 // Warns before renaming and launching an asset.

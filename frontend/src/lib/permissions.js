@@ -161,6 +161,7 @@ const projectSettingsTabPermissions = {
   workflows: ['change_role'],
   ignorelist: ['change_role'],
   advanced: ['change_role'],
+  hooks: ['change_role'],
 };
 
 // Project settings remain available to roles with an existing project-management

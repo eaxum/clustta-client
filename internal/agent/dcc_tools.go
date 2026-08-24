@@ -633,6 +633,11 @@ func findDCCExecutable(name string) (string, error) {
 	return "", fmt.Errorf("%s not found - set %s environment variable or add it to PATH", name, envKey)
 }
 
+// FindDCCExecutable locates a DCC application using Clustta's shared discovery rules.
+func FindDCCExecutable(name string) (string, error) {
+	return findDCCExecutable(name)
+}
+
 // dccDefaultPaths returns common installation paths for a DCC application.
 func dccDefaultPaths(name string) []string {
 	switch runtime.GOOS {

@@ -202,7 +202,10 @@ onMounted(async () => {
   try {
     const projectUri = projectStore.activeProject?.uri;
     if (projectUri) {
-      await Promise.all([integrationStore.loadLinkedIntegration(), loadScriptSettings()]);
+      await Promise.all([
+        integrationStore.loadLinkedIntegration(),
+        loadScriptSettings(),
+      ]);
     }
   } catch (error) {
     console.log(error);

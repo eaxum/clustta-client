@@ -5,5 +5,8 @@
 export {
     AgentScriptSettings,
     CompatTimeline,
+    PreLaunchEnvironmentVariable,
+    PreLaunchHook,
+    PreLaunchHookSettings,
     ProjectInfo
 } from "./models.js";

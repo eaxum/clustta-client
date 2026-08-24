@@ -1,15 +1,31 @@
 package services
 
 import (
+	"clustta/internal/agent"
 	"clustta/internal/repository"
 	"clustta/internal/settings"
 	"clustta/internal/utils"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type SettingsService struct{}
+
+func requireChangeRolePermission(tx *sqlx.Tx) error {
+	_, role, err := activeAssetRole(tx)
+	if err != nil {
+		return err
+	}
+	if !role.ChangeRole {
+		return fmt.Errorf("user does not have change_role permission")
+	}
+	return nil
+}
 
 func (s *SettingsService) GetAgentScriptSettings(projectPath string) (repository.AgentScriptSettings, error) {
 	dbConn, err := utils.OpenDb(projectPath)
@@ -36,12 +52,77 @@ func (s *SettingsService) SetAgentScriptSettings(projectPath, directory string, 
 		return err
 	}
 	defer tx.Rollback()
+	if err := requireChangeRolePermission(tx); err != nil {
+		return err
+	}
 	if err := repository.SetAgentScriptSettings(tx, repository.AgentScriptSettings{
 		Directory: directory, Extensions: extensions,
 	}); err != nil {
 		return err
 	}
 	return tx.Commit()
+}
+
+func (s *SettingsService) GetPreLaunchHookSettings(projectPath string) (repository.PreLaunchHookSettings, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	defer tx.Rollback()
+	return repository.GetPreLaunchHookSettings(tx)
+}
+
+func (s *SettingsService) SetPreLaunchHookSettings(projectPath string, settings repository.PreLaunchHookSettings) (repository.PreLaunchHookSettings, error) {
+	normalized, err := repository.NormalizePreLaunchHookSettings(settings)
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	defer tx.Rollback()
+	if err := requireChangeRolePermission(tx); err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	for _, hook := range normalized.Hooks {
+		scriptPaths, err := agent.ResolveTrackedScriptPaths(projectPath, hook.ScriptAssetIDs)
+		if err != nil {
+			return repository.PreLaunchHookSettings{}, err
+		}
+		for _, scriptPath := range scriptPaths {
+			extension := strings.ToLower(filepath.Ext(scriptPath))
+			for _, targetExtension := range hook.Extensions {
+				dcc := repository.PreLaunchDCCForExtension(targetExtension)
+				if dcc == "" {
+					return repository.PreLaunchHookSettings{}, fmt.Errorf("script hooks do not support %s files", targetExtension)
+				}
+				if dcc == repository.PreLaunchDCCBlender && extension != ".py" {
+					return repository.PreLaunchHookSettings{}, fmt.Errorf("Blender hooks only support Python scripts")
+				}
+				if dcc == repository.PreLaunchDCCMaya && extension != ".py" && extension != ".mel" {
+					return repository.PreLaunchHookSettings{}, fmt.Errorf("Maya hooks only support Python and MEL scripts")
+				}
+			}
+		}
+	}
+	if err := repository.SetPreLaunchHookSettings(tx, normalized); err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	return s.GetPreLaunchHookSettings(projectPath)
 }
 
 var (

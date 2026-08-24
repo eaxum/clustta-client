@@ -18,13 +18,26 @@ import (
 //go:embed project_templates.json
 var templateJSONData []byte
 
+//go:embed template_scripts/maya_prelaunch.py
+var mayaPreLaunchScript []byte
+
+//go:embed template_scripts/blender_prelaunch.py
+var blenderPreLaunchScript []byte
+
 type ProjectTemplateDefinition struct {
-	Name            string         `json:"name"`
-	Icon            string         `json:"icon"`
-	Description     string         `json:"description"`
-	AssetTypes      []TemplateType `json:"assetTypes"`
-	CollectionTypes []TemplateType `json:"collectionTypes"`
-	IgnoreList      []string       `json:"ignoreList"`
+	Name            string                  `json:"name"`
+	Icon            string                  `json:"icon"`
+	Description     string                  `json:"description"`
+	AssetTypes      []TemplateType          `json:"assetTypes"`
+	CollectionTypes []TemplateType          `json:"collectionTypes"`
+	IgnoreList      []string                `json:"ignoreList"`
+	PreLaunchHooks  []TemplatePreLaunchHook `json:"preLaunchHooks"`
+}
+
+type TemplatePreLaunchHook struct {
+	Name       string   `json:"name"`
+	Extensions []string `json:"extensions"`
+	Script     string   `json:"script"`
 }
 
 type TemplateType struct {
@@ -225,6 +238,9 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 		log.Printf("Failed to close template database: %v", err)
 		return fmt.Errorf("failed to close template database: %w", err)
 	}
+	if err := applyTemplatePreLaunchHooks(tmpPath, tmpPath, user.Id); err != nil {
+		return fmt.Errorf("failed to add template launch hooks: %w", err)
+	}
 
 	// Verify the template is fully initialized before publishing it.
 	ok, err := VerifyProjectIntegrity(tmpPath)
@@ -240,6 +256,102 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 	}
 
 	return nil
+}
+
+func applyTemplatePreLaunchHooks(projectPath, templatePath, authorID string) error {
+	templateName := strings.TrimSuffix(filepath.Base(templatePath), filepath.Ext(templatePath))
+	templateDefs, err := loadTemplateDefinitions()
+	if err != nil {
+		return err
+	}
+	var hooks []TemplatePreLaunchHook
+	for _, templateDef := range templateDefs.Templates {
+		if templateDef.Name == templateName {
+			hooks = templateDef.PreLaunchHooks
+			break
+		}
+	}
+	if len(hooks) == 0 {
+		return nil
+	}
+
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	workingDir, err := utils.GetProjectWorkingDir(tx)
+	if err != nil {
+		return err
+	}
+	scriptsDir := filepath.Join(workingDir, "Scripts")
+	if err := os.MkdirAll(scriptsDir, os.ModePerm); err != nil {
+		return err
+	}
+	collectionType, err := GetOrCreateCollectionType(tx, "Scripts", "code-bracket")
+	if err != nil {
+		return err
+	}
+	assetType, err := GetOrCreateAssetType(tx, "Script", "code-bracket")
+	if err != nil {
+		return err
+	}
+	scriptsCollection, err := CreateCollection(tx, "", "Scripts", "Project launch scripts", collectionType.Id, "", "", false)
+	if err != nil {
+		return err
+	}
+	if authorID == "" {
+		user, err := auth_service.GetActiveUser()
+		if err != nil {
+			return err
+		}
+		authorID = user.Id
+	}
+
+	settings := PreLaunchHookSettings{Version: PreLaunchHooksVersion}
+	for _, hookDef := range hooks {
+		scriptContent, err := templatePreLaunchScript(hookDef.Script)
+		if err != nil {
+			return err
+		}
+		scriptPath := filepath.Join(scriptsDir, hookDef.Script)
+		if err := os.WriteFile(scriptPath, scriptContent, 0o644); err != nil {
+			return err
+		}
+		asset, err := CreateAsset(
+			tx, "", strings.TrimSuffix(hookDef.Script, filepath.Ext(hookDef.Script)), assetType.Id,
+			scriptsCollection.Id, false, "", "", scriptPath, nil, "", false, "", authorID,
+			"Created from project template", uuid.NewString(), func(int, int, string, string) {},
+		)
+		if err != nil {
+			return err
+		}
+		settings.Hooks = append(settings.Hooks, PreLaunchHook{
+			Name: hookDef.Name, Enabled: true, Extensions: hookDef.Extensions,
+			ScriptAssetIDs: []string{asset.Id}, FailurePolicy: PreLaunchFailureBlock,
+		})
+	}
+	if err := SetPreLaunchHookSettings(tx, settings); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func templatePreLaunchScript(name string) ([]byte, error) {
+	switch name {
+	case "maya_prelaunch.py":
+		return mayaPreLaunchScript, nil
+	case "blender_prelaunch.py":
+		return blenderPreLaunchScript, nil
+	default:
+		return nil, fmt.Errorf("unknown template pre-launch script %q", name)
+	}
 }
 
 // ResetDefaultTemplates removes all existing templates and recreates the defaults.

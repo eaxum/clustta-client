@@ -76,6 +76,7 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 
 	pdData := repositorypb.ProjectData{
 		ProjectPreview:      data.ProjectPreview,
+		ProjectConfigs:      repository.ToPbProjectConfigs(data.ProjectConfigs),
 		CollectionTypes:     repository.ToPbCollectionTypes(data.CollectionTypes),
 		Collections:         repository.ToPbCollections(data.Collections),
 		CollectionAssignees: repository.ToPbCollectionAssignees(data.CollectionAssignees),
@@ -230,6 +231,9 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 			if err != nil {
 				return err
 			}
+			if err = repository.MarkSyncableProjectConfigsSynced(tx); err != nil {
+				return err
+			}
 			if metadataOnlyStorage {
 				if err = repository.ClearChunkCache(tx); err != nil {
 					return err
@@ -286,6 +290,9 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 
 		err = utils.SetTablesToSynced(tx, ProjectTables)
 		if err != nil {
+			return err
+		}
+		if err = repository.MarkSyncableProjectConfigsSynced(tx); err != nil {
 			return err
 		}
 		if metadataOnlyStorage {

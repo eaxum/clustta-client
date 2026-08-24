@@ -103,6 +103,7 @@ export {
     MetadataUpdateResult,
     NullString,
     Plan,
+    PreLaunchTrustInfo,
     ProfileUpdateData,
     PurgeRecursiveUntrackedItemsResult,
     RecycleItem,

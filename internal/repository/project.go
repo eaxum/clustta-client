@@ -64,9 +64,10 @@ type ProjectInfo struct {
 }
 
 type ProjectConfig struct {
-	Name  string      `json:"name" db:"name"`
-	Value interface{} `json:"value" db:"value"`
-	Mtime int         `json:"mtime" db:"mtime"`
+	Name   string `json:"name" db:"name"`
+	Value  string `json:"value" db:"value"`
+	Mtime  int    `json:"mtime" db:"mtime"`
+	Synced bool   `json:"synced" db:"synced"`
 }
 
 // defaultProjectIcons is a curated set of tasteful emoji used as random
@@ -1980,6 +1981,10 @@ func LoadProjectTemplateData(projectPath, templatePath string) error {
 	err = addTemplateDefinitions(projectPath, templateData.AssetTemplates)
 	if err != nil {
 		return fmt.Errorf("failed to add template definitions: %w", err)
+	}
+
+	if err := applyTemplatePreLaunchHooks(projectPath, templatePath, ""); err != nil {
+		return fmt.Errorf("failed to add template launch hooks: %w", err)
 	}
 
 	return nil
