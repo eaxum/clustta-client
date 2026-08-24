@@ -19,7 +19,8 @@
           <IgnoreListBox :selectedItems="scriptExtensions" :placeholder="$t('settings.addScriptExtension')"
             @itemAdded="addScriptExtension" @itemRemoved="removeScriptExtension" />
           <div class="script-settings-actions">
-            <ActionButton :icon="getAppIcon('floppy-disk')" :label="$t('settings.saveScriptSettings')" :buttonFunction="saveScriptSettings" />
+            <ActionButton :icon="getAppIcon('floppy-disk')" :label="$t('common.save')"
+              :buttonFunction="saveScriptSettings" :isDisabled="!scriptSettingsChanged" />
           </div>
         </div>
       </div>
@@ -35,8 +36,9 @@
           <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('common.add')"
             :buttonFunction="addEnvironmentVariable" />
         </div>
-        <div class="settings-section-card-content environment-settings">
-          <div v-if="environmentVariables.length" class="environment-variable-list">
+        <div v-if="environmentVariables.length || environmentVariablesChanged"
+          class="settings-section-card-content environment-settings">
+          <div class="environment-variable-list">
             <div v-for="variable in environmentVariables" :key="variable.id" class="environment-variable-row">
               <input v-model="variable.name" class="input-short environment-variable-name" type="text"
                 :placeholder="$t('settings.environmentVariableNamePlaceholder')" />
@@ -46,25 +48,29 @@
                 :buttonFunction="() => removeEnvironmentVariable(variable.id)" />
             </div>
           </div>
-          <div v-else class="settings-body environment-empty">
-            {{ $t('settings.noEnvironmentVariables') }}
-          </div>
           <div class="environment-settings-actions">
-            <ActionButton :icon="getAppIcon('floppy-disk')" :label="$t('settings.saveEnvironmentVariables')"
-              :buttonFunction="saveEnvironmentVariables" />
+            <ActionButton :icon="getAppIcon('floppy-disk')" :label="$t('common.save')"
+              :buttonFunction="saveEnvironmentVariables" :isDisabled="!environmentVariablesChanged" />
           </div>
         </div>
       </div>
 
       <!-- External Integrations Card -->
       <div v-if="entitlementStore.hasIntegrations" class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.externalIntegrations') }}</h2>
+        <div class="settings-section-card-header integration-card-header">
+          <div class="integration-card-title-group">
+            <h2 class="settings-section-card-title">{{ $t('settings.externalIntegrations') }}</h2>
+            <div class="settings-body integration-card-help">
+              {{ $t('settings.linkIntegrationDescription') }}
+            </div>
+          </div>
+          <ActionButton :icon="getAppIcon('link')" :label="$t('common.link')"
+            :buttonFunction="openIntegrationLink" />
         </div>
-        <div class="settings-section-card-content">
+        <div v-if="linkedIntegration" class="settings-section-card-content">
 
           <!-- Linked Integration -->
-          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openIntegrationLink">
+          <div v-stop-propagation class="settings-item" @click="openIntegrationLink">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon(linkedIntegration.integration_id)"></div>
             <div class="settings-content">
               <div class="settings-header">{{ linkedIntegration.external_project_name }}</div>
@@ -76,7 +82,7 @@
           </div>
 
           <!-- Directory Mapping (only when integration linked) -->
-          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openDirectoryMapping">
+          <div v-stop-propagation class="settings-item" @click="openDirectoryMapping">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file-path')"></div>
             <div class="settings-content">
               <div class="settings-header">Directory Mapping</div>
@@ -88,7 +94,7 @@
           </div>
 
           <!-- Asset Type Templates (only when integration linked) -->
-          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openAssetTypeMapping">
+          <div v-stop-propagation class="settings-item" @click="openAssetTypeMapping">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('extension')"></div>
             <div class="settings-content">
               <div class="settings-header">Asset Type Mapping</div>
@@ -100,7 +106,7 @@
           </div>
 
           <!-- Status Mapping (only when integration linked) -->
-          <div v-if="linkedIntegration" v-stop-propagation class="settings-item" @click="openStatusMapping">
+          <div v-stop-propagation class="settings-item" @click="openStatusMapping">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('clock')"></div>
             <div class="settings-content">
               <div class="settings-header">Status Mapping</div>
@@ -108,18 +114,6 @@
             </div>
             <div class="settings-action" v-stop-propagation>
               <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openStatusMapping" />
-            </div>
-          </div>
-
-          <!-- No Integration Linked -->
-          <div v-else class="settings-item" v-stop-propagation @click="openIntegrationLink">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.linkIntegration') }}</div>
-              <div class="settings-body">{{ $t('settings.linkIntegrationDescription') }}</div>
-            </div>
-            <div class="settings-action">
-              <ActionButton :icon="getAppIcon('link')" :label="$t('common.link')" :buttonFunction="openIntegrationLink" />
             </div>
           </div>
 
@@ -165,9 +159,18 @@ const { t } = useI18n();
 const scriptDirectory = ref('Scripts');
 const scriptExtensions = ref(['.py']);
 const environmentVariables = ref([]);
+const savedScriptSettings = ref({ directory: 'Scripts', extensions: ['.py'] });
+const savedEnvironmentVariables = ref([]);
 
 // computed
 const linkedIntegration = computed(() => integrationStore.linkedIntegration);
+const scriptSettingsChanged = computed(() => {
+  return JSON.stringify(normalizedScriptSettings()) !== JSON.stringify(savedScriptSettings.value);
+});
+const environmentVariablesChanged = computed(() => {
+  return JSON.stringify(normalizedEnvironmentVariables(environmentVariables.value)) !==
+    JSON.stringify(savedEnvironmentVariables.value);
+});
 
 // methods
 const getAppIcon = (iconName) => {
@@ -179,6 +182,19 @@ const normalizeScriptExtension = (extension) => {
   if (!normalized) return '';
   if (!normalized.startsWith('.')) normalized = `.${normalized}`;
   return normalized;
+};
+
+const normalizedScriptSettings = () => ({
+  directory: scriptDirectory.value.trim(),
+  extensions: scriptExtensions.value.map(normalizeScriptExtension).filter(Boolean).sort(),
+});
+
+const normalizedEnvironmentVariables = (variables) => {
+  return variables.map((variable) => ({
+    id: variable.id,
+    name: `${variable.name || ''}`.trim(),
+    value: `${variable.value || ''}`.trim(),
+  }));
 };
 
 const addScriptExtension = (extension) => {
@@ -199,11 +215,12 @@ const loadScriptSettings = async () => {
   const settings = await SettingsService.GetProjectScriptSettings(projectPath);
   scriptDirectory.value = settings?.directory || 'Scripts';
   scriptExtensions.value = Array.isArray(settings?.extensions) ? settings.extensions : ['.py'];
+  savedScriptSettings.value = normalizedScriptSettings();
 };
 
 const saveScriptSettings = async () => {
   const projectPath = projectStore.activeProject?.uri;
-  if (!projectPath) return;
+  if (!projectPath || !scriptSettingsChanged.value) return;
   try {
     await SettingsService.SetProjectScriptSettings(projectPath, scriptDirectory.value, scriptExtensions.value);
     await loadScriptSettings();
@@ -218,6 +235,7 @@ const loadEnvironmentVariables = async () => {
   if (!projectPath) return;
   await settingsStore.loadPreLaunchHooks(projectPath);
   environmentVariables.value = JSON.parse(JSON.stringify(settingsStore.projectEnvironmentVariables));
+  savedEnvironmentVariables.value = normalizedEnvironmentVariables(environmentVariables.value);
 };
 
 const addEnvironmentVariable = () => {
@@ -230,10 +248,11 @@ const removeEnvironmentVariable = (variableID) => {
 
 const saveEnvironmentVariables = async () => {
   const projectPath = projectStore.activeProject?.uri;
-  if (!projectPath) return;
+  if (!projectPath || !environmentVariablesChanged.value) return;
   try {
     await settingsStore.saveProjectEnvironmentVariables(projectPath, environmentVariables.value);
     environmentVariables.value = JSON.parse(JSON.stringify(settingsStore.projectEnvironmentVariables));
+    savedEnvironmentVariables.value = normalizedEnvironmentVariables(environmentVariables.value);
     notificationStore.addNotification(t('settings.environmentVariablesSaved'), '', 'success');
   } catch (error) {
     notificationStore.errorNotification(t('settings.environmentVariablesSaveFailed'), error);
@@ -298,8 +317,8 @@ onMounted(async () => {
 .script-settings {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem;
+  gap: .75rem;
+  padding: 1rem 1.5rem 1.25rem;
 }
 
 .script-setting-label {
@@ -322,18 +341,21 @@ onMounted(async () => {
   justify-content: flex-end;
 }
 
-.environment-card-header {
+.environment-card-header,
+.integration-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
 }
 
-.environment-card-title-group {
+.environment-card-title-group,
+.integration-card-title-group {
   min-width: 0;
 }
 
-.environment-card-help {
+.environment-card-help,
+.integration-card-help {
   padding: .15rem 0 0;
 }
 
@@ -363,10 +385,6 @@ onMounted(async () => {
 
 .environment-variable-name {
   min-width: 0;
-}
-
-.environment-empty {
-  padding: .5rem 0;
 }
 
 .environment-settings-actions {
