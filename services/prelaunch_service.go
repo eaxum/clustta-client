@@ -16,7 +16,10 @@ import (
 	"strings"
 )
 
-const projectRootToken = "<ProjectRoot>"
+const (
+	projectRootToken        = "<ProjectRoot>"
+	ocioEnvironmentVariable = "OCIO"
+)
 
 type PreLaunchTrustInfo struct {
 	Required bool     `json:"required"`
@@ -105,12 +108,16 @@ func (f *FSService) launchProjectFile(projectPath, targetPath string) error {
 	if hook == nil {
 		return f.LaunchFile(targetPath)
 	}
-	if err := launchWithPreLaunchHook(targetPath, projectRoot, *hook, scripts, variables); err != nil {
+	environment, err := buildHookEnvironment(projectRoot, variables)
+	if err != nil {
+		return err
+	}
+	if err := launchWithPreLaunchHook(targetPath, projectRoot, *hook, scripts, environment); err != nil {
 		if dcctools.IsExecutableNotFound(err) {
 			return err
 		}
 		if hook.FailurePolicy == repository.PreLaunchFailureWarn {
-			return launchWithEnvironment(targetPath, buildHookEnvironment(projectRoot, variables))
+			return launchWithEnvironment(targetPath, environment)
 		}
 		return err
 	}
@@ -197,9 +204,8 @@ func launchWithPreLaunchHook(
 	targetPath, projectRoot string,
 	hook repository.PreLaunchHook,
 	scripts []string,
-	variables []repository.PreLaunchEnvironmentVariable,
+	environment []string,
 ) error {
-	environment := buildHookEnvironment(projectRoot, variables)
 	dcc := repository.PreLaunchDCCForExtension(filepath.Ext(targetPath))
 	if len(scripts) == 0 {
 		return launchDCCFile(dcc, hook.ApplicationVersion, targetPath, environment)
@@ -274,13 +280,33 @@ func blenderBootstrapSource() string {
 	return source
 }
 
-func buildHookEnvironment(projectRoot string, variables []repository.PreLaunchEnvironmentVariable) []string {
+func buildHookEnvironment(
+	projectRoot string, variables []repository.PreLaunchEnvironmentVariable,
+) ([]string, error) {
 	environment := append([]string(nil), os.Environ()...)
 	for _, variable := range variables {
 		value := strings.ReplaceAll(variable.Value, projectRootToken, projectRoot)
+		isProjectPath := strings.Contains(variable.Value, projectRootToken)
+		isOCIOConfig := strings.EqualFold(variable.Name, ocioEnvironmentVariable)
+		if isOCIOConfig && !filepath.IsAbs(value) {
+			value = filepath.Join(projectRoot, value)
+		}
+		if isProjectPath || isOCIOConfig {
+			value = filepath.Clean(value)
+			if _, err := os.Stat(value); err != nil {
+				if os.IsNotExist(err) {
+					return nil, fmt.Errorf(
+						"environment variable %s points to a missing path: %s",
+						variable.Name,
+						value,
+					)
+				}
+				return nil, fmt.Errorf("validate environment variable %s: %w", variable.Name, err)
+			}
+		}
 		environment = setEnvironmentValue(environment, variable.Name, value)
 	}
-	return environment
+	return environment, nil
 }
 
 func setEnvironmentValue(environment []string, name, value string) []string {

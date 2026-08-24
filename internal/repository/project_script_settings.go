@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ProjectScriptSettingsConfig   = "project_script_settings_v1"
+	ProjectScriptSettingsConfig   = "project_script_settings"
 	ProjectScriptSettingsVersion  = 1
 	DefaultProjectScriptDirectory = "Scripts"
 )

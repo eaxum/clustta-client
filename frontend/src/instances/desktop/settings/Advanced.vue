@@ -26,7 +26,7 @@
 
       <div class="settings-section-card">
         <div class="settings-section-card-header environment-card-header">
-          <div>
+          <div class="environment-card-title-group">
             <h2 class="settings-section-card-title">{{ $t('settings.environmentVariables') }}</h2>
             <div class="settings-body environment-card-help">
               {{ $t('settings.environmentVariablesHelp', { projectRoot: '<ProjectRoot>' }) }}
@@ -49,7 +49,7 @@
           <div v-else class="settings-body environment-empty">
             {{ $t('settings.noEnvironmentVariables') }}
           </div>
-          <div class="script-settings-actions">
+          <div class="environment-settings-actions">
             <ActionButton :icon="getAppIcon('floppy-disk')" :label="$t('settings.saveEnvironmentVariables')"
               :buttonFunction="saveEnvironmentVariables" />
           </div>
@@ -329,29 +329,65 @@ onMounted(async () => {
   gap: 1rem;
 }
 
+.environment-card-title-group {
+  min-width: 0;
+}
+
 .environment-card-help {
   padding: .15rem 0 0;
 }
 
-.environment-settings,
+.environment-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.5rem 1.25rem;
+}
+
 .environment-variable-list {
   display: flex;
   flex-direction: column;
-  gap: .5rem;
+  gap: .75rem;
 }
 
 .environment-variable-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(140px, 0.4fr) minmax(240px, 1fr) auto;
   align-items: center;
-  gap: .5rem;
+  gap: .75rem;
+}
+
+.environment-variable-row .input-short {
+  width: 100%;
 }
 
 .environment-variable-name {
-  max-width: 180px;
+  min-width: 0;
 }
 
 .environment-empty {
   padding: .5rem 0;
+}
+
+.environment-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: .25rem;
+}
+
+@media (max-width: 700px) {
+  .environment-variable-row {
+    grid-template-columns: 1fr auto;
+  }
+
+  .environment-variable-row .input-short:not(.environment-variable-name) {
+    grid-column: 1;
+  }
+
+  .environment-variable-row > :last-child {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+  }
 }
 
 .settings-component-root::-webkit-scrollbar {

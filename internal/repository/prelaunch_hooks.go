@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	PreLaunchHooksConfig  = "dcc_prelaunch_hooks_v1"
+	PreLaunchHooksConfig  = "dcc_prelaunch_hooks"
 	PreLaunchHooksVersion = 1
 
 	PreLaunchFailureBlock = "block"

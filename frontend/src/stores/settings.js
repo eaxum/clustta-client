@@ -60,15 +60,13 @@ export const useSettingsStore = defineStore("settings", {
       { id: "templates", nameKey: "settings.templates", name: "Templates", icon: "file" },
       { id: "collaborators", nameKey: "settings.collaborators", name: "Collaborators", icon: "person" },
       { id: "roles", nameKey: "settings.roles", name: "Roles", icon: "scale" },
-      { id: "hooks", nameKey: "settings.launchHooks", name: "Hooks", icon: "hook" },
-
       { id: "assettypes", nameKey: "settings.assetTypes", name: "Asset types", icon: "brush" },
       { id: "collectiontypes", nameKey: "settings.collectionTypes", name: "Collection types", icon: "folder" },
       { id: "tags", nameKey: "settings.tags", name: "Tags", icon: "tag" },
       { id: "ignorelist", nameKey: "settings.ignoreList", name: "Ignore List", icon: "file-watch" },
       { id: "projecttemplates", nameKey: "settings.projectTemplates", name: "Project Templates", icon: "briefcase" },
       { id: "workflows", nameKey: "settings.workflows", name: "Workflows", icon: "workflow-arrow" },
-
+      { id: "hooks", nameKey: "settings.launchHooks", name: "Hooks", icon: "hook" },
       { id: "advanced", nameKey: "settings.advanced", name: "Advanced", icon: "skull" },
 
       { id: "studio", nameKey: "settings.studio", name: "Studio", icon: "stall" },

@@ -2,6 +2,7 @@ package services
 
 import (
 	"clustta/internal/repository"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -10,18 +11,44 @@ import (
 )
 
 func TestBuildHookEnvironmentExpandsProjectRoot(t *testing.T) {
-	projectRoot := filepath.Join("C:", "projects", "show")
-	environment := buildHookEnvironment(projectRoot, []repository.PreLaunchEnvironmentVariable{{
+	projectRoot := t.TempDir()
+	configPath := filepath.Join(projectRoot, "configs", "show.ocio")
+	require.NoError(t, os.MkdirAll(filepath.Dir(configPath), 0o755))
+	require.NoError(t, os.WriteFile(configPath, []byte("ocio_profile_version: 2"), 0o600))
+	environment, err := buildHookEnvironment(projectRoot, []repository.PreLaunchEnvironmentVariable{{
 		Name: "OCIO", Value: "<ProjectRoot>/configs/show.ocio",
 	}})
 
+	require.NoError(t, err)
 	var ocio string
 	for _, entry := range environment {
 		if strings.HasPrefix(entry, "OCIO=") {
 			ocio = entry
 		}
 	}
-	require.Equal(t, "OCIO="+projectRoot+"/configs/show.ocio", ocio)
+	require.Equal(t, "OCIO="+configPath, ocio)
+}
+
+func TestBuildHookEnvironmentRejectsMissingProjectPath(t *testing.T) {
+	projectRoot := t.TempDir()
+
+	_, err := buildHookEnvironment(projectRoot, []repository.PreLaunchEnvironmentVariable{{
+		Name: "OCIO", Value: "<ProjectRoot>/configs/missing.ocio",
+	}})
+
+	require.EqualError(t, err, "environment variable OCIO points to a missing path: "+
+		filepath.Join(projectRoot, "configs", "missing.ocio"))
+}
+
+func TestBuildHookEnvironmentRejectsMissingRelativeOCIOPath(t *testing.T) {
+	projectRoot := t.TempDir()
+
+	_, err := buildHookEnvironment(projectRoot, []repository.PreLaunchEnvironmentVariable{{
+		Name: "OCIO", Value: "configs/missing.ocio",
+	}})
+
+	require.EqualError(t, err, "environment variable OCIO points to a missing path: "+
+		filepath.Join(projectRoot, "configs", "missing.ocio"))
 }
 
 func TestResolveHookEnvironmentVariablesUsesSelectedIDs(t *testing.T) {
