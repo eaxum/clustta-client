@@ -102,15 +102,10 @@ export const useSettingsStore = defineStore("settings", {
     },
 
     async saveProjectEnvironmentVariables(projectPath, environmentVariables) {
-      const availableIDs = new Set(environmentVariables.map((variable) => variable.id));
-      const hooks = this.preLaunchHooks.map((hook) => ({
-        ...hook,
-        environment_variable_ids: (hook.environment_variable_ids || []).filter((id) => availableIDs.has(id)),
-      }));
-      const settings = await SettingsService.SetPreLaunchHookSettings(projectPath, {
+      const settings = await SettingsService.SetProjectEnvironmentVariables(projectPath, {
         version: 1,
         environment_variables: environmentVariables,
-        hooks,
+        hooks: [],
       });
       this.preLaunchHooks = settings?.hooks || [];
       this.projectEnvironmentVariables = settings?.environment_variables || [];

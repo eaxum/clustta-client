@@ -666,6 +666,17 @@ export function SetProjectDirectory(dir) {
 
 /**
  * @param {string} projectPath
+ * @param {repository$0.PreLaunchHookSettings} requestedSettings
+ * @returns {$CancellablePromise<repository$0.PreLaunchHookSettings>}
+ */
+export function SetProjectEnvironmentVariables(projectPath, requestedSettings) {
+    return $Call.ByID(1394128617, projectPath, requestedSettings).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType8($result);
+    }));
+}
+
+/**
+ * @param {string} projectPath
  * @param {string} directory
  * @param {string[]} extensions
  * @returns {$CancellablePromise<void>}

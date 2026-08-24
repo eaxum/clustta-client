@@ -9,6 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+const projectPreviewConfigName = "project_preview"
+
 // TypeMapping holds the mapping between local and remote type IDs.
 type TypeMapping struct {
 	LocalID  string
@@ -300,13 +302,13 @@ func MarkAllTablesUnsynced(tx *sqlx.Tx) error {
 		}
 	}
 
-	// Also mark project preview as unsynced
-	_, err := tx.Exec("UPDATE config SET synced = 0 WHERE name = 'project_preview'")
+	configNames := append([]string{projectPreviewConfigName}, repository.SyncableProjectConfigNames...)
+	query, args, err := sqlx.In("UPDATE config SET synced = 0 WHERE name IN (?)", configNames)
 	if err != nil {
-		// Ignore if doesn't exist
+		return err
 	}
-
-	return nil
+	_, err = tx.Exec(tx.Rebind(query), args...)
+	return err
 }
 
 // FetchRemoteProjectTypes fetches the type configurations from a remote project.

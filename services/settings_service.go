@@ -125,6 +125,48 @@ func (s *SettingsService) SetPreLaunchHookSettings(projectPath string, settings 
 	return s.GetPreLaunchHookSettings(projectPath)
 }
 
+func (s *SettingsService) SetProjectEnvironmentVariables(projectPath string, requestedSettings repository.PreLaunchHookSettings) (repository.PreLaunchHookSettings, error) {
+	environmentVariables := requestedSettings.EnvironmentVariables
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	defer tx.Rollback()
+	if err := requireChangeRolePermission(tx); err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	settings, err := repository.GetPreLaunchHookSettings(tx)
+	if err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	availableIDs := make(map[string]bool, len(environmentVariables))
+	for _, environmentVariable := range environmentVariables {
+		availableIDs[strings.TrimSpace(environmentVariable.ID)] = true
+	}
+	for index := range settings.Hooks {
+		selectedIDs := settings.Hooks[index].EnvironmentVariableIDs[:0]
+		for _, environmentVariableID := range settings.Hooks[index].EnvironmentVariableIDs {
+			if availableIDs[environmentVariableID] {
+				selectedIDs = append(selectedIDs, environmentVariableID)
+			}
+		}
+		settings.Hooks[index].EnvironmentVariableIDs = selectedIDs
+	}
+	settings.EnvironmentVariables = environmentVariables
+	if err := repository.SetPreLaunchHookSettings(tx, settings); err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return repository.PreLaunchHookSettings{}, err
+	}
+	return s.GetPreLaunchHookSettings(projectPath)
+}
+
 var (
 	bridgeLifecycleMu sync.RWMutex
 	startBridge       = func() {}
