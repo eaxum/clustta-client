@@ -21,7 +21,7 @@ import { useCommonStore } from '@/stores/common';
 import { usePaneStore } from '@/stores/panes';
 import { useProjectStore } from './stores/projects';
 import { useStudioStore } from './stores/studio';
-import { AssetService, CollectionService, ProjectService, SettingsService } from "@/services";
+import { AssetService, AuthService, CollectionService, ProjectService, SettingsService } from "@/services";
 import { System } from "@wailsio/runtime";
 import { LogService } from '@/services';
 import { useStageStore } from './stores/stages';
@@ -32,6 +32,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { useThemeStore } from '@/stores/theme';
 import { usePlatformStore } from '@/stores/platform';
 import { useIntegrationStore } from '@/stores/integrations';
+import { useUserStore } from '@/stores/users';
 
 // Platform detection
 const menu = useMenu();
@@ -50,6 +51,7 @@ const themeStore = useThemeStore();
 const settingsStore = useSettingsStore();
 const stageStore = useStageStore();
 const studioStore = useStudioStore();
+const userStore = useUserStore();
 
 watch(
     () => projectStore.activeProject?.uri || null,
@@ -382,6 +384,10 @@ function startConnectivityCheckInterval() {
 // Only runs when a non-Personal studio is selected and the app is online.
 function startCheckSycnTokenInterval() {
     function run() {
+        if (!userStore.isUserAuthenticated && !accountStore.isOfflineMode) {
+            setTimeout(run, 5000);
+            return
+        }
         if (!studioStore.appOnline) {
             setTimeout(run, 5000);
             return
@@ -435,7 +441,17 @@ function startCheckSycnTokenInterval() {
                 } finally {
                     stageStore.operationActive = false;
                 }
-            }).catch((error) => {
+            }).catch(async () => {
+                try {
+                    const [isAuthenticated] = await AuthService.IsAuthenticated();
+                    if (!isAuthenticated) {
+                        userStore.isUserAuthenticated = false;
+                        studioStore.appOnline = true;
+                        return;
+                    }
+                } catch {
+                    // Authentication could not be checked because the server is unreachable.
+                }
                 if (projectStore.selectedStudio?.name !== 'Personal') {
                     studioStore.appOnline = false;
                 }

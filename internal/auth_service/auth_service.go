@@ -82,10 +82,6 @@ func IsAuthenticated() (bool, error) {
 		return true, nil
 	}
 
-	type responseMessage struct {
-		Message string `json:"message"`
-	}
-
 	authHost := GetAuthHost()
 	if authHost == "" {
 		return false, fmt.Errorf("no auth host configured")
@@ -113,20 +109,15 @@ func IsAuthenticated() (bool, error) {
 	if responseCode == 200 {
 		return true, nil
 	}
+	if responseCode == http.StatusUnauthorized {
+		return false, nil
+	}
 
 	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return false, fmt.Errorf("error reading response body: %s", err.Error())
 	}
-	message := responseMessage{}
-	err = json.Unmarshal(body, &message)
-	if err != nil {
-		return false, err
-	}
 	bodyData := string(body)
-	if message.Message == "Unauthorized" {
-		return false, error_service.ErrNotUnauthorized
-	}
 
 	return false, fmt.Errorf("error loading user: code - %d: body - %s", response.StatusCode, bodyData)
 }

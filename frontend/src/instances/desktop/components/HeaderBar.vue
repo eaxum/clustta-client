@@ -85,6 +85,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useUserStore } from '@/stores/users';
 import { usePlatformStore } from '@/stores/platform';
 import { useStudioStore } from '@/stores/studio';
+import { useAccountStore } from '@/stores/accounts';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue'
@@ -104,6 +105,7 @@ const modals = useDesktopModalStore();
 const studioStore = useStudioStore();
 const userStore = useUserStore();
 const platformStore = usePlatformStore();
+const accountStore = useAccountStore();
 const router = useRouter();
 const canOpenProjectSettings = computed(() => canAccessProjectSettings());
 
@@ -124,6 +126,9 @@ const getAppIcon = (iconName) => {
 };
 
 const getCloudIcon = computed(() => {
+	if (loginRequired.value) {
+		return 'login';
+	}
 	// Check if server is reachable
 	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) {
 		return 'cloud-cancel';
@@ -141,6 +146,7 @@ const getCloudIcon = computed(() => {
 
 // Returns the color for the cloud/sync button based on its state.
 const cloudIconColor = computed(() => {
+	if (loginRequired.value) return 'var(--selected)';
 	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) return 'var(--danger)';
 	if (!!notificationStore.getProgress.running) return null;
 	if (!unSynced.value) return 'var(--selected)';
@@ -151,6 +157,7 @@ const isSyncing = computed(() => !!notificationStore.getProgress.running);
 
 // Returns the label text for the cloud/sync button.
 const cloudIconLabel = computed(() => {
+	if (loginRequired.value) return t('common.login');
 	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
 	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
 	if (!!notificationStore.getProgress.running) return t('components.headerBar.syncing');
@@ -160,6 +167,7 @@ const cloudIconLabel = computed(() => {
 
 // Returns the tooltip text for the cloud/sync icon.
 const cloudIconTooltip = computed(() => {
+	if (loginRequired.value) return t('common.login');
 	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
 	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
 	if (!!notificationStore.getProgress.running) return t('components.headerBar.syncing');
@@ -201,6 +209,7 @@ const activeHeaderConfig = computed(() => {
 
 const unSynced = computed(() => { return projectStore.getActiveProject?.is_unsynced });
 const offline = computed(() => { return projectStore.getActiveProject?.is_offline });
+const loginRequired = computed(() => !userStore.isUserAuthenticated && !accountStore.isOfflineMode);
 
 const revertButtonDisabled = computed(() => {
 	return !!notificationStore.getProgress.running || 
@@ -235,6 +244,10 @@ const syncButtonTooltip = computed(() => {
 
 const syncProject = async () => {
 	if (syncButtonDisabled.value || modals.activeModal || !projectStore.getActiveProject?.has_remote) return;
+	if (loginRequired.value) {
+		modals.setModalVisibility('loginModal', true);
+		return;
+	}
 	if (unSynced.value) {
 		await syncData();
 		return;

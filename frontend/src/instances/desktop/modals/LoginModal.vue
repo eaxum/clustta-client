@@ -80,7 +80,7 @@
 
 <script setup>
 // imports
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
@@ -330,6 +330,21 @@ const normalizeStudioUrl = (url) => {
   }
   return normalized;
 };
+
+onMounted(async () => {
+  if (!accountStore.isStudioAuth || !accountStore.authHost) return;
+
+  studioUrl.value = normalizeStudioUrl(accountStore.authHost);
+  connectedServerName.value = studioUrl.value;
+  loginMode.value = 'studio-login';
+
+  try {
+    const info = await StudioService.GetStudioInfo(studioUrl.value);
+    connectedServerName.value = info.name || studioUrl.value;
+  } catch (err) {
+    console.log(err);
+  }
+});
 
 // Opens the directory onboarding modal.
 const setDirectories = async () => {
