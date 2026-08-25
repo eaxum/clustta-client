@@ -109,6 +109,225 @@
       ]
     },
     {
+      "name": "Maya 3D Animation Production",
+      "icon": "cube",
+      "description": "Maya production template with shared assets and episode, sequence, and shot workflows",
+      "preLaunchHooks": [
+        {
+          "name": "Maya - Configure Production Workspace",
+          "extensions": [".ma", ".mb"],
+          "script": "maya_production_prelaunch.py"
+        }
+      ],
+      "projectFiles": [
+        {
+          "name": "workspace.mel",
+          "source": "maya_workspace.mel",
+          "assetType": "Configuration",
+          "collection": ""
+        }
+      ],
+      "assetTypes": [
+        {
+          "name": "Configuration",
+          "icon": "book"
+        },
+        {
+          "name": "Modeling",
+          "icon": "cube"
+        },
+        {
+          "name": "Rigging",
+          "icon": "bone"
+        },
+        {
+          "name": "Animation",
+          "icon": "man-running"
+        },
+        {
+          "name": "Shading",
+          "icon": "palette"
+        },
+        {
+          "name": "Texturing",
+          "icon": "texture"
+        },
+        {
+          "name": "Lighting",
+          "icon": "lamp"
+        },
+        {
+          "name": "Rendering",
+          "icon": "camera-flash"
+        },
+        {
+          "name": "Compositing",
+          "icon": "film-strip"
+        },
+        {
+          "name": "FX",
+          "icon": "fire"
+        }
+      ],
+      "collectionTypes": [
+        {
+          "name": "Scripts",
+          "icon": "code-bracket"
+        },
+        {
+          "name": "Asset Library",
+          "icon": "boxes"
+        },
+        {
+          "name": "Production",
+          "icon": "film-reel"
+        },
+        {
+          "name": "Episode",
+          "icon": "film-strip"
+        },
+        {
+          "name": "Sequence",
+          "icon": "clapboard"
+        },
+        {
+          "name": "Shot",
+          "icon": "camera"
+        },
+        {
+          "name": "Character",
+          "icon": "masks"
+        },
+        {
+          "name": "Environment",
+          "icon": "tree"
+        },
+        {
+          "name": "Prop",
+          "icon": "package"
+        },
+        {
+          "name": "Maps",
+          "icon": "texture"
+        },
+        {
+          "name": "Output",
+          "icon": "image"
+        },
+        {
+          "name": "Cache",
+          "icon": "four-squares"
+        }
+      ],
+      "collections": [
+        {
+          "name": "Assets",
+          "type": "Asset Library",
+          "description": "Reusable production assets",
+          "children": [
+            {
+              "name": "Characters",
+              "type": "Character",
+              "description": "Character models, rigs, and maps"
+            },
+            {
+              "name": "Environments",
+              "type": "Environment",
+              "description": "Sets, locations, and environment assets"
+            },
+            {
+              "name": "Props",
+              "type": "Prop",
+              "description": "Reusable production props"
+            },
+            {
+              "name": "Audio",
+              "type": "Asset Library",
+              "description": "Shared project audio"
+            },
+            {
+              "name": "Clips",
+              "type": "Asset Library",
+              "description": "Shared animation clips"
+            },
+            {
+              "name": "Templates",
+              "type": "Asset Library",
+              "description": "Shared Maya templates"
+            }
+          ]
+        },
+        {
+          "name": "Production",
+          "type": "Production",
+          "description": "Episodes, sequences, shots, and generated output",
+          "children": [
+            {
+              "name": "Renders",
+              "type": "Output",
+              "description": "Rendered images"
+            },
+            {
+              "name": "Playblasts",
+              "type": "Output",
+              "description": "Review playblasts"
+            },
+            {
+              "name": "Cache",
+              "type": "Cache",
+              "description": "Generated simulation and geometry caches",
+              "children": [
+                {
+                  "name": "diskCache",
+                  "type": "Cache",
+                  "description": "Maya disk caches"
+                },
+                {
+                  "name": "fileCache",
+                  "type": "Cache",
+                  "description": "Maya file caches"
+                },
+                {
+                  "name": "particles",
+                  "type": "Cache",
+                  "description": "Particle caches"
+                },
+                {
+                  "name": "alembic",
+                  "type": "Cache",
+                  "description": "Alembic caches"
+                },
+                {
+                  "name": "fluid",
+                  "type": "Cache",
+                  "description": "Fluid caches"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Scripts",
+          "type": "Scripts",
+          "description": "Project launch and pipeline scripts"
+        }
+      ],
+      "ignoreList": [
+        ".DS_Store",
+        "Thumbs.db",
+        "*.tmp",
+        "*.bak",
+        "*.autosave",
+        "*.ma.swatches",
+        "*.mb.swatches",
+        "incrementalSave",
+        "Production/Renders",
+        "Production/Playblasts",
+        "Production/Cache",
+        "__pycache__"
+      ]
+    },
+    {
       "name": "Unreal Project",
       "icon": "gamepad",
       "description": "Template for Unreal Engine game development and real-time projects",

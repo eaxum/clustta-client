@@ -1983,8 +1983,8 @@ func LoadProjectTemplateData(projectPath, templatePath string) error {
 		return fmt.Errorf("failed to add template definitions: %w", err)
 	}
 
-	if err := applyTemplatePreLaunchHooks(projectPath, templatePath, ""); err != nil {
-		return fmt.Errorf("failed to add template launch hooks: %w", err)
+	if err := applyTemplateProjectSetup(projectPath, templatePath, ""); err != nil {
+		return fmt.Errorf("failed to apply template project setup: %w", err)
 	}
 
 	return nil

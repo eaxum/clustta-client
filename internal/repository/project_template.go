@@ -2,6 +2,7 @@ package repository
 
 import (
 	"clustta/internal/auth_service"
+	"clustta/internal/repository/models"
 	"clustta/internal/settings"
 	"clustta/internal/utils"
 	_ "embed"
@@ -13,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 //go:embed project_templates.json
@@ -21,8 +23,14 @@ var templateJSONData []byte
 //go:embed template_scripts/maya_prelaunch.py
 var mayaPreLaunchScript []byte
 
+//go:embed template_scripts/maya_production_prelaunch.py
+var mayaProductionPreLaunchScript []byte
+
 //go:embed template_scripts/blender_prelaunch.py
 var blenderPreLaunchScript []byte
+
+//go:embed template_files/maya_workspace.mel
+var mayaWorkspaceFile []byte
 
 type ProjectTemplateDefinition struct {
 	Name            string                  `json:"name"`
@@ -32,12 +40,28 @@ type ProjectTemplateDefinition struct {
 	CollectionTypes []TemplateType          `json:"collectionTypes"`
 	IgnoreList      []string                `json:"ignoreList"`
 	PreLaunchHooks  []TemplatePreLaunchHook `json:"preLaunchHooks"`
+	Collections     []TemplateCollection    `json:"collections"`
+	ProjectFiles    []TemplateProjectFile   `json:"projectFiles"`
 }
 
 type TemplatePreLaunchHook struct {
 	Name       string   `json:"name"`
 	Extensions []string `json:"extensions"`
 	Script     string   `json:"script"`
+}
+
+type TemplateCollection struct {
+	Name        string               `json:"name"`
+	Type        string               `json:"type"`
+	Description string               `json:"description"`
+	Children    []TemplateCollection `json:"children"`
+}
+
+type TemplateProjectFile struct {
+	Name       string `json:"name"`
+	Source     string `json:"source"`
+	AssetType  string `json:"assetType"`
+	Collection string `json:"collection"`
 }
 
 type TemplateType struct {
@@ -238,8 +262,8 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 		log.Printf("Failed to close template database: %v", err)
 		return fmt.Errorf("failed to close template database: %w", err)
 	}
-	if err := applyTemplatePreLaunchHooks(tmpPath, tmpPath, user.Id); err != nil {
-		return fmt.Errorf("failed to add template launch hooks: %w", err)
+	if err := applyTemplateProjectSetup(tmpPath, tmpPath, user.Id); err != nil {
+		return fmt.Errorf("failed to add template project setup: %w", err)
 	}
 
 	// Verify the template is fully initialized before publishing it.
@@ -258,20 +282,25 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 	return nil
 }
 
-func applyTemplatePreLaunchHooks(projectPath, templatePath, authorID string) error {
+func applyTemplateProjectSetup(projectPath, templatePath, authorID string) error {
 	templateName := strings.TrimSuffix(filepath.Base(templatePath), filepath.Ext(templatePath))
 	templateDefs, err := loadTemplateDefinitions()
 	if err != nil {
 		return err
 	}
-	var hooks []TemplatePreLaunchHook
-	for _, templateDef := range templateDefs.Templates {
-		if templateDef.Name == templateName {
-			hooks = templateDef.PreLaunchHooks
+	var templateDef *ProjectTemplateDefinition
+	for index := range templateDefs.Templates {
+		if templateDefs.Templates[index].Name == templateName {
+			templateDef = &templateDefs.Templates[index]
 			break
 		}
 	}
-	if len(hooks) == 0 {
+	if templateDef == nil {
+		return nil
+	}
+	if len(templateDef.Collections) == 0 &&
+		len(templateDef.ProjectFiles) == 0 &&
+		len(templateDef.PreLaunchHooks) == 0 {
 		return nil
 	}
 
@@ -290,6 +319,25 @@ func applyTemplatePreLaunchHooks(projectPath, templatePath, authorID string) err
 	if err != nil {
 		return err
 	}
+	collectionIDs := map[string]string{}
+	for _, collectionDef := range templateDef.Collections {
+		if err := createTemplateCollection(tx, workingDir, "", "", collectionDef, collectionIDs); err != nil {
+			return err
+		}
+	}
+	if authorID == "" {
+		user, err := auth_service.GetActiveUser()
+		if err != nil {
+			return err
+		}
+		authorID = user.Id
+	}
+	if err := createTemplateProjectFiles(tx, workingDir, templateDef.ProjectFiles, collectionIDs, authorID); err != nil {
+		return err
+	}
+	if len(templateDef.PreLaunchHooks) == 0 {
+		return tx.Commit()
+	}
 	scriptsDir := filepath.Join(workingDir, "Scripts")
 	if err := os.MkdirAll(scriptsDir, os.ModePerm); err != nil {
 		return err
@@ -302,20 +350,15 @@ func applyTemplatePreLaunchHooks(projectPath, templatePath, authorID string) err
 	if err != nil {
 		return err
 	}
-	scriptsCollection, err := CreateCollection(tx, "", "Scripts", "Project launch scripts", collectionType.Id, "", "", false)
+	scriptsCollection, err := getOrCreateTemplateCollection(
+		tx, "Scripts", "Project launch scripts", collectionType.Id, "",
+	)
 	if err != nil {
 		return err
 	}
-	if authorID == "" {
-		user, err := auth_service.GetActiveUser()
-		if err != nil {
-			return err
-		}
-		authorID = user.Id
-	}
 
 	settings := PreLaunchHookSettings{Version: PreLaunchHooksVersion}
-	for _, hookDef := range hooks {
+	for _, hookDef := range templateDef.PreLaunchHooks {
 		scriptContent, err := templatePreLaunchScript(hookDef.Script)
 		if err != nil {
 			return err
@@ -343,10 +386,137 @@ func applyTemplatePreLaunchHooks(projectPath, templatePath, authorID string) err
 	return tx.Commit()
 }
 
+func createTemplateCollection(
+	tx *sqlx.Tx,
+	workingDir string,
+	parentID string,
+	parentPath string,
+	definition TemplateCollection,
+	collectionIDs map[string]string,
+) error {
+	collectionType, err := GetCollectionTypeByName(tx, definition.Type)
+	if err != nil {
+		return fmt.Errorf("get collection type %q: %w", definition.Type, err)
+	}
+	collection, err := getOrCreateTemplateCollection(
+		tx, definition.Name, definition.Description, collectionType.Id, parentID,
+	)
+	if err != nil {
+		return err
+	}
+	collectionPath := filepath.Join(parentPath, definition.Name)
+	collectionIDs[filepath.ToSlash(collectionPath)] = collection.Id
+	directoryPath, err := resolveTemplatePath(workingDir, collectionPath)
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(directoryPath, os.ModePerm); err != nil {
+		return err
+	}
+	for _, child := range definition.Children {
+		if err := createTemplateCollection(
+			tx, workingDir, collection.Id, collectionPath, child, collectionIDs,
+		); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func getOrCreateTemplateCollection(
+	tx *sqlx.Tx,
+	name string,
+	description string,
+	collectionTypeID string,
+	parentID string,
+) (models.Collection, error) {
+	collection, err := GetCollectionByName(tx, name, parentID)
+	if err == nil {
+		return collection, nil
+	}
+	return CreateCollection(tx, "", name, description, collectionTypeID, parentID, "", false)
+}
+
+func createTemplateProjectFiles(
+	tx *sqlx.Tx,
+	workingDir string,
+	files []TemplateProjectFile,
+	collectionIDs map[string]string,
+	authorID string,
+) error {
+	for _, fileDef := range files {
+		content, err := templateProjectFile(fileDef.Source)
+		if err != nil {
+			return err
+		}
+		collectionPath := filepath.Clean(fileDef.Collection)
+		if collectionPath == "." {
+			collectionPath = ""
+		}
+		collectionID := collectionIDs[filepath.ToSlash(collectionPath)]
+		if collectionPath != "" && collectionID == "" {
+			return fmt.Errorf("template collection %q not found", fileDef.Collection)
+		}
+		assetType, err := GetAssetTypeByName(tx, fileDef.AssetType)
+		if err != nil {
+			return fmt.Errorf("get asset type %q: %w", fileDef.AssetType, err)
+		}
+		filePath, err := resolveTemplatePath(workingDir, filepath.Join(collectionPath, fileDef.Name))
+		if err != nil {
+			return err
+		}
+		if err := os.MkdirAll(filepath.Dir(filePath), os.ModePerm); err != nil {
+			return err
+		}
+		if err := os.WriteFile(filePath, content, 0o644); err != nil {
+			return err
+		}
+		_, err = CreateAsset(
+			tx, "", strings.TrimSuffix(fileDef.Name, filepath.Ext(fileDef.Name)), assetType.Id,
+			collectionID, false, "", "", filePath, nil, "", false, "", authorID,
+			"Created from project template", uuid.NewString(), func(int, int, string, string) {},
+		)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func resolveTemplatePath(workingDir, relativePath string) (string, error) {
+	rootPath, err := filepath.Abs(workingDir)
+	if err != nil {
+		return "", err
+	}
+	targetPath, err := filepath.Abs(filepath.Join(rootPath, relativePath))
+	if err != nil {
+		return "", err
+	}
+	pathFromRoot, err := filepath.Rel(rootPath, targetPath)
+	if err != nil {
+		return "", err
+	}
+	if pathFromRoot == ".." || strings.HasPrefix(pathFromRoot, ".."+string(filepath.Separator)) {
+		return "", fmt.Errorf("template path %q is outside the project working directory", relativePath)
+	}
+	return targetPath, nil
+}
+
+func templateProjectFile(name string) ([]byte, error) {
+	switch name {
+	case "maya_workspace.mel":
+		return mayaWorkspaceFile, nil
+	default:
+		return nil, fmt.Errorf("unknown template project file %q", name)
+	}
+}
+
 func templatePreLaunchScript(name string) ([]byte, error) {
 	switch name {
 	case "maya_prelaunch.py":
 		return mayaPreLaunchScript, nil
+	case "maya_production_prelaunch.py":
+		return mayaProductionPreLaunchScript, nil
 	case "blender_prelaunch.py":
 		return blenderPreLaunchScript, nil
 	default:
