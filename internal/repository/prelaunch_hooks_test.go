@@ -60,7 +60,7 @@ func TestNormalizePreLaunchHookSettingsRequiresTrackedScriptReference(t *testing
 		Name: "Custom", Enabled: true, Extensions: []string{".blend"},
 	}}})
 
-	require.ErrorContains(t, err, "at least one script asset or environment variable")
+	require.ErrorContains(t, err, "at least one script asset, environment variable, or application version")
 }
 
 func TestPreLaunchDCCForExtension(t *testing.T) {
@@ -85,6 +85,18 @@ func TestNormalizePreLaunchHookSettingsAcceptsApplicationVersion(t *testing.T) {
 	}}})
 
 	require.NoError(t, err)
+	require.Equal(t, "5.2.0", settings.Hooks[0].ApplicationVersion)
+}
+
+func TestNormalizePreLaunchHookSettingsAcceptsVersionOnlyHook(t *testing.T) {
+	settings, err := NormalizePreLaunchHookSettings(PreLaunchHookSettings{Hooks: []PreLaunchHook{{
+		Name: "Blender 5.2", Enabled: true, Extensions: []string{".blend"},
+		ApplicationVersion: "5.2.0",
+	}}})
+
+	require.NoError(t, err)
+	require.Empty(t, settings.Hooks[0].ScriptAssetIDs)
+	require.Empty(t, settings.Hooks[0].EnvironmentVariableIDs)
 	require.Equal(t, "5.2.0", settings.Hooks[0].ApplicationVersion)
 }
 

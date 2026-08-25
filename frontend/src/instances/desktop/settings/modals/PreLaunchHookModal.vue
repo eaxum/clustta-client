@@ -126,7 +126,9 @@ const availableEnvironmentOptions = computed(() => settingsStore.projectEnvironm
 const canSave = computed(() => (
   Boolean(hook.value.name.trim())
   && hook.value.extensions.length > 0
-  && (hook.value.script_asset_ids.length > 0 || hook.value.environment_variable_ids.length > 0)
+  && (hook.value.script_asset_ids.length > 0
+    || hook.value.environment_variable_ids.length > 0
+    || Boolean(hook.value.application_version.trim()))
   && !isAwaitingResponse.value
 ));
 

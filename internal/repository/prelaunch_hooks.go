@@ -212,8 +212,8 @@ func normalizePreLaunchHook(hook PreLaunchHook, environmentVariableIDs map[strin
 			return PreLaunchHook{}, fmt.Errorf("environment variable %q does not exist", variableID)
 		}
 	}
-	if len(hook.ScriptAssetIDs) == 0 && len(hook.EnvironmentVariableIDs) == 0 {
-		return PreLaunchHook{}, fmt.Errorf("at least one script asset or environment variable is required")
+	if len(hook.ScriptAssetIDs) == 0 && len(hook.EnvironmentVariableIDs) == 0 && hook.ApplicationVersion == "" {
+		return PreLaunchHook{}, fmt.Errorf("at least one script asset, environment variable, or application version is required")
 	}
 	return hook, nil
 }
