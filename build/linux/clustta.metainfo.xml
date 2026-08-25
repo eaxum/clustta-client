@@ -51,15 +51,16 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="0.4.38" date="2026-08-07">
+    <release version="0.4.39" date="2026-08-25">
       <description>
-        <p>Clustta 0.4.38 adds connected DCC workflows, flexible Studio storage, faster browsing, and reliability improvements.</p>
+        <p>Clustta 0.4.39 adds smarter project launches, more capable Agent commands, flexible exports, pending renames across sync, and reliability improvements.</p>
         <ul>
-          <li>Use faster, studio-aware asset workflows from connected creative applications</li>
-          <li>Choose and convert private Studio project storage modes with clear progress</li>
-          <li>Keep your browser position while project data updates quietly in place</li>
-          <li>Review safer batch actions with permission-aware shortcut hints</li>
-          <li>Includes fixes for sync, fetched assets, checkpoints, task updates, and project storage</li>
+          <li>Configure pre-launch hooks and prepare DCC environments and dependencies before launch</li>
+          <li>Use / quick commands, ~ project script references, and @ asset or collection references in the Agent</li>
+          <li>Keep working with local renames while they await sync and apply remote paths consistently when items are fetched</li>
+          <li>Preview exports, choose columns and formats, manage project tags, and duplicate roles</li>
+          <li>Improve Kitsu workflows with linked tasks, output filters, and selectable sync previews</li>
+          <li>Includes fixes for authentication, project settings, collaborators, Agent tools, and cross-platform UI</li>
         </ul>
       </description>
     </release>

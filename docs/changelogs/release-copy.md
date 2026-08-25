@@ -1,58 +1,61 @@
-# Clustta 0.4.38 Release Copy
+# Clustta 0.4.39 Release Copy
 
 ## Release Inputs
 
-- Version: `0.4.38`
-- Previous version/tag: `v0.4.37`
-- New version/tag: `v0.4.38`
-- Compare range: `3359b6b89f4b7c68f24047bba9c6a3a7a46c96dd...HEAD`
-- Release headline: `Faster browsing, flexible storage, and connected DCC workflows`
+- Version: `0.4.39`
+- Previous version/tag: `v0.4.38`
+- New version/tag: `v0.4.39`
+- Compare range: `9b6f5241ad6ddc60caea51edf617f96f39e0cb53...HEAD`
+- Release headline: `Smarter project launches, stronger batch tools, and flexible exports`
 - Canny types: `new`, `improved`, `fixed`
 
 ## GitHub Release
 
-### Clustta 0.4.38
+### Clustta 0.4.39
 
 ## Improvements
 
-### Connected DCC Workflows
+### Smarter Project Launches
 
-Clustta now provides shared asset workflows for DCC integrations, with studio-aware actions and faster workspace loading. This foundation supports consistent checkpoint, fetch, revert, and build experiences across connected creative applications.
+Configure project pre-launch hooks for supported creative applications. Clustta can discover installed DCC versions, prepare project environments, and fetch required hook and environment dependencies before launch.
 
-### Flexible Studio Storage
+### More Capable Agent Workflows
 
-Private Studios can choose Compact or Deflated storage per project and convert between modes with administrator confirmation and live progress. A new project management view makes storage settings and linked Studio usage easier to understand.
+The Agent composer now supports `/` quick commands, `~` project script references, and `@` asset or collection references. The Agent can also plan scoped batch moves, renames, dependency changes, copies, and edits with clearer approval previews.
 
-### Faster, Steadier Browsing
+### Pending Renames Across Sync
 
-Browser views now preserve position during silent updates and refresh only the data that changed. Nested collections, fetched file states, filtered results, and breadcrumb counts stay more accurate without interrupting navigation.
+Local asset and collection renames now remain available while awaiting sync. Clustta preserves pending paths and applies remote path changes when items are fetched, keeping checkpoints, reverts, and local files aligned.
 
-### Safer Batch Actions
+### Flexible Exports and Project Organization
 
-Agent batch actions now group scoped local changes into a single plan with selective approval previews, making recursive type and suffix changes easier to review before applying them.
+Preview scoped asset exports, choose the columns to include, and save results in multiple file formats. Project settings now also include tag management, role duplication, and a no-tags filter.
+
+### Improved Kitsu Workflows
+
+Open the linked Kitsu task for a selected asset type, filter task outputs, and review selectable full-tree sync previews with clearer import and connection controls.
 
 ### Smaller UX Polish
 
-- Keyboard shortcuts and context menus now show permission-aware action hints.
-- Modals, cloud controls, badges, icons, and border styling have been refreshed.
+- Checkpoints without messages now receive automatic version comments.
+- Dependency paths, workspace labels, title bar controls, navigation, and approval previews are clearer and more consistent.
 
 ## Bug Fixes
 
-- **Sync and offline changes** - Fixed restricted items appearing during updates and added safe local fallback for metadata changes that cannot sync immediately.
-- **Browser state** - Fixed nested asset fetch states, filtered descendant visibility, and file states after fetching.
-- **Checkpoints** - Fixed checkpoints being backdated and corrected timeline gradients across date groups.
-- **Kitsu integration** - Fixed sync previews incorrectly marking projects as unsynced.
-- **Task updates** - Fixed batch task status changes not updating the current view correctly.
-- **Project storage** - Fixed metadata-only chunk retention and dedicated Studio storage selection or confirmation issues.
-- **Accounts and themes** - Fixed an entitlement loading race and icons that did not follow the active theme.
+- **Authentication** - Restored the login prompt when a sync token expires.
+- **Project settings** - Fixed project configuration syncing and made environment variable updates safer.
+- **Collaborators** - Fixed Studio sync token updates, stale user records, and collaborator limit enforcement.
+- **Kitsu integration** - Fixed category metadata parsing and sync preview ordering.
+- **Agent tools** - Fixed script resolution, shortcut display, translations, and scoped dependency operations.
+- **Cross-platform UI** - Fixed macOS scrollbar and title bar spacing issues, plus Linux build command cleanup.
 
-**Full Changelog**: `3359b6b89f4b7c68f24047bba9c6a3a7a46c96dd...HEAD`
+**Full Changelog**: `9b6f5241ad6ddc60caea51edf617f96f39e0cb53...HEAD`
 
 ## Canny Changelog
 
 ### Title
 
-Clustta 0.4.38 : Faster browsing, flexible storage, and connected DCC workflows
+Clustta 0.4.39 : Smarter project launches, stronger batch tools, and flexible exports
 
 ### Types
 
@@ -60,55 +63,73 @@ Clustta 0.4.38 : Faster browsing, flexible storage, and connected DCC workflows
 
 ### Body
 
-Clustta 0.4.38 adds shared DCC asset workflows, flexible private Studio storage, faster browsing, and safer batch actions.
+Clustta 0.4.39 adds configurable project launch workflows, more capable Agent batch tools, flexible exports, and improved project organization.
 
-**New: Connected DCC Workflows**
+**New: Smarter Project Launches**
 
-Connected creative applications can use consistent, studio-aware asset workflows with faster workspace loading.
+Configure pre-launch hooks for supported creative applications while Clustta discovers installed versions, prepares project environments, and fetches required dependencies.
 
-**New: Flexible Studio Storage**
+**Improved: More Capable Agent Workflows**
 
-Private Studios can choose Compact or Deflated storage per project and convert between modes with administrator confirmation and live progress.
+Use `/` for quick commands, `~` to reference project scripts, and `@` to reference assets or collections. Scoped batch moves, renames, dependency changes, copies, and edits now have clearer approval previews.
 
-**Improved: Faster Browsing**
+**New: Pending Renames Across Sync**
 
-Silent updates preserve your position and refresh only changed data, while nested asset states, filters, and counts remain accurate.
+Keep working with local asset and collection renames while they await sync, with pending and remote paths applied consistently when items are fetched.
 
-**Improved: Safer Batch Actions**
+**New: Flexible Exports and Organization**
 
-Review scoped batch changes in one plan and selectively approve them before they are applied.
+Preview scoped exports, choose columns and file formats, manage project tags, duplicate roles, and filter items without tags.
+
+**Improved: Kitsu Workflows**
+
+Open linked tasks, filter outputs, and review selectable full-tree sync previews with clearer controls.
 
 **Fixed**
 
-- Fixed restricted item visibility and offline metadata fallback during sync.
-- Fixed nested fetch states, filtered results, and browser file states.
-- Fixed checkpoint dates, timeline gradients, and Kitsu sync previews.
-- Fixed batch task updates, project storage edge cases, entitlement loading, and themed icons.
+- Fixed expired sync token login prompts and safer project setting updates.
+- Fixed collaborator records and limits, Kitsu metadata, and preview ordering.
+- Fixed Agent script resolution, shortcut display, translations, and cross-platform UI issues.
 
 ## Apple App Store
 
 ### What's New in This Version
 
-Clustta 0.4.38 improves connected workflows, project storage, browsing, and reliability.
+Clustta 0.4.39 improves project launches, batch workflows, exports, and reliability.
 
-- Use faster, studio-aware asset workflows from connected creative applications.
-- Choose and convert private Studio project storage modes with clear progress.
-- Keep your browser position while project data updates quietly in place.
-- Review safer batch actions and see clearer permission-aware shortcuts.
-- Includes fixes for sync, fetched assets, checkpoints, task updates, and project storage.
+- Configure pre-launch hooks and prepare DCC environments and dependencies before launch.
+- Use `/` quick commands, `~` script references, and `@` asset or collection references in the Agent.
+- Keep working with local renames while they await sync across fetched items, checkpoints, and reverts.
+- Preview exports, choose columns and formats, and manage project tags and roles.
+- Work more smoothly with Kitsu tasks, output filters, and sync previews.
+- Includes fixes for authentication, sync paths, checkpoints, collaborators, and cross-platform UI.
 
 ## Microsoft Store
 
 ### Release Notes
 
-Clustta 0.4.38 improves connected workflows, project storage, browsing, and reliability.
+Clustta 0.4.39 improves project launches, batch workflows, exports, and reliability.
 
-- Use faster, studio-aware asset workflows from connected creative applications.
-- Choose and convert private Studio project storage modes with clear progress.
-- Keep your browser position while project data updates quietly in place.
-- Review safer batch actions and see clearer permission-aware shortcuts.
-- Includes fixes for sync, fetched assets, checkpoints, task updates, and project storage.
+- Configure pre-launch hooks and prepare DCC environments and dependencies before launch.
+- Use `/` quick commands, `~` script references, and `@` asset or collection references in the Agent.
+- Keep working with local renames while they await sync across fetched items, checkpoints, and reverts.
+- Preview exports, choose columns and formats, and manage project tags and roles.
+- Work more smoothly with Kitsu tasks, output filters, and sync previews.
+- Includes fixes for authentication, sync paths, checkpoints, collaborators, and cross-platform UI.
 
 ## Short Store Summary
 
-Connected DCC workflows, flexible Studio storage, faster browsing, and reliability fixes.
+Smarter project launches, stronger Agent batch tools, flexible exports, and reliability fixes.
+
+## Flathub Release
+
+### Clustta 0.4.39
+
+Clustta 0.4.39 adds smarter project launches, more capable Agent commands, flexible exports, pending renames across sync, and reliability improvements.
+
+- Configure pre-launch hooks and prepare DCC environments and dependencies before launch.
+- Use `/` quick commands, `~` project script references, and `@` asset or collection references in the Agent.
+- Keep working with local renames while they await sync and apply remote paths consistently when items are fetched.
+- Preview exports, choose columns and formats, manage project tags, and duplicate roles.
+- Improve Kitsu workflows with linked tasks, output filters, and selectable sync previews.
+- Includes fixes for authentication, project settings, collaborators, Agent tools, and cross-platform UI.

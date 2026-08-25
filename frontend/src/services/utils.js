@@ -6,7 +6,7 @@ import { md5 } from "./crypto.js";
 
 // Fallback version used when the Go layer is unavailable (e.g. web mode).
 // Keep in sync with build/config.yml and internal/constants fallbackVersion.
-const FALLBACK_VERSION = "0.4.35";
+const FALLBACK_VERSION = "0.4.39";
 
 const utils = {
   async getIcon(ext) {
