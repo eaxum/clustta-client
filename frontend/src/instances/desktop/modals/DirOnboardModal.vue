@@ -2,298 +2,352 @@
   <div class="modal-container" v-stop-propagation>
     <HeaderArea :title="$t('modals.setupClustta')" :icon="getAppIcon('clustta')" :showSearch="false" />
     <div class="general-container">
+      <InputAlert
+        v-if="isMacAppStore"
+        :show="true"
+        :message="$t('modals.macFolderPermissionDesc')"
+        type="info"
+      />
 
-      <!-- Card 1: Select data storage location -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
-            <h2 class="settings-section-card-title">{{ $t('modals.grantPermission') }}</h2>
-            <div class="card-description">
-              {{ $t('modals.grantPermissionDesc') }}
-            </div>
+            <h2 class="settings-section-card-title">{{ $t('modals.clusttaDataLocation') }}</h2>
+            <div class="card-description">{{ $t('modals.clusttaDataLocationDesc') }}</div>
           </div>
-          <GeneralButton 
-            :label="selectedClusttaDirectory ? $t('common.change') : $t('common.select')" 
-            :buttonFunction="selectDirectory"
-            :fullWidth="false"
-          />
-        </div>
-        <div class="settings-section-card-content" :class="{ 'no-padding': !selectedClusttaDirectory }">
-          
-          <!-- Selected Path Display -->
-          <div v-if="selectedClusttaDirectory" class="location-item location-item-single">
-            <div class="location-icon">
-              <img class="small-icons" :src="getAppIcon('folder')">
-            </div>
-            <div class="location-content">
-              <div class="location-header">
-                <div class="location-name">{{ $t('settings.clusttaData') }}</div>
-              </div>
-              <div class="location-body">
-                {{ selectedClusttaDirectory }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 2: Project folders (only visible after selecting storage location) -->
-      <div v-if="selectedClusttaDirectory" class="settings-section-card">
-        <div class="settings-section-card-header">
-          <div class="header-content">
-            <h2 class="settings-section-card-title">{{ $t('settings.projectFolders') }}</h2>
-            <div class="card-description">
-              {{ $t('modals.projectFoldersDesc') }}
-            </div>
-          </div>
-          <GeneralButton 
-            :label="$t('common.add')" 
-            :buttonFunction="addLocation"
-            :fullWidth="false"
-          />
         </div>
         <div class="settings-section-card-content">
-          
-          <!-- Locations List -->
-          <div class="locations-scroll-container">
-            <div v-for="location in locations" :key="location.id" class="location-item">
-              <!-- Location Icon -->
-              <div class="location-icon">
-                <img v-if="locationHealthMap[location.id] && !locationHealthMap[location.id].exists" 
-                     class="small-icons" 
-                     :src="getAppIcon('alert')">
-                <img v-else class="small-icons" :src="getAppIcon('folder')">
-              </div>
-              
-              <!-- Location Content -->
-              <div class="location-content">
-                <div class="location-header">
-                  <div class="location-name">{{ location.name }}</div>
-                </div>
-                <div class="location-body">
-                  {{ location.path }}
-                </div>
-              </div>
-              
-              <!-- Location Actions -->
-              <div class="location-actions">
-                <ActionButton 
-                  v-if="location.is_default"
-                  :icon="getAppIcon('star')" 
-                  :buttonFunction="() => setDefaultLocation(location.id)"
-                  :disabled="true"
-                  v-tooltip="$t('settings.defaultLocation')"
-                />
-                
-                <template v-else>
-                  <ActionButton 
-                    :icon="getAppIcon('star')" 
-                    :buttonFunction="() => setDefaultLocation(location.id)"
-                    v-tooltip="$t('settings.setAsDefault')"
-                    class="hover-action"
-                  />
-                  <ActionButton 
-                    :icon="getAppIcon('explorer')" 
-                    :buttonFunction="() => selectPath(location)"
-                    v-tooltip="$t('settings.changeLocation')"
-                    class="hover-action"
-                  />
-                  <ActionButton 
-                    :icon="getAppIcon('trash')" 
-                    :buttonFunction="() => removeLocation(location.id)"
-                    :isDisabled="!canDeleteLocation(location.id)"
-                    v-tooltip="canDeleteLocation(location.id) ? $t('settings.removeLocation') : $t('settings.cannotRemoveLocation')"
-                    class="hover-action"
-                  />
-                </template>
-              </div>
-            </div>
+          <div class="path-row">
+            <FormInput
+              v-model="dataDirectory"
+              :placeholder="$t('modals.clusttaDataLocation')"
+              :info="dataPathInfo"
+              @input="handleDataDirectoryInput"
+            />
+            <ActionButton
+              :icon="getAppIcon('explorer')"
+              :buttonFunction="selectDataDirectory"
+              :showLabel="false"
+              v-tooltip="$t('common.browse')"
+            />
           </div>
+          <InputAlert
+            v-if="isMacAppStore"
+            :show="true"
+            :message="dataPermissionMessage"
+            :type="dataPermissionGranted ? 'info' : 'error'"
+          />
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div v-if="selectedClusttaDirectory" class="pop-up-actions">
-        <GeneralButton 
-          :label="$t('common.continue')" 
+      <div class="settings-section-card">
+        <div class="settings-section-card-header">
+          <div class="header-content">
+            <h2 class="settings-section-card-title">{{ $t('modals.workingProjectsLocation') }}</h2>
+            <div class="card-description">{{ $t('modals.workingProjectsLocationDesc') }}</div>
+          </div>
+        </div>
+        <div class="settings-section-card-content">
+          <div class="path-row">
+            <FormInput
+              v-model="workingProjectsDirectory"
+              :placeholder="$t('modals.workingProjectsLocation')"
+              :info="projectsPathInfo"
+              @input="handleWorkingProjectsInput"
+            />
+            <ActionButton
+              :icon="getAppIcon('explorer')"
+              :buttonFunction="selectWorkingProjectsDirectory"
+              :showLabel="false"
+              v-tooltip="$t('common.browse')"
+            />
+          </div>
+          <InputAlert
+            v-if="isMacAppStore"
+            :show="true"
+            :message="projectsPermissionMessage"
+            :type="projectsPermissionGranted ? 'info' : 'error'"
+          />
+        </div>
+      </div>
+
+      <div class="pop-up-actions">
+        <GeneralButton
+          :label="$t('common.cancel')"
+          :buttonFunction="cancelOnboarding"
+          :colored="false"
+          :fullWidth="false"
+          :isActive="!isAwaitingResponse"
+          :loading="isCancelling"
+        />
+        <GeneralButton
+          :label="$t('common.continue')"
           :buttonFunction="saveChanges"
           :fullWidth="false"
-          :isActive="hasDefaultLocation"
+          :isActive="canContinue"
           :loading="isAwaitingResponse"
         />
       </div>
-
     </div>
   </div>
 </template>
 
 <script setup>
-// imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRouter } from 'vue-router';
 
-// components
+import { resetStoreInitialization } from '@/router';
+
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import FormInput from '@/instances/desktop/components/FormInput.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import InputAlert from '@/instances/common/components/InputAlert.vue';
 
-// services
 import { DialogService, FSService, SettingsService } from '@/services';
 
-// stores
+import { useAccountStore } from '@/stores/accounts';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
+import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
+import { useUserStore } from '@/stores/users';
 
+const DEFAULT_DATA_FOLDER = 'clustta';
+const DEFAULT_PROJECTS_FOLDER = 'Documents/Projects';
+const PERSONAL_PROJECTS_FOLDER = 'projects';
+const SHARED_PROJECTS_FOLDER = 'shared_projects';
+
+const accountStore = useAccountStore();
+const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
+const platformStore = usePlatformStore();
 const projectStore = useProjectStore();
+const router = useRouter();
 const trayStates = useTrayStates();
+const userStore = useUserStore();
 const { t } = useI18n();
 
-// refs
-const defaultClusttaDirectory = ref('');
+const dataDirectory = ref('');
+const dataPermissionPath = ref('');
 const isAwaitingResponse = ref(false);
-const locationHealthMap = ref({});
-const locations = ref([]);
-const locationUsageMap = ref({});
-const personalDataDirectory = ref('');
-const selectedClusttaDirectory = ref('');
-const sharedDataDirectory = ref('');
-const userBaseDirectory = ref('');
-const userName = ref('');
+const isCancelling = ref(false);
+const suggestedDataDirectory = ref('');
+const suggestedProjectsDirectory = ref('');
+const workingProjectsDirectory = ref('');
+const workingProjectsPermissionPath = ref('');
 
-// computed
-// Returns true if at least one location is set as default.
-const hasDefaultLocation = computed(() => {
-  return locations.value.some(loc => loc.is_default === true);
-});
+const isMacAppStore = computed(() => platformStore.isMacAppStore);
+const dataPermissionGranted = computed(() =>
+  pathsMatch(dataDirectory.value, dataPermissionPath.value)
+);
+const projectsPermissionGranted = computed(() =>
+  pathsMatch(workingProjectsDirectory.value, workingProjectsPermissionPath.value)
+);
+const dataPermissionMessage = computed(() =>
+  dataPermissionGranted.value
+    ? t('modals.folderAccessGranted')
+    : t('modals.folderPermissionRequired')
+);
+const projectsPermissionMessage = computed(() =>
+  projectsPermissionGranted.value
+    ? t('modals.folderAccessGranted')
+    : t('modals.folderPermissionRequired')
+);
+const dataPathInfo = computed(() =>
+  pathsMatch(dataDirectory.value, suggestedDataDirectory.value)
+    ? t('modals.suggestedLocation')
+    : ''
+);
+const projectsPathInfo = computed(() =>
+  pathsMatch(workingProjectsDirectory.value, suggestedProjectsDirectory.value)
+    ? t('modals.suggestedLocation')
+    : ''
+);
+const canContinue = computed(() =>
+  Boolean(dataDirectory.value.trim() && workingProjectsDirectory.value.trim()) &&
+  !isAwaitingResponse.value &&
+  !isCancelling.value
+);
 
-// methods
-// Adds a new project location via folder dialog.
-const addLocation = async () => {
-  const documentsPath = userBaseDirectory.value + 'Documents';
-  const result = await DialogService.SelectSpecificFolderDialog(t('modals.selectLocationFolder'), documentsPath);
-  if (!result) return;
-  
-  const path = result.replace(/\\/g, '/');
-  const pathParts = path.split('/');
-  const folderName = pathParts[pathParts.length - 1] || `Location ${locations.value.length + 1}`;
-  
-  const newLocation = {
-    id: `${locations.value.length + 1}`,
-    name: folderName,
-    path: path,
-    is_default: locations.value.length === 0,
-    project_ids: []
-  };
-  
-  locations.value.push(newLocation);
-  await checkAllLocationHealth();
-  
-  notificationStore.addNotification(t('notifications.locationAdded'), '', 'success', false);
+const normalizePath = (path) => {
+  const normalized = path.trim().replace(/\\/g, '/');
+  if (/^[A-Za-z]:\/$/.test(normalized) || normalized === '/') return normalized;
+  return normalized.replace(/\/+$/, '');
 };
 
-// Determines if a location can be deleted.
-const canDeleteLocation = (locationId) => {
-  if (locations.value.length <= 1) return false;
-  return getProjectCount(locationId) === 0;
+const pathsMatch = (firstPath, secondPath) => {
+  if (!firstPath || !secondPath) return false;
+  const first = normalizePath(firstPath);
+  const second = normalizePath(secondPath);
+  return platformStore.isWindows
+    ? first.toLowerCase() === second.toLowerCase()
+    : first === second;
 };
 
-// Checks health status of all locations.
-const checkAllLocationHealth = async () => {
-  try {
-    const healthStatuses = await SettingsService.CheckAllLocationsHealth();
-    healthStatuses.forEach(h => {
-      locationHealthMap.value[h.id] = h;
-    });
-  } catch (error) {
-    console.error('Error checking location health:', error);
-  }
+const joinPath = (basePath, childPath) => {
+  const base = normalizePath(basePath);
+  const separator = base.endsWith('/') ? '' : '/';
+  return `${base}${separator}${childPath.replace(/^\/+/, '')}`;
 };
 
-// Closes the modal.
-const closeModal = () => {
-  modals.disableAllModals();
+const parentPath = (path) => {
+  const normalized = normalizePath(path);
+  const separatorIndex = normalized.lastIndexOf('/');
+  if (separatorIndex <= 0) return normalized;
+  return normalized.slice(0, separatorIndex);
 };
 
-// Returns the app icon path for the given icon name.
-const getAppIcon = (iconName) => {
-  return iconStore.getAppIcon(iconName);
+const dialogStartPath = async (path) => {
+  const normalized = normalizePath(path);
+  if (await FSService.DirExists(normalized)) return normalized;
+  return parentPath(normalized);
 };
 
-// Returns the project count for a location.
-const getProjectCount = (locationId) => {
-  return locationUsageMap.value[locationId] || 0;
+const selectFolder = async (title, currentPath) => {
+  const startPath = await dialogStartPath(currentPath);
+  const result = await DialogService.SelectSpecificFolderDialog(title, startPath);
+  return result ? normalizePath(result) : '';
 };
 
-// Loads project usage for all locations.
-const loadLocationUsage = async () => {
-  for (const location of locations.value) {
-    try {
-      const count = await SettingsService.GetLocationUsage(location.id);
-      locationUsageMap.value[location.id] = count;
-    } catch (error) {
-      locationUsageMap.value[location.id] = 0;
-    }
-  }
+const selectDataDirectory = async () => {
+  const selectedPath = await selectFolder(t('modals.selectClusttaDataFolder'), dataDirectory.value);
+  if (!selectedPath) return false;
+  dataDirectory.value = selectedPath;
+  if (isMacAppStore.value) dataPermissionPath.value = selectedPath;
+  return true;
 };
 
-// Loads projects and refreshes tray states.
-const loadProjects = async () => {
-  await projectStore.loadProjects();
-  trayStates.refreshData();
+const selectWorkingProjectsDirectory = async () => {
+  const selectedPath = await selectFolder(
+    t('modals.selectWorkingProjectsFolder'),
+    workingProjectsDirectory.value
+  );
+  if (!selectedPath) return false;
+  workingProjectsDirectory.value = selectedPath;
+  if (isMacAppStore.value) workingProjectsPermissionPath.value = selectedPath;
+  return true;
 };
 
-// Removes a location from the list.
-const removeLocation = (locationId) => {
-  if (!canDeleteLocation(locationId)) {
+const handleDataDirectoryInput = () => {
+  if (!dataPermissionGranted.value) dataPermissionPath.value = '';
+};
+
+const handleWorkingProjectsInput = () => {
+  if (!projectsPermissionGranted.value) workingProjectsPermissionPath.value = '';
+};
+
+const ensureMacFolderPermissions = async () => {
+  if (!isMacAppStore.value) return true;
+
+  if (!dataPermissionGranted.value && !await selectDataDirectory()) {
     notificationStore.addNotification(
-      t('notifications.cannotRemoveLocation'),
-      t('notifications.locationInUse'),
+      t('modals.folderPermissionRequired'),
+      t('modals.macFolderPermissionCancelled'),
       'error',
       false
     );
+    return false;
+  }
+
+  if (!projectsPermissionGranted.value && !await selectWorkingProjectsDirectory()) {
+    notificationStore.addNotification(
+      t('modals.folderPermissionRequired'),
+      t('modals.macFolderPermissionCancelled'),
+      'error',
+      false
+    );
+    return false;
+  }
+
+  return true;
+};
+
+const saveProjectLocation = async () => {
+  const selectedPath = normalizePath(workingProjectsDirectory.value);
+  const existingLocations = await SettingsService.GetAllLocationPaths();
+  const existingLocation = existingLocations.find((location) =>
+    pathsMatch(location.path, selectedPath)
+  );
+  const location = existingLocation || await SettingsService.AddProjectLocation(
+    selectedPath.split('/').pop() || t('settings.defaultLocation'),
+    selectedPath
+  );
+  await SettingsService.SetDefaultLocation(location.id);
+};
+
+const returnToWelcome = async () => {
+  userStore.$reset();
+  projectStore.$reset();
+  trayStates.$reset();
+  entitlementStore.reset();
+  accountStore.$reset();
+  resetStoreInitialization();
+  await router.replace('/auth/welcome');
+};
+
+const cancelOnboarding = async () => {
+  if (isAwaitingResponse.value || isCancelling.value) return;
+
+  const currentAccountId = userStore.user?.id ||
+    accountStore.activeAccount?.user?.id ||
+    accountStore.currentAccount?.id;
+  if (!currentAccountId) {
+    modals.disableAllModals();
+    await returnToWelcome();
     return;
   }
-  
-  const index = locations.value.findIndex(loc => loc.id === locationId);
-  if (index !== -1) {
-    locations.value.splice(index, 1);
-    notificationStore.addNotification(t('notifications.locationRemoved'), '', 'success', false);
+
+  isCancelling.value = true;
+  try {
+    const accountRemoved = await accountStore.removeAccount(currentAccountId);
+    if (!accountRemoved) {
+      throw new Error(t('notifications.unableToSignOut'));
+    }
+
+    const nextAccountId = accountStore.activeAccount?.user?.id ||
+      accountStore.currentAccount?.id ||
+      accountStore.accounts[0]?.id;
+
+    modals.disableAllModals();
+    if (nextAccountId) {
+      await accountStore.switchToAccount(nextAccountId);
+      return;
+    }
+
+    await returnToWelcome();
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.signOutFailed'), error);
+  } finally {
+    isCancelling.value = false;
   }
 };
 
-// Saves all changes and closes the modal.
 const saveChanges = async () => {
+  if (!canContinue.value) return;
+
   isAwaitingResponse.value = true;
   try {
-    await SettingsService.SetProjectDirectory(personalDataDirectory.value);
-    await SettingsService.SetSharedProjectDirectory(sharedDataDirectory.value);
-    
+    if (!await ensureMacFolderPermissions()) return;
+
+    const selectedDataDirectory = normalizePath(dataDirectory.value);
+    await SettingsService.SetProjectDirectory(
+      joinPath(selectedDataDirectory, PERSONAL_PROJECTS_FOLDER)
+    );
+    await SettingsService.SetSharedProjectDirectory(
+      joinPath(selectedDataDirectory, SHARED_PROJECTS_FOLDER)
+    );
+    await saveProjectLocation();
     await projectStore.loadStudios();
-    
-    for (const location of locations.value) {
-      try {
-        const existingLocations = await SettingsService.GetAllLocationPaths();
-        const exists = existingLocations.some(loc => loc.id === location.id);
-        
-        if (!exists) {
-          const savedLocation = await SettingsService.AddProjectLocation(location.name, location.path);
-          if (location.is_default) {
-            await SettingsService.SetDefaultLocation(savedLocation.id);
-          }
-        }
-      } catch (error) {
-        console.error('Error saving location:', error);
-      }
-    }
-    
-    await loadProjects();
-    closeModal();
+    await projectStore.loadProjects();
+    trayStates.refreshData();
+    modals.disableAllModals();
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorSavingSettings'), error);
   } finally {
@@ -301,89 +355,18 @@ const saveChanges = async () => {
   }
 };
 
-// Opens dialog to select the Clustta directory.
-const selectDirectory = async () => {
-  let title = t('modals.clusttaDirectory');
-  let directory = userBaseDirectory.value;
+const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
-  const result = await DialogService.SelectSpecificFolderDialog(title, directory);
-
-  if (result) {
-    let fileDir = result.replace(/\\/g, '/').replace(/\/+$/, '');
-    let baseDir = userBaseDirectory.value.replace(/\\/g, '/').replace(/\/+$/, '');
-    selectedClusttaDirectory.value = fileDir === baseDir ? fileDir + '/clustta' : fileDir;
-
-    personalDataDirectory.value = selectedClusttaDirectory.value + '/projects';
-    sharedDataDirectory.value = selectedClusttaDirectory.value + '/shared_projects';
-
-    if (locations.value.length === 0) {
-      const mntPath = selectedClusttaDirectory.value + '/mnt';
-      try {
-        const mntExists = await FSService.DirExists(mntPath);
-        if (mntExists) {
-          locations.value = [{
-            id: '1',
-            name: 'mnt',
-            path: mntPath,
-            is_default: true,
-            project_ids: []
-          }];
-          await checkAllLocationHealth();
-        }
-      } catch (error) {
-        console.error('Error checking /mnt folder:', error);
-      }
-    }
-  }
-};
-
-// Opens dialog to change the path of an existing location.
-const selectPath = async (location) => {
-  const result = await DialogService.SelectFolderDialog(t('modals.selectLocationFolder'));
-  if (!result) return;
-  
-  const path = result.replace(/\\/g, '/');
-  location.path = path;
-  
-  await checkAllLocationHealth();
-  
-  notificationStore.addNotification(t('notifications.locationUpdated'), '', 'success', false);
-};
-
-// Sets a location as the default.
-const setDefaultLocation = (locationId) => {
-  locations.value.forEach(loc => {
-    loc.is_default = loc.id === locationId;
-  });
-  
-  notificationStore.addNotification(t('notifications.defaultLocationUpdated'), '', 'success', false);
-};
-
-// lifecycle
 onMounted(async () => {
   try {
-    const response = await SettingsService.GetUserDirectory();
-    userBaseDirectory.value = response;
-    defaultClusttaDirectory.value = `${response}clustta`;
+    await platformStore.initialize();
+    const userDirectory = normalizePath(await SettingsService.GetUserDirectory());
+    suggestedDataDirectory.value = joinPath(userDirectory, DEFAULT_DATA_FOLDER);
+    suggestedProjectsDirectory.value = joinPath(userDirectory, DEFAULT_PROJECTS_FOLDER);
+    dataDirectory.value = suggestedDataDirectory.value;
+    workingProjectsDirectory.value = suggestedProjectsDirectory.value;
   } catch (error) {
-    notificationStore.addNotification(
-      t('notifications.errorLoadingSettings'),
-      error.message,
-      'error',
-      false
-    );
-  }
-  
-  try {
-    const response = await SettingsService.GetUsername();
-    userName.value = response;
-  } catch (error) {
-    notificationStore.addNotification(
-      t('notifications.errorLoadingSettings'),
-      error.message,
-      'error',
-      false
-    );
+    notificationStore.errorNotification(t('notifications.errorLoadingSettings'), error);
   }
 });
 </script>
@@ -392,10 +375,10 @@ onMounted(async () => {
 @import "@/assets/desktop.css";
 
 .card-description {
-  font-size: 13px;
   color: var(--text-muted);
-  opacity: 0.9;
+  font-size: 13px;
   line-height: 1.5;
+  opacity: 0.9;
 }
 
 .general-container {
@@ -403,139 +386,49 @@ onMounted(async () => {
   flex-direction: column;
   width: 600px;
   max-width: 600px;
-  color: white;
+  color: var(--text);
   box-sizing: border-box;
 }
 
 .header-content {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.25rem;
-  flex: 1;
 }
 
-.hover-action {
-  display: none;
-}
-
-.location-actions {
+.path-row {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-sizing: border-box;
-}
-
-.location-body {
-  color: var(--text-muted);
-  font-size: 12px;
-  opacity: 0.8;
-  padding: 0.1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
-.location-content {
-  display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  justify-content: center;
-  flex: 1;
-  overflow: hidden;
-  padding: 0.2rem;
-  box-sizing: border-box;
-}
-
-.location-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.1rem;
-}
-
-.location-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.3rem;
-  box-sizing: border-box;
-}
-
-.location-item {
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  box-sizing: border-box;
-  min-height: 60px;
-  height: max-content;
-  padding: 0.75rem 1rem;
   gap: 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  border-bottom: 1px solid var(--surface-2);
-  background-color: var(--surface-4);
 }
 
-.location-item:hover {
-  background-color: #ffffff15;
+.path-row :deep(.form-group) {
+  margin-bottom: 0;
 }
 
-.location-item:hover .hover-action {
-  display: flex;
-}
-
-.location-item:last-child {
-  border-bottom: none;
-}
-
-.location-item-single {
-  border-radius: var(--normal-radius);
-}
-
-.location-name {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.locations-scroll-container {
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  border-radius: var(--normal-radius);
-  background-color: var(--surface-4);
-  max-height: 300px;
+.path-row :deep(.action-button) {
+  margin-top: 2px;
 }
 
 .pop-up-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 0.5rem;
 }
 
 .settings-section-card {
   display: flex;
   flex-direction: column;
-  background-color: var(--surface-2);
   overflow: hidden;
   box-sizing: border-box;
-  padding: 0;
+  background-color: var(--surface-2);
 }
 
 .settings-section-card-content {
   display: flex;
   flex-direction: column;
-  padding: 1rem;
-  gap: 1rem;
-}
-
-.settings-section-card-content.no-padding {
-  padding: 0;
+  padding: 1rem 1.5rem;
 }
 
 .settings-section-card-header {
@@ -543,17 +436,15 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background-color: var(--bg);
-  border-radius: var(--normal-radius);
   margin: 0;
+  border-radius: var(--normal-radius);
+  background-color: var(--bg);
 }
 
 .settings-section-card-title {
+  margin: 0;
+  color: var(--text);
   font-size: 16px;
   font-weight: 400;
-  color: var(--text);
-  margin: 0;
 }
 </style>
-
-

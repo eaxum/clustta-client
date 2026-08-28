@@ -23,6 +23,33 @@ var (
 	activeProjectWorkingDirMu sync.RWMutex
 )
 
+const directoryPermissions os.FileMode = 0o755
+
+func prepareDirectory(path string) error {
+	if strings.TrimSpace(path) == "" {
+		return fmt.Errorf("directory path cannot be empty")
+	}
+	if err := os.MkdirAll(path, directoryPermissions); err != nil {
+		return fmt.Errorf("create directory %s: %w", path, err)
+	}
+	return nil
+}
+
+func prepareDirectoryBookmark(path string) ([]byte, error) {
+	if err := prepareDirectory(path); err != nil {
+		return nil, err
+	}
+	if runtime.GOOS != "darwin" {
+		return nil, nil
+	}
+
+	bookmarkData, err := CreateBookmarkFromPath(path)
+	if err != nil {
+		return nil, fmt.Errorf("create security-scoped bookmark for %s: %w", path, err)
+	}
+	return bookmarkData, nil
+}
+
 // SetActiveProjectWorkingDir registers the current project's working directory as an allowed path.
 func SetActiveProjectWorkingDir(path string) {
 	cleaned, err := filepath.Abs(filepath.Clean(path))
@@ -794,15 +821,11 @@ func SetProjectDirectory(dir string) error {
 		return err
 	}
 
-	if runtime.GOOS == "darwin" {
-		bookmarkData, err := CreateBookmarkFromPath(dir)
-		if err != nil {
-			log.Printf("Failed to create bookmark for projects directory %s: %v", dir, err)
-			// Continue without bookmark - store path only
-		}
-		settings.ProjectsDirBookmark = bookmarkData
+	bookmarkData, err := prepareDirectoryBookmark(dir)
+	if err != nil {
+		return err
 	}
-
+	settings.ProjectsDirBookmark = bookmarkData
 	settings.ProjectsDir = dir
 	return saveSettings(settings)
 }
@@ -835,13 +858,11 @@ func SetSharedProjectDirectory(dir string) error {
 		return err
 	}
 
-	if runtime.GOOS == "darwin" {
-		bookmarkData, err := CreateBookmarkFromPath(dir)
-		if err != nil {
-			log.Printf("Failed to create bookmark for shared projects directory %s: %v", dir, err)
-		}
-		settings.SharedProjectsDirBookmark = bookmarkData
+	bookmarkData, err := prepareDirectoryBookmark(dir)
+	if err != nil {
+		return err
 	}
+	settings.SharedProjectsDirBookmark = bookmarkData
 	settings.SharedProjectsDir = dir
 
 	return saveSettings(settings)
@@ -1705,14 +1726,11 @@ func AddProjectLocation(name, path string) (ProjectLocation, error) {
 		ProjectIDs: []string{},
 	}
 
-	// Create bookmark on macOS
-	if runtime.GOOS == "darwin" {
-		bookmarkData, err := CreateBookmarkFromPath(path)
-		if err != nil {
-			log.Printf("Failed to create bookmark for location %s: %v", name, err)
-		}
-		newLocation.Bookmark = bookmarkData
+	bookmarkData, err := prepareDirectoryBookmark(path)
+	if err != nil {
+		return ProjectLocation{}, err
 	}
+	newLocation.Bookmark = bookmarkData
 
 	settings.ProjectLocations = append(settings.ProjectLocations, newLocation)
 
@@ -1791,15 +1809,11 @@ func UpdateProjectLocation(locationID, name, path string) error {
 					settings.ProjectLocations[i].Path = path
 				}
 
-				// Always (re)create the bookmark on macOS so that re-selecting the same
-				// folder re-establishes security-scoped access for stale bookmarks.
-				if runtime.GOOS == "darwin" {
-					bookmarkData, err := CreateBookmarkFromPath(path)
-					if err != nil {
-						log.Printf("Failed to create bookmark for location %s: %v", name, err)
-					}
-					settings.ProjectLocations[i].Bookmark = bookmarkData
+				bookmarkData, err := prepareDirectoryBookmark(path)
+				if err != nil {
+					return err
 				}
+				settings.ProjectLocations[i].Bookmark = bookmarkData
 			}
 
 			return saveSettings(settings)
