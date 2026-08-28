@@ -872,7 +872,6 @@
     "suggestedLocation": "Empfohlener Speicherort",
     "macFolderPermissionDesc": "macOS erfordert, dass Sie den Zugriff auf diese Ordner bestätigen. Die empfohlenen Speicherorte sind bereits eingetragen.",
     "folderPermissionRequired": "Ordnerzugriff erforderlich",
-    "folderAccessGranted": "Ordnerzugriff gewährt",
     "macFolderPermissionCancelled": "Wählen Sie den Ordner im macOS-Dialog aus, um fortzufahren.",
     "selectClusttaDataFolder": "Clustta-Datenordner bestätigen",
     "selectWorkingProjectsFolder": "Ordner für Arbeitsprojekte bestätigen",

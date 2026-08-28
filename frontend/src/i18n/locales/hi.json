@@ -871,7 +871,6 @@
     "suggestedLocation": "सुझाया गया स्थान",
     "macFolderPermissionDesc": "macOS के लिए इन फ़ोल्डरों की पहुँच की पुष्टि आवश्यक है। सुझाए गए स्थान पहले से भरे हुए हैं।",
     "folderPermissionRequired": "फ़ोल्डर पहुँच आवश्यक है",
-    "folderAccessGranted": "फ़ोल्डर पहुँच प्रदान की गई",
     "macFolderPermissionCancelled": "जारी रखने के लिए macOS संवाद में फ़ोल्डर चुनें।",
     "selectClusttaDataFolder": "Clustta डेटा फ़ोल्डर की पुष्टि करें",
     "selectWorkingProjectsFolder": "कार्यरत प्रोजेक्ट फ़ोल्डर की पुष्टि करें",

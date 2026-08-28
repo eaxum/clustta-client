@@ -871,7 +871,6 @@
     "suggestedLocation": "Local sugerido",
     "macFolderPermissionDesc": "O macOS exige a confirmação do acesso a essas pastas. Os locais sugeridos já estão preenchidos.",
     "folderPermissionRequired": "Acesso à pasta necessário",
-    "folderAccessGranted": "Acesso à pasta concedido",
     "macFolderPermissionCancelled": "Selecione a pasta na caixa de diálogo do macOS para continuar.",
     "selectClusttaDataFolder": "Confirmar a pasta de dados do Clustta",
     "selectWorkingProjectsFolder": "Confirmar a pasta de projetos de trabalho",

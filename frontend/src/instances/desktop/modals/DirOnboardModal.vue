@@ -2,13 +2,6 @@
   <div class="modal-container" v-stop-propagation>
     <HeaderArea :title="$t('modals.setupClustta')" :icon="getAppIcon('clustta')" :showSearch="false" />
     <div class="general-container">
-      <InputAlert
-        v-if="isMacAppStore"
-        :show="true"
-        :message="$t('modals.macFolderPermissionDesc')"
-        type="info"
-      />
-
       <div class="settings-section-card">
         <div class="settings-section-card-header">
           <div class="header-content">
@@ -21,7 +14,7 @@
             <FormInput
               v-model="dataDirectory"
               :placeholder="$t('modals.clusttaDataLocation')"
-              :info="dataPathInfo"
+              :info="isMacAppStore ? $t('modals.macFolderPermissionDesc') : ''"
               @input="handleDataDirectoryInput"
             />
             <ActionButton
@@ -31,12 +24,6 @@
               v-tooltip="$t('common.browse')"
             />
           </div>
-          <InputAlert
-            v-if="isMacAppStore"
-            :show="true"
-            :message="dataPermissionMessage"
-            :type="dataPermissionGranted ? 'info' : 'error'"
-          />
         </div>
       </div>
 
@@ -52,7 +39,7 @@
             <FormInput
               v-model="workingProjectsDirectory"
               :placeholder="$t('modals.workingProjectsLocation')"
-              :info="projectsPathInfo"
+              :info="isMacAppStore ? $t('modals.macFolderPermissionDesc') : ''"
               @input="handleWorkingProjectsInput"
             />
             <ActionButton
@@ -62,12 +49,6 @@
               v-tooltip="$t('common.browse')"
             />
           </div>
-          <InputAlert
-            v-if="isMacAppStore"
-            :show="true"
-            :message="projectsPermissionMessage"
-            :type="projectsPermissionGranted ? 'info' : 'error'"
-          />
         </div>
       </div>
 
@@ -103,7 +84,6 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import FormInput from '@/instances/desktop/components/FormInput.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
-import InputAlert from '@/instances/common/components/InputAlert.vue';
 
 import { DialogService, FSService, SettingsService } from '@/services';
 
@@ -138,8 +118,6 @@ const dataDirectory = ref('');
 const dataPermissionPath = ref('');
 const isAwaitingResponse = ref(false);
 const isCancelling = ref(false);
-const suggestedDataDirectory = ref('');
-const suggestedProjectsDirectory = ref('');
 const workingProjectsDirectory = ref('');
 const workingProjectsPermissionPath = ref('');
 
@@ -149,26 +127,6 @@ const dataPermissionGranted = computed(() =>
 );
 const projectsPermissionGranted = computed(() =>
   pathsMatch(workingProjectsDirectory.value, workingProjectsPermissionPath.value)
-);
-const dataPermissionMessage = computed(() =>
-  dataPermissionGranted.value
-    ? t('modals.folderAccessGranted')
-    : t('modals.folderPermissionRequired')
-);
-const projectsPermissionMessage = computed(() =>
-  projectsPermissionGranted.value
-    ? t('modals.folderAccessGranted')
-    : t('modals.folderPermissionRequired')
-);
-const dataPathInfo = computed(() =>
-  pathsMatch(dataDirectory.value, suggestedDataDirectory.value)
-    ? t('modals.suggestedLocation')
-    : ''
-);
-const projectsPathInfo = computed(() =>
-  pathsMatch(workingProjectsDirectory.value, suggestedProjectsDirectory.value)
-    ? t('modals.suggestedLocation')
-    : ''
 );
 const canContinue = computed(() =>
   Boolean(dataDirectory.value.trim() && workingProjectsDirectory.value.trim()) &&
@@ -361,10 +319,8 @@ onMounted(async () => {
   try {
     await platformStore.initialize();
     const userDirectory = normalizePath(await SettingsService.GetUserDirectory());
-    suggestedDataDirectory.value = joinPath(userDirectory, DEFAULT_DATA_FOLDER);
-    suggestedProjectsDirectory.value = joinPath(userDirectory, DEFAULT_PROJECTS_FOLDER);
-    dataDirectory.value = suggestedDataDirectory.value;
-    workingProjectsDirectory.value = suggestedProjectsDirectory.value;
+    dataDirectory.value = joinPath(userDirectory, DEFAULT_DATA_FOLDER);
+    workingProjectsDirectory.value = joinPath(userDirectory, DEFAULT_PROJECTS_FOLDER);
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorLoadingSettings'), error);
   }
@@ -405,6 +361,11 @@ onMounted(async () => {
 
 .path-row :deep(.form-group) {
   margin-bottom: 0;
+}
+
+.path-row :deep(.input-alert-info) {
+  color: var(--warning);
+  opacity: 1;
 }
 
 .path-row :deep(.action-button) {

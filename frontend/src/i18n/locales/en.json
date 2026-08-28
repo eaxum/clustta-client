@@ -1003,7 +1003,6 @@
     "suggestedLocation": "Suggested location",
     "macFolderPermissionDesc": "macOS requires you to confirm access to these folders. The suggested locations are already filled in.",
     "folderPermissionRequired": "Folder access required",
-    "folderAccessGranted": "Folder access granted",
     "macFolderPermissionCancelled": "Select the folder in the macOS dialog to continue.",
     "selectClusttaDataFolder": "Confirm the Clustta data folder",
     "selectWorkingProjectsFolder": "Confirm the working projects folder",

@@ -871,7 +871,6 @@
     "suggestedLocation": "建议的位置",
     "macFolderPermissionDesc": "macOS 要求您确认对这些文件夹的访问权限。建议的位置已预先填写。",
     "folderPermissionRequired": "需要文件夹访问权限",
-    "folderAccessGranted": "已授予文件夹访问权限",
     "macFolderPermissionCancelled": "请在 macOS 对话框中选择文件夹以继续。",
     "selectClusttaDataFolder": "确认 Clustta 数据文件夹",
     "selectWorkingProjectsFolder": "确认工作项目文件夹",

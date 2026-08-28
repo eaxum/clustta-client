@@ -856,7 +856,6 @@
     "suggestedLocation": "Emplacement suggéré",
     "macFolderPermissionDesc": "macOS vous demande de confirmer l'accès à ces dossiers. Les emplacements suggérés sont déjà renseignés.",
     "folderPermissionRequired": "Accès au dossier requis",
-    "folderAccessGranted": "Accès au dossier accordé",
     "macFolderPermissionCancelled": "Sélectionnez le dossier dans la boîte de dialogue macOS pour continuer.",
     "selectClusttaDataFolder": "Confirmer le dossier de données Clustta",
     "selectWorkingProjectsFolder": "Confirmer le dossier des projets de travail",

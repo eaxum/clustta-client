@@ -871,7 +871,6 @@
     "suggestedLocation": "Рекомендуемое расположение",
     "macFolderPermissionDesc": "macOS требует подтвердить доступ к этим папкам. Рекомендуемые расположения уже заполнены.",
     "folderPermissionRequired": "Требуется доступ к папке",
-    "folderAccessGranted": "Доступ к папке предоставлен",
     "macFolderPermissionCancelled": "Выберите папку в диалоговом окне macOS, чтобы продолжить.",
     "selectClusttaDataFolder": "Подтвердить папку данных Clustta",
     "selectWorkingProjectsFolder": "Подтвердить папку рабочих проектов",

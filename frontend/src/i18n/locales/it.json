@@ -871,7 +871,6 @@
     "suggestedLocation": "Posizione suggerita",
     "macFolderPermissionDesc": "macOS richiede di confermare l'accesso a queste cartelle. Le posizioni suggerite sono già compilate.",
     "folderPermissionRequired": "Accesso alla cartella richiesto",
-    "folderAccessGranted": "Accesso alla cartella concesso",
     "macFolderPermissionCancelled": "Seleziona la cartella nella finestra di macOS per continuare.",
     "selectClusttaDataFolder": "Conferma la cartella dei dati Clustta",
     "selectWorkingProjectsFolder": "Conferma la cartella dei progetti di lavoro",
