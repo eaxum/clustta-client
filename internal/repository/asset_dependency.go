@@ -104,7 +104,7 @@ func validateDependencyCycle(tx *sqlx.Tx, assetId, dependencyId string) error {
 	if directCycleCount > 0 {
 		return errors.New("dependency would create a cycle")
 	}
-	dependencyAssetIds, err := ResolveBuildDependencies(tx, dependencyId)
+	dependencyAssetIds, err := resolveReachableDependencyAssets(tx, dependencyId)
 	if err != nil {
 		return err
 	}

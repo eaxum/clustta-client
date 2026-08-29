@@ -29,6 +29,7 @@ cached studio and project catalog.
 - `GET /v1/projects/{projectId}/assets/{assetId}/dependency-options/{dependencyId}`
 - `GET /v1/projects/{projectId}/assets/{assetId}/checkpoint-group-tags`
 - `GET /v1/projects/{projectId}/assets/{assetId}/checkpoints`
+- `GET /v1/projects/{projectId}/assets/{assetId}/build-plan`
 
 Workspace returns statuses and directly assigned assets in one response and one
 project database transaction. Asset extension filters are optional and
@@ -101,8 +102,23 @@ group tags for the dependency asset. Tag creation and movement require a
 finalized multi-asset checkpoint group and `manage_dependencies` permission for
 the affected assets. Referenced tags cannot be deleted.
 
-Selector storage and validation are available in this phase. Build and revert
-operations do not consume selectors until the exact build planner is added.
+Build plans resolve the complete graph to dependency-first exact checkpoint
+entries. Each plan reports conflicts, missing chunks, locally modified files,
+and a fingerprint. A plan with conflicts cannot be executed.
+
+Build requests accept:
+
+```json
+{
+  "plan_fingerprint": "<fingerprint returned by build-plan>",
+  "allow_modified": false
+}
+```
+
+The bridge resolves the graph again before writing files and rejects stale
+fingerprints. Set `allow_modified` only after the DCC has explicitly confirmed
+that locally modified dependency files may be overwritten. Execution downloads
+missing chunks and restores the exact checkpoint IDs in dependency-first order.
 
 ## Jobs
 

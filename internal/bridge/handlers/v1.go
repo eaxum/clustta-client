@@ -90,6 +90,11 @@ type checkpointGroupTagRequest struct {
 	Name string `json:"name"`
 }
 
+type dependencyBuildRequest struct {
+	PlanFingerprint string `json:"plan_fingerprint"`
+	AllowModified   bool   `json:"allow_modified"`
+}
+
 func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 	jsonResponse(w, http.StatusOK, capabilitiesResponse{
 		APIVersion: bridgeAPIVersion,
@@ -103,6 +108,7 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"assets.reveal",
 			"assets.dependencies",
 			"assets.dependency_selectors",
+			"assets.build_plan",
 			"assets.build",
 			"checkpoints.list",
 			"checkpoints.create",
@@ -669,32 +675,51 @@ func V1BuildAsset(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	assetService := &services.AssetService{}
-	if err := assetService.AuthorizeRevert(project.Uri, []string{asset.Id}); err != nil {
-		jsonError(w, http.StatusForbidden, err.Error())
+	var body dependencyBuildRequest
+	if err := decodeBody(r, &body); err != nil || body.PlanFingerprint == "" {
+		jsonError(w, http.StatusBadRequest, "plan_fingerprint is required")
 		return
 	}
 
-	idempotencyKey := operationKey(r, project.Id, asset.Id, "build")
+	idempotencyKey := operationKey(r, project.Id, asset.Id, "build:"+body.PlanFingerprint)
 	job := startJob("build", idempotencyKey, true, func(update func(string, int)) (any, error) {
-		update("Resolving dependencies", 10)
-		assetIDs, err := assetService.ResolveBuildDependencies(project.Uri, asset.Id)
-		if err != nil {
-			return nil, err
-		}
-		update("Restoring asset files", 25)
+		update("Revalidating dependency plan", 10)
 		remoteURL, err := utils.ResolveProjectRemoteURL(project.Uri)
 		if err != nil {
 			return nil, err
 		}
 		checkpointService := &services.CheckpointService{}
-		fetchResult, err := checkpointService.Revert(project.Uri, remoteURL, assetIDs)
+		buildResult, err := checkpointService.ExecuteDependencyBuildPlan(
+			project.Uri,
+			remoteURL,
+			asset.Id,
+			body.PlanFingerprint,
+			body.AllowModified,
+		)
 		if err != nil {
 			return nil, err
 		}
-		return map[string]any{"asset_ids": fetchResult.RestoredAssetIds}, nil
+		return buildResult, nil
 	})
 	jsonResponse(w, http.StatusAccepted, job)
+}
+
+func V1DependencyBuildPlan(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	assetService := &services.AssetService{}
+	plan, err := assetService.ResolveDependencyBuildPlan(project.Uri, asset.Id)
+	if err != nil {
+		if errors.Is(err, error_service.ErrNotUnauthorized) {
+			jsonError(w, http.StatusForbidden, err.Error())
+			return
+		}
+		jsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, plan)
 }
 
 func V1RevertAsset(w http.ResponseWriter, r *http.Request) {

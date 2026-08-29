@@ -521,6 +521,18 @@ export function ResolveBuildDependencies(projectPath, assetId) {
 }
 
 /**
+ * ResolveDependencyBuildPlan returns a frozen dependency-first checkpoint plan.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<models$0.DependencyBuildPlan>}
+ */
+export function ResolveDependencyBuildPlan(projectPath, assetId) {
+    return $Call.ByID(754413715, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType12($result);
+    }));
+}
+
+/**
  * @param {string} projectPath
  * @param {string} assetId
  * @returns {$CancellablePromise<void>}
@@ -636,3 +648,4 @@ const $$createType8 = $Create.Array($$createType4);
 const $$createType9 = $models.AssetsStates.createFrom;
 const $$createType10 = models$0.DependencySelectorOptions.createFrom;
 const $$createType11 = $Create.Array($Create.Any);
+const $$createType12 = models$0.DependencyBuildPlan.createFrom;

@@ -522,6 +522,276 @@ export class CollectionType {
     }
 }
 
+export class DependencyBuildConflict {
+    /**
+     * Creates a new DependencyBuildConflict instance.
+     * @param {Partial<DependencyBuildConflict>} [$$source = {}] - The source object to create the DependencyBuildConflict.
+     */
+    constructor($$source = {}) {
+        if (!("asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["asset_id"] = "";
+        }
+        if (!("checkpoint_ids" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["checkpoint_ids"] = [];
+        }
+        if (!("paths" in $$source)) {
+            /**
+             * @member
+             * @type {string[][]}
+             */
+            this["paths"] = [];
+        }
+        if (!("message" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["message"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DependencyBuildConflict instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DependencyBuildConflict}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType0;
+        const $$createField2_0 = $$createType1;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("checkpoint_ids" in $$parsedSource) {
+            $$parsedSource["checkpoint_ids"] = $$createField1_0($$parsedSource["checkpoint_ids"]);
+        }
+        if ("paths" in $$parsedSource) {
+            $$parsedSource["paths"] = $$createField2_0($$parsedSource["paths"]);
+        }
+        return new DependencyBuildConflict(/** @type {Partial<DependencyBuildConflict>} */($$parsedSource));
+    }
+}
+
+export class DependencyBuildPlan {
+    /**
+     * Creates a new DependencyBuildPlan instance.
+     * @param {Partial<DependencyBuildPlan>} [$$source = {}] - The source object to create the DependencyBuildPlan.
+     */
+    constructor($$source = {}) {
+        if (!("root_asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["root_asset_id"] = "";
+        }
+        if (!("resolved_at" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["resolved_at"] = 0;
+        }
+        if (!("entries" in $$source)) {
+            /**
+             * @member
+             * @type {DependencyBuildPlanEntry[]}
+             */
+            this["entries"] = [];
+        }
+        if (!("warnings" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["warnings"] = [];
+        }
+        if (!("conflicts" in $$source)) {
+            /**
+             * @member
+             * @type {DependencyBuildConflict[]}
+             */
+            this["conflicts"] = [];
+        }
+        if (!("fingerprint" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["fingerprint"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DependencyBuildPlan instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DependencyBuildPlan}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType3;
+        const $$createField3_0 = $$createType0;
+        const $$createField4_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("entries" in $$parsedSource) {
+            $$parsedSource["entries"] = $$createField2_0($$parsedSource["entries"]);
+        }
+        if ("warnings" in $$parsedSource) {
+            $$parsedSource["warnings"] = $$createField3_0($$parsedSource["warnings"]);
+        }
+        if ("conflicts" in $$parsedSource) {
+            $$parsedSource["conflicts"] = $$createField4_0($$parsedSource["conflicts"]);
+        }
+        return new DependencyBuildPlan(/** @type {Partial<DependencyBuildPlan>} */($$parsedSource));
+    }
+}
+
+export class DependencyBuildPlanEntry {
+    /**
+     * Creates a new DependencyBuildPlanEntry instance.
+     * @param {Partial<DependencyBuildPlanEntry>} [$$source = {}] - The source object to create the DependencyBuildPlanEntry.
+     */
+    constructor($$source = {}) {
+        if (!("asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["asset_id"] = "";
+        }
+        if (!("checkpoint_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["checkpoint_id"] = "";
+        }
+        if (!("resolution_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["resolution_mode"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["dependency_edge_id"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["requested_by_asset_id"] = undefined;
+        }
+        if (!("resolution_path" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["resolution_path"] = [];
+        }
+        if (!("missing_chunks" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["missing_chunks"] = false;
+        }
+        if (!("file_status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["file_status"] = "";
+        }
+        if (!("requires_overwrite" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["requires_overwrite"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DependencyBuildPlanEntry instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DependencyBuildPlanEntry}
+     */
+    static createFrom($$source = {}) {
+        const $$createField5_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("resolution_path" in $$parsedSource) {
+            $$parsedSource["resolution_path"] = $$createField5_0($$parsedSource["resolution_path"]);
+        }
+        return new DependencyBuildPlanEntry(/** @type {Partial<DependencyBuildPlanEntry>} */($$parsedSource));
+    }
+}
+
+export class DependencyBuildResult {
+    /**
+     * Creates a new DependencyBuildResult instance.
+     * @param {Partial<DependencyBuildResult>} [$$source = {}] - The source object to create the DependencyBuildResult.
+     */
+    constructor($$source = {}) {
+        if (!("plan_fingerprint" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["plan_fingerprint"] = "";
+        }
+        if (!("restored" in $$source)) {
+            /**
+             * @member
+             * @type {DependencyBuildPlanEntry[]}
+             */
+            this["restored"] = [];
+        }
+        if (!("skipped" in $$source)) {
+            /**
+             * @member
+             * @type {DependencyBuildPlanEntry[]}
+             */
+            this["skipped"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DependencyBuildResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DependencyBuildResult}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType3;
+        const $$createField2_0 = $$createType3;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("restored" in $$parsedSource) {
+            $$parsedSource["restored"] = $$createField1_0($$parsedSource["restored"]);
+        }
+        if ("skipped" in $$parsedSource) {
+            $$parsedSource["skipped"] = $$createField2_0($$parsedSource["skipped"]);
+        }
+        return new DependencyBuildResult(/** @type {Partial<DependencyBuildResult>} */($$parsedSource));
+    }
+}
+
 export class DependencySelectorOptions {
     /**
      * Creates a new DependencySelectorOptions instance.
@@ -552,8 +822,8 @@ export class DependencySelectorOptions {
      * @returns {DependencySelectorOptions}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType1;
-        const $$createField1_0 = $$createType3;
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("checkpoints" in $$parsedSource) {
             $$parsedSource["checkpoints"] = $$createField0_0($$parsedSource["checkpoints"]);
@@ -1463,7 +1733,7 @@ export class User {
      */
     static createFrom($$source = {}) {
         const $$createField7_0 = $Create.ByteSlice;
-        const $$createField10_0 = $$createType4;
+        const $$createField10_0 = $$createType10;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("photo" in $$parsedSource) {
             $$parsedSource["photo"] = $$createField7_0($$parsedSource["photo"]);
@@ -1540,9 +1810,9 @@ export class Workflow {
      * @returns {Workflow}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType6;
-        const $$createField5_0 = $$createType8;
-        const $$createField6_0 = $$createType10;
+        const $$createField4_0 = $$createType12;
+        const $$createField5_0 = $$createType14;
+        const $$createField6_0 = $$createType16;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField4_0($$parsedSource["assets"]);
@@ -1803,14 +2073,20 @@ export class WorkflowLink {
 }
 
 // Private type creation functions
-const $$createType0 = Checkpoint.createFrom;
+const $$createType0 = $Create.Array($Create.Any);
 const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = CheckpointGroupTag.createFrom;
+const $$createType2 = DependencyBuildPlanEntry.createFrom;
 const $$createType3 = $Create.Array($$createType2);
-const $$createType4 = Role.createFrom;
-const $$createType5 = WorkflowAsset.createFrom;
-const $$createType6 = $Create.Array($$createType5);
-const $$createType7 = WorkflowCollection.createFrom;
-const $$createType8 = $Create.Array($$createType7);
-const $$createType9 = WorkflowLink.createFrom;
-const $$createType10 = $Create.Array($$createType9);
+const $$createType4 = DependencyBuildConflict.createFrom;
+const $$createType5 = $Create.Array($$createType4);
+const $$createType6 = Checkpoint.createFrom;
+const $$createType7 = $Create.Array($$createType6);
+const $$createType8 = CheckpointGroupTag.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = Role.createFrom;
+const $$createType11 = WorkflowAsset.createFrom;
+const $$createType12 = $Create.Array($$createType11);
+const $$createType13 = WorkflowCollection.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = WorkflowLink.createFrom;
+const $$createType16 = $Create.Array($$createType15);

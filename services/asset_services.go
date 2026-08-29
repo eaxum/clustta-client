@@ -1740,6 +1740,34 @@ func (t *AssetService) ResolveBuildDependencies(projectPath, assetId string) ([]
 	return repository.ResolveBuildDependencies(tx, assetId)
 }
 
+// ResolveDependencyBuildPlan returns a frozen dependency-first checkpoint plan.
+func (t *AssetService) ResolveDependencyBuildPlan(projectPath, assetId string) (models.DependencyBuildPlan, error) {
+	plan := models.DependencyBuildPlan{}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return plan, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return plan, err
+	}
+	defer tx.Rollback()
+
+	plan, err = repository.ResolveDependencyBuildPlan(tx, assetId)
+	if err != nil {
+		return plan, err
+	}
+	assetIds := make([]string, 0, len(plan.Entries))
+	for _, entry := range plan.Entries {
+		assetIds = append(assetIds, entry.AssetId)
+	}
+	if err = authorizeAssetActionTx(tx, assetActionRevertCheckpoint, assetIds); err != nil {
+		return models.DependencyBuildPlan{}, err
+	}
+	return plan, nil
+}
+
 func (t *AssetService) AddCollectionDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependency, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {

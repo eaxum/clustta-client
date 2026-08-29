@@ -614,14 +614,19 @@ const cancelRename = () => {
 const buildWithDependencies = async () => {
   if (!isAssetInFocus.value || !userStore.canDo('pull_chunk')) return;
   try {
-    const assetIds = await AssetService.ResolveBuildDependencies(
+    const plan = await AssetService.ResolveDependencyBuildPlan(
       projectStore.activeProject.uri,
       props.asset.id,
     );
-    await CheckpointService.Revert(
+    if (plan.conflicts?.length) {
+      throw new Error(plan.conflicts.map((conflict) => conflict.message).join('\n'));
+    }
+    await CheckpointService.ExecuteDependencyBuildPlan(
       projectStore.activeProject.uri,
       projectStore.getActiveProjectUrl,
-      assetIds,
+      props.asset.id,
+      plan.fingerprint,
+      false,
     );
     emitter.emit('refresh-browser');
   } catch (error) {

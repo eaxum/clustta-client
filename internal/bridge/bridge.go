@@ -93,6 +93,7 @@ func Start() {
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/status", handlers.V1ChangeStatus)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/open", handlers.V1OpenAsset)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/reveal", handlers.V1RevealAsset)
+	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/build-plan", handlers.V1DependencyBuildPlan)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/build", handlers.V1BuildAsset)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/revert", handlers.V1RevertAsset)
 	mux.HandleFunc("GET /v1/jobs/{jobId}", handlers.V1GetJob)

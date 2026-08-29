@@ -241,6 +241,41 @@ type DependencySelectorOptions struct {
 	Checkpoints []Checkpoint         `json:"checkpoints"`
 	Tags        []CheckpointGroupTag `json:"tags"`
 }
+
+type DependencyBuildPlanEntry struct {
+	AssetId            string   `json:"asset_id"`
+	CheckpointId       string   `json:"checkpoint_id"`
+	ResolutionMode     string   `json:"resolution_mode"`
+	DependencyEdgeId   string   `json:"dependency_edge_id,omitempty"`
+	RequestedByAssetId string   `json:"requested_by_asset_id,omitempty"`
+	ResolutionPath     []string `json:"resolution_path"`
+	MissingChunks      bool     `json:"missing_chunks"`
+	FileStatus         string   `json:"file_status"`
+	RequiresOverwrite  bool     `json:"requires_overwrite"`
+}
+
+type DependencyBuildConflict struct {
+	AssetId       string     `json:"asset_id"`
+	CheckpointIds []string   `json:"checkpoint_ids"`
+	Paths         [][]string `json:"paths"`
+	Message       string     `json:"message"`
+}
+
+type DependencyBuildPlan struct {
+	RootAssetId string                     `json:"root_asset_id"`
+	ResolvedAt  int64                      `json:"resolved_at"`
+	Entries     []DependencyBuildPlanEntry `json:"entries"`
+	Warnings    []string                   `json:"warnings"`
+	Conflicts   []DependencyBuildConflict  `json:"conflicts"`
+	Fingerprint string                     `json:"fingerprint"`
+}
+
+type DependencyBuildResult struct {
+	PlanFingerprint string                     `json:"plan_fingerprint"`
+	Restored        []DependencyBuildPlanEntry `json:"restored"`
+	Skipped         []DependencyBuildPlanEntry `json:"skipped"`
+}
+
 type CollectionDependency struct {
 	Id               string `db:"id" json:"id"`
 	MTime            int    `db:"mtime" json:"mtime"`

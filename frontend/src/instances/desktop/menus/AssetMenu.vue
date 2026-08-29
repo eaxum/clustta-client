@@ -225,14 +225,19 @@ const buildWithDependencies = async () => {
   if (!userStore.canDo('pull_chunk')) return;
   menu.hideContextMenu();
   try {
-    const assetIds = await AssetService.ResolveBuildDependencies(
+    const plan = await AssetService.ResolveDependencyBuildPlan(
       projectStore.activeProject.uri,
       asset.value.id,
     );
-    await CheckpointService.Revert(
+    if (plan.conflicts?.length) {
+      throw new Error(plan.conflicts.map((conflict) => conflict.message).join('\n'));
+    }
+    await CheckpointService.ExecuteDependencyBuildPlan(
       projectStore.activeProject.uri,
       projectStore.getActiveProjectUrl,
-      assetIds,
+      asset.value.id,
+      plan.fingerprint,
+      false,
     );
     emitter.emit('refresh-browser');
   } catch (error) {

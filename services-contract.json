@@ -817,6 +817,17 @@
         ]
       },
       {
+        "name": "ResolveDependencyBuildPlan",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "models.DependencyBuildPlan",
+          "error"
+        ]
+      },
+      {
         "name": "RevealAsset",
         "params": [
           "projectPath:string",
@@ -1252,6 +1263,20 @@
           "tagId:string"
         ],
         "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ExecuteDependencyBuildPlan",
+        "params": [
+          "projectPath:string",
+          "remoteUrl:string",
+          "rootAssetId:string",
+          "expectedFingerprint:string",
+          "allowModified:bool"
+        ],
+        "returns": [
+          "models.DependencyBuildResult",
           "error"
         ]
       },

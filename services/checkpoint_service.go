@@ -955,6 +955,151 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 	return result, nil
 }
 
+// ExecuteDependencyBuildPlan restores a freshly revalidated exact-checkpoint plan.
+func (c *CheckpointService) ExecuteDependencyBuildPlan(
+	projectPath, remoteUrl, rootAssetId, expectedFingerprint string,
+	allowModified bool,
+) (models.DependencyBuildResult, error) {
+	result := models.DependencyBuildResult{
+		PlanFingerprint: expectedFingerprint,
+		Restored:        []models.DependencyBuildPlanEntry{},
+		Skipped:         []models.DependencyBuildPlanEntry{},
+	}
+	defer reset()
+
+	if expectedFingerprint == "" {
+		return result, errors.New("build plan fingerprint is required")
+	}
+	ctx := getContext()
+	if ctx.Err() != nil {
+		return result, errors.New("operation cancelled before starting")
+	}
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return result, err
+	}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return result, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return result, err
+	}
+	plan, err := repository.ResolveDependencyBuildPlan(tx, rootAssetId)
+	if err != nil {
+		tx.Rollback()
+		return result, err
+	}
+	if plan.Fingerprint != expectedFingerprint {
+		tx.Rollback()
+		return result, errors.New("build plan is stale; resolve dependencies again")
+	}
+	if len(plan.Conflicts) > 0 {
+		tx.Rollback()
+		return result, errors.New("build plan contains dependency conflicts")
+	}
+
+	assetIds := make([]string, 0, len(plan.Entries))
+	checkpointIdsToDownload := []string{}
+	for _, entry := range plan.Entries {
+		assetIds = append(assetIds, entry.AssetId)
+		if entry.RequiresOverwrite && !allowModified {
+			tx.Rollback()
+			return result, fmt.Errorf("asset %s has local modifications; overwrite confirmation is required", entry.AssetId)
+		}
+		checkpoint, checkpointErr := repository.GetCheckpoint(tx, entry.CheckpointId)
+		if checkpointErr != nil || checkpoint.Trashed || checkpoint.AssetId != entry.AssetId {
+			tx.Rollback()
+			return result, fmt.Errorf("checkpoint %s is no longer active for asset %s", entry.CheckpointId, entry.AssetId)
+		}
+		if entry.MissingChunks {
+			checkpointIdsToDownload = append(checkpointIdsToDownload, entry.CheckpointId)
+		}
+	}
+	if err = authorizeAssetActionTx(tx, assetActionRevertCheckpoint, assetIds); err != nil {
+		tx.Rollback()
+		return result, err
+	}
+	if err = tx.Rollback(); err != nil {
+		return result, err
+	}
+
+	app := application.Get()
+	if len(checkpointIdsToDownload) > 0 {
+		callback := func(current, total int, message, extraMessage string) {
+			if ctx.Err() != nil {
+				return
+			}
+			app.Event.Emit("progress-update", output.ProgressReport{
+				Title:        "Downloading files",
+				Message:      message,
+				Percentage:   float64(current) / float64(total) * 100,
+				Current:      current,
+				Total:        total,
+				ExtraMessage: extraMessage,
+			})
+		}
+		if err = sync_service.DownloadCheckpoints(
+			ctx,
+			projectPath,
+			remoteUrl,
+			checkpointIdsToDownload,
+			user.Id,
+			callback,
+		); err != nil {
+			if errors.Is(err, syscall.ECONNREFUSED) {
+				return result, errors.New("download failed, connection refused")
+			}
+			return result, fmt.Errorf("download failed: %w", err)
+		}
+	}
+
+	for index, entry := range plan.Entries {
+		if ctx.Err() != nil {
+			return result, ctx.Err()
+		}
+		tx, err = dbConn.Beginx()
+		if err != nil {
+			return result, err
+		}
+		asset, assetErr := repository.GetAsset(tx, entry.AssetId)
+		if assetErr != nil {
+			tx.Rollback()
+			return result, assetErr
+		}
+		checkpoint, checkpointErr := repository.GetCheckpoint(tx, entry.CheckpointId)
+		if checkpointErr != nil || checkpoint.Trashed || checkpoint.AssetId != entry.AssetId {
+			tx.Rollback()
+			return result, fmt.Errorf("checkpoint %s is no longer active for asset %s", entry.CheckpointId, entry.AssetId)
+		}
+		callback := func(current, total int, message, extraMessage string) {
+			app.Event.Emit("progress-update", output.ProgressReport{
+				Title:      "Building with dependencies",
+				Message:    asset.Name,
+				Percentage: float64(current) / float64(total) * 100,
+				Current:    index + 1,
+				Total:      len(plan.Entries),
+			})
+		}
+		if err = repository.RevertToCheckpoint(tx, entry.CheckpointId, asset.GetFilePath(), callback); err != nil {
+			tx.Rollback()
+			return result, err
+		}
+		if err = tx.Rollback(); err != nil {
+			return result, err
+		}
+		result.Restored = append(result.Restored, entry)
+	}
+	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+		return result, err
+	}
+	result.PlanFingerprint = plan.Fingerprint
+	return result, nil
+}
+
 // RevertAssetPaths reverts assets by their file paths to latest checkpoints.
 // Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, assetPaths []string) error {
