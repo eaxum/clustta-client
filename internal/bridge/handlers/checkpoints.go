@@ -12,6 +12,7 @@ import (
 // checkpointResponse is the JSON shape returned for each checkpoint.
 type checkpointResponse struct {
 	ID           string `json:"id"`
+	GroupID      string `json:"group_id"`
 	Comment      string `json:"comment"`
 	AuthorUID    string `json:"author_id"`
 	CreatedAt    string `json:"created_at"`
@@ -67,6 +68,7 @@ func ListCheckpoints(w http.ResponseWriter, r *http.Request) {
 func checkpointToResponse(checkpoint models.Checkpoint) checkpointResponse {
 	return checkpointResponse{
 		ID:           checkpoint.Id,
+		GroupID:      checkpoint.GroupId,
 		Comment:      checkpoint.Comment,
 		AuthorUID:    checkpoint.AuthorUID,
 		CreatedAt:    checkpoint.CreatedAt,

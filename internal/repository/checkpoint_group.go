@@ -195,8 +195,54 @@ func SetCheckpointGroupTag(tx *sqlx.Tx, tagId, name, groupId string) (models.Che
 	return tag, err
 }
 
+// GetCheckpointGroupTag retrieves a tag by ID.
+func GetCheckpointGroupTag(tx *sqlx.Tx, tagId string) (models.CheckpointGroupTag, error) {
+	tag := models.CheckpointGroupTag{}
+	err := tx.Get(&tag, "SELECT * FROM checkpoint_group_tag WHERE id = ?", tagId)
+	if errors.Is(err, sql.ErrNoRows) {
+		return tag, errors.New("checkpoint group tag not found")
+	}
+	return tag, err
+}
+
+// GetCheckpointGroupTagsForAsset returns tags whose groups contain the asset.
+func GetCheckpointGroupTagsForAsset(tx *sqlx.Tx, assetId string) ([]models.CheckpointGroupTag, error) {
+	tags := []models.CheckpointGroupTag{}
+	err := tx.Select(&tags, `
+		SELECT DISTINCT cgt.*
+		FROM checkpoint_group_tag cgt
+		JOIN checkpoint_group cg ON cg.id = cgt.group_id
+		JOIN asset_checkpoint ac ON ac.group_id = cg.id
+		WHERE cg.finalized = 1
+			AND cg.group_type = ?
+			AND ac.asset_id = ?
+			AND ac.trashed = 0
+		ORDER BY cgt.name COLLATE NOCASE
+	`, CheckpointGroupTypeMulti, assetId)
+	return tags, err
+}
+
+// GetCheckpointGroupAssetIds returns active assets represented by a group.
+func GetCheckpointGroupAssetIds(tx *sqlx.Tx, groupId string) ([]string, error) {
+	assetIds := []string{}
+	err := tx.Select(&assetIds, `
+		SELECT DISTINCT asset_id
+		FROM asset_checkpoint
+		WHERE group_id = ? AND trashed = 0
+		ORDER BY asset_id
+	`, groupId)
+	return assetIds, err
+}
+
 // DeleteCheckpointGroupTag removes a tag and records its tombstone.
 func DeleteCheckpointGroupTag(tx *sqlx.Tx, tagId string) error {
+	var referenceCount int
+	if err := tx.Get(&referenceCount, "SELECT COUNT(*) FROM asset_dependency WHERE checkpoint_group_tag_id = ?", tagId); err != nil {
+		return err
+	}
+	if referenceCount > 0 {
+		return errors.New("checkpoint group tag is referenced by a dependency")
+	}
 	result, err := tx.Exec("DELETE FROM checkpoint_group_tag WHERE id = ?", tagId)
 	if err != nil {
 		return err

@@ -4,9 +4,12 @@
 
 export {
     AssetDependency,
+    AssetDependencyEdge,
     AssetType,
     Checkpoint,
+    CheckpointGroupTag,
     CollectionType,
+    DependencySelectorOptions,
     DependencyType,
     IntegrationProject,
     Role,

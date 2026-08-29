@@ -534,6 +534,105 @@ func (c *CheckpointService) FinalizeCheckpointGroup(projectPath, groupId string)
 	return finalizeCheckpointGroup(dbConn, groupId)
 }
 
+// GetCheckpointGroupTags returns tags compatible with an asset.
+func (c *CheckpointService) GetCheckpointGroupTags(projectPath, assetId string) ([]models.CheckpointGroupTag, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	return repository.GetCheckpointGroupTagsForAsset(tx, assetId)
+}
+
+// SetCheckpointGroupTag creates, renames, or moves a checkpoint group tag.
+func (c *CheckpointService) SetCheckpointGroupTag(projectPath, tagId, name, groupId string) (models.CheckpointGroupTag, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.CheckpointGroupTag{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.CheckpointGroupTag{}, err
+	}
+	defer tx.Rollback()
+
+	assetIds, err := repository.GetCheckpointGroupAssetIds(tx, groupId)
+	if err != nil {
+		return models.CheckpointGroupTag{}, err
+	}
+	if tagId != "" {
+		existingTag, getErr := repository.GetCheckpointGroupTag(tx, tagId)
+		if getErr != nil {
+			return models.CheckpointGroupTag{}, getErr
+		}
+		existingAssetIds, getErr := repository.GetCheckpointGroupAssetIds(tx, existingTag.GroupId)
+		if getErr != nil {
+			return models.CheckpointGroupTag{}, getErr
+		}
+		assetIds = append(assetIds, existingAssetIds...)
+	}
+	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, uniqueStrings(assetIds)); err != nil {
+		return models.CheckpointGroupTag{}, err
+	}
+	tag, err := repository.SetCheckpointGroupTag(tx, tagId, name, groupId)
+	if err != nil {
+		return models.CheckpointGroupTag{}, err
+	}
+	if err = tx.Commit(); err != nil {
+		return models.CheckpointGroupTag{}, err
+	}
+	return tag, nil
+}
+
+// DeleteCheckpointGroupTag removes an unreferenced checkpoint group tag.
+func (c *CheckpointService) DeleteCheckpointGroupTag(projectPath, tagId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	tag, err := repository.GetCheckpointGroupTag(tx, tagId)
+	if err != nil {
+		return err
+	}
+	assetIds, err := repository.GetCheckpointGroupAssetIds(tx, tag.GroupId)
+	if err != nil {
+		return err
+	}
+	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, assetIds); err != nil {
+		return err
+	}
+	if err = repository.DeleteCheckpointGroupTag(tx, tagId); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func uniqueStrings(values []string) []string {
+	seen := map[string]struct{}{}
+	result := make([]string, 0, len(values))
+	for _, value := range values {
+		if _, exists := seen[value]; exists {
+			continue
+		}
+		seen[value] = struct{}{}
+		result = append(result, value)
+	}
+	return result
+}
+
 func checkpointGroupAutoFinalization(dbConn *sqlx.DB, groupId string) (bool, error) {
 	tx, err := dbConn.Beginx()
 	if err != nil {

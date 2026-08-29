@@ -218,12 +218,28 @@ func (ue UntrackedCollection) MarshalJSON() ([]byte, error) {
 }
 
 type AssetDependency struct {
-	Id               string `db:"id" json:"id"`
-	MTime            int    `db:"mtime" json:"mtime"`
-	AssetId          string `db:"asset_id" json:"asset_id"`
-	DependencyId     string `db:"dependency_id" json:"dependency_id"`
-	DependencyTypeId string `db:"dependency_type_id" json:"dependency_type_id"`
-	Synced           bool   `db:"synced" json:"synced"`
+	Id                   string  `db:"id" json:"id"`
+	MTime                int     `db:"mtime" json:"mtime"`
+	AssetId              string  `db:"asset_id" json:"asset_id"`
+	DependencyId         string  `db:"dependency_id" json:"dependency_id"`
+	DependencyTypeId     string  `db:"dependency_type_id" json:"dependency_type_id"`
+	ResolutionMode       string  `db:"resolution_mode" json:"resolution_mode"`
+	CheckpointId         *string `db:"checkpoint_id" json:"checkpoint_id,omitempty"`
+	CheckpointGroupTagId *string `db:"checkpoint_group_tag_id" json:"checkpoint_group_tag_id,omitempty"`
+	Synced               bool    `db:"synced" json:"synced"`
+}
+
+type AssetDependencyEdge struct {
+	AssetDependency
+	ResolvedCheckpointId    *string `db:"resolved_checkpoint_id" json:"resolved_checkpoint_id,omitempty"`
+	ResolvedCheckpointLabel string  `db:"resolved_checkpoint_label" json:"resolved_checkpoint_label"`
+	TagName                 string  `db:"tag_name" json:"tag_name"`
+	ResolutionStatus        string  `db:"resolution_status" json:"resolution_status"`
+}
+
+type DependencySelectorOptions struct {
+	Checkpoints []Checkpoint         `json:"checkpoints"`
+	Tags        []CheckpointGroupTag `json:"tags"`
 }
 type CollectionDependency struct {
 	Id               string `db:"id" json:"id"`

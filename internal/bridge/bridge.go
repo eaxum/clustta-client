@@ -81,6 +81,13 @@ func Start() {
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets", handlers.V1ListAssignedAssets)
 	mux.HandleFunc("GET /v1/projects/{projectId}/statuses", handlers.V1ListStatuses)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1ListDependencies)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1CreateDependency)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/dependencies/{edgeId}/selector", handlers.V1UpdateDependencySelector)
+	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependency-options/{dependencyId}", handlers.V1DependencySelectorOptions)
+	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/checkpoint-group-tags", handlers.V1ListCheckpointGroupTags)
+	mux.HandleFunc("POST /v1/projects/{projectId}/checkpoint-groups/{groupId}/tags", handlers.V1SetCheckpointGroupTag)
+	mux.HandleFunc("POST /v1/projects/{projectId}/checkpoint-groups/{groupId}/tags/{tagId}", handlers.V1SetCheckpointGroupTag)
+	mux.HandleFunc("DELETE /v1/projects/{projectId}/checkpoint-group-tags/{tagId}", handlers.V1DeleteCheckpointGroupTag)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/checkpoints", handlers.V1ListCheckpoints)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/checkpoints", handlers.V1CreateCheckpoint)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/status", handlers.V1ChangeStatus)
@@ -161,7 +168,7 @@ func getBridgeTokenPath() (string, error) {
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 		w.Header().Set(
 			"Access-Control-Allow-Headers",
 			"Content-Type, Authorization, X-Clustta-Studio",

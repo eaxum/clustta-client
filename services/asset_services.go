@@ -1788,30 +1788,145 @@ func (t *AssetService) RemoveCollectionDependency(projectPath, assetId, dependen
 	}
 	return nil
 }
-func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependency, error) {
+func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependencyEdge, error) {
+	return t.AddAssetDependencyWithSelector(
+		projectPath,
+		assetId,
+		dependencyId,
+		dependencyTypeId,
+		repository.DependencyResolutionFloating,
+		"",
+		"",
+	)
+}
+
+// AddAssetDependencyWithSelector creates a selector-aware dependency edge.
+func (t *AssetService) AddAssetDependencyWithSelector(
+	projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, checkpointGroupTagId string,
+) (models.AssetDependencyEdge, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.AssetDependency{}, err
+		return models.AssetDependencyEdge{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.AssetDependency{}, err
+		return models.AssetDependencyEdge{}, err
 	}
 	defer tx.Rollback()
 	if err := authorizeAssetActionTx(tx, assetActionManageDependencies, []string{assetId}); err != nil {
-		return models.AssetDependency{}, err
+		return models.AssetDependencyEdge{}, err
 	}
 
-	assetDependency, err := repository.AddDependency(tx, "", assetId, dependencyId, dependencyTypeId)
+	assetDependency, err := repository.AddDependencyWithSelector(
+		tx,
+		"",
+		assetId,
+		dependencyId,
+		dependencyTypeId,
+		resolutionMode,
+		optionalString(checkpointId),
+		optionalString(checkpointGroupTagId),
+	)
 	if err != nil {
-		return models.AssetDependency{}, err
+		return models.AssetDependencyEdge{}, err
 	}
 	err = tx.Commit()
 	if err != nil {
-		return models.AssetDependency{}, err
+		return models.AssetDependencyEdge{}, err
 	}
 	return assetDependency, nil
+}
+
+// GetAssetDependencyEdges returns selector-aware dependency edges.
+func (t *AssetService) GetAssetDependencyEdges(projectPath, assetId string) ([]models.AssetDependencyEdge, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	return repository.GetAssetDependencyEdges(tx, assetId)
+}
+
+// UpdateAssetDependencySelector changes a dependency edge selector.
+func (t *AssetService) UpdateAssetDependencySelector(
+	projectPath, assetId, edgeId, resolutionMode, checkpointId, checkpointGroupTagId string,
+) (models.AssetDependencyEdge, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.AssetDependencyEdge{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.AssetDependencyEdge{}, err
+	}
+	defer tx.Rollback()
+
+	edge, err := repository.GetDependency(tx, edgeId)
+	if err != nil {
+		return models.AssetDependencyEdge{}, err
+	}
+	if edge.AssetId != assetId {
+		return models.AssetDependencyEdge{}, errors.New("dependency edge does not belong to the asset")
+	}
+	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, []string{edge.AssetId}); err != nil {
+		return models.AssetDependencyEdge{}, err
+	}
+	updatedEdge, err := repository.UpdateDependencySelector(
+		tx,
+		edgeId,
+		resolutionMode,
+		optionalString(checkpointId),
+		optionalString(checkpointGroupTagId),
+	)
+	if err != nil {
+		return models.AssetDependencyEdge{}, err
+	}
+	if err = tx.Commit(); err != nil {
+		return models.AssetDependencyEdge{}, err
+	}
+	return updatedEdge, nil
+}
+
+// GetDependencySelectorOptions returns valid checkpoints and tags for an asset.
+func (t *AssetService) GetDependencySelectorOptions(projectPath, dependencyId string) (models.DependencySelectorOptions, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.DependencySelectorOptions{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.DependencySelectorOptions{}, err
+	}
+	defer tx.Rollback()
+
+	if _, err = repository.GetAsset(tx, dependencyId); err != nil {
+		return models.DependencySelectorOptions{}, err
+	}
+	checkpoints, err := repository.GetCheckpoints(tx, dependencyId, false)
+	if err != nil {
+		return models.DependencySelectorOptions{}, err
+	}
+	tags, err := repository.GetCheckpointGroupTagsForAsset(tx, dependencyId)
+	if err != nil {
+		return models.DependencySelectorOptions{}, err
+	}
+	return models.DependencySelectorOptions{Checkpoints: checkpoints, Tags: tags}, nil
+}
+
+func optionalString(value string) *string {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return nil
+	}
+	return &value
 }
 func (t *AssetService) RemoveAssetDependency(projectPath, assetId, dependencyId string) error {
 	dbConn, err := utils.OpenDb(projectPath)

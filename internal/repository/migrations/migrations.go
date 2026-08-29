@@ -44,7 +44,7 @@ func RunMigrations(db *sqlx.DB, currentVersion float64, schema string) error {
 		if m.Version == 1.2 {
 			shouldRun = currentVersion == 1.2
 		} else {
-			shouldRun = currentVersion <= m.Version
+			shouldRun = currentVersion < m.Version
 		}
 
 		if shouldRun {

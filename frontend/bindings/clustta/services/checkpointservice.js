@@ -86,6 +86,16 @@ export function DeleteCheckpoint(projectPath, checkpointId) {
 }
 
 /**
+ * DeleteCheckpointGroupTag removes an unreferenced checkpoint group tag.
+ * @param {string} projectPath
+ * @param {string} tagId
+ * @returns {$CancellablePromise<void>}
+ */
+export function DeleteCheckpointGroupTag(projectPath, tagId) {
+    return $Call.ByID(1432212625, projectPath, tagId);
+}
+
+/**
  * FinalizeCheckpointGroup validates and completes a checkpoint operation group.
  * @param {string} projectPath
  * @param {string} groupId
@@ -93,6 +103,18 @@ export function DeleteCheckpoint(projectPath, checkpointId) {
  */
 export function FinalizeCheckpointGroup(projectPath, groupId) {
     return $Call.ByID(1150212024, projectPath, groupId);
+}
+
+/**
+ * GetCheckpointGroupTags returns tags compatible with an asset.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<models$0.CheckpointGroupTag[]>}
+ */
+export function GetCheckpointGroupTags(projectPath, assetId) {
+    return $Call.ByID(1306415561, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType4($result);
+    }));
 }
 
 /**
@@ -129,7 +151,7 @@ export function GetLatestCheckpoint(projectPath, assetId) {
  */
 export function GetTimeline(projectPath) {
     return $Call.ByID(3258604816, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType6($result);
     }));
 }
 
@@ -143,7 +165,7 @@ export function GetTimeline(projectPath) {
  */
 export function Revert(projectPath, remoteUrl, assetIds) {
     return $Call.ByID(3999685591, projectPath, remoteUrl, assetIds).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType7($result);
     }));
 }
 
@@ -183,6 +205,20 @@ export function RevertToCheckpoint(projectPath, remoteUrl, assetId, checkpointId
 }
 
 /**
+ * SetCheckpointGroupTag creates, renames, or moves a checkpoint group tag.
+ * @param {string} projectPath
+ * @param {string} tagId
+ * @param {string} name
+ * @param {string} groupId
+ * @returns {$CancellablePromise<models$0.CheckpointGroupTag>}
+ */
+export function SetCheckpointGroupTag(projectPath, tagId, name, groupId) {
+    return $Call.ByID(4136921404, projectPath, tagId, name, groupId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType3($result);
+    }));
+}
+
+/**
  * SquashAssets combines multiple untracked files into a single asset with sequential checkpoints.
  * The first file becomes the initial checkpoint, and subsequent files are added as additional checkpoints.
  * @param {string} projectPath
@@ -216,6 +252,8 @@ export function ViewCheckpoint(projectPath, checkpointId, assetId, collectionNam
 const $$createType0 = models$0.Checkpoint.createFrom;
 const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = $Create.Array($Create.Any);
-const $$createType3 = repository$0.CompatTimeline.createFrom;
+const $$createType3 = models$0.CheckpointGroupTag.createFrom;
 const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = $models.FetchResult.createFrom;
+const $$createType5 = repository$0.CompatTimeline.createFrom;
+const $$createType6 = $Create.Array($$createType5);
+const $$createType7 = $models.FetchResult.createFrom;

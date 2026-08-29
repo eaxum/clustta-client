@@ -51,6 +51,27 @@ export class AssetDependency {
              */
             this["dependency_type_id"] = "";
         }
+        if (!("resolution_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["resolution_mode"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | null | undefined}
+             */
+            this["checkpoint_id"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | null | undefined}
+             */
+            this["checkpoint_group_tag_id"] = undefined;
+        }
         if (!("synced" in $$source)) {
             /**
              * @member
@@ -70,6 +91,118 @@ export class AssetDependency {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new AssetDependency(/** @type {Partial<AssetDependency>} */($$parsedSource));
+    }
+}
+
+export class AssetDependencyEdge {
+    /**
+     * Creates a new AssetDependencyEdge instance.
+     * @param {Partial<AssetDependencyEdge>} [$$source = {}] - The source object to create the AssetDependencyEdge.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["asset_id"] = "";
+        }
+        if (!("dependency_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["dependency_id"] = "";
+        }
+        if (!("dependency_type_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["dependency_type_id"] = "";
+        }
+        if (!("resolution_mode" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["resolution_mode"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | null | undefined}
+             */
+            this["checkpoint_id"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | null | undefined}
+             */
+            this["checkpoint_group_tag_id"] = undefined;
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | null | undefined}
+             */
+            this["resolved_checkpoint_id"] = undefined;
+        }
+        if (!("resolved_checkpoint_label" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["resolved_checkpoint_label"] = "";
+        }
+        if (!("tag_name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["tag_name"] = "";
+        }
+        if (!("resolution_status" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["resolution_status"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AssetDependencyEdge instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AssetDependencyEdge}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AssetDependencyEdge(/** @type {Partial<AssetDependencyEdge>} */($$parsedSource));
     }
 }
 
@@ -273,6 +406,62 @@ export class Checkpoint {
     }
 }
 
+export class CheckpointGroupTag {
+    /**
+     * Creates a new CheckpointGroupTag instance.
+     * @param {Partial<CheckpointGroupTag>} [$$source = {}] - The source object to create the CheckpointGroupTag.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("group_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["group_id"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CheckpointGroupTag instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CheckpointGroupTag}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CheckpointGroupTag(/** @type {Partial<CheckpointGroupTag>} */($$parsedSource));
+    }
+}
+
 /**
  * @typedef {any} Collection
  */
@@ -330,6 +519,49 @@ export class CollectionType {
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         return new CollectionType(/** @type {Partial<CollectionType>} */($$parsedSource));
+    }
+}
+
+export class DependencySelectorOptions {
+    /**
+     * Creates a new DependencySelectorOptions instance.
+     * @param {Partial<DependencySelectorOptions>} [$$source = {}] - The source object to create the DependencySelectorOptions.
+     */
+    constructor($$source = {}) {
+        if (!("checkpoints" in $$source)) {
+            /**
+             * @member
+             * @type {Checkpoint[]}
+             */
+            this["checkpoints"] = [];
+        }
+        if (!("tags" in $$source)) {
+            /**
+             * @member
+             * @type {CheckpointGroupTag[]}
+             */
+            this["tags"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DependencySelectorOptions instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DependencySelectorOptions}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType1;
+        const $$createField1_0 = $$createType3;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("checkpoints" in $$parsedSource) {
+            $$parsedSource["checkpoints"] = $$createField0_0($$parsedSource["checkpoints"]);
+        }
+        if ("tags" in $$parsedSource) {
+            $$parsedSource["tags"] = $$createField1_0($$parsedSource["tags"]);
+        }
+        return new DependencySelectorOptions(/** @type {Partial<DependencySelectorOptions>} */($$parsedSource));
     }
 }
 
@@ -1231,7 +1463,7 @@ export class User {
      */
     static createFrom($$source = {}) {
         const $$createField7_0 = $Create.ByteSlice;
-        const $$createField10_0 = $$createType0;
+        const $$createField10_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("photo" in $$parsedSource) {
             $$parsedSource["photo"] = $$createField7_0($$parsedSource["photo"]);
@@ -1308,9 +1540,9 @@ export class Workflow {
      * @returns {Workflow}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType2;
-        const $$createField5_0 = $$createType4;
-        const $$createField6_0 = $$createType6;
+        const $$createField4_0 = $$createType6;
+        const $$createField5_0 = $$createType8;
+        const $$createField6_0 = $$createType10;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField4_0($$parsedSource["assets"]);
@@ -1571,10 +1803,14 @@ export class WorkflowLink {
 }
 
 // Private type creation functions
-const $$createType0 = Role.createFrom;
-const $$createType1 = WorkflowAsset.createFrom;
-const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = WorkflowCollection.createFrom;
-const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = WorkflowLink.createFrom;
+const $$createType0 = Checkpoint.createFrom;
+const $$createType1 = $Create.Array($$createType0);
+const $$createType2 = CheckpointGroupTag.createFrom;
+const $$createType3 = $Create.Array($$createType2);
+const $$createType4 = Role.createFrom;
+const $$createType5 = WorkflowAsset.createFrom;
 const $$createType6 = $Create.Array($$createType5);
+const $$createType7 = WorkflowCollection.createFrom;
+const $$createType8 = $Create.Array($$createType7);
+const $$createType9 = WorkflowLink.createFrom;
+const $$createType10 = $Create.Array($$createType9);

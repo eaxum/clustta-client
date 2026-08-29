@@ -1,0 +1,189 @@
+package repository
+
+import (
+	"testing"
+
+	"github.com/jmoiron/sqlx"
+)
+
+func stringReference(value string) *string {
+	return &value
+}
+
+func insertDependencyAsset(t *testing.T, tx *sqlx.Tx, id string) {
+	t.Helper()
+	_, err := tx.Exec(`
+		INSERT INTO asset (
+			id, created_at, mtime, name, extension, status_id, asset_type_id
+		) VALUES (?, 1, 1, ?, '.blend', 'status', 'asset-type')
+	`, id, id)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func insertDependencyType(t *testing.T, tx *sqlx.Tx) {
+	t.Helper()
+	if _, err := tx.Exec("INSERT INTO dependency_type (id, mtime, name) VALUES ('reference', 1, 'Reference')"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
+	_, tx := openCheckpointGroupTestDB(t)
+	insertDependencyType(t, tx)
+	for _, assetId := range []string{"shot", "boy", "prop"} {
+		insertDependencyAsset(t, tx, assetId)
+	}
+
+	if _, err := BeginCheckpointGroup(tx, "boy-v1", CheckpointGroupTypeSingle); err != nil {
+		t.Fatal(err)
+	}
+	insertCheckpointGroupMember(t, tx, "boy-cp-1", "boy", "boy-v1", 1)
+	if _, err := FinalizeCheckpointGroup(tx, "boy-v1"); err != nil {
+		t.Fatal(err)
+	}
+
+	edge, err := AddDependencyWithSelector(
+		tx,
+		"edge",
+		"shot",
+		"boy",
+		"reference",
+		DependencyResolutionFloating,
+		nil,
+		nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if edge.ResolutionStatus != "ready" || edge.ResolvedCheckpointId == nil || *edge.ResolvedCheckpointId != "boy-cp-1" {
+		t.Fatalf("unexpected floating edge: %+v", edge)
+	}
+
+	if _, err = BeginCheckpointGroup(tx, "boy-v2", CheckpointGroupTypeSingle); err != nil {
+		t.Fatal(err)
+	}
+	insertCheckpointGroupMember(t, tx, "boy-cp-2", "boy", "boy-v2", 2)
+	if _, err = FinalizeCheckpointGroup(tx, "boy-v2"); err != nil {
+		t.Fatal(err)
+	}
+	edges, err := GetAssetDependencyEdges(tx, "shot")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if edges[0].ResolvedCheckpointId == nil || *edges[0].ResolvedCheckpointId != "boy-cp-2" {
+		t.Fatalf("expected floating edge to follow boy-cp-2, got %+v", edges[0])
+	}
+
+	edge, err = UpdateDependencySelector(
+		tx,
+		"edge",
+		DependencyResolutionPinned,
+		stringReference("boy-cp-1"),
+		nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if edge.ResolvedCheckpointId == nil || *edge.ResolvedCheckpointId != "boy-cp-1" {
+		t.Fatalf("expected pinned edge to resolve boy-cp-1, got %+v", edge)
+	}
+
+	if _, err = BeginCheckpointGroup(tx, "release", CheckpointGroupTypeMulti); err != nil {
+		t.Fatal(err)
+	}
+	insertCheckpointGroupMember(t, tx, "release-boy", "boy", "release", 3)
+	insertCheckpointGroupMember(t, tx, "release-prop", "prop", "release", 4)
+	if _, err = FinalizeCheckpointGroup(tx, "release"); err != nil {
+		t.Fatal(err)
+	}
+	tag, err := SetCheckpointGroupTag(tx, "tag", "animation-approved", "release")
+	if err != nil {
+		t.Fatal(err)
+	}
+	edge, err = UpdateDependencySelector(
+		tx,
+		"edge",
+		DependencyResolutionTagged,
+		nil,
+		&tag.Id,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if edge.ResolvedCheckpointId == nil || *edge.ResolvedCheckpointId != "release-boy" || edge.TagName != tag.Name {
+		t.Fatalf("unexpected tagged edge: %+v", edge)
+	}
+	if err = DeleteCheckpointGroupTag(tx, tag.Id); err == nil {
+		t.Fatal("expected referenced tag deletion to fail")
+	}
+}
+
+func TestDependencySelectorValidationRejectsInvalidOwnershipAndCycles(t *testing.T) {
+	_, tx := openCheckpointGroupTestDB(t)
+	insertDependencyType(t, tx)
+	for _, assetId := range []string{"shot", "boy", "other", "asset-a", "asset-b", "asset-c", "asset-d"} {
+		insertDependencyAsset(t, tx, assetId)
+	}
+
+	if _, err := BeginCheckpointGroup(tx, "other-v1", CheckpointGroupTypeSingle); err != nil {
+		t.Fatal(err)
+	}
+	insertCheckpointGroupMember(t, tx, "other-cp", "other", "other-v1", 1)
+	if _, err := FinalizeCheckpointGroup(tx, "other-v1"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AddDependencyWithSelector(
+		tx,
+		"invalid-pin",
+		"shot",
+		"boy",
+		"reference",
+		DependencyResolutionPinned,
+		stringReference("other-cp"),
+		nil,
+	); err == nil {
+		t.Fatal("expected checkpoint ownership validation to fail")
+	}
+	if _, err := BeginCheckpointGroup(tx, "other-release", CheckpointGroupTypeMulti); err != nil {
+		t.Fatal(err)
+	}
+	insertCheckpointGroupMember(t, tx, "other-release-cp", "other", "other-release", 2)
+	insertCheckpointGroupMember(t, tx, "asset-c-release-cp", "asset-c", "other-release", 3)
+	if _, err := FinalizeCheckpointGroup(tx, "other-release"); err != nil {
+		t.Fatal(err)
+	}
+	otherTag, err := SetCheckpointGroupTag(tx, "other-tag", "other-approved", "other-release")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = AddDependencyWithSelector(
+		tx,
+		"invalid-tag",
+		"shot",
+		"boy",
+		"reference",
+		DependencyResolutionTagged,
+		nil,
+		&otherTag.Id,
+	); err == nil {
+		t.Fatal("expected tag asset ownership validation to fail")
+	}
+
+	if _, err := AddDependency(tx, "a-to-b", "asset-a", "asset-b", "reference"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := AddDependency(tx, "b-to-a", "asset-b", "asset-a", "reference"); err == nil {
+		t.Fatal("expected dependency cycle validation to fail")
+	}
+
+	if _, err := tx.Exec(`
+		INSERT INTO asset_dependency (
+			id, mtime, asset_id, dependency_id, dependency_type_id,
+			resolution_mode, checkpoint_id
+		) VALUES ('invalid-shape', 1, 'asset-c', 'asset-d', 'reference', 'floating', 'other-cp')
+	`); err == nil {
+		t.Fatal("expected database selector constraint to fail")
+	}
+}

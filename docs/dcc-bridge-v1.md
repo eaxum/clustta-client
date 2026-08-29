@@ -26,6 +26,8 @@ cached studio and project catalog.
 - `GET /v1/projects/{projectId}/assets?ext=.blend`
 - `GET /v1/projects/{projectId}/statuses`
 - `GET /v1/projects/{projectId}/assets/{assetId}/dependencies`
+- `GET /v1/projects/{projectId}/assets/{assetId}/dependency-options/{dependencyId}`
+- `GET /v1/projects/{projectId}/assets/{assetId}/checkpoint-group-tags`
 - `GET /v1/projects/{projectId}/assets/{assetId}/checkpoints`
 
 Workspace returns statuses and directly assigned assets in one response and one
@@ -41,6 +43,11 @@ switches invalidate the appropriate cache automatically.
 - `POST /v1/projects/{projectId}/assets/{assetId}/open`
 - `POST /v1/projects/{projectId}/assets/{assetId}/reveal`
 - `POST /v1/projects/{projectId}/assets/{assetId}/checkpoints`
+- `POST /v1/projects/{projectId}/assets/{assetId}/dependencies`
+- `POST /v1/projects/{projectId}/assets/{assetId}/dependencies/{edgeId}/selector`
+- `POST /v1/projects/{projectId}/checkpoint-groups/{groupId}/tags`
+- `POST /v1/projects/{projectId}/checkpoint-groups/{groupId}/tags/{tagId}`
+- `DELETE /v1/projects/{projectId}/checkpoint-group-tags/{tagId}`
 - `POST /v1/projects/{projectId}/assets/{assetId}/build`
 - `POST /v1/projects/{projectId}/assets/{assetId}/revert`
 
@@ -68,6 +75,34 @@ trimmed and stored as provided.
 
 The bridge verifies that `filePath` is the tracked asset path. Integration
 publishing and comment forwarding happen in the bridge.
+
+## Dependency selectors
+
+Dependency responses are edge records containing `resolution_mode`, selector
+references, the currently resolved checkpoint, and `resolution_status`.
+
+Create a floating dependency with:
+
+```json
+{
+  "dependency_id": "boy-asset-id",
+  "dependency_type_id": "reference-type-id",
+  "resolution_mode": "floating"
+}
+```
+
+For `pinned`, provide `checkpoint_id`. For `tagged`, provide
+`checkpoint_group_tag_id`. The unused selector field must be omitted or empty.
+The selector update endpoint accepts the same three selector fields without the
+dependency IDs.
+
+Dependency options return the active checkpoints and compatible checkpoint
+group tags for the dependency asset. Tag creation and movement require a
+finalized multi-asset checkpoint group and `manage_dependencies` permission for
+the affected assets. Referenced tags cannot be deleted.
+
+Selector storage and validation are available in this phase. Build and revert
+operations do not consume selectors until the exact build planner is added.
 
 ## Jobs
 

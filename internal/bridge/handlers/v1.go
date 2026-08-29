@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"clustta/internal/auth_service"
+	"clustta/internal/error_service"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/settings"
@@ -71,6 +72,24 @@ type revertRequest struct {
 	CheckpointID string `json:"checkpointId"`
 }
 
+type dependencyRequest struct {
+	DependencyID         string `json:"dependency_id"`
+	DependencyTypeID     string `json:"dependency_type_id"`
+	ResolutionMode       string `json:"resolution_mode"`
+	CheckpointID         string `json:"checkpoint_id"`
+	CheckpointGroupTagID string `json:"checkpoint_group_tag_id"`
+}
+
+type dependencySelectorRequest struct {
+	ResolutionMode       string `json:"resolution_mode"`
+	CheckpointID         string `json:"checkpoint_id"`
+	CheckpointGroupTagID string `json:"checkpoint_group_tag_id"`
+}
+
+type checkpointGroupTagRequest struct {
+	Name string `json:"name"`
+}
+
 func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 	jsonResponse(w, http.StatusOK, capabilitiesResponse{
 		APIVersion: bridgeAPIVersion,
@@ -83,10 +102,12 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"assets.open",
 			"assets.reveal",
 			"assets.dependencies",
+			"assets.dependency_selectors",
 			"assets.build",
 			"checkpoints.list",
 			"checkpoints.create",
 			"checkpoints.revert",
+			"checkpoint_group_tags.manage",
 			"jobs.get",
 			"jobs.cancel",
 		},
@@ -329,47 +350,149 @@ func V1ListStatuses(w http.ResponseWriter, r *http.Request) {
 }
 
 func V1ListDependencies(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	assetService := &services.AssetService{}
+	edges, err := assetService.GetAssetDependencyEdges(project.Uri, asset.Id)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, edges)
+}
+
+func V1CreateDependency(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	request := dependencyRequest{}
+	if err := decodeBody(r, &request); err != nil {
+		jsonError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if request.DependencyID == "" || request.DependencyTypeID == "" || request.ResolutionMode == "" {
+		jsonError(w, http.StatusBadRequest, "dependency_id, dependency_type_id, and resolution_mode are required")
+		return
+	}
+
+	assetService := &services.AssetService{}
+	edge, err := assetService.AddAssetDependencyWithSelector(
+		project.Uri,
+		asset.Id,
+		request.DependencyID,
+		request.DependencyTypeID,
+		request.ResolutionMode,
+		request.CheckpointID,
+		request.CheckpointGroupTagID,
+	)
+	if err != nil {
+		dependencyMutationError(w, err)
+		return
+	}
+	jsonResponse(w, http.StatusCreated, edge)
+}
+
+func V1UpdateDependencySelector(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	request := dependencySelectorRequest{}
+	if err := decodeBody(r, &request); err != nil || request.ResolutionMode == "" {
+		jsonError(w, http.StatusBadRequest, "resolution_mode is required")
+		return
+	}
+
+	assetService := &services.AssetService{}
+	edge, err := assetService.UpdateAssetDependencySelector(
+		project.Uri,
+		asset.Id,
+		r.PathValue("edgeId"),
+		request.ResolutionMode,
+		request.CheckpointID,
+		request.CheckpointGroupTagID,
+	)
+	if err != nil {
+		dependencyMutationError(w, err)
+		return
+	}
+	jsonResponse(w, http.StatusOK, edge)
+}
+
+func V1DependencySelectorOptions(w http.ResponseWriter, r *http.Request) {
+	project, _, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	assetService := &services.AssetService{}
+	options, err := assetService.GetDependencySelectorOptions(project.Uri, r.PathValue("dependencyId"))
+	if err != nil {
+		jsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, options)
+}
+
+func V1ListCheckpointGroupTags(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	checkpointService := &services.CheckpointService{}
+	tags, err := checkpointService.GetCheckpointGroupTags(project.Uri, asset.Id)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, tags)
+}
+
+func V1SetCheckpointGroupTag(w http.ResponseWriter, r *http.Request) {
 	project, ok := requestProject(w, r)
 	if !ok {
 		return
 	}
-	dbConn, err := sqlx.Connect("sqlite3", project.Uri)
-	if err != nil {
-		jsonError(w, http.StatusInternalServerError, err.Error())
+	request := checkpointGroupTagRequest{}
+	if err := decodeBody(r, &request); err != nil || strings.TrimSpace(request.Name) == "" {
+		jsonError(w, http.StatusBadRequest, "name is required")
 		return
 	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
+	checkpointService := &services.CheckpointService{}
+	tag, err := checkpointService.SetCheckpointGroupTag(
+		project.Uri,
+		r.PathValue("tagId"),
+		request.Name,
+		r.PathValue("groupId"),
+	)
 	if err != nil {
-		jsonError(w, http.StatusInternalServerError, err.Error())
+		dependencyMutationError(w, err)
 		return
 	}
-	defer tx.Rollback()
+	jsonResponse(w, http.StatusOK, tag)
+}
 
-	assetID := r.PathValue("assetId")
-	if _, err = repository.GetSimpleAsset(tx, assetID); err != nil {
-		jsonError(w, http.StatusNotFound, err.Error())
+func V1DeleteCheckpointGroupTag(w http.ResponseWriter, r *http.Request) {
+	project, ok := requestProject(w, r)
+	if !ok {
 		return
 	}
-	assetIDs, err := repository.ResolveBuildDependencies(tx, assetID)
-	if err != nil {
-		jsonError(w, http.StatusInternalServerError, err.Error())
+	checkpointService := &services.CheckpointService{}
+	if err := checkpointService.DeleteCheckpointGroupTag(project.Uri, r.PathValue("tagId")); err != nil {
+		dependencyMutationError(w, err)
 		return
 	}
+	w.WriteHeader(http.StatusNoContent)
+}
 
-	result := make([]assetResponse, 0, len(assetIDs))
-	for _, dependencyID := range assetIDs {
-		if dependencyID == assetID {
-			continue
-		}
-		dependency, getErr := repository.GetAsset(tx, dependencyID)
-		if getErr != nil {
-			jsonError(w, http.StatusInternalServerError, getErr.Error())
-			return
-		}
-		result = append(result, assetToResponse(dependency))
+func dependencyMutationError(w http.ResponseWriter, err error) {
+	status := http.StatusBadRequest
+	if errors.Is(err, error_service.ErrNotUnauthorized) {
+		status = http.StatusForbidden
 	}
-	jsonResponse(w, http.StatusOK, result)
+	jsonError(w, status, err.Error())
 }
 
 func V1ListCheckpoints(w http.ResponseWriter, r *http.Request) {
