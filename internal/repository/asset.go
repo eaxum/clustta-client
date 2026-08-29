@@ -40,6 +40,10 @@ func CreateAssetFast(
 	if checkpointGroupId == "" {
 		checkpointGroupId = uuid.New().String()
 	}
+	autoFinalizeGroup, err := ShouldAutoFinalizeCheckpointGroup(tx, checkpointGroupId)
+	if err != nil {
+		return err
+	}
 
 	name = strings.TrimSpace(name)
 	if name == "" {
@@ -124,6 +128,12 @@ func CreateAssetFast(
 		fmt.Printf("Error creating new asset checkpoint for asset %s: %v\n", assetFilePath, err)
 		return err
 	}
+	if autoFinalizeGroup {
+		_, err = FinalizeCheckpointGroup(tx, checkpointGroupId)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -134,6 +144,10 @@ func CreateAsset(
 ) (models.Asset, error) {
 	if checkpointGroupId == "" {
 		checkpointGroupId = uuid.New().String()
+	}
+	autoFinalizeGroup, err := ShouldAutoFinalizeCheckpointGroup(tx, checkpointGroupId)
+	if err != nil {
+		return models.Asset{}, err
 	}
 
 	name = strings.TrimSpace(name)
@@ -310,6 +324,12 @@ func CreateAsset(
 		_, err = CreateCheckpoint(tx, asset.Id, comment, chunkSequence, checksum, timeModified, fileSize, asset.FilePath, author_id, "", checkpointGroupId, func(i1, i2 int, s1, s2 string) {})
 		if err != nil {
 			return models.Asset{}, err
+		}
+		if autoFinalizeGroup {
+			_, err = FinalizeCheckpointGroup(tx, checkpointGroupId)
+			if err != nil {
+				return models.Asset{}, err
+			}
 		}
 	}
 	return asset, nil

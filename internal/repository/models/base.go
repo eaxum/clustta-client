@@ -307,6 +307,23 @@ type AssetTag struct {
 	Synced  bool   `db:"synced" json:"synced"`
 }
 
+type CheckpointGroup struct {
+	Id        string `db:"id" json:"id"`
+	MTime     int64  `db:"mtime" json:"mtime"`
+	CreatedAt string `db:"created_at" json:"created_at"`
+	GroupType string `db:"group_type" json:"group_type"`
+	Finalized bool   `db:"finalized" json:"finalized"`
+	Synced    bool   `db:"synced" json:"synced"`
+}
+
+type CheckpointGroupTag struct {
+	Id      string `db:"id" json:"id"`
+	MTime   int64  `db:"mtime" json:"mtime"`
+	Name    string `db:"name" json:"name"`
+	GroupId string `db:"group_id" json:"group_id"`
+	Synced  bool   `db:"synced" json:"synced"`
+}
+
 type Checkpoint struct {
 	Id               string `db:"id" json:"id"`
 	MTime            int    `db:"mtime" json:"mtime"`

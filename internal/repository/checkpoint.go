@@ -70,6 +70,9 @@ func CreateNewAssetCheckpoint(
 	if groupId == "" {
 		return errors.New("group_id can't be empty")
 	}
+	if _, _, err := EnsureCheckpointGroup(tx, groupId); err != nil {
+		return err
+	}
 
 	if checksum == "" {
 		filePathParent := filepath.Dir(filePath)
@@ -158,6 +161,9 @@ func CreateCheckpoint(
 	callback func(int, int, string, string)) (models.Checkpoint, error) {
 	if groupId == "" {
 		return models.Checkpoint{}, errors.New("group_id can't be empty")
+	}
+	if _, _, err := EnsureCheckpointGroup(tx, groupId); err != nil {
+		return models.Checkpoint{}, err
 	}
 
 	if checksum == "" {
@@ -460,6 +466,7 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 				CreatedAt:  checkpoint.CreatedAt,
 				AssetPaths: []string{checkpoint.AssetPath},
 				Extensions: []string{checkpoint.Extension},
+				GroupId:    checkpoint.GroupId,
 				Comment:    checkpoint.Comment,
 				AuthorUID:  checkpoint.AuthorUID,
 				Preview:    checkpoint.Preview,

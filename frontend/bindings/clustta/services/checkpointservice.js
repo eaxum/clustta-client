@@ -64,6 +64,17 @@ export function AddUntrackedAsset(projectPath, projectWorkingDir, assetPaths, co
 }
 
 /**
+ * BeginCheckpointGroup starts an explicit checkpoint operation group.
+ * @param {string} projectPath
+ * @param {string} groupId
+ * @param {string} groupType
+ * @returns {$CancellablePromise<void>}
+ */
+export function BeginCheckpointGroup(projectPath, groupId, groupType) {
+    return $Call.ByID(2007075271, projectPath, groupId, groupType);
+}
+
+/**
  * DeleteCheckpoint removes a checkpoint from the project.
  * Returns an error if the deletion fails.
  * @param {string} projectPath
@@ -72,6 +83,16 @@ export function AddUntrackedAsset(projectPath, projectWorkingDir, assetPaths, co
  */
 export function DeleteCheckpoint(projectPath, checkpointId) {
     return $Call.ByID(4189987792, projectPath, checkpointId);
+}
+
+/**
+ * FinalizeCheckpointGroup validates and completes a checkpoint operation group.
+ * @param {string} projectPath
+ * @param {string} groupId
+ * @returns {$CancellablePromise<void>}
+ */
+export function FinalizeCheckpointGroup(projectPath, groupId) {
+    return $Call.ByID(1150212024, projectPath, groupId);
 }
 
 /**

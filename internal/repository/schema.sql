@@ -518,6 +518,70 @@ BEGIN
     INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'asset_tag', 0);
 END;
 
+CREATE TABLE IF NOT EXISTS checkpoint_group (
+    id TEXT PRIMARY KEY,
+    mtime INTEGER NOT NULL,
+    created_at DATETIME NOT NULL,
+    group_type TEXT NOT NULL CHECK (group_type IN ('single', 'multi')),
+    finalized BOOLEAN DEFAULT 0 NOT NULL,
+    synced BOOLEAN DEFAULT 0 NOT NULL
+);
+
+CREATE TRIGGER IF NOT EXISTS checkpoint_group_update AFTER UPDATE ON checkpoint_group
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE checkpoint_group SET synced = 0 WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS checkpoint_group_delete AFTER DELETE ON checkpoint_group
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'checkpoint_group', 0);
+END;
+
+CREATE TABLE IF NOT EXISTS checkpoint_group_tag (
+    id TEXT PRIMARY KEY,
+    mtime INTEGER NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
+    group_id TEXT NOT NULL,
+    synced BOOLEAN DEFAULT 0 NOT NULL,
+    FOREIGN KEY (group_id) REFERENCES checkpoint_group(id)
+);
+
+CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_insert BEFORE INSERT ON checkpoint_group_tag
+FOR EACH ROW
+WHEN NOT EXISTS (
+    SELECT 1 FROM checkpoint_group
+    WHERE id = NEW.group_id AND group_type = 'multi' AND finalized = 1
+)
+BEGIN
+    SELECT RAISE(ABORT, 'checkpoint group is not taggable');
+END;
+
+CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_update BEFORE UPDATE ON checkpoint_group_tag
+FOR EACH ROW
+WHEN NOT EXISTS (
+    SELECT 1 FROM checkpoint_group
+    WHERE id = NEW.group_id AND group_type = 'multi' AND finalized = 1
+)
+BEGIN
+    SELECT RAISE(ABORT, 'checkpoint group is not taggable');
+END;
+
+CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_sync_update AFTER UPDATE ON checkpoint_group_tag
+FOR EACH ROW
+WHEN OLD.mtime != NEW.mtime
+BEGIN
+    UPDATE checkpoint_group_tag SET synced = 0 WHERE id = NEW.id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_delete AFTER DELETE ON checkpoint_group_tag
+FOR EACH ROW
+BEGIN
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'checkpoint_group_tag', 0);
+END;
+
 CREATE TABLE IF NOT EXISTS asset_checkpoint (
     id TEXT PRIMARY KEY,
     created_at DATETIME NOT NULL,
@@ -535,8 +599,59 @@ CREATE TABLE IF NOT EXISTS asset_checkpoint (
     synced BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (preview_id) REFERENCES preview(hash),
     FOREIGN KEY (asset_id) REFERENCES asset(id),
-    FOREIGN KEY (author_id) REFERENCES user(id)
+    FOREIGN KEY (author_id) REFERENCES user(id),
+    FOREIGN KEY (group_id) REFERENCES checkpoint_group(id)
 );
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_group_insert BEFORE INSERT ON asset_checkpoint
+FOR EACH ROW
+WHEN EXISTS (
+    SELECT 1 FROM checkpoint_group_tag
+    WHERE group_id = NEW.group_id
+)
+BEGIN
+    SELECT RAISE(ABORT, 'tagged checkpoint group membership is immutable');
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_multi_insert BEFORE INSERT ON asset_checkpoint
+FOR EACH ROW
+WHEN EXISTS (
+    SELECT 1 FROM checkpoint_group
+    WHERE id = NEW.group_id AND group_type = 'multi'
+)
+AND EXISTS (
+    SELECT 1 FROM asset_checkpoint
+    WHERE group_id = NEW.group_id AND asset_id = NEW.asset_id AND trashed = 0
+)
+BEGIN
+    SELECT RAISE(ABORT, 'multi checkpoint group already contains this asset');
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_group_trash BEFORE UPDATE OF trashed ON asset_checkpoint
+FOR EACH ROW
+WHEN OLD.trashed = 0 AND NEW.trashed = 1
+AND EXISTS (SELECT 1 FROM checkpoint_group_tag WHERE group_id = OLD.group_id)
+AND (
+    SELECT COUNT(DISTINCT asset_id)
+    FROM asset_checkpoint
+    WHERE group_id = OLD.group_id AND trashed = 0 AND id != OLD.id
+) < 2
+BEGIN
+    SELECT RAISE(ABORT, 'tagged checkpoint group must retain at least two assets');
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_group_delete BEFORE DELETE ON asset_checkpoint
+FOR EACH ROW
+WHEN OLD.trashed = 0
+AND EXISTS (SELECT 1 FROM checkpoint_group_tag WHERE group_id = OLD.group_id)
+AND (
+    SELECT COUNT(DISTINCT asset_id)
+    FROM asset_checkpoint
+    WHERE group_id = OLD.group_id AND trashed = 0 AND id != OLD.id
+) < 2
+BEGIN
+    SELECT RAISE(ABORT, 'tagged checkpoint group must retain at least two assets');
+END;
 
 CREATE TRIGGER IF NOT EXISTS asset_checkpoint_update AFTER UPDATE ON asset_checkpoint
 FOR EACH ROW

@@ -142,6 +142,9 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 
+const CHECKPOINT_GROUP_TYPE_MULTI = 'multi';
+const CHECKPOINT_GROUP_TYPE_SINGLE = 'single';
+
 const { t } = useI18n();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -338,33 +341,35 @@ const createCheckPoints = async () => {
   const assetPathsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.asset_path);
   const extensionsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.extension);
   const modifiedAssetKeysForCheckpoints = currentModifiedDisplayPaths.value.map(getModifiedAssetKey);
-  await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, extensionsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value, false)
-    .then(() => {
-      assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
-        (item) => !modifiedAssetKeysForCheckpoints.includes(getModifiedAssetKey(item))
-      );
-    })
-    .catch((error) => {
-      console.error(error);
-      notificationStore.errorNotification(t('notifications.failedToCreateCheckpoints'), error);
-      isAwaitingResponse.value = false;
-    });
   const untracked = currentUntrackedPaths.value;
+  const groupType = totalCheckpointItems.value > 1
+    ? CHECKPOINT_GROUP_TYPE_MULTI
+    : CHECKPOINT_GROUP_TYPE_SINGLE;
+
   try {
+    await CheckpointService.BeginCheckpointGroup(projectStore.activeProject.uri, groupId, groupType);
+    if (assetPathsForCheckpoints.length > 0) {
+      await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, extensionsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value, false);
+    }
     for (let i = 0; i < untracked.length; i += 100) {
       const batch = untracked.slice(i, i + 100).map(getUntrackedCandidatePath);
       await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, batch, i, untracked.length, comment, previewPath, groupId);
     }
+    await CheckpointService.FinalizeCheckpointGroup(projectStore.activeProject.uri, groupId);
+
+    assetStore.modifiedAssets.modified = assetStore.modifiedAssets.modified.filter(
+      (item) => !modifiedAssetKeysForCheckpoints.includes(getModifiedAssetKey(item))
+    );
+    assetStore.modifiedAssets.untracked = assetStore.modifiedAssets.untracked.filter(
+      (untrackedAsset) => !currentUntrackedPaths.value.some((checkpointAsset) => getUntrackedCandidatePath(checkpointAsset) === getUntrackedCandidatePath(untrackedAsset))
+    );
+    emitter.emit('refresh-browser');
+    modals.disableAllModals();
   } catch (error) {
-    isAwaitingResponse.value = false;
     notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
+  } finally {
+    isAwaitingResponse.value = false;
   }
-  assetStore.modifiedAssets.untracked = assetStore.modifiedAssets.untracked.filter(
-    (untrackedAsset) => !currentUntrackedPaths.value.some((checkpointAsset) => getUntrackedCandidatePath(checkpointAsset) === getUntrackedCandidatePath(untrackedAsset))
-  );
-  emitter.emit('refresh-browser');
-  isAwaitingResponse.value = false;
-  modals.disableAllModals();
   const endTime = performance.now();
   const executionTime = endTime - startTime;
   const minutes = Math.floor(executionTime / 60000);

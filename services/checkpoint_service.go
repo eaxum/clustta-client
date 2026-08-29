@@ -234,6 +234,10 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 		return []models.Checkpoint{}, err
 	}
 	defer dbConn.Close()
+	autoFinalizeGroup, err := checkpointGroupAutoFinalization(dbConn, groupId)
+	if err != nil {
+		return []models.Checkpoint{}, err
+	}
 
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
@@ -313,6 +317,11 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 			return []models.Checkpoint{}, err
 		}
 	}
+	if autoFinalizeGroup && len(checkpoints) > 0 {
+		if err := finalizeCheckpointGroup(dbConn, groupId); err != nil {
+			return []models.Checkpoint{}, err
+		}
+	}
 
 	// Push to external integration in background (preview upload + status sync)
 	// Only for single-asset checkpoints to avoid flooding the external system
@@ -354,6 +363,10 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 		return []models.Asset{}, err
 	}
 	defer dbConn.Close()
+	autoFinalizeGroup, err := checkpointGroupAutoFinalization(dbConn, groupId)
+	if err != nil {
+		return []models.Asset{}, err
+	}
 
 	tx, err := dbConn.Beginx()
 	if err != nil {
@@ -472,6 +485,11 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 		}
 		state = completed + (i + 1)
 	}
+	if autoFinalizeGroup && len(assetPaths) > 0 {
+		if err := finalizeCheckpointGroup(dbConn, groupId); err != nil {
+			return []models.Asset{}, err
+		}
+	}
 
 	if state == totalAssets {
 		progress := output.ProgressReport{
@@ -484,6 +502,58 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 		app.Event.Emit("progress-update", progress)
 	}
 	return assets, nil
+}
+
+// BeginCheckpointGroup starts an explicit checkpoint operation group.
+func (c *CheckpointService) BeginCheckpointGroup(projectPath, groupId, groupType string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = repository.BeginCheckpointGroup(tx, groupId, groupType); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// FinalizeCheckpointGroup validates and completes a checkpoint operation group.
+func (c *CheckpointService) FinalizeCheckpointGroup(projectPath, groupId string) error {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	return finalizeCheckpointGroup(dbConn, groupId)
+}
+
+func checkpointGroupAutoFinalization(dbConn *sqlx.DB, groupId string) (bool, error) {
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return false, err
+	}
+	defer tx.Rollback()
+	return repository.ShouldAutoFinalizeCheckpointGroup(tx, groupId)
+}
+
+func finalizeCheckpointGroup(dbConn *sqlx.DB, groupId string) error {
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if _, err = repository.FinalizeCheckpointGroup(tx, groupId); err != nil {
+		return err
+	}
+	return tx.Commit()
 }
 
 // ViewCheckpoint creates a temporary file from a checkpoint and opens it.
@@ -1251,6 +1321,17 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 	totalFiles := len(filePaths)
 	groupId := uuid.New().String()
 	assetId := uuid.New().String()
+	tx, err = dbConn.Beginx()
+	if err != nil {
+		return models.Asset{}, err
+	}
+	if _, err = repository.BeginCheckpointGroup(tx, groupId, repository.CheckpointGroupTypeSingle); err != nil {
+		tx.Rollback()
+		return models.Asset{}, err
+	}
+	if err = tx.Commit(); err != nil {
+		return models.Asset{}, err
+	}
 
 	// Determine the asset path relative to working dir using the first file
 	firstFilePath := filePaths[0]
@@ -1366,16 +1447,22 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 		}
 	}
 
-	// Step 6: Retrieve and return the created asset
+	// Step 6: Finalize the group and return the created asset
 	tx, err = dbConn.Beginx()
 	if err != nil {
 		return models.Asset{}, err
 	}
 	defer tx.Rollback()
+	if _, err = repository.FinalizeCheckpointGroup(tx, groupId); err != nil {
+		return models.Asset{}, fmt.Errorf("failed to finalize checkpoint group: %w", err)
+	}
 
 	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
 		return models.Asset{}, fmt.Errorf("failed to retrieve created asset: %w", err)
+	}
+	if err = tx.Commit(); err != nil {
+		return models.Asset{}, err
 	}
 
 	app.Event.Emit("progress-update", output.ProgressReport{
