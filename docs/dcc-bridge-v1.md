@@ -94,16 +94,17 @@ Create a floating dependency with:
 ```
 
 For `pinned`, provide `checkpoint_id`. For `tagged`, provide
-`checkpoint_tag_id`. The unused selector field must be omitted or empty.
+`asset_checkpoint_tag_id`. The unused selector field must be omitted or empty.
 The selector update endpoint accepts the same three selector fields without the
 dependency IDs.
 
-Dependency options return the active checkpoints and asset-scoped checkpoint
-tags for the dependency asset. A tag name identifies at most one checkpoint in
-an asset history. Applying the same name to another checkpoint moves the tag.
-Batch assignment applies that name independently to every checkpoint in a
-finalized group. Tag changes require `manage_dependencies` permission for the
-affected assets, and referenced tags cannot be deleted.
+Dependency options return the active checkpoints and checkpoint tag assignments
+for the dependency asset. Tag names are project-wide, while a tag identifies at
+most one checkpoint in each asset history. Applying the same tag to another
+checkpoint moves that asset's assignment. Batch assignment applies the tag to
+the latest checkpoint for each asset sharing the operation `group_id`. Tag
+changes require `manage_dependencies` permission for the affected assets, and
+referenced assignments cannot be deleted.
 
 Build plans resolve the complete graph to dependency-first exact checkpoint
 entries. Each plan reports conflicts, missing chunks, locally modified files,

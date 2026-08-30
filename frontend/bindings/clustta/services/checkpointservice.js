@@ -64,17 +64,6 @@ export function AddUntrackedAsset(projectPath, projectWorkingDir, assetPaths, co
 }
 
 /**
- * BeginCheckpointGroup starts an explicit checkpoint operation group.
- * @param {string} projectPath
- * @param {string} groupId
- * @param {string} groupType
- * @returns {$CancellablePromise<void>}
- */
-export function BeginCheckpointGroup(projectPath, groupId, groupType) {
-    return $Call.ByID(2007075271, projectPath, groupId, groupType);
-}
-
-/**
  * DeleteCheckpoint removes a checkpoint from the project.
  * Returns an error if the deletion fails.
  * @param {string} projectPath
@@ -111,16 +100,6 @@ export function ExecuteDependencyBuildPlan(projectPath, remoteUrl, rootAssetId, 
 }
 
 /**
- * FinalizeCheckpointGroup validates and completes a checkpoint operation group.
- * @param {string} projectPath
- * @param {string} groupId
- * @returns {$CancellablePromise<void>}
- */
-export function FinalizeCheckpointGroup(projectPath, groupId) {
-    return $Call.ByID(1150212024, projectPath, groupId);
-}
-
-/**
  * GetCheckpointDependencyReferenceCounts returns exact-pin follower counts for an asset.
  * @param {string} projectPath
  * @param {string} assetId
@@ -136,7 +115,7 @@ export function GetCheckpointDependencyReferenceCounts(projectPath, assetId) {
  * GetCheckpointTags returns the moving tags defined for an asset.
  * @param {string} projectPath
  * @param {string} assetId
- * @returns {$CancellablePromise<models$0.CheckpointTag[]>}
+ * @returns {$CancellablePromise<models$0.AssetCheckpointTag[]>}
  */
 export function GetCheckpointTags(projectPath, assetId) {
     return $Call.ByID(992419540, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
@@ -237,7 +216,7 @@ export function RevertToCheckpoint(projectPath, remoteUrl, assetId, checkpointId
  * @param {string} tagId
  * @param {string} name
  * @param {string} checkpointId
- * @returns {$CancellablePromise<models$0.CheckpointTag>}
+ * @returns {$CancellablePromise<models$0.AssetCheckpointTag>}
  */
 export function SetCheckpointTag(projectPath, tagId, name, checkpointId) {
     return $Call.ByID(4000678219, projectPath, tagId, name, checkpointId).then(/** @type {($result: any) => any} */(($result) => {
@@ -250,7 +229,7 @@ export function SetCheckpointTag(projectPath, tagId, name, checkpointId) {
  * @param {string} projectPath
  * @param {string} name
  * @param {string} groupId
- * @returns {$CancellablePromise<models$0.CheckpointTag[]>}
+ * @returns {$CancellablePromise<models$0.AssetCheckpointTag[]>}
  */
 export function SetCheckpointTagsForGroup(projectPath, name, groupId) {
     return $Call.ByID(2098049918, projectPath, name, groupId).then(/** @type {($result: any) => any} */(($result) => {
@@ -294,7 +273,7 @@ const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = models$0.DependencyBuildResult.createFrom;
 const $$createType4 = $Create.Map($Create.Any, $Create.Any);
-const $$createType5 = models$0.CheckpointTag.createFrom;
+const $$createType5 = models$0.AssetCheckpointTag.createFrom;
 const $$createType6 = $Create.Array($$createType5);
 const $$createType7 = repository$0.CompatTimeline.createFrom;
 const $$createType8 = $Create.Array($$createType7);

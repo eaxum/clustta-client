@@ -20,10 +20,8 @@ import { computed, ref, watch } from 'vue';
 
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
-import { CheckpointService } from '@/services';
 import { useIconStore } from '@/stores/icons';
-import { useNotificationStore } from '@/stores/notifications';
-import { useProjectStore } from '@/stores/projects';
+import { useTagStore } from '@/stores/tags';
 
 const NO_TAG = 'checkpoint-tag:none';
 const TAG_PREFIX = 'checkpoint-tag:';
@@ -35,10 +33,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue']);
 const iconStore = useIconStore();
-const notificationStore = useNotificationStore();
-const projectStore = useProjectStore();
+const tagStore = useTagStore();
 
-const availableTags = ref([]);
+const availableTags = computed(() => props.assetIds.some(Boolean) ? tagStore.tags : []);
 const isCreatingTag = ref(false);
 const newTagName = ref('');
 
@@ -64,24 +61,10 @@ const tagOptions = computed(() => {
 const selectedItem = computed(() => props.modelValue ? tagOptionId(props.modelValue) : NO_TAG);
 
 const loadTags = async () => {
-  const assetIds = [...new Set(props.assetIds.filter(Boolean))];
-  if (!assetIds.length) {
-    availableTags.value = [];
+  if (!props.assetIds.some(Boolean)) {
     return;
   }
-  try {
-    const tagLists = await Promise.all(assetIds.map(assetId => (
-      CheckpointService.GetCheckpointTags(projectStore.activeProject.uri, assetId)
-    )));
-    const tagsByName = new Map();
-    tagLists.flat().forEach(tag => {
-      const name = normalizedTagName(tag.name);
-      if (!tagsByName.has(name)) tagsByName.set(name, tag);
-    });
-    availableTags.value = [...tagsByName.values()];
-  } catch (error) {
-    notificationStore.errorNotification('Unable to load checkpoint tags', error);
-  }
+  if (!tagStore.tags.length) await tagStore.reloadTags();
 };
 
 const selectTag = (optionId) => {

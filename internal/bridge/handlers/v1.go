@@ -73,17 +73,17 @@ type revertRequest struct {
 }
 
 type dependencyRequest struct {
-	DependencyID     string `json:"dependency_id"`
-	DependencyTypeID string `json:"dependency_type_id"`
-	ResolutionMode   string `json:"resolution_mode"`
-	CheckpointID     string `json:"checkpoint_id"`
-	CheckpointTagID  string `json:"checkpoint_tag_id"`
+	DependencyID         string `json:"dependency_id"`
+	DependencyTypeID     string `json:"dependency_type_id"`
+	ResolutionMode       string `json:"resolution_mode"`
+	CheckpointID         string `json:"checkpoint_id"`
+	AssetCheckpointTagID string `json:"asset_checkpoint_tag_id"`
 }
 
 type dependencySelectorRequest struct {
-	ResolutionMode  string `json:"resolution_mode"`
-	CheckpointID    string `json:"checkpoint_id"`
-	CheckpointTagID string `json:"checkpoint_tag_id"`
+	ResolutionMode       string `json:"resolution_mode"`
+	CheckpointID         string `json:"checkpoint_id"`
+	AssetCheckpointTagID string `json:"asset_checkpoint_tag_id"`
 }
 
 type checkpointTagRequest struct {
@@ -392,7 +392,7 @@ func V1CreateDependency(w http.ResponseWriter, r *http.Request) {
 		request.DependencyTypeID,
 		request.ResolutionMode,
 		request.CheckpointID,
-		request.CheckpointTagID,
+		request.AssetCheckpointTagID,
 	)
 	if err != nil {
 		dependencyMutationError(w, err)
@@ -419,7 +419,7 @@ func V1UpdateDependencySelector(w http.ResponseWriter, r *http.Request) {
 		r.PathValue("edgeId"),
 		request.ResolutionMode,
 		request.CheckpointID,
-		request.CheckpointTagID,
+		request.AssetCheckpointTagID,
 	)
 	if err != nil {
 		dependencyMutationError(w, err)

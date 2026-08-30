@@ -30,19 +30,13 @@ func insertDependencyType(t *testing.T, tx *sqlx.Tx) {
 }
 
 func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
-	_, tx := openCheckpointGroupTestDB(t)
+	_, tx := openDependencyTestDB(t)
 	insertDependencyType(t, tx)
 	for _, assetId := range []string{"shot", "boy", "prop"} {
 		insertDependencyAsset(t, tx, assetId)
 	}
 
-	if _, err := BeginCheckpointGroup(tx, "boy-v1", CheckpointGroupTypeSingle); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, "boy-cp-1", "boy", "boy-v1", 1)
-	if _, err := FinalizeCheckpointGroup(tx, "boy-v1"); err != nil {
-		t.Fatal(err)
-	}
+	insertTestCheckpoint(t, tx, "boy-cp-1", "boy", "boy-v1", 1)
 
 	edge, err := AddDependencyWithSelector(
 		tx,
@@ -61,13 +55,7 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 		t.Fatalf("unexpected floating edge: %+v", edge)
 	}
 
-	if _, err = BeginCheckpointGroup(tx, "boy-v2", CheckpointGroupTypeSingle); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, "boy-cp-2", "boy", "boy-v2", 2)
-	if _, err = FinalizeCheckpointGroup(tx, "boy-v2"); err != nil {
-		t.Fatal(err)
-	}
+	insertTestCheckpoint(t, tx, "boy-cp-2", "boy", "boy-v2", 2)
 	edges, err := GetAssetDependencyEdges(tx, "shot")
 	if err != nil {
 		t.Fatal(err)
@@ -97,15 +85,9 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 		t.Fatalf("expected one exact-pin follower, got %+v", referenceCounts)
 	}
 
-	if _, err = BeginCheckpointGroup(tx, "release", CheckpointGroupTypeMulti); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, "release-boy", "boy", "release", 3)
-	insertCheckpointGroupMember(t, tx, "release-prop", "prop", "release", 4)
-	if _, err = FinalizeCheckpointGroup(tx, "release"); err != nil {
-		t.Fatal(err)
-	}
-	tag, err := SetCheckpointTag(tx, "tag", "animation-approved", "release-boy")
+	insertTestCheckpoint(t, tx, "release-boy", "boy", "release", 3)
+	insertTestCheckpoint(t, tx, "release-prop", "prop", "release", 4)
+	tag, err := SetCheckpointTag(tx, "", "animation-approved", "release-boy")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,16 +104,14 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 	if edge.ResolvedCheckpointId == nil || *edge.ResolvedCheckpointId != "release-boy" || edge.TagName != tag.Name {
 		t.Fatalf("unexpected tagged edge: %+v", edge)
 	}
-	if _, err = BeginCheckpointGroup(tx, "incompatible-release", CheckpointGroupTypeMulti); err != nil {
+	insertTestCheckpoint(t, tx, "incompatible-prop", "prop", "incompatible-release", 5)
+	insertTestCheckpoint(t, tx, "incompatible-other", "shot", "incompatible-release", 6)
+	otherAssignment, err := SetCheckpointTag(tx, tag.TagId, tag.Name, "incompatible-prop")
+	if err != nil {
 		t.Fatal(err)
 	}
-	insertCheckpointGroupMember(t, tx, "incompatible-prop", "prop", "incompatible-release", 5)
-	insertCheckpointGroupMember(t, tx, "incompatible-other", "shot", "incompatible-release", 6)
-	if _, err = FinalizeCheckpointGroup(tx, "incompatible-release"); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = SetCheckpointTag(tx, tag.Id, tag.Name, "incompatible-prop"); err == nil {
-		t.Fatal("expected moving a tag to another asset to fail")
+	if otherAssignment.AssetId != "prop" || otherAssignment.TagId != tag.TagId {
+		t.Fatalf("expected the global tag to be reusable across assets, got %+v", otherAssignment)
 	}
 	if err = DeleteCheckpointTag(tx, tag.Id); err == nil {
 		t.Fatal("expected referenced tag deletion to fail")
@@ -139,19 +119,13 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 }
 
 func TestDependencySelectorValidationRejectsInvalidOwnershipAndCycles(t *testing.T) {
-	_, tx := openCheckpointGroupTestDB(t)
+	_, tx := openDependencyTestDB(t)
 	insertDependencyType(t, tx)
 	for _, assetId := range []string{"shot", "boy", "other", "asset-a", "asset-b", "asset-c", "asset-d"} {
 		insertDependencyAsset(t, tx, assetId)
 	}
 
-	if _, err := BeginCheckpointGroup(tx, "other-v1", CheckpointGroupTypeSingle); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, "other-cp", "other", "other-v1", 1)
-	if _, err := FinalizeCheckpointGroup(tx, "other-v1"); err != nil {
-		t.Fatal(err)
-	}
+	insertTestCheckpoint(t, tx, "other-cp", "other", "other-v1", 1)
 	if _, err := AddDependencyWithSelector(
 		tx,
 		"invalid-pin",
@@ -164,15 +138,9 @@ func TestDependencySelectorValidationRejectsInvalidOwnershipAndCycles(t *testing
 	); err == nil {
 		t.Fatal("expected checkpoint ownership validation to fail")
 	}
-	if _, err := BeginCheckpointGroup(tx, "other-release", CheckpointGroupTypeMulti); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, "other-release-cp", "other", "other-release", 2)
-	insertCheckpointGroupMember(t, tx, "asset-c-release-cp", "asset-c", "other-release", 3)
-	if _, err := FinalizeCheckpointGroup(tx, "other-release"); err != nil {
-		t.Fatal(err)
-	}
-	otherTag, err := SetCheckpointTag(tx, "other-tag", "other-approved", "other-release-cp")
+	insertTestCheckpoint(t, tx, "other-release-cp", "other", "other-release", 2)
+	insertTestCheckpoint(t, tx, "asset-c-release-cp", "asset-c", "other-release", 3)
+	otherTag, err := SetCheckpointTag(tx, "", "other-approved", "other-release-cp")
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -11,17 +11,11 @@ import (
 func addBuildPlanCheckpoint(t *testing.T, tx *sqlx.Tx, assetId, checkpointId string, createdAt int) {
 	t.Helper()
 	groupId := checkpointId + "-group"
-	if _, err := BeginCheckpointGroup(tx, groupId, CheckpointGroupTypeSingle); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, checkpointId, assetId, groupId, createdAt)
-	if _, err := FinalizeCheckpointGroup(tx, groupId); err != nil {
-		t.Fatal(err)
-	}
+	insertTestCheckpoint(t, tx, checkpointId, assetId, groupId, createdAt)
 }
 
 func TestDependencyBuildPlanUsesExactSelectorsAndDetectsConflicts(t *testing.T) {
-	_, tx := openCheckpointGroupTestDB(t)
+	_, tx := openDependencyTestDB(t)
 	if _, err := tx.Exec(
 		"INSERT INTO config (name, value, mtime) VALUES ('working_dir', ?, 1)",
 		t.TempDir(),
@@ -43,15 +37,9 @@ func TestDependencyBuildPlanUsesExactSelectorsAndDetectsConflicts(t *testing.T) 
 	addBuildPlanCheckpoint(t, tx, "right", "right-cp", 3)
 	addBuildPlanCheckpoint(t, tx, "boy", "boy-cp-1", 4)
 	addBuildPlanCheckpoint(t, tx, "boy", "boy-cp-2", 5)
-	if _, err := BeginCheckpointGroup(tx, "release", CheckpointGroupTypeMulti); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, "release-boy", "boy", "release", 6)
-	insertCheckpointGroupMember(t, tx, "release-prop", "prop", "release", 7)
-	if _, err := FinalizeCheckpointGroup(tx, "release"); err != nil {
-		t.Fatal(err)
-	}
-	tag, err := SetCheckpointTag(tx, "release-tag", "animation-approved", "release-boy")
+	insertTestCheckpoint(t, tx, "release-boy", "boy", "release", 6)
+	insertTestCheckpoint(t, tx, "release-prop", "prop", "release", 7)
+	tag, err := SetCheckpointTag(tx, "", "animation-approved", "release-boy")
 	if err != nil {
 		t.Fatal(err)
 	}

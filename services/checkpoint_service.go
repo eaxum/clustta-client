@@ -234,11 +234,6 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 		return []models.Checkpoint{}, err
 	}
 	defer dbConn.Close()
-	autoFinalizeGroup, err := checkpointGroupAutoFinalization(dbConn, groupId)
-	if err != nil {
-		return []models.Checkpoint{}, err
-	}
-
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return []models.Checkpoint{}, err
@@ -317,12 +312,6 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 			return []models.Checkpoint{}, err
 		}
 	}
-	if autoFinalizeGroup && len(checkpoints) > 0 {
-		if err := finalizeCheckpointGroup(dbConn, groupId); err != nil {
-			return []models.Checkpoint{}, err
-		}
-	}
-
 	// Push to external integration in background (preview upload + status sync)
 	// Only for single-asset checkpoints to avoid flooding the external system
 	willPushToIntegration := sendToIntegration && len(checkpoints) == 1 && previewPath != ""
@@ -363,11 +352,6 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 		return []models.Asset{}, err
 	}
 	defer dbConn.Close()
-	autoFinalizeGroup, err := checkpointGroupAutoFinalization(dbConn, groupId)
-	if err != nil {
-		return []models.Asset{}, err
-	}
-
 	tx, err := dbConn.Beginx()
 	if err != nil {
 		return []models.Asset{}, err
@@ -485,12 +469,6 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 		}
 		state = completed + (i + 1)
 	}
-	if autoFinalizeGroup && len(assetPaths) > 0 {
-		if err := finalizeCheckpointGroup(dbConn, groupId); err != nil {
-			return []models.Asset{}, err
-		}
-	}
-
 	if state == totalAssets {
 		progress := output.ProgressReport{
 			Title:      "Creating Checkpoint",
@@ -504,38 +482,8 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 	return assets, nil
 }
 
-// BeginCheckpointGroup starts an explicit checkpoint operation group.
-func (c *CheckpointService) BeginCheckpointGroup(projectPath, groupId, groupType string) error {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return err
-	}
-	defer dbConn.Close()
-
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if _, err = repository.BeginCheckpointGroup(tx, groupId, groupType); err != nil {
-		return err
-	}
-	return tx.Commit()
-}
-
-// FinalizeCheckpointGroup validates and completes a checkpoint operation group.
-func (c *CheckpointService) FinalizeCheckpointGroup(projectPath, groupId string) error {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return err
-	}
-	defer dbConn.Close()
-	return finalizeCheckpointGroup(dbConn, groupId)
-}
-
 // GetCheckpointTags returns the moving tags defined for an asset.
-func (c *CheckpointService) GetCheckpointTags(projectPath, assetId string) ([]models.CheckpointTag, error) {
+func (c *CheckpointService) GetCheckpointTags(projectPath, assetId string) ([]models.AssetCheckpointTag, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return nil, err
@@ -565,37 +513,37 @@ func (c *CheckpointService) GetCheckpointDependencyReferenceCounts(projectPath, 
 }
 
 // SetCheckpointTag creates, renames, or moves an asset-scoped tag.
-func (c *CheckpointService) SetCheckpointTag(projectPath, tagId, name, checkpointId string) (models.CheckpointTag, error) {
+func (c *CheckpointService) SetCheckpointTag(projectPath, tagId, name, checkpointId string) (models.AssetCheckpointTag, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return models.CheckpointTag{}, err
+		return models.AssetCheckpointTag{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return models.CheckpointTag{}, err
+		return models.AssetCheckpointTag{}, err
 	}
 	defer tx.Rollback()
 
 	checkpoint, err := repository.GetCheckpoint(tx, checkpointId)
 	if err != nil {
-		return models.CheckpointTag{}, err
+		return models.AssetCheckpointTag{}, err
 	}
 	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, []string{checkpoint.AssetId}); err != nil {
-		return models.CheckpointTag{}, err
+		return models.AssetCheckpointTag{}, err
 	}
 	tag, err := repository.SetCheckpointTag(tx, tagId, name, checkpointId)
 	if err != nil {
-		return models.CheckpointTag{}, err
+		return models.AssetCheckpointTag{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return models.CheckpointTag{}, err
+		return models.AssetCheckpointTag{}, err
 	}
 	return tag, nil
 }
 
 // SetCheckpointTagsForGroup applies one tag name to each checkpoint in a group.
-func (c *CheckpointService) SetCheckpointTagsForGroup(projectPath, name, groupId string) ([]models.CheckpointTag, error) {
+func (c *CheckpointService) SetCheckpointTagsForGroup(projectPath, name, groupId string) ([]models.AssetCheckpointTag, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return nil, err
@@ -617,7 +565,7 @@ func (c *CheckpointService) SetCheckpointTagsForGroup(projectPath, name, groupId
 	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, assetIds); err != nil {
 		return nil, err
 	}
-	tags, err := repository.SetCheckpointTagsForGroup(tx, name, groupId)
+	tags, err := repository.SetCheckpointTagsForGroup(tx, "", name, groupId)
 	if err != nil {
 		return nil, err
 	}
@@ -640,7 +588,7 @@ func (c *CheckpointService) DeleteCheckpointTag(projectPath, tagId string) error
 	}
 	defer tx.Rollback()
 
-	tag, err := repository.GetCheckpointTag(tx, tagId)
+	tag, err := repository.GetAssetCheckpointTag(tx, tagId)
 	if err != nil {
 		return err
 	}
@@ -648,28 +596,6 @@ func (c *CheckpointService) DeleteCheckpointTag(projectPath, tagId string) error
 		return err
 	}
 	if err = repository.DeleteCheckpointTag(tx, tagId); err != nil {
-		return err
-	}
-	return tx.Commit()
-}
-
-func checkpointGroupAutoFinalization(dbConn *sqlx.DB, groupId string) (bool, error) {
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return false, err
-	}
-	defer tx.Rollback()
-	return repository.ShouldAutoFinalizeCheckpointGroup(tx, groupId)
-}
-
-func finalizeCheckpointGroup(dbConn *sqlx.DB, groupId string) error {
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if _, err = repository.FinalizeCheckpointGroup(tx, groupId); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -1585,18 +1511,6 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 	totalFiles := len(filePaths)
 	groupId := uuid.New().String()
 	assetId := uuid.New().String()
-	tx, err = dbConn.Beginx()
-	if err != nil {
-		return models.Asset{}, err
-	}
-	if _, err = repository.BeginCheckpointGroup(tx, groupId, repository.CheckpointGroupTypeSingle); err != nil {
-		tx.Rollback()
-		return models.Asset{}, err
-	}
-	if err = tx.Commit(); err != nil {
-		return models.Asset{}, err
-	}
-
 	// Determine the asset path relative to working dir using the first file
 	firstFilePath := filePaths[0]
 	if projectWorkingDir == "" {
@@ -1711,16 +1625,12 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 		}
 	}
 
-	// Step 6: Finalize the group and return the created asset
+	// Step 6: Return the created asset
 	tx, err = dbConn.Beginx()
 	if err != nil {
 		return models.Asset{}, err
 	}
 	defer tx.Rollback()
-	if _, err = repository.FinalizeCheckpointGroup(tx, groupId); err != nil {
-		return models.Asset{}, fmt.Errorf("failed to finalize checkpoint group: %w", err)
-	}
-
 	asset, err := repository.GetAsset(tx, assetId)
 	if err != nil {
 		return models.Asset{}, fmt.Errorf("failed to retrieve created asset: %w", err)

@@ -40,6 +40,12 @@
             <template #actions>
               <ActionButton
                 v-if="canManageDependencies && dependency.dependencyEdge"
+                :icon="getAppIcon(dependency.dependencyEdge.resolution_mode === 'pinned' ? 'unpin' : 'pin')"
+                v-tooltip="dependency.dependencyEdge.resolution_mode === 'pinned' ? 'Follow latest checkpoint' : 'Pin current checkpoint'"
+                :buttonFunction="() => toggleDependencyPin(dependency)"
+              />
+              <ActionButton
+                v-if="canManageDependencies && dependency.dependencyEdge"
                 :icon="getAppIcon('edit')"
                 v-tooltip="'Edit dependency version'"
                 :buttonFunction="event => openDependencySelector(event, dependency.id)"
@@ -378,6 +384,34 @@ const handleSelectorUpdated = (updatedEdge) => {
   if (dependency) dependency.dependencyEdge = updatedEdge;
 };
 
+const toggleDependencyPin = async (dependency) => {
+  if (!canManageDependencies.value || !dependency.dependencyEdge) return;
+  const edge = dependency.dependencyEdge;
+  const shouldUnpin = edge.resolution_mode === 'pinned';
+  const checkpointId = shouldUnpin ? '' : edge.resolved_checkpoint_id;
+  if (!shouldUnpin && !checkpointId) {
+    notificationStore.errorNotification('Unable to pin dependency', 'The dependency has no resolved checkpoint');
+    return;
+  }
+
+  try {
+    const updatedEdge = await AssetService.UpdateAssetDependencySelector(
+      projectStore.activeProject.uri,
+      selectedAsset.value.id,
+      edge.id,
+      shouldUnpin ? 'floating' : 'pinned',
+      checkpointId,
+      '',
+    );
+    handleSelectorUpdated(updatedEdge);
+  } catch (error) {
+    notificationStore.errorNotification(
+      shouldUnpin ? 'Unable to unpin dependency' : 'Unable to pin dependency',
+      error,
+    );
+  }
+};
+
 const setDependencySelectorRef = (dependencyId, element) => {
   if (element) {
     dependencySelectorRefs.set(dependencyId, element);
@@ -455,7 +489,7 @@ const addDependency = async (dependencyId, itemType, selector = null) => {
     
     const resolutionMode = selector?.resolution_mode || 'floating';
     const checkpointId = selector?.checkpoint_id || '';
-    const checkpointTagId = selector?.checkpoint_tag_id || '';
+    const assetCheckpointTagId = selector?.asset_checkpoint_tag_id || '';
     await AssetService.AddAssetDependencyWithSelector(
       projectStore.activeProject.uri,
       asset.id,
@@ -463,7 +497,7 @@ const addDependency = async (dependencyId, itemType, selector = null) => {
       dependencyTypeID,
       resolutionMode,
       checkpointId,
-      checkpointTagId,
+      assetCheckpointTagId,
     )
       .then((response) => {
         notificationStore.addNotification(t('notifications.dependencyAdded'), "", "success");

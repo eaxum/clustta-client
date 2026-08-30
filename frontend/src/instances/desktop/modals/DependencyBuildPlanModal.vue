@@ -88,7 +88,7 @@ const getAppIcon = iconName => iconStore.getAppIcon(iconName);
 const assetName = assetId => assetNames.value.get(assetId) || assetId.slice(0, 8);
 const entryRequirement = (entry) => {
   const edge = dependencyEdges.value.get(entry.dependency_edge_id);
-  if (edge?.resolution_mode === 'tagged') return `${edge.tag_name} -> ${edge.resolved_checkpoint_label}`;
+  if (edge?.resolution_mode === 'tagged') return edge.tag_name;
   if (edge?.resolution_mode === 'pinned') return edge.resolved_checkpoint_label || entry.checkpoint_id.slice(0, 8);
   return edge?.resolved_checkpoint_label || entry.checkpoint_id.slice(0, 8);
 };

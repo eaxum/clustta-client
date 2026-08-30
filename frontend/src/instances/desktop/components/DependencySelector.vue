@@ -41,15 +41,14 @@ const selectorLabel = computed(() => {
     return `Pinned ${props.edge.resolved_checkpoint_label || 'checkpoint'}`;
   }
   if (props.edge.resolution_mode === 'tagged') {
-    const version = props.edge.resolved_checkpoint_label ? ` -> ${props.edge.resolved_checkpoint_label}` : '';
-    return `${props.edge.tag_name || 'Tag'}${version}`;
+    return props.edge.tag_name || 'Tag';
   }
   return 'Latest';
 });
 
 const selectedOptionId = computed(() => {
   if (props.edge.resolution_mode === 'pinned') return `pinned-${props.edge.checkpoint_id}`;
-  if (props.edge.resolution_mode === 'tagged') return `tagged-${props.edge.checkpoint_tag_id}`;
+  if (props.edge.resolution_mode === 'tagged') return `tagged-${props.edge.asset_checkpoint_tag_id}`;
   return 'floating';
 });
 

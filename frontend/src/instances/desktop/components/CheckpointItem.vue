@@ -62,6 +62,8 @@
         </div>
 
         <div v-else class="full-checkpoint-item-actions">
+            <ActionButton v-if="canManageCheckpointTags" :icon="getAppIcon('tag')"
+                v-tooltip="'Manage checkpoint tags'" @click="openCheckpointTagMenu" />
             <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             <ActionButton v-if="!platformStore.isWeb && !checkpoint.is_downloaded" :icon="getAppIcon('cloud-down')"
@@ -94,6 +96,7 @@ import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
+import { canActOnAsset } from '@/lib/permissions';
 
 // services
 import { SyncService } from "@/services";
@@ -108,6 +111,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { usePlatformStore } from '@/stores/platform';
 import { useAccountStore } from '@/stores/accounts';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { useMenu } from '@/stores/menu';
 
 const { t, locale } = useI18n();
 
@@ -146,6 +150,7 @@ const projectStore = useProjectStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
 const entitlementStore = useEntitlementStore();
+const menu = useMenu();
 
 // refs
 const itemVersionId = ref(null);
@@ -154,8 +159,15 @@ const justViewed = ref('');
 
 // computed properties
 const isItemExpanded = computed(() => props.expandedId === props.checkpoint.checkpoint_id);
+const canManageCheckpointTags = computed(() => canActOnAsset('manage_dependencies', assetStore.selectedAsset));
 
 // methods
+const openCheckpointTagMenu = (event) => {
+    if (!canManageCheckpointTags.value) return;
+    menu.checkpointTagMenuData = { checkpoint: props.checkpoint };
+    menu.showContextMenu(event, 'checkpointTagMenu', true);
+};
+
 const downloadCheckpoint = (checkpointId) => {
     const callback = (progress) => {
         notificationStore.updateProgress(progress);

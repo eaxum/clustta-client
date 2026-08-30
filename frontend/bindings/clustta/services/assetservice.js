@@ -35,11 +35,11 @@ export function AddAssetDependency(projectPath, assetId, dependencyId, dependenc
  * @param {string} dependencyTypeId
  * @param {string} resolutionMode
  * @param {string} checkpointId
- * @param {string} checkpointTagId
+ * @param {string} assetCheckpointTagId
  * @returns {$CancellablePromise<models$0.AssetDependencyEdge>}
  */
-export function AddAssetDependencyWithSelector(projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, checkpointTagId) {
-    return $Call.ByID(1128916658, projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, checkpointTagId).then(/** @type {($result: any) => any} */(($result) => {
+export function AddAssetDependencyWithSelector(projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, assetCheckpointTagId) {
+    return $Call.ByID(1128916658, projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, assetCheckpointTagId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
@@ -613,11 +613,11 @@ export function UpdateAsset(projectPath, assetId, name, assetTypeId, isResource,
  * @param {string} edgeId
  * @param {string} resolutionMode
  * @param {string} checkpointId
- * @param {string} checkpointTagId
+ * @param {string} assetCheckpointTagId
  * @returns {$CancellablePromise<models$0.AssetDependencyEdge>}
  */
-export function UpdateAssetDependencySelector(projectPath, assetId, edgeId, resolutionMode, checkpointId, checkpointTagId) {
-    return $Call.ByID(2704534518, projectPath, assetId, edgeId, resolutionMode, checkpointId, checkpointTagId).then(/** @type {($result: any) => any} */(($result) => {
+export function UpdateAssetDependencySelector(projectPath, assetId, edgeId, resolutionMode, checkpointId, assetCheckpointTagId) {
+    return $Call.ByID(2704534518, projectPath, assetId, edgeId, resolutionMode, checkpointId, assetCheckpointTagId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }

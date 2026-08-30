@@ -336,7 +336,7 @@
           "dependencyTypeId:string",
           "resolutionMode:string",
           "checkpointId:string",
-          "checkpointTagId:string"
+          "assetCheckpointTagId:string"
         ],
         "returns": [
           "models.AssetDependencyEdge",
@@ -913,7 +913,7 @@
           "edgeId:string",
           "resolutionMode:string",
           "checkpointId:string",
-          "checkpointTagId:string"
+          "assetCheckpointTagId:string"
         ],
         "returns": [
           "models.AssetDependencyEdge",
@@ -1236,17 +1236,6 @@
         ]
       },
       {
-        "name": "BeginCheckpointGroup",
-        "params": [
-          "projectPath:string",
-          "groupId:string",
-          "groupType:string"
-        ],
-        "returns": [
-          "error"
-        ]
-      },
-      {
         "name": "DeleteCheckpoint",
         "params": [
           "projectPath:string",
@@ -1281,16 +1270,6 @@
         ]
       },
       {
-        "name": "FinalizeCheckpointGroup",
-        "params": [
-          "projectPath:string",
-          "groupId:string"
-        ],
-        "returns": [
-          "error"
-        ]
-      },
-      {
         "name": "GetCheckpointDependencyReferenceCounts",
         "params": [
           "projectPath:string",
@@ -1308,7 +1287,7 @@
           "assetId:string"
         ],
         "returns": [
-          "[]models.CheckpointTag",
+          "[]models.AssetCheckpointTag",
           "error"
         ]
       },
@@ -1399,7 +1378,7 @@
           "checkpointId:string"
         ],
         "returns": [
-          "models.CheckpointTag",
+          "models.AssetCheckpointTag",
           "error"
         ]
       },
@@ -1411,7 +1390,7 @@
           "groupId:string"
         ],
         "returns": [
-          "[]models.CheckpointTag",
+          "[]models.AssetCheckpointTag",
           "error"
         ]
       },

@@ -150,9 +150,6 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 
-const CHECKPOINT_GROUP_TYPE_MULTI = 'multi';
-const CHECKPOINT_GROUP_TYPE_SINGLE = 'single';
-
 const { t } = useI18n();
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -356,12 +353,7 @@ const createCheckPoints = async () => {
   const extensionsForCheckpoints = currentModifiedDisplayPaths.value.map(assetState => assetState.extension);
   const modifiedAssetKeysForCheckpoints = currentModifiedDisplayPaths.value.map(getModifiedAssetKey);
   const untracked = currentUntrackedPaths.value;
-  const groupType = totalCheckpointItems.value > 1
-    ? CHECKPOINT_GROUP_TYPE_MULTI
-    : CHECKPOINT_GROUP_TYPE_SINGLE;
-
   try {
-    await CheckpointService.BeginCheckpointGroup(projectStore.activeProject.uri, groupId, groupType);
     if (assetPathsForCheckpoints.length > 0) {
       await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, extensionsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value, false);
     }
@@ -369,8 +361,6 @@ const createCheckPoints = async () => {
       const batch = untracked.slice(i, i + 100).map(getUntrackedCandidatePath);
       await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, batch, i, untracked.length, comment, previewPath, groupId);
     }
-    await CheckpointService.FinalizeCheckpointGroup(projectStore.activeProject.uri, groupId);
-
     if (checkpointTagName.value) {
       try {
         await CheckpointService.SetCheckpointTagsForGroup(projectStore.activeProject.uri, checkpointTagName.value, groupId);

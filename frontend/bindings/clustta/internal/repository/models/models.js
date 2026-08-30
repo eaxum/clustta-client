@@ -10,6 +10,76 @@ import { Create as $Create } from "@wailsio/runtime";
  * @typedef {any} Asset
  */
 
+export class AssetCheckpointTag {
+    /**
+     * Creates a new AssetCheckpointTag instance.
+     * @param {Partial<AssetCheckpointTag>} [$$source = {}] - The source object to create the AssetCheckpointTag.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("mtime" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["mtime"] = 0;
+        }
+        if (!("asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["asset_id"] = "";
+        }
+        if (!("tag_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["tag_id"] = "";
+        }
+        if (!("checkpoint_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["checkpoint_id"] = "";
+        }
+        if (!("synced" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["synced"] = false;
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AssetCheckpointTag instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AssetCheckpointTag}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AssetCheckpointTag(/** @type {Partial<AssetCheckpointTag>} */($$parsedSource));
+    }
+}
+
 export class AssetDependency {
     /**
      * Creates a new AssetDependency instance.
@@ -70,7 +140,7 @@ export class AssetDependency {
              * @member
              * @type {string | null | undefined}
              */
-            this["checkpoint_tag_id"] = undefined;
+            this["asset_checkpoint_tag_id"] = undefined;
         }
         if (!("synced" in $$source)) {
             /**
@@ -154,7 +224,7 @@ export class AssetDependencyEdge {
              * @member
              * @type {string | null | undefined}
              */
-            this["checkpoint_tag_id"] = undefined;
+            this["asset_checkpoint_tag_id"] = undefined;
         }
         if (!("synced" in $$source)) {
             /**
@@ -403,69 +473,6 @@ export class Checkpoint {
             $$parsedSource["preview"] = $$createField13_0($$parsedSource["preview"]);
         }
         return new Checkpoint(/** @type {Partial<Checkpoint>} */($$parsedSource));
-    }
-}
-
-export class CheckpointTag {
-    /**
-     * Creates a new CheckpointTag instance.
-     * @param {Partial<CheckpointTag>} [$$source = {}] - The source object to create the CheckpointTag.
-     */
-    constructor($$source = {}) {
-        if (!("id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["id"] = "";
-        }
-        if (!("mtime" in $$source)) {
-            /**
-             * @member
-             * @type {number}
-             */
-            this["mtime"] = 0;
-        }
-        if (!("name" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["name"] = "";
-        }
-        if (!("asset_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["asset_id"] = "";
-        }
-        if (!("checkpoint_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["checkpoint_id"] = "";
-        }
-        if (!("synced" in $$source)) {
-            /**
-             * @member
-             * @type {boolean}
-             */
-            this["synced"] = false;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new CheckpointTag instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {CheckpointTag}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new CheckpointTag(/** @type {Partial<CheckpointTag>} */($$parsedSource));
     }
 }
 
@@ -815,7 +822,7 @@ export class DependencySelectorOptions {
         if (!("tags" in $$source)) {
             /**
              * @member
-             * @type {CheckpointTag[]}
+             * @type {AssetCheckpointTag[]}
              */
             this["tags"] = [];
         }
@@ -2088,7 +2095,7 @@ const $$createType4 = DependencyBuildConflict.createFrom;
 const $$createType5 = $Create.Array($$createType4);
 const $$createType6 = Checkpoint.createFrom;
 const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = CheckpointTag.createFrom;
+const $$createType8 = AssetCheckpointTag.createFrom;
 const $$createType9 = $Create.Array($$createType8);
 const $$createType10 = Role.createFrom;
 const $$createType11 = WorkflowAsset.createFrom;

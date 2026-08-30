@@ -95,7 +95,7 @@ const savePreset = async () => {
       type: dep.type,
       resolution_mode: edge?.resolution_mode || 'floating',
       checkpoint_id: edge?.checkpoint_id || '',
-      checkpoint_tag_id: edge?.checkpoint_tag_id || '',
+      asset_checkpoint_tag_id: edge?.asset_checkpoint_tag_id || '',
     };
   });
 

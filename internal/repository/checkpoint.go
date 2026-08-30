@@ -30,15 +30,15 @@ type Timeline struct {
 	Preview   []byte `db:"preview" json:"preview"`
 }
 type CompatTimeline struct {
-	CreatedAt     string                 `db:"created_at" json:"created_at"`
-	AssetPaths    []string               `db:"asset_paths" json:"asset_paths"`
-	Extensions    []string               `db:"extensions" json:"extensions"`
-	GroupId       string                 `db:"group_id" json:"group_id"`
-	Comment       string                 `db:"comment" json:"comment"`
-	AuthorUID     string                 `db:"author_id" json:"author_id"`
-	Preview       []byte                 `db:"preview" json:"preview"`
-	Tags          []models.CheckpointTag `json:"tags"`
-	FollowerCount int                    `json:"follower_count"`
+	CreatedAt     string                      `db:"created_at" json:"created_at"`
+	AssetPaths    []string                    `db:"asset_paths" json:"asset_paths"`
+	Extensions    []string                    `db:"extensions" json:"extensions"`
+	GroupId       string                      `db:"group_id" json:"group_id"`
+	Comment       string                      `db:"comment" json:"comment"`
+	AuthorUID     string                      `db:"author_id" json:"author_id"`
+	Preview       []byte                      `db:"preview" json:"preview"`
+	Tags          []models.AssetCheckpointTag `json:"tags"`
+	FollowerCount int                         `json:"follower_count"`
 }
 
 // nextCheckpointTime keeps checkpoint creation monotonic even when the system
@@ -71,9 +71,6 @@ func CreateNewAssetCheckpoint(
 	callback func(int, int, string, string)) error {
 	if groupId == "" {
 		return errors.New("group_id can't be empty")
-	}
-	if _, _, err := EnsureCheckpointGroup(tx, groupId); err != nil {
-		return err
 	}
 
 	if checksum == "" {
@@ -163,9 +160,6 @@ func CreateCheckpoint(
 	callback func(int, int, string, string)) (models.Checkpoint, error) {
 	if groupId == "" {
 		return models.Checkpoint{}, errors.New("group_id can't be empty")
-	}
-	if _, _, err := EnsureCheckpointGroup(tx, groupId); err != nil {
-		return models.Checkpoint{}, err
 	}
 
 	if checksum == "" {
@@ -481,20 +475,21 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 
 	for i := range timeline {
 		if err = tx.Select(&timeline[i].Tags, `
-			SELECT checkpoint_tag.*
-			FROM checkpoint_tag
-			JOIN asset_checkpoint ON asset_checkpoint.id = checkpoint_tag.checkpoint_id
-			WHERE asset_checkpoint.group_id = ?
-			GROUP BY checkpoint_tag.name COLLATE NOCASE
-			ORDER BY checkpoint_tag.name COLLATE NOCASE
+			SELECT act.*, t.name
+			FROM asset_checkpoint_tag act
+			JOIN tag t ON t.id = act.tag_id
+			JOIN asset_checkpoint ac ON ac.id = act.checkpoint_id
+			WHERE ac.group_id = ?
+			GROUP BY act.tag_id
+			ORDER BY t.name COLLATE NOCASE
 		`, timeline[i].GroupId); err != nil {
 			return timeline, err
 		}
 		if err = tx.Get(&timeline[i].FollowerCount, `
 			SELECT COUNT(*)
 			FROM asset_dependency ad
-			JOIN checkpoint_tag ct ON ct.id = ad.checkpoint_tag_id
-			JOIN asset_checkpoint ac ON ac.id = ct.checkpoint_id
+			JOIN asset_checkpoint_tag act ON act.id = ad.asset_checkpoint_tag_id
+			JOIN asset_checkpoint ac ON ac.id = act.checkpoint_id
 			WHERE ac.group_id = ?
 		`, timeline[i].GroupId); err != nil {
 			return timeline, err

@@ -1830,7 +1830,7 @@ func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId, de
 
 // AddAssetDependencyWithSelector creates a selector-aware dependency edge.
 func (t *AssetService) AddAssetDependencyWithSelector(
-	projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, checkpointTagId string,
+	projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, assetCheckpointTagId string,
 ) (models.AssetDependencyEdge, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1854,7 +1854,7 @@ func (t *AssetService) AddAssetDependencyWithSelector(
 		dependencyTypeId,
 		resolutionMode,
 		optionalString(checkpointId),
-		optionalString(checkpointTagId),
+		optionalString(assetCheckpointTagId),
 	)
 	if err != nil {
 		return models.AssetDependencyEdge{}, err
@@ -1883,7 +1883,7 @@ func (t *AssetService) GetAssetDependencyEdges(projectPath, assetId string) ([]m
 
 // UpdateAssetDependencySelector changes a dependency edge selector.
 func (t *AssetService) UpdateAssetDependencySelector(
-	projectPath, assetId, edgeId, resolutionMode, checkpointId, checkpointTagId string,
+	projectPath, assetId, edgeId, resolutionMode, checkpointId, assetCheckpointTagId string,
 ) (models.AssetDependencyEdge, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1911,7 +1911,7 @@ func (t *AssetService) UpdateAssetDependencySelector(
 		edgeId,
 		resolutionMode,
 		optionalString(checkpointId),
-		optionalString(checkpointTagId),
+		optionalString(assetCheckpointTagId),
 	)
 	if err != nil {
 		return models.AssetDependencyEdge{}, err

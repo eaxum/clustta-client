@@ -21,13 +21,13 @@ import (
 )
 
 type Dependency struct {
-	Id              string  `json:"id"`
-	EdgeId          string  `json:"edge_id"`
-	TypeId          string  `json:"type_id"`
-	TypeName        string  `json:"type_name"`
-	ResolutionMode  string  `json:"resolution_mode"`
-	CheckpointId    *string `json:"checkpoint_id"`
-	CheckpointTagId *string `json:"checkpoint_tag_id"`
+	Id                   string  `json:"id"`
+	EdgeId               string  `json:"edge_id"`
+	TypeId               string  `json:"type_id"`
+	TypeName             string  `json:"type_name"`
+	ResolutionMode       string  `json:"resolution_mode"`
+	CheckpointId         *string `json:"checkpoint_id"`
+	AssetCheckpointTagId *string `json:"asset_checkpoint_tag_id"`
 }
 type AssetTags struct {
 	Id   string `json:"id"`
@@ -44,11 +44,6 @@ func CreateAssetFast(
 	if checkpointGroupId == "" {
 		checkpointGroupId = uuid.New().String()
 	}
-	autoFinalizeGroup, err := ShouldAutoFinalizeCheckpointGroup(tx, checkpointGroupId)
-	if err != nil {
-		return err
-	}
-
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return errors.New("asset name cannot be empty")
@@ -132,12 +127,6 @@ func CreateAssetFast(
 		fmt.Printf("Error creating new asset checkpoint for asset %s: %v\n", assetFilePath, err)
 		return err
 	}
-	if autoFinalizeGroup {
-		_, err = FinalizeCheckpointGroup(tx, checkpointGroupId)
-		if err != nil {
-			return err
-		}
-	}
 	return nil
 }
 
@@ -149,11 +138,6 @@ func CreateAsset(
 	if checkpointGroupId == "" {
 		checkpointGroupId = uuid.New().String()
 	}
-	autoFinalizeGroup, err := ShouldAutoFinalizeCheckpointGroup(tx, checkpointGroupId)
-	if err != nil {
-		return models.Asset{}, err
-	}
-
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return models.Asset{}, errors.New("asset name cannot be empty")
@@ -328,12 +312,6 @@ func CreateAsset(
 		_, err = CreateCheckpoint(tx, asset.Id, comment, chunkSequence, checksum, timeModified, fileSize, asset.FilePath, author_id, "", checkpointGroupId, func(i1, i2 int, s1, s2 string) {})
 		if err != nil {
 			return models.Asset{}, err
-		}
-		if autoFinalizeGroup {
-			_, err = FinalizeCheckpointGroup(tx, checkpointGroupId)
-			if err != nil {
-				return models.Asset{}, err
-			}
 		}
 	}
 	return asset, nil

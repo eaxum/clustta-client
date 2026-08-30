@@ -22,6 +22,7 @@ import AssignMenu from '@/instances/desktop/menus/AssignMenu.vue';
 import CollectionMenu from '@/instances/desktop/menus/CollectionMenu.vue';
 import CollectionTypeFilterMenu from '@/instances/desktop/menus/CollectionTypeFilterMenu.vue';
 import CompactEditMenu from '@/instances/desktop/menus/CompactEditMenu.vue';
+import CheckpointTagMenu from '@/instances/desktop/menus/CheckpointTagMenu.vue';
 import CopyToProjectSubMenu from '@/instances/desktop/menus/CopyToProjectSubMenu.vue';
 import DependencySearchFilterMenu from '@/instances/desktop/menus/DependencySearchFilterMenu.vue';
 import ExtensionFilterMenu from '@/instances/desktop/menus/ExtensionFilterMenu.vue';
@@ -58,6 +59,7 @@ const menuComponents = {
   collectionMenu: CollectionMenu,
   collectionTypeFilterMenu: CollectionTypeFilterMenu,
   compactEditMenu: CompactEditMenu,
+  checkpointTagMenu: CheckpointTagMenu,
   copyToProjectSubMenu: CopyToProjectSubMenu,
   dependencySearchFilterMenu: DependencySearchFilterMenu,
   extensionFilterMenu: ExtensionFilterMenu,

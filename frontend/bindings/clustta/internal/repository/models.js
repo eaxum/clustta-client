@@ -68,7 +68,7 @@ export class CompatTimeline {
         if (!("tags" in $$source)) {
             /**
              * @member
-             * @type {models$0.CheckpointTag[]}
+             * @type {models$0.AssetCheckpointTag[]}
              */
             this["tags"] = [];
         }
@@ -525,7 +525,7 @@ export class ProjectScriptSettings {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = models$0.CheckpointTag.createFrom;
+const $$createType1 = models$0.AssetCheckpointTag.createFrom;
 const $$createType2 = $Create.Array($$createType1);
 const $$createType3 = PreLaunchEnvironmentVariable.createFrom;
 const $$createType4 = $Create.Array($$createType3);

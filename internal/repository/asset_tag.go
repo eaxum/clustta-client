@@ -81,6 +81,10 @@ func UpdateTag(tx *sqlx.Tx, id, name string, mergeOnCollision bool) (models.Tag,
 }
 
 func mergeTags(tx *sqlx.Tx, sourceTagId string, targetTag models.Tag) (models.Tag, error) {
+	if err := mergeCheckpointTagAssignments(tx, sourceTagId, targetTag.Id); err != nil {
+		return models.Tag{}, err
+	}
+
 	deleteDuplicatesQuery := `
 		DELETE FROM asset_tag
 		WHERE tag_id = ?
@@ -100,8 +104,47 @@ func mergeTags(tx *sqlx.Tx, sourceTagId string, targetTag models.Tag) (models.Ta
 	return targetTag, nil
 }
 
+func mergeCheckpointTagAssignments(tx *sqlx.Tx, sourceTagId, targetTagId string) error {
+	now := utils.GetEpochTime()
+	_, err := tx.Exec(`
+		UPDATE asset_dependency
+		SET asset_checkpoint_tag_id = (
+			SELECT target.id
+			FROM asset_checkpoint_tag source
+			JOIN asset_checkpoint_tag target
+				ON target.asset_id = source.asset_id AND target.tag_id = ?
+			WHERE source.id = asset_dependency.asset_checkpoint_tag_id
+		), mtime = ?, synced = 0
+		WHERE asset_checkpoint_tag_id IN (
+			SELECT source.id
+			FROM asset_checkpoint_tag source
+			JOIN asset_checkpoint_tag target
+				ON target.asset_id = source.asset_id AND target.tag_id = ?
+			WHERE source.tag_id = ?
+		)
+	`, targetTagId, now, targetTagId, sourceTagId)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
+		DELETE FROM asset_checkpoint_tag
+		WHERE tag_id = ?
+		AND asset_id IN (SELECT asset_id FROM asset_checkpoint_tag WHERE tag_id = ?)
+	`, sourceTagId, targetTagId)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`
+		UPDATE asset_checkpoint_tag SET tag_id = ?, mtime = ?, synced = 0 WHERE tag_id = ?
+	`, targetTagId, now, sourceTagId)
+	return err
+}
+
 func DeleteTag(tx *sqlx.Tx, id string) error {
 	if _, err := GetTag(tx, id); err != nil {
+		return err
+	}
+	if err := base_service.DeleteBy(tx, "asset_checkpoint_tag", map[string]interface{}{"tag_id": id}); err != nil {
 		return err
 	}
 	if err := base_service.DeleteBy(tx, "asset_tag", map[string]interface{}{"tag_id": id}); err != nil {

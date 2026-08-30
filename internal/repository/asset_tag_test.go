@@ -38,6 +38,24 @@ func createTestAssetTag(t *testing.T, db *sqlx.DB, id, assetId, tagId string) {
 	}
 }
 
+func createTestCheckpointTag(t *testing.T, db *sqlx.DB, id, assetId, tagId string) {
+	t.Helper()
+	if _, err := db.Exec(`
+		INSERT INTO asset_checkpoint (
+			id, created_at, mtime, asset_id, xxhash_checksum, time_modified,
+			file_size, chunks, author_id, group_id
+		) VALUES (?, 1, 1, ?, ?, 1, 1, '', 'author', ?)
+	`, id+"-checkpoint", assetId, id, id+"-group"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(`
+		INSERT INTO asset_checkpoint_tag (id, mtime, asset_id, tag_id, checkpoint_id)
+		VALUES (?, 1, ?, ?, ?)
+	`, id, assetId, tagId, id+"-checkpoint"); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestCreateTagRejectsCaseInsensitiveCollision(t *testing.T) {
 	db := openTagTestDB(t)
 	createTestTag(t, db, "existing", "Review")
@@ -93,6 +111,7 @@ func TestUpdateTagMergesAssignmentsWithoutDuplicates(t *testing.T) {
 	createTestAssetTag(t, db, "source-only", "asset-1", "source")
 	createTestAssetTag(t, db, "source-duplicate", "asset-2", "source")
 	createTestAssetTag(t, db, "target-existing", "asset-2", "target")
+	createTestCheckpointTag(t, db, "source-checkpoint-tag", "asset-1", "source")
 	tx, err := db.Beginx()
 	if err != nil {
 		t.Fatal(err)
@@ -119,6 +138,12 @@ func TestUpdateTagMergesAssignmentsWithoutDuplicates(t *testing.T) {
 	}
 	if movedTagId != "target" {
 		t.Fatalf("expected relationship ID to be preserved, got tag %q", movedTagId)
+	}
+	if err = tx.Get(&movedTagId, "SELECT tag_id FROM asset_checkpoint_tag WHERE id = 'source-checkpoint-tag'"); err != nil {
+		t.Fatal(err)
+	}
+	if movedTagId != "target" {
+		t.Fatalf("expected checkpoint relationship ID to be preserved, got tag %q", movedTagId)
 	}
 	var tombCount int
 	if err = tx.Get(&tombCount, "SELECT COUNT(*) FROM tomb WHERE id IN ('source', 'source-duplicate')"); err != nil {

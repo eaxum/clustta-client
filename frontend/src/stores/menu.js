@@ -25,6 +25,7 @@ export const useMenu = defineStore("useMenu", {
       resourceItemMenu: false,
       assignMenu: false,
       manageTagsMenu: false,
+      checkpointTagMenu: false,
       accountMenu: false,
       copyToProjectSubMenu: false,
       moveToCollectionSubMenu: false,
@@ -55,6 +56,7 @@ export const useMenu = defineStore("useMenu", {
       'resourceItemMenu', 
       'assignMenu',
       'manageTagsMenu',
+      'checkpointTagMenu',
       'accountMenu',
       'sortMenu',
       'viewMenu',
@@ -68,6 +70,10 @@ export const useMenu = defineStore("useMenu", {
       options: [],
       selectedId: '',
       onSelect: null,
+    },
+
+    checkpointTagMenuData: {
+      checkpoint: null,
     },
 
     menuEl: null,
