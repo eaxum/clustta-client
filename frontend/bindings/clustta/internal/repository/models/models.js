@@ -70,7 +70,7 @@ export class AssetDependency {
              * @member
              * @type {string | null | undefined}
              */
-            this["checkpoint_group_tag_id"] = undefined;
+            this["checkpoint_tag_id"] = undefined;
         }
         if (!("synced" in $$source)) {
             /**
@@ -154,7 +154,7 @@ export class AssetDependencyEdge {
              * @member
              * @type {string | null | undefined}
              */
-            this["checkpoint_group_tag_id"] = undefined;
+            this["checkpoint_tag_id"] = undefined;
         }
         if (!("synced" in $$source)) {
             /**
@@ -406,10 +406,10 @@ export class Checkpoint {
     }
 }
 
-export class CheckpointGroupTag {
+export class CheckpointTag {
     /**
-     * Creates a new CheckpointGroupTag instance.
-     * @param {Partial<CheckpointGroupTag>} [$$source = {}] - The source object to create the CheckpointGroupTag.
+     * Creates a new CheckpointTag instance.
+     * @param {Partial<CheckpointTag>} [$$source = {}] - The source object to create the CheckpointTag.
      */
     constructor($$source = {}) {
         if (!("id" in $$source)) {
@@ -433,12 +433,19 @@ export class CheckpointGroupTag {
              */
             this["name"] = "";
         }
-        if (!("group_id" in $$source)) {
+        if (!("asset_id" in $$source)) {
             /**
              * @member
              * @type {string}
              */
-            this["group_id"] = "";
+            this["asset_id"] = "";
+        }
+        if (!("checkpoint_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["checkpoint_id"] = "";
         }
         if (!("synced" in $$source)) {
             /**
@@ -452,13 +459,13 @@ export class CheckpointGroupTag {
     }
 
     /**
-     * Creates a new CheckpointGroupTag instance from a string or object.
+     * Creates a new CheckpointTag instance from a string or object.
      * @param {any} [$$source = {}]
-     * @returns {CheckpointGroupTag}
+     * @returns {CheckpointTag}
      */
     static createFrom($$source = {}) {
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new CheckpointGroupTag(/** @type {Partial<CheckpointGroupTag>} */($$parsedSource));
+        return new CheckpointTag(/** @type {Partial<CheckpointTag>} */($$parsedSource));
     }
 }
 
@@ -808,7 +815,7 @@ export class DependencySelectorOptions {
         if (!("tags" in $$source)) {
             /**
              * @member
-             * @type {CheckpointGroupTag[]}
+             * @type {CheckpointTag[]}
              */
             this["tags"] = [];
         }
@@ -2081,7 +2088,7 @@ const $$createType4 = DependencyBuildConflict.createFrom;
 const $$createType5 = $Create.Array($$createType4);
 const $$createType6 = Checkpoint.createFrom;
 const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = CheckpointGroupTag.createFrom;
+const $$createType8 = CheckpointTag.createFrom;
 const $$createType9 = $Create.Array($$createType8);
 const $$createType10 = Role.createFrom;
 const $$createType11 = WorkflowAsset.createFrom;

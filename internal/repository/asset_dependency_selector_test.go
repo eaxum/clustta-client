@@ -105,7 +105,7 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 	if _, err = FinalizeCheckpointGroup(tx, "release"); err != nil {
 		t.Fatal(err)
 	}
-	tag, err := SetCheckpointGroupTag(tx, "tag", "animation-approved", "release")
+	tag, err := SetCheckpointTag(tx, "tag", "animation-approved", "release-boy")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,10 +130,10 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 	if _, err = FinalizeCheckpointGroup(tx, "incompatible-release"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = SetCheckpointGroupTag(tx, tag.Id, tag.Name, "incompatible-release"); err == nil {
-		t.Fatal("expected tag move that omits a follower asset to fail")
+	if _, err = SetCheckpointTag(tx, tag.Id, tag.Name, "incompatible-prop"); err == nil {
+		t.Fatal("expected moving a tag to another asset to fail")
 	}
-	if err = DeleteCheckpointGroupTag(tx, tag.Id); err == nil {
+	if err = DeleteCheckpointTag(tx, tag.Id); err == nil {
 		t.Fatal("expected referenced tag deletion to fail")
 	}
 }
@@ -172,7 +172,7 @@ func TestDependencySelectorValidationRejectsInvalidOwnershipAndCycles(t *testing
 	if _, err := FinalizeCheckpointGroup(tx, "other-release"); err != nil {
 		t.Fatal(err)
 	}
-	otherTag, err := SetCheckpointGroupTag(tx, "other-tag", "other-approved", "other-release")
+	otherTag, err := SetCheckpointTag(tx, "other-tag", "other-approved", "other-release-cp")
 	if err != nil {
 		t.Fatal(err)
 	}

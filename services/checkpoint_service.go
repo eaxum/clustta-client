@@ -534,8 +534,8 @@ func (c *CheckpointService) FinalizeCheckpointGroup(projectPath, groupId string)
 	return finalizeCheckpointGroup(dbConn, groupId)
 }
 
-// GetCheckpointGroupTags returns tags compatible with an asset.
-func (c *CheckpointService) GetCheckpointGroupTags(projectPath, assetId string) ([]models.CheckpointGroupTag, error) {
+// GetCheckpointTags returns the moving tags defined for an asset.
+func (c *CheckpointService) GetCheckpointTags(projectPath, assetId string) ([]models.CheckpointTag, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return nil, err
@@ -546,7 +546,7 @@ func (c *CheckpointService) GetCheckpointGroupTags(projectPath, assetId string) 
 		return nil, err
 	}
 	defer tx.Rollback()
-	return repository.GetCheckpointGroupTagsForAsset(tx, assetId)
+	return repository.GetCheckpointTagsForAsset(tx, assetId)
 }
 
 // GetCheckpointDependencyReferenceCounts returns exact-pin follower counts for an asset.
@@ -564,64 +564,71 @@ func (c *CheckpointService) GetCheckpointDependencyReferenceCounts(projectPath, 
 	return repository.GetCheckpointDependencyReferenceCounts(tx, assetId)
 }
 
-// GetCheckpointGroupTagFollowerAssetIds returns assets required by a moving tag.
-func (c *CheckpointService) GetCheckpointGroupTagFollowerAssetIds(projectPath, tagId string) ([]string, error) {
+// SetCheckpointTag creates, renames, or moves an asset-scoped tag.
+func (c *CheckpointService) SetCheckpointTag(projectPath, tagId, name, checkpointId string) (models.CheckpointTag, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
-		return nil, err
+		return models.CheckpointTag{}, err
 	}
 	defer dbConn.Close()
 	tx, err := dbConn.Beginx()
 	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback()
-	return repository.GetCheckpointGroupTagFollowerAssetIds(tx, tagId)
-}
-
-// SetCheckpointGroupTag creates, renames, or moves a checkpoint group tag.
-func (c *CheckpointService) SetCheckpointGroupTag(projectPath, tagId, name, groupId string) (models.CheckpointGroupTag, error) {
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return models.CheckpointGroupTag{}, err
-	}
-	defer dbConn.Close()
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return models.CheckpointGroupTag{}, err
+		return models.CheckpointTag{}, err
 	}
 	defer tx.Rollback()
 
-	assetIds, err := repository.GetCheckpointGroupAssetIds(tx, groupId)
+	checkpoint, err := repository.GetCheckpoint(tx, checkpointId)
 	if err != nil {
-		return models.CheckpointGroupTag{}, err
+		return models.CheckpointTag{}, err
 	}
-	if tagId != "" {
-		existingTag, getErr := repository.GetCheckpointGroupTag(tx, tagId)
-		if getErr != nil {
-			return models.CheckpointGroupTag{}, getErr
-		}
-		existingAssetIds, getErr := repository.GetCheckpointGroupAssetIds(tx, existingTag.GroupId)
-		if getErr != nil {
-			return models.CheckpointGroupTag{}, getErr
-		}
-		assetIds = append(assetIds, existingAssetIds...)
+	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, []string{checkpoint.AssetId}); err != nil {
+		return models.CheckpointTag{}, err
 	}
-	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, uniqueStrings(assetIds)); err != nil {
-		return models.CheckpointGroupTag{}, err
-	}
-	tag, err := repository.SetCheckpointGroupTag(tx, tagId, name, groupId)
+	tag, err := repository.SetCheckpointTag(tx, tagId, name, checkpointId)
 	if err != nil {
-		return models.CheckpointGroupTag{}, err
+		return models.CheckpointTag{}, err
 	}
 	if err = tx.Commit(); err != nil {
-		return models.CheckpointGroupTag{}, err
+		return models.CheckpointTag{}, err
 	}
 	return tag, nil
 }
 
-// DeleteCheckpointGroupTag removes an unreferenced checkpoint group tag.
-func (c *CheckpointService) DeleteCheckpointGroupTag(projectPath, tagId string) error {
+// SetCheckpointTagsForGroup applies one tag name to each checkpoint in a group.
+func (c *CheckpointService) SetCheckpointTagsForGroup(projectPath, name, groupId string) ([]models.CheckpointTag, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	assetIds := []string{}
+	if err = tx.Select(&assetIds, `
+		SELECT DISTINCT asset_id FROM asset_checkpoint
+		WHERE group_id = ? AND trashed = 0
+	`, groupId); err != nil {
+		return nil, err
+	}
+	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, assetIds); err != nil {
+		return nil, err
+	}
+	tags, err := repository.SetCheckpointTagsForGroup(tx, name, groupId)
+	if err != nil {
+		return nil, err
+	}
+	if err = tx.Commit(); err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
+// DeleteCheckpointTag removes an unreferenced checkpoint tag.
+func (c *CheckpointService) DeleteCheckpointTag(projectPath, tagId string) error {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -633,34 +640,17 @@ func (c *CheckpointService) DeleteCheckpointGroupTag(projectPath, tagId string) 
 	}
 	defer tx.Rollback()
 
-	tag, err := repository.GetCheckpointGroupTag(tx, tagId)
+	tag, err := repository.GetCheckpointTag(tx, tagId)
 	if err != nil {
 		return err
 	}
-	assetIds, err := repository.GetCheckpointGroupAssetIds(tx, tag.GroupId)
-	if err != nil {
+	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, []string{tag.AssetId}); err != nil {
 		return err
 	}
-	if err = authorizeAssetActionTx(tx, assetActionManageDependencies, assetIds); err != nil {
-		return err
-	}
-	if err = repository.DeleteCheckpointGroupTag(tx, tagId); err != nil {
+	if err = repository.DeleteCheckpointTag(tx, tagId); err != nil {
 		return err
 	}
 	return tx.Commit()
-}
-
-func uniqueStrings(values []string) []string {
-	seen := map[string]struct{}{}
-	result := make([]string, 0, len(values))
-	for _, value := range values {
-		if _, exists := seen[value]; exists {
-			continue
-		}
-		seen[value] = struct{}{}
-		result = append(result, value)
-	}
-	return result
 }
 
 func checkpointGroupAutoFinalization(dbConn *sqlx.DB, groupId string) (bool, error) {

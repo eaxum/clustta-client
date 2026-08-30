@@ -21,13 +21,13 @@ import (
 )
 
 type Dependency struct {
-	Id                   string  `json:"id"`
-	EdgeId               string  `json:"edge_id"`
-	TypeId               string  `json:"type_id"`
-	TypeName             string  `json:"type_name"`
-	ResolutionMode       string  `json:"resolution_mode"`
-	CheckpointId         *string `json:"checkpoint_id"`
-	CheckpointGroupTagId *string `json:"checkpoint_group_tag_id"`
+	Id              string  `json:"id"`
+	EdgeId          string  `json:"edge_id"`
+	TypeId          string  `json:"type_id"`
+	TypeName        string  `json:"type_name"`
+	ResolutionMode  string  `json:"resolution_mode"`
+	CheckpointId    *string `json:"checkpoint_id"`
+	CheckpointTagId *string `json:"checkpoint_tag_id"`
 }
 type AssetTags struct {
 	Id   string `json:"id"`

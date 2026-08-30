@@ -51,7 +51,7 @@ func TestDependencyBuildPlanUsesExactSelectorsAndDetectsConflicts(t *testing.T) 
 	if _, err := FinalizeCheckpointGroup(tx, "release"); err != nil {
 		t.Fatal(err)
 	}
-	tag, err := SetCheckpointGroupTag(tx, "release-tag", "animation-approved", "release")
+	tag, err := SetCheckpointTag(tx, "release-tag", "animation-approved", "release-boy")
 	if err != nil {
 		t.Fatal(err)
 	}

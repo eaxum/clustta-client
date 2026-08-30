@@ -453,17 +453,17 @@ CREATE TABLE IF NOT EXISTS asset_dependency (
     dependency_type_id TEXT NOT NULL,
     resolution_mode TEXT DEFAULT 'floating' NOT NULL CHECK (resolution_mode IN ('floating', 'pinned', 'tagged')),
     checkpoint_id TEXT NULL,
-    checkpoint_group_tag_id TEXT NULL,
+    checkpoint_tag_id TEXT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
     FOREIGN KEY (asset_id) REFERENCES asset(id),
     FOREIGN KEY (dependency_id) REFERENCES asset(id),
     FOREIGN KEY (dependency_type_id) REFERENCES dependency_type(id),
     FOREIGN KEY (checkpoint_id) REFERENCES asset_checkpoint(id),
-    FOREIGN KEY (checkpoint_group_tag_id) REFERENCES checkpoint_group_tag(id),
+    FOREIGN KEY (checkpoint_tag_id) REFERENCES checkpoint_tag(id),
     CHECK (
-        (resolution_mode = 'floating' AND checkpoint_id IS NULL AND checkpoint_group_tag_id IS NULL) OR
-        (resolution_mode = 'pinned' AND checkpoint_id IS NOT NULL AND checkpoint_group_tag_id IS NULL) OR
-        (resolution_mode = 'tagged' AND checkpoint_id IS NULL AND checkpoint_group_tag_id IS NOT NULL)
+        (resolution_mode = 'floating' AND checkpoint_id IS NULL AND checkpoint_tag_id IS NULL) OR
+        (resolution_mode = 'pinned' AND checkpoint_id IS NOT NULL AND checkpoint_tag_id IS NULL) OR
+        (resolution_mode = 'tagged' AND checkpoint_id IS NULL AND checkpoint_tag_id IS NOT NULL)
     ),
     UNIQUE (asset_id, dependency_id)
 );
@@ -471,20 +471,20 @@ CREATE TABLE IF NOT EXISTS asset_dependency (
 CREATE TRIGGER IF NOT EXISTS asset_dependency_selector_insert BEFORE INSERT ON asset_dependency
 FOR EACH ROW
 WHEN NOT (
-    (NEW.resolution_mode = 'floating' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_group_tag_id IS NULL) OR
-    (NEW.resolution_mode = 'pinned' AND NEW.checkpoint_id IS NOT NULL AND NEW.checkpoint_group_tag_id IS NULL) OR
-    (NEW.resolution_mode = 'tagged' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_group_tag_id IS NOT NULL)
+    (NEW.resolution_mode = 'floating' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_tag_id IS NULL) OR
+    (NEW.resolution_mode = 'pinned' AND NEW.checkpoint_id IS NOT NULL AND NEW.checkpoint_tag_id IS NULL) OR
+    (NEW.resolution_mode = 'tagged' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_tag_id IS NOT NULL)
 )
 BEGIN
     SELECT RAISE(ABORT, 'invalid dependency selector');
 END;
 
-CREATE TRIGGER IF NOT EXISTS asset_dependency_selector_update BEFORE UPDATE OF resolution_mode, checkpoint_id, checkpoint_group_tag_id ON asset_dependency
+CREATE TRIGGER IF NOT EXISTS asset_dependency_selector_update BEFORE UPDATE OF resolution_mode, checkpoint_id, checkpoint_tag_id ON asset_dependency
 FOR EACH ROW
 WHEN NOT (
-    (NEW.resolution_mode = 'floating' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_group_tag_id IS NULL) OR
-    (NEW.resolution_mode = 'pinned' AND NEW.checkpoint_id IS NOT NULL AND NEW.checkpoint_group_tag_id IS NULL) OR
-    (NEW.resolution_mode = 'tagged' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_group_tag_id IS NOT NULL)
+    (NEW.resolution_mode = 'floating' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_tag_id IS NULL) OR
+    (NEW.resolution_mode = 'pinned' AND NEW.checkpoint_id IS NOT NULL AND NEW.checkpoint_tag_id IS NULL) OR
+    (NEW.resolution_mode = 'tagged' AND NEW.checkpoint_id IS NULL AND NEW.checkpoint_tag_id IS NOT NULL)
 )
 BEGIN
     SELECT RAISE(ABORT, 'invalid dependency selector');
@@ -572,55 +572,58 @@ BEGIN
     INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'checkpoint_group', 0);
 END;
 
-CREATE TABLE IF NOT EXISTS checkpoint_group_tag (
+CREATE TABLE IF NOT EXISTS checkpoint_tag (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
-    name TEXT NOT NULL COLLATE NOCASE UNIQUE,
-    group_id TEXT NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE,
+    asset_id TEXT NOT NULL,
+    checkpoint_id TEXT NOT NULL,
     synced BOOLEAN DEFAULT 0 NOT NULL,
-    FOREIGN KEY (group_id) REFERENCES checkpoint_group(id)
+    FOREIGN KEY (asset_id) REFERENCES asset(id),
+    FOREIGN KEY (checkpoint_id) REFERENCES asset_checkpoint(id),
+    UNIQUE (asset_id, name)
 );
 
-CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_insert BEFORE INSERT ON checkpoint_group_tag
+CREATE TRIGGER IF NOT EXISTS checkpoint_tag_insert BEFORE INSERT ON checkpoint_tag
 FOR EACH ROW
 WHEN NOT EXISTS (
-    SELECT 1 FROM checkpoint_group
-    WHERE id = NEW.group_id AND group_type = 'multi' AND finalized = 1
+    SELECT 1 FROM asset_checkpoint
+    WHERE id = NEW.checkpoint_id AND asset_id = NEW.asset_id AND trashed = 0
 )
 BEGIN
-    SELECT RAISE(ABORT, 'checkpoint group is not taggable');
+    SELECT RAISE(ABORT, 'checkpoint does not belong to the tag asset');
 END;
 
-CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_update BEFORE UPDATE ON checkpoint_group_tag
+CREATE TRIGGER IF NOT EXISTS checkpoint_tag_update BEFORE UPDATE OF asset_id, checkpoint_id ON checkpoint_tag
 FOR EACH ROW
 WHEN NOT EXISTS (
-    SELECT 1 FROM checkpoint_group
-    WHERE id = NEW.group_id AND group_type = 'multi' AND finalized = 1
+    SELECT 1 FROM asset_checkpoint
+    WHERE id = NEW.checkpoint_id AND asset_id = NEW.asset_id AND trashed = 0
 )
 BEGIN
-    SELECT RAISE(ABORT, 'checkpoint group is not taggable');
+    SELECT RAISE(ABORT, 'checkpoint does not belong to the tag asset');
 END;
 
-CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_sync_update AFTER UPDATE ON checkpoint_group_tag
+CREATE TRIGGER IF NOT EXISTS checkpoint_tag_sync_update AFTER UPDATE ON checkpoint_tag
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime
 BEGIN
-    UPDATE checkpoint_group_tag SET synced = 0 WHERE id = NEW.id;
+    UPDATE checkpoint_tag SET synced = 0 WHERE id = NEW.id;
 END;
 
-CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_delete AFTER DELETE ON checkpoint_group_tag
+CREATE TRIGGER IF NOT EXISTS checkpoint_tag_delete AFTER DELETE ON checkpoint_tag
 FOR EACH ROW
 BEGIN
-    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'checkpoint_group_tag', 0);
+    INSERT INTO tomb (id, mtime, table_name, synced) VALUES (OLD.id, unixepoch(), 'checkpoint_tag', 0);
 END;
 
-CREATE TRIGGER IF NOT EXISTS checkpoint_group_tag_dependency_delete BEFORE DELETE ON checkpoint_group_tag
+CREATE TRIGGER IF NOT EXISTS checkpoint_tag_dependency_delete BEFORE DELETE ON checkpoint_tag
 FOR EACH ROW
 WHEN EXISTS (
-    SELECT 1 FROM asset_dependency WHERE checkpoint_group_tag_id = OLD.id
+    SELECT 1 FROM asset_dependency WHERE checkpoint_tag_id = OLD.id
 )
 BEGIN
-    SELECT RAISE(ABORT, 'checkpoint group tag is referenced by a dependency');
+    SELECT RAISE(ABORT, 'checkpoint tag is referenced by a dependency');
 END;
 
 CREATE TABLE IF NOT EXISTS asset_checkpoint (
@@ -644,16 +647,6 @@ CREATE TABLE IF NOT EXISTS asset_checkpoint (
     FOREIGN KEY (group_id) REFERENCES checkpoint_group(id)
 );
 
-CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_group_insert BEFORE INSERT ON asset_checkpoint
-FOR EACH ROW
-WHEN EXISTS (
-    SELECT 1 FROM checkpoint_group_tag
-    WHERE group_id = NEW.group_id
-)
-BEGIN
-    SELECT RAISE(ABORT, 'tagged checkpoint group membership is immutable');
-END;
-
 CREATE TRIGGER IF NOT EXISTS asset_checkpoint_multi_insert BEFORE INSERT ON asset_checkpoint
 FOR EACH ROW
 WHEN EXISTS (
@@ -668,30 +661,19 @@ BEGIN
     SELECT RAISE(ABORT, 'multi checkpoint group already contains this asset');
 END;
 
-CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_group_trash BEFORE UPDATE OF trashed ON asset_checkpoint
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_trash BEFORE UPDATE OF trashed ON asset_checkpoint
 FOR EACH ROW
 WHEN OLD.trashed = 0 AND NEW.trashed = 1
-AND EXISTS (SELECT 1 FROM checkpoint_group_tag WHERE group_id = OLD.group_id)
-AND (
-    SELECT COUNT(DISTINCT asset_id)
-    FROM asset_checkpoint
-    WHERE group_id = OLD.group_id AND trashed = 0 AND id != OLD.id
-) < 2
+AND EXISTS (SELECT 1 FROM checkpoint_tag WHERE checkpoint_id = OLD.id)
 BEGIN
-    SELECT RAISE(ABORT, 'tagged checkpoint group must retain at least two assets');
+    SELECT RAISE(ABORT, 'tagged checkpoint cannot be trashed');
 END;
 
-CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_group_delete BEFORE DELETE ON asset_checkpoint
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tagged_delete BEFORE DELETE ON asset_checkpoint
 FOR EACH ROW
-WHEN OLD.trashed = 0
-AND EXISTS (SELECT 1 FROM checkpoint_group_tag WHERE group_id = OLD.group_id)
-AND (
-    SELECT COUNT(DISTINCT asset_id)
-    FROM asset_checkpoint
-    WHERE group_id = OLD.group_id AND trashed = 0 AND id != OLD.id
-) < 2
+WHEN EXISTS (SELECT 1 FROM checkpoint_tag WHERE checkpoint_id = OLD.id)
 BEGIN
-    SELECT RAISE(ABORT, 'tagged checkpoint group must retain at least two assets');
+    SELECT RAISE(ABORT, 'tagged checkpoint cannot be deleted');
 END;
 
 CREATE TRIGGER IF NOT EXISTS asset_checkpoint_update AFTER UPDATE ON asset_checkpoint
@@ -1047,7 +1029,7 @@ SELECT
         'type_name', dt.name,
         'resolution_mode', td.resolution_mode,
         'checkpoint_id', td.checkpoint_id,
-        'checkpoint_group_tag_id', td.checkpoint_group_tag_id
+        'checkpoint_tag_id', td.checkpoint_tag_id
     )) AS dependencies
 FROM 
     asset_dependency td
@@ -1137,6 +1119,7 @@ CREATE INDEX IF NOT EXISTS idx_asset_tag_asset ON asset_tag(asset_id);
 CREATE INDEX IF NOT EXISTS idx_asset_tag_tag ON asset_tag(tag_id);
 CREATE INDEX IF NOT EXISTS idx_asset_dependency_asset ON asset_dependency(asset_id);
 CREATE INDEX IF NOT EXISTS idx_asset_dependency_checkpoint ON asset_dependency(checkpoint_id);
-CREATE INDEX IF NOT EXISTS idx_asset_dependency_group_tag ON asset_dependency(checkpoint_group_tag_id);
+CREATE INDEX IF NOT EXISTS idx_asset_dependency_tag ON asset_dependency(checkpoint_tag_id);
+CREATE INDEX IF NOT EXISTS idx_checkpoint_tag_checkpoint ON checkpoint_tag(checkpoint_id);
 CREATE INDEX IF NOT EXISTS idx_collection_dependency_asset ON collection_dependency(asset_id);
 CREATE INDEX IF NOT EXISTS idx_collection_parent ON collection(parent_id);

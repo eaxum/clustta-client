@@ -8,6 +8,8 @@
           <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="suggestedComment" v-focus
             @keydown.enter="handleEnterKey" />
 
+          <CheckpointTagSelector v-model="checkpointTagName" :assetIds="checkpointTagAssetIds" />
+
           <div class="checkpoint-create-controls">
             <div v-if="!statusMenuDisplayed" class="attachment-area">
               <div class="asset-item-status-container" v-stop-propagation>
@@ -87,6 +89,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import Checkpoints from '@/instances/desktop/panes/Checkpoints.vue';
+import CheckpointTagSelector from '@/instances/desktop/components/CheckpointTagSelector.vue';
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
@@ -118,6 +121,7 @@ const { t } = useI18n();
 // refs
 const displayStatusMenu = ref(false);
 const checkpointPaneVisible = ref(false);
+const checkpointTagName = ref('');
 const isAwaitingResponse = ref(false);
 const message = ref('');
 const modalContainer = ref(null);
@@ -150,6 +154,11 @@ const isRemoteProject = computed(() => {
 // Returns whether the selected asset can show existing checkpoints.
 const canShowExistingCheckpoints = computed(() => {
   return assetStore.selectedAsset?.type === 'asset' && !!assetStore.selectedAsset?.id;
+});
+
+const checkpointTagAssetIds = computed(() => {
+  if (assetStore.selectedAsset?.type !== 'asset') return [];
+  return [assetStore.selectedAsset.id];
 });
 
 // Returns whether the existing checkpoints pane should be mounted.
@@ -207,6 +216,19 @@ const closeStatusMenu = () => {
   displayStatusMenu.value = false;
 };
 
+const applyCheckpointTag = async (groupId) => {
+  if (!checkpointTagName.value) return;
+  try {
+    await CheckpointService.SetCheckpointTagsForGroup(
+      projectStore.activeProject.uri,
+      checkpointTagName.value,
+      groupId,
+    );
+  } catch (error) {
+    notificationStore.errorNotification('Checkpoint created, but the tag was not changed', error);
+  }
+};
+
 // Creates a checkpoint for the selected asset.
 const createCheckPoint = async () => {
   isAwaitingResponse.value = true;
@@ -217,7 +239,8 @@ const createCheckPoint = async () => {
   const groupId = uuidv4();
   if (assetStore.selectedAsset.type === 'asset') {
     CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [assetPath], [extension], comment, previewPath, groupId, useImageAsCover.value, sendToIntegrationEnabled.value)
-      .then(() => {
+      .then(async () => {
+        await applyCheckpointTag(groupId);
         emitter.emit('refresh-browser');
         emitter.emit('update-checkpoints');
         assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedAssetPath) => modifiedAssetPath !== assetPath + extension);
@@ -235,7 +258,8 @@ const createCheckPoint = async () => {
       });
   } else {
     await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [assetPath], 0, 1, comment, previewPath, groupId)
-      .then(() => {
+      .then(async () => {
+        await applyCheckpointTag(groupId);
         assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== assetPath);
         emitter.emit('refresh-browser');
         emitter.emit('update-checkpoints');

@@ -73,20 +73,20 @@ type revertRequest struct {
 }
 
 type dependencyRequest struct {
-	DependencyID         string `json:"dependency_id"`
-	DependencyTypeID     string `json:"dependency_type_id"`
-	ResolutionMode       string `json:"resolution_mode"`
-	CheckpointID         string `json:"checkpoint_id"`
-	CheckpointGroupTagID string `json:"checkpoint_group_tag_id"`
+	DependencyID     string `json:"dependency_id"`
+	DependencyTypeID string `json:"dependency_type_id"`
+	ResolutionMode   string `json:"resolution_mode"`
+	CheckpointID     string `json:"checkpoint_id"`
+	CheckpointTagID  string `json:"checkpoint_tag_id"`
 }
 
 type dependencySelectorRequest struct {
-	ResolutionMode       string `json:"resolution_mode"`
-	CheckpointID         string `json:"checkpoint_id"`
-	CheckpointGroupTagID string `json:"checkpoint_group_tag_id"`
+	ResolutionMode  string `json:"resolution_mode"`
+	CheckpointID    string `json:"checkpoint_id"`
+	CheckpointTagID string `json:"checkpoint_tag_id"`
 }
 
-type checkpointGroupTagRequest struct {
+type checkpointTagRequest struct {
 	Name string `json:"name"`
 }
 
@@ -113,7 +113,7 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"checkpoints.list",
 			"checkpoints.create",
 			"checkpoints.revert",
-			"checkpoint_group_tags.manage",
+			"checkpoint_tags.manage",
 			"jobs.get",
 			"jobs.cancel",
 		},
@@ -392,7 +392,7 @@ func V1CreateDependency(w http.ResponseWriter, r *http.Request) {
 		request.DependencyTypeID,
 		request.ResolutionMode,
 		request.CheckpointID,
-		request.CheckpointGroupTagID,
+		request.CheckpointTagID,
 	)
 	if err != nil {
 		dependencyMutationError(w, err)
@@ -419,7 +419,7 @@ func V1UpdateDependencySelector(w http.ResponseWriter, r *http.Request) {
 		r.PathValue("edgeId"),
 		request.ResolutionMode,
 		request.CheckpointID,
-		request.CheckpointGroupTagID,
+		request.CheckpointTagID,
 	)
 	if err != nil {
 		dependencyMutationError(w, err)
@@ -442,13 +442,13 @@ func V1DependencySelectorOptions(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusOK, options)
 }
 
-func V1ListCheckpointGroupTags(w http.ResponseWriter, r *http.Request) {
+func V1ListCheckpointTags(w http.ResponseWriter, r *http.Request) {
 	project, asset, ok := requestAsset(w, r)
 	if !ok {
 		return
 	}
 	checkpointService := &services.CheckpointService{}
-	tags, err := checkpointService.GetCheckpointGroupTags(project.Uri, asset.Id)
+	tags, err := checkpointService.GetCheckpointTags(project.Uri, asset.Id)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -456,22 +456,22 @@ func V1ListCheckpointGroupTags(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusOK, tags)
 }
 
-func V1SetCheckpointGroupTag(w http.ResponseWriter, r *http.Request) {
+func V1SetCheckpointTag(w http.ResponseWriter, r *http.Request) {
 	project, ok := requestProject(w, r)
 	if !ok {
 		return
 	}
-	request := checkpointGroupTagRequest{}
+	request := checkpointTagRequest{}
 	if err := decodeBody(r, &request); err != nil || strings.TrimSpace(request.Name) == "" {
 		jsonError(w, http.StatusBadRequest, "name is required")
 		return
 	}
 	checkpointService := &services.CheckpointService{}
-	tag, err := checkpointService.SetCheckpointGroupTag(
+	tag, err := checkpointService.SetCheckpointTag(
 		project.Uri,
 		r.PathValue("tagId"),
 		request.Name,
-		r.PathValue("groupId"),
+		r.PathValue("checkpointId"),
 	)
 	if err != nil {
 		dependencyMutationError(w, err)
@@ -480,13 +480,32 @@ func V1SetCheckpointGroupTag(w http.ResponseWriter, r *http.Request) {
 	jsonResponse(w, http.StatusOK, tag)
 }
 
-func V1DeleteCheckpointGroupTag(w http.ResponseWriter, r *http.Request) {
+func V1SetCheckpointTagsForGroup(w http.ResponseWriter, r *http.Request) {
+	project, ok := requestProject(w, r)
+	if !ok {
+		return
+	}
+	request := checkpointTagRequest{}
+	if err := decodeBody(r, &request); err != nil || strings.TrimSpace(request.Name) == "" {
+		jsonError(w, http.StatusBadRequest, "name is required")
+		return
+	}
+	checkpointService := &services.CheckpointService{}
+	tags, err := checkpointService.SetCheckpointTagsForGroup(project.Uri, request.Name, r.PathValue("groupId"))
+	if err != nil {
+		dependencyMutationError(w, err)
+		return
+	}
+	jsonResponse(w, http.StatusOK, tags)
+}
+
+func V1DeleteCheckpointTag(w http.ResponseWriter, r *http.Request) {
 	project, ok := requestProject(w, r)
 	if !ok {
 		return
 	}
 	checkpointService := &services.CheckpointService{}
-	if err := checkpointService.DeleteCheckpointGroupTag(project.Uri, r.PathValue("tagId")); err != nil {
+	if err := checkpointService.DeleteCheckpointTag(project.Uri, r.PathValue("tagId")); err != nil {
 		dependencyMutationError(w, err)
 		return
 	}

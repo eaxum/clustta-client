@@ -49,7 +49,7 @@ const selectorLabel = computed(() => {
 
 const selectedOptionId = computed(() => {
   if (props.edge.resolution_mode === 'pinned') return `pinned-${props.edge.checkpoint_id}`;
-  if (props.edge.resolution_mode === 'tagged') return `tagged-${props.edge.checkpoint_group_tag_id}`;
+  if (props.edge.resolution_mode === 'tagged') return `tagged-${props.edge.checkpoint_tag_id}`;
   return 'floating';
 });
 

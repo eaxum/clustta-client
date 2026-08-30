@@ -455,7 +455,7 @@ const addDependency = async (dependencyId, itemType, selector = null) => {
     
     const resolutionMode = selector?.resolution_mode || 'floating';
     const checkpointId = selector?.checkpoint_id || '';
-    const checkpointGroupTagId = selector?.checkpoint_group_tag_id || '';
+    const checkpointTagId = selector?.checkpoint_tag_id || '';
     await AssetService.AddAssetDependencyWithSelector(
       projectStore.activeProject.uri,
       asset.id,
@@ -463,7 +463,7 @@ const addDependency = async (dependencyId, itemType, selector = null) => {
       dependencyTypeID,
       resolutionMode,
       checkpointId,
-      checkpointGroupTagId,
+      checkpointTagId,
     )
       .then((response) => {
         notificationStore.addNotification(t('notifications.dependencyAdded'), "", "success");

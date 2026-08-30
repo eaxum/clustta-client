@@ -29,6 +29,15 @@ CREATE TABLE IF NOT EXISTS asset_checkpoint (
     group_id TEXT DEFAULT '' NOT NULL,
     trashed BOOLEAN DEFAULT 0 NOT NULL
 );
+CREATE TABLE IF NOT EXISTS checkpoint_tag (
+    id TEXT PRIMARY KEY,
+    mtime INTEGER NOT NULL,
+    name TEXT NOT NULL COLLATE NOCASE,
+    asset_id TEXT NOT NULL,
+    checkpoint_id TEXT NOT NULL,
+    synced BOOLEAN DEFAULT 0 NOT NULL,
+    UNIQUE (asset_id, name)
+);
 CREATE TABLE IF NOT EXISTS checkpoint_group (
     id TEXT PRIMARY KEY,
     mtime INTEGER NOT NULL,
@@ -54,7 +63,7 @@ CREATE VIEW asset_dependencies AS
 SELECT
     asset_id,
     checkpoint_id,
-    checkpoint_group_tag_id
+    checkpoint_tag_id
 FROM asset_dependency;
 DROP VIEW IF EXISTS full_asset;
 CREATE VIEW full_asset AS
@@ -149,6 +158,27 @@ func TestMigrateV2_2BackfillsSingleAndMultiGroups(t *testing.T) {
 	}
 	if resolutionMode != "floating" {
 		t.Fatalf("expected existing dependency to migrate to floating, got %s", resolutionMode)
+	}
+
+	var checkpointTagColumnCount int
+	if err = db.Get(&checkpointTagColumnCount, `
+		SELECT COUNT(*) FROM pragma_table_info('asset_dependency')
+		WHERE name = 'checkpoint_tag_id'
+	`); err != nil {
+		t.Fatal(err)
+	}
+	if checkpointTagColumnCount != 1 {
+		t.Fatal("expected checkpoint_tag_id to be added")
+	}
+	var checkpointTagTableCount int
+	if err = db.Get(&checkpointTagTableCount, `
+		SELECT COUNT(*) FROM sqlite_master
+		WHERE type = 'table' AND name = 'checkpoint_tag'
+	`); err != nil {
+		t.Fatal(err)
+	}
+	if checkpointTagTableCount != 1 {
+		t.Fatal("expected checkpoint_tag table to exist")
 	}
 
 	var projectVersion string

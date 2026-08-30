@@ -7,7 +7,7 @@ export {
     AssetDependencyEdge,
     AssetType,
     Checkpoint,
-    CheckpointGroupTag,
+    CheckpointTag,
     CollectionType,
     DependencyBuildConflict,
     DependencyBuildPlan,

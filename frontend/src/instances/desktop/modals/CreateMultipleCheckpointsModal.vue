@@ -8,24 +8,10 @@
           <textarea v-model="message" class="desktop-input-long" type="text" :placeholder="$t('placeholders.writeAComment')" v-focus
             @keydown.enter="handleEnterKey" />
 
-          <div v-if="canTagCheckpointGroup" class="checkpoint-tag-control">
-            <RenameInput v-if="isCreatingCheckpointTag" v-model="newTagName" originalValue="" placeholder="Tag name"
-              @confirm="confirmNewCheckpointTag" @cancel="cancelNewCheckpointTag" />
-            <DropDownBox v-else :items="checkpointTagOptions" :selectedItem="selectedCheckpointTagOption"
-              :onSelect="selectCheckpointTag" :useFilter="false" placeHolder="No tag">
-              <template #footer="{ close }">
-                <div class="checkpoint-tag-dropdown-divider"></div>
-                <button class="checkpoint-tag-create-action" type="button" @click="startNewCheckpointTag(close)">
-                  <img class="small-icons" :src="getAppIcon('plus-circle')">
-                  <span>Add new tag</span>
-                </button>
-              </template>
-            </DropDownBox>
-            <div v-if="!isCreatingCheckpointTag && selectedExistingTag" class="checkpoint-tag-impact">
-              Future dependencies following {{ selectedExistingTag.name }} will use this checkpoint group.
-            </div>
-            <div v-if="missingFollowerNames.length" class="checkpoint-tag-error">
-              Include required assets before moving this tag: {{ missingFollowerNames.join(', ') }}
+          <div class="checkpoint-tag-control">
+            <CheckpointTagSelector v-model="checkpointTagName" :assetIds="distinctTrackedAssetIds" />
+            <div v-if="checkpointTagName" class="checkpoint-tag-impact">
+              Dependencies following {{ checkpointTagName }} for these assets will use their new checkpoints.
             </div>
           </div>
 
@@ -142,12 +128,11 @@ import { canCreateCheckpointForItem } from '@/lib/permissions';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetItem from '@/instances/desktop/components/AssetItem.vue';
-import DropDownBox from '@/instances/common/components/DropDownBox.vue';
+import CheckpointTagSelector from '@/instances/desktop/components/CheckpointTagSelector.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import PaneHeaderTabs from '@/instances/common/components/PaneHeaderTabs.vue';
-import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // services
@@ -167,7 +152,6 @@ import { useTrayStates } from '@/stores/TrayStates';
 
 const CHECKPOINT_GROUP_TYPE_MULTI = 'multi';
 const CHECKPOINT_GROUP_TYPE_SINGLE = 'single';
-const NO_CHECKPOINT_TAG_SELECTION = 'no-checkpoint-tag';
 
 const { t } = useI18n();
 const assetStore = useAssetStore();
@@ -191,13 +175,7 @@ const selectedModifiedItemsFilter = ref('all');
 const showCheckpointItems = ref(false);
 const showFullPath = ref(false);
 const useImageAsCover = ref(true);
-const eligibleTags = ref([]);
-const isCreatingCheckpointTag = ref(false);
-const newTagName = ref('');
-const checkpointTagNameBeforeEdit = ref('');
-const tagSelection = ref('');
-const tagFollowerAssetIds = ref([]);
-const projectAssetNames = ref(new Map());
+const checkpointTagName = ref('');
 
 // constants
 const modifiedItemTabs = [
@@ -352,53 +330,12 @@ const totalCheckpointItems = computed(() => {
 
 // Returns whether the current checkpoint selection can be submitted.
 const canCreateCheckpoints = computed(() => {
-  const hasValidTag = tagSelection.value !== 'new' || newTagName.value.length > 0;
   return !assetStore.loadingAssetStates
-    && totalCheckpointItems.value > 0
-    && hasValidTag
-    && missingFollowerNames.value.length === 0;
+    && totalCheckpointItems.value > 0;
 });
 
 const distinctTrackedAssetIds = computed(() => {
   return [...new Set(currentModifiedDisplayPaths.value.map(item => item.asset_id).filter(Boolean))];
-});
-
-const distinctCheckpointItemIds = computed(() => {
-  return [...new Set(checkpointItems.value.map(item => item.id).filter(Boolean))];
-});
-
-const canTagCheckpointGroup = computed(() => distinctCheckpointItemIds.value.length >= 2);
-
-const selectedExistingTag = computed(() => {
-  return eligibleTags.value.find(tag => tag.id === tagSelection.value);
-});
-
-const checkpointTagOptions = computed(() => [
-  { id: NO_CHECKPOINT_TAG_SELECTION, name: 'No tag', selectionValue: NO_CHECKPOINT_TAG_SELECTION, icon: getAppIcon('tag') },
-  ...(tagSelection.value === 'new' && newTagName.value ? [{
-    id: 'new-checkpoint-tag',
-    name: newTagName.value,
-    selectionValue: 'new',
-    icon: getAppIcon('tag'),
-  }] : []),
-  ...eligibleTags.value.map(tag => ({
-    ...tag,
-    selectionValue: tag.id,
-    icon: getAppIcon('tag'),
-  })),
-]);
-
-const selectedCheckpointTagOption = computed(() => {
-  if (tagSelection.value === 'new') return 'new';
-  if (!selectedExistingTag.value) return NO_CHECKPOINT_TAG_SELECTION;
-  return selectedExistingTag.value.id;
-});
-
-const missingFollowerNames = computed(() => {
-  const selectedIds = new Set(distinctTrackedAssetIds.value);
-  return tagFollowerAssetIds.value
-    .filter(assetId => !selectedIds.has(assetId))
-    .map(assetId => projectAssetNames.value.get(assetId) || assetId);
 });
 
 // methods
@@ -434,14 +371,11 @@ const createCheckPoints = async () => {
     }
     await CheckpointService.FinalizeCheckpointGroup(projectStore.activeProject.uri, groupId);
 
-    if (tagSelection.value) {
+    if (checkpointTagName.value) {
       try {
-        const selectedTag = selectedExistingTag.value;
-        const tagId = selectedTag?.id || '';
-        const tagName = selectedTag?.name || newTagName.value;
-        await CheckpointService.SetCheckpointGroupTag(projectStore.activeProject.uri, tagId, tagName, groupId);
+        await CheckpointService.SetCheckpointTagsForGroup(projectStore.activeProject.uri, checkpointTagName.value, groupId);
       } catch (tagError) {
-        notificationStore.errorNotification('Checkpoints created, but the group tag was not changed', tagError);
+        notificationStore.errorNotification('Checkpoints created, but the tag was not changed', tagError);
       }
     }
 
@@ -464,92 +398,6 @@ const createCheckPoints = async () => {
   const seconds = Math.floor((executionTime % 60000) / 1000);
   console.log(`createCheckPoints completed in: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
 };
-
-const loadEligibleTags = async () => {
-  if (!canTagCheckpointGroup.value || distinctTrackedAssetIds.value.length !== distinctCheckpointItemIds.value.length) {
-    eligibleTags.value = [];
-    if (tagSelection.value !== 'new') tagSelection.value = '';
-    return;
-  }
-
-  try {
-    const tagLists = await Promise.all(distinctTrackedAssetIds.value.map(assetId => (
-      CheckpointService.GetCheckpointGroupTags(projectStore.activeProject.uri, assetId)
-    )));
-    const tagCounts = new Map();
-    const tagsById = new Map();
-    tagLists.flat().forEach(tag => {
-      tagCounts.set(tag.id, (tagCounts.get(tag.id) || 0) + 1);
-      tagsById.set(tag.id, tag);
-    });
-    eligibleTags.value = [...tagsById.values()].filter(tag => (
-      tagCounts.get(tag.id) === distinctTrackedAssetIds.value.length
-    ));
-  } catch (error) {
-    notificationStore.errorNotification('Unable to load checkpoint group tags', error);
-  }
-};
-
-const loadTagImpact = async () => {
-  tagFollowerAssetIds.value = [];
-  if (!selectedExistingTag.value) return;
-  try {
-    tagFollowerAssetIds.value = await CheckpointService.GetCheckpointGroupTagFollowerAssetIds(
-      projectStore.activeProject.uri,
-      selectedExistingTag.value.id,
-    );
-    if (!projectAssetNames.value.size) {
-      const assets = await AssetService.GetAssets(projectStore.activeProject.uri);
-      projectAssetNames.value = new Map(assets.map(asset => [asset.id, asset.name]));
-    }
-  } catch (error) {
-    notificationStore.errorNotification('Unable to review checkpoint tag impact', error);
-  }
-};
-
-const selectCheckpointTag = (tagId) => {
-  if (tagId === 'new') {
-    tagSelection.value = 'new';
-    return;
-  }
-  if (tagId === NO_CHECKPOINT_TAG_SELECTION) {
-    tagSelection.value = '';
-    newTagName.value = '';
-    return;
-  }
-  tagSelection.value = eligibleTags.value.some(tag => tag.id === tagId) ? tagId : '';
-  newTagName.value = '';
-};
-
-const startNewCheckpointTag = (closeDropdown) => {
-  closeDropdown();
-  checkpointTagNameBeforeEdit.value = newTagName.value;
-  newTagName.value = '';
-  isCreatingCheckpointTag.value = true;
-};
-
-const confirmNewCheckpointTag = (tagName) => {
-  const normalizedName = tagName.trim();
-  const existingTag = eligibleTags.value.find(tag => tag.name.toLowerCase() === normalizedName.toLowerCase());
-  if (existingTag) {
-    tagSelection.value = existingTag.id;
-    newTagName.value = '';
-  } else {
-    tagSelection.value = 'new';
-    newTagName.value = normalizedName;
-  }
-  isCreatingCheckpointTag.value = false;
-  checkpointTagNameBeforeEdit.value = '';
-};
-
-const cancelNewCheckpointTag = () => {
-  newTagName.value = checkpointTagNameBeforeEdit.value;
-  isCreatingCheckpointTag.value = false;
-  checkpointTagNameBeforeEdit.value = '';
-};
-
-watch([distinctTrackedAssetIds, distinctCheckpointItemIds], loadEligibleTags, { immediate: true });
-watch(tagSelection, loadTagImpact);
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => {
@@ -1136,38 +984,9 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
 }
 
-.checkpoint-tag-dropdown-divider {
-  border-top: var(--transparent-line);
-  margin: .3rem .1rem;
-}
-
-.checkpoint-tag-create-action {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  width: 100%;
-  padding: .3rem .5rem;
-  border: 0;
-  border-radius: var(--normal-radius);
-  color: var(--text);
-  background: transparent;
-  font: inherit;
-  font-size: 14px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.checkpoint-tag-create-action:hover {
-  background-color: var(--surface-4);
-}
-
 .checkpoint-tag-impact {
   color: var(--text-muted);
   font-size: .7rem;
 }
 
-.checkpoint-tag-error {
-  color: var(--danger);
-  font-size: .7rem;
-}
 </style>

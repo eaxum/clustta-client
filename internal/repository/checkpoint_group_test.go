@@ -74,68 +74,6 @@ func TestFinalizeCheckpointGroupClassifiesSingleAndMulti(t *testing.T) {
 	}
 }
 
-func TestCheckpointGroupTagRequiresFinalizedMultiGroupAndCanMove(t *testing.T) {
-	_, tx := openCheckpointGroupTestDB(t)
-
-	for _, groupId := range []string{"release-1", "release-2"} {
-		if _, err := BeginCheckpointGroup(tx, groupId, CheckpointGroupTypeMulti); err != nil {
-			t.Fatal(err)
-		}
-		insertCheckpointGroupMember(t, tx, groupId+"-a", "asset-1", groupId, 1)
-		insertCheckpointGroupMember(t, tx, groupId+"-b", "asset-2", groupId, 2)
-		if _, err := FinalizeCheckpointGroup(tx, groupId); err != nil {
-			t.Fatal(err)
-		}
-	}
-
-	tag, err := SetCheckpointGroupTag(tx, "", "animation-approved", "release-1")
-	if err != nil {
-		t.Fatal(err)
-	}
-	movedTag, err := SetCheckpointGroupTag(tx, tag.Id, tag.Name, "release-2")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if movedTag.GroupId != "release-2" {
-		t.Fatalf("expected moved tag to target release-2, got %s", movedTag.GroupId)
-	}
-	if movedTag.MTime <= tag.MTime {
-		t.Fatalf("expected moved tag mtime to advance from %d, got %d", tag.MTime, movedTag.MTime)
-	}
-	if _, err = tx.Exec(`
-		INSERT INTO asset_checkpoint (
-			id, created_at, mtime, asset_id, xxhash_checksum, time_modified,
-			file_size, chunks, author_id, group_id
-		) VALUES ('late-cp', 3, 1, 'asset-3', 'late-cp', 1, 1, '', 'author', 'release-2')
-	`); err == nil {
-		t.Fatal("expected tagged checkpoint group membership to be immutable")
-	}
-	if _, err = tx.Exec("UPDATE asset_checkpoint SET trashed = 1 WHERE id = ?", "release-2-a"); err == nil {
-		t.Fatal("expected removal that invalidates a tagged group to fail")
-	}
-
-	if _, err = BeginCheckpointGroup(tx, "single-release", CheckpointGroupTypeSingle); err != nil {
-		t.Fatal(err)
-	}
-	insertCheckpointGroupMember(t, tx, "single-cp", "asset-1", "single-release", 3)
-	if _, err = FinalizeCheckpointGroup(tx, "single-release"); err != nil {
-		t.Fatal(err)
-	}
-	if _, err = SetCheckpointGroupTag(tx, "", "invalid", "single-release"); err == nil {
-		t.Fatal("expected tagging a single group to fail")
-	}
-	if err = DeleteCheckpointGroupTag(tx, tag.Id); err != nil {
-		t.Fatal(err)
-	}
-	var tombCount int
-	if err = tx.Get(&tombCount, "SELECT COUNT(*) FROM tomb WHERE id = ? AND table_name = 'checkpoint_group_tag'", tag.Id); err != nil {
-		t.Fatal(err)
-	}
-	if tombCount != 1 {
-		t.Fatalf("expected one checkpoint group tag tombstone, got %d", tombCount)
-	}
-}
-
 func TestGetTimelinePreservesEveryGroupId(t *testing.T) {
 	_, tx := openCheckpointGroupTestDB(t)
 	if _, err := BeginCheckpointGroup(tx, "group-a", CheckpointGroupTypeMulti); err != nil {

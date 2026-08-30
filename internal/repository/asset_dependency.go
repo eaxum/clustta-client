@@ -53,17 +53,17 @@ func normalizeSelectorReference(reference *string) *string {
 }
 
 // ValidateDependencySelector validates selector shape and asset ownership.
-func ValidateDependencySelector(tx *sqlx.Tx, dependencyId, resolutionMode string, checkpointId, checkpointGroupTagId *string) error {
+func ValidateDependencySelector(tx *sqlx.Tx, dependencyId, resolutionMode string, checkpointId, checkpointTagId *string) error {
 	checkpointId = normalizeSelectorReference(checkpointId)
-	checkpointGroupTagId = normalizeSelectorReference(checkpointGroupTagId)
+	checkpointTagId = normalizeSelectorReference(checkpointTagId)
 
 	switch resolutionMode {
 	case DependencyResolutionFloating:
-		if checkpointId != nil || checkpointGroupTagId != nil {
+		if checkpointId != nil || checkpointTagId != nil {
 			return errors.New("floating dependencies cannot reference a checkpoint or tag")
 		}
 	case DependencyResolutionPinned:
-		if checkpointId == nil || checkpointGroupTagId != nil {
+		if checkpointId == nil || checkpointTagId != nil {
 			return errors.New("pinned dependencies require only a checkpoint_id")
 		}
 		var checkpointCount int
@@ -78,26 +78,23 @@ func ValidateDependencySelector(tx *sqlx.Tx, dependencyId, resolutionMode string
 			return errors.New("checkpoint does not belong to the dependency asset")
 		}
 	case DependencyResolutionTagged:
-		if checkpointId != nil || checkpointGroupTagId == nil {
-			return errors.New("tagged dependencies require only a checkpoint_group_tag_id")
+		if checkpointId != nil || checkpointTagId == nil {
+			return errors.New("tagged dependencies require only a checkpoint_tag_id")
 		}
 		var tagCount int
 		err := tx.Get(&tagCount, `
 			SELECT COUNT(*)
-			FROM checkpoint_group_tag cgt
-			JOIN checkpoint_group cg ON cg.id = cgt.group_id
-			JOIN asset_checkpoint ac ON ac.group_id = cg.id
-			WHERE cgt.id = ?
-				AND cg.finalized = 1
-				AND cg.group_type = ?
-				AND ac.asset_id = ?
+			FROM checkpoint_tag ct
+			JOIN asset_checkpoint ac ON ac.id = ct.checkpoint_id
+			WHERE ct.id = ?
+				AND ct.asset_id = ?
 				AND ac.trashed = 0
-		`, *checkpointGroupTagId, CheckpointGroupTypeMulti, dependencyId)
+		`, *checkpointTagId, dependencyId)
 		if err != nil {
 			return err
 		}
 		if tagCount == 0 {
-			return errors.New("tag does not contain the dependency asset")
+			return errors.New("tag does not belong to the dependency asset")
 		}
 	default:
 		return fmt.Errorf("invalid dependency resolution mode: %s", resolutionMode)
@@ -171,7 +168,7 @@ func AddDependency(tx *sqlx.Tx, id, assetId, dependencyId, dependencyTypeId stri
 func AddDependencyWithSelector(
 	tx *sqlx.Tx,
 	id, assetId, dependencyId, dependencyTypeId, resolutionMode string,
-	checkpointId, checkpointGroupTagId *string,
+	checkpointId, checkpointTagId *string,
 ) (models.AssetDependencyEdge, error) {
 	assetDependency := models.AssetDependencyEdge{}
 	if err := validateDependencyAssets(tx, assetId, dependencyId); err != nil {
@@ -183,20 +180,20 @@ func AddDependencyWithSelector(
 	if err := validateDependencyCycle(tx, assetId, dependencyId); err != nil {
 		return assetDependency, err
 	}
-	if err := ValidateDependencySelector(tx, dependencyId, resolutionMode, checkpointId, checkpointGroupTagId); err != nil {
+	if err := ValidateDependencySelector(tx, dependencyId, resolutionMode, checkpointId, checkpointTagId); err != nil {
 		return assetDependency, err
 	}
 
 	checkpointId = normalizeSelectorReference(checkpointId)
-	checkpointGroupTagId = normalizeSelectorReference(checkpointGroupTagId)
+	checkpointTagId = normalizeSelectorReference(checkpointTagId)
 	params := map[string]any{
-		"id":                      id,
-		"asset_id":                assetId,
-		"dependency_id":           dependencyId,
-		"dependency_type_id":      dependencyTypeId,
-		"resolution_mode":         resolutionMode,
-		"checkpoint_id":           checkpointId,
-		"checkpoint_group_tag_id": checkpointGroupTagId,
+		"id":                 id,
+		"asset_id":           assetId,
+		"dependency_id":      dependencyId,
+		"dependency_type_id": dependencyTypeId,
+		"resolution_mode":    resolutionMode,
+		"checkpoint_id":      checkpointId,
+		"checkpoint_tag_id":  checkpointTagId,
 	}
 	if err := base_service.Create(tx, "asset_dependency", params); err != nil {
 		return assetDependency, err
@@ -241,18 +238,16 @@ const dependencyEdgeSelect = `
 				)
 				WHEN 'tagged' THEN (
 					SELECT ac.id
-					FROM checkpoint_group_tag cgt
-					JOIN checkpoint_group cg ON cg.id = cgt.group_id AND cg.finalized = 1
-					JOIN asset_checkpoint ac ON ac.group_id = cg.id
-					WHERE cgt.id = ad.checkpoint_group_tag_id
-						AND ac.asset_id = ad.dependency_id
+					FROM checkpoint_tag ct
+					JOIN asset_checkpoint ac ON ac.id = ct.checkpoint_id
+					WHERE ct.id = ad.checkpoint_tag_id
+						AND ct.asset_id = ad.dependency_id
 						AND ac.trashed = 0
-					LIMIT 1
 				)
 			END AS resolved_checkpoint_id,
 			COALESCE((
-				SELECT cgt.name FROM checkpoint_group_tag cgt
-				WHERE cgt.id = ad.checkpoint_group_tag_id
+				SELECT ct.name FROM checkpoint_tag ct
+				WHERE ct.id = ad.checkpoint_tag_id
 			), '') AS tag_name
 		FROM asset_dependency ad
 	)
@@ -262,7 +257,7 @@ const dependencyEdgeSelect = `
 		CASE
 			WHEN de.resolved_checkpoint_id IS NOT NULL THEN 'ready'
 			WHEN de.resolution_mode = 'tagged' AND de.tag_name = '' THEN 'missing_tag'
-			WHEN de.resolution_mode = 'tagged' THEN 'tag_asset_missing'
+			WHEN de.resolution_mode = 'tagged' THEN 'tag_checkpoint_missing'
 			ELSE 'missing_checkpoint'
 		END AS resolution_status
 	FROM dependency_edges de
@@ -294,26 +289,26 @@ func GetAssetDependencyEdge(tx *sqlx.Tx, edgeId string) (models.AssetDependencyE
 func UpdateDependencySelector(
 	tx *sqlx.Tx,
 	edgeId, resolutionMode string,
-	checkpointId, checkpointGroupTagId *string,
+	checkpointId, checkpointTagId *string,
 ) (models.AssetDependencyEdge, error) {
 	dependency, err := GetDependency(tx, edgeId)
 	if err != nil {
 		return models.AssetDependencyEdge{}, err
 	}
-	if err = ValidateDependencySelector(tx, dependency.DependencyId, resolutionMode, checkpointId, checkpointGroupTagId); err != nil {
+	if err = ValidateDependencySelector(tx, dependency.DependencyId, resolutionMode, checkpointId, checkpointTagId); err != nil {
 		return models.AssetDependencyEdge{}, err
 	}
 
 	checkpointId = normalizeSelectorReference(checkpointId)
-	checkpointGroupTagId = normalizeSelectorReference(checkpointGroupTagId)
+	checkpointTagId = normalizeSelectorReference(checkpointTagId)
 	now := utils.GetEpochTime()
 	_, err = tx.Exec(`
 		UPDATE asset_dependency
-		SET resolution_mode = ?, checkpoint_id = ?, checkpoint_group_tag_id = ?,
+		SET resolution_mode = ?, checkpoint_id = ?, checkpoint_tag_id = ?,
 			mtime = CASE WHEN mtime >= ? THEN mtime + 1 ELSE ? END,
 			synced = 0
 		WHERE id = ?
-	`, resolutionMode, checkpointId, checkpointGroupTagId, now, now, edgeId)
+	`, resolutionMode, checkpointId, checkpointTagId, now, now, edgeId)
 	if err != nil {
 		return models.AssetDependencyEdge{}, err
 	}

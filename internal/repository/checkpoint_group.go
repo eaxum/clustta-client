@@ -8,8 +8,6 @@ import (
 
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
-
-	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -96,19 +94,12 @@ func ShouldAutoFinalizeCheckpointGroup(tx *sqlx.Tx, groupId string) (bool, error
 		return false, err
 	}
 	if group.Finalized {
-		var tagCount int
-		if err = tx.Get(&tagCount, "SELECT COUNT(*) FROM checkpoint_group_tag WHERE group_id = ?", groupId); err != nil {
-			return false, err
-		}
-		if tagCount > 0 {
-			return false, errors.New("tagged checkpoint group membership is immutable")
-		}
 		return true, nil
 	}
 	return false, nil
 }
 
-// FinalizeCheckpointGroup validates members and makes a group tag eligible when appropriate.
+// FinalizeCheckpointGroup validates members and completes the group.
 func FinalizeCheckpointGroup(tx *sqlx.Tx, groupId string) (models.CheckpointGroup, error) {
 	group, err := GetCheckpointGroup(tx, groupId)
 	if err != nil {
@@ -153,139 +144,4 @@ func FinalizeCheckpointGroup(tx *sqlx.Tx, groupId string) (models.CheckpointGrou
 		return models.CheckpointGroup{}, err
 	}
 	return GetCheckpointGroup(tx, groupId)
-}
-
-// SetCheckpointGroupTag creates or moves a named tag to an eligible group.
-func SetCheckpointGroupTag(tx *sqlx.Tx, tagId, name, groupId string) (models.CheckpointGroupTag, error) {
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return models.CheckpointGroupTag{}, errors.New("checkpoint group tag name cannot be empty")
-	}
-
-	group, err := GetCheckpointGroup(tx, groupId)
-	if err != nil {
-		return models.CheckpointGroupTag{}, err
-	}
-	if !group.Finalized || group.GroupType != CheckpointGroupTypeMulti {
-		return models.CheckpointGroupTag{}, errors.New("checkpoint group is not taggable")
-	}
-
-	if tagId == "" {
-		tagId = uuid.New().String()
-	}
-	missingAssets := []string{}
-	err = tx.Select(&missingAssets, `
-		SELECT DISTINCT ad.dependency_id
-		FROM asset_dependency ad
-		LEFT JOIN asset_checkpoint ac
-			ON ac.group_id = ?
-			AND ac.asset_id = ad.dependency_id
-			AND ac.trashed = 0
-		WHERE ad.checkpoint_group_tag_id = ?
-			AND ac.id IS NULL
-		ORDER BY ad.dependency_id
-	`, groupId, tagId)
-	if err != nil {
-		return models.CheckpointGroupTag{}, err
-	}
-	if len(missingAssets) > 0 {
-		return models.CheckpointGroupTag{}, fmt.Errorf(
-			"checkpoint group is missing assets required by tag followers: %s",
-			strings.Join(missingAssets, ", "),
-		)
-	}
-	now := utils.GetEpochTime()
-	_, err = tx.Exec(`
-		INSERT INTO checkpoint_group_tag (id, mtime, name, group_id, synced)
-		VALUES (?, ?, ?, ?, 0)
-		ON CONFLICT(id) DO UPDATE SET
-			mtime = CASE
-				WHEN checkpoint_group_tag.mtime >= excluded.mtime THEN checkpoint_group_tag.mtime + 1
-				ELSE excluded.mtime
-			END,
-			name = excluded.name,
-			group_id = excluded.group_id,
-			synced = 0
-	`, tagId, now, name, groupId)
-	if err != nil {
-		return models.CheckpointGroupTag{}, err
-	}
-
-	tag := models.CheckpointGroupTag{}
-	err = tx.Get(&tag, "SELECT * FROM checkpoint_group_tag WHERE id = ?", tagId)
-	return tag, err
-}
-
-// GetCheckpointGroupTag retrieves a tag by ID.
-func GetCheckpointGroupTag(tx *sqlx.Tx, tagId string) (models.CheckpointGroupTag, error) {
-	tag := models.CheckpointGroupTag{}
-	err := tx.Get(&tag, "SELECT * FROM checkpoint_group_tag WHERE id = ?", tagId)
-	if errors.Is(err, sql.ErrNoRows) {
-		return tag, errors.New("checkpoint group tag not found")
-	}
-	return tag, err
-}
-
-// GetCheckpointGroupTagsForAsset returns tags whose groups contain the asset.
-func GetCheckpointGroupTagsForAsset(tx *sqlx.Tx, assetId string) ([]models.CheckpointGroupTag, error) {
-	tags := []models.CheckpointGroupTag{}
-	err := tx.Select(&tags, `
-		SELECT DISTINCT cgt.*
-		FROM checkpoint_group_tag cgt
-		JOIN checkpoint_group cg ON cg.id = cgt.group_id
-		JOIN asset_checkpoint ac ON ac.group_id = cg.id
-		WHERE cg.finalized = 1
-			AND cg.group_type = ?
-			AND ac.asset_id = ?
-			AND ac.trashed = 0
-		ORDER BY cgt.name COLLATE NOCASE
-	`, CheckpointGroupTypeMulti, assetId)
-	return tags, err
-}
-
-// GetCheckpointGroupTagFollowerAssetIds returns assets required by tagged edges.
-func GetCheckpointGroupTagFollowerAssetIds(tx *sqlx.Tx, tagId string) ([]string, error) {
-	assetIds := []string{}
-	err := tx.Select(&assetIds, `
-		SELECT DISTINCT dependency_id
-		FROM asset_dependency
-		WHERE checkpoint_group_tag_id = ?
-		ORDER BY dependency_id
-	`, tagId)
-	return assetIds, err
-}
-
-// GetCheckpointGroupAssetIds returns active assets represented by a group.
-func GetCheckpointGroupAssetIds(tx *sqlx.Tx, groupId string) ([]string, error) {
-	assetIds := []string{}
-	err := tx.Select(&assetIds, `
-		SELECT DISTINCT asset_id
-		FROM asset_checkpoint
-		WHERE group_id = ? AND trashed = 0
-		ORDER BY asset_id
-	`, groupId)
-	return assetIds, err
-}
-
-// DeleteCheckpointGroupTag removes a tag and records its tombstone.
-func DeleteCheckpointGroupTag(tx *sqlx.Tx, tagId string) error {
-	var referenceCount int
-	if err := tx.Get(&referenceCount, "SELECT COUNT(*) FROM asset_dependency WHERE checkpoint_group_tag_id = ?", tagId); err != nil {
-		return err
-	}
-	if referenceCount > 0 {
-		return errors.New("checkpoint group tag is referenced by a dependency")
-	}
-	result, err := tx.Exec("DELETE FROM checkpoint_group_tag WHERE id = ?", tagId)
-	if err != nil {
-		return err
-	}
-	rowsAffected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-	if rowsAffected == 0 {
-		return errors.New("checkpoint group tag not found")
-	}
-	return nil
 }

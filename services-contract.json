@@ -336,7 +336,7 @@
           "dependencyTypeId:string",
           "resolutionMode:string",
           "checkpointId:string",
-          "checkpointGroupTagId:string"
+          "checkpointTagId:string"
         ],
         "returns": [
           "models.AssetDependencyEdge",
@@ -913,7 +913,7 @@
           "edgeId:string",
           "resolutionMode:string",
           "checkpointId:string",
-          "checkpointGroupTagId:string"
+          "checkpointTagId:string"
         ],
         "returns": [
           "models.AssetDependencyEdge",
@@ -1257,7 +1257,7 @@
         ]
       },
       {
-        "name": "DeleteCheckpointGroupTag",
+        "name": "DeleteCheckpointTag",
         "params": [
           "projectPath:string",
           "tagId:string"
@@ -1302,24 +1302,13 @@
         ]
       },
       {
-        "name": "GetCheckpointGroupTagFollowerAssetIds",
-        "params": [
-          "projectPath:string",
-          "tagId:string"
-        ],
-        "returns": [
-          "[]string",
-          "error"
-        ]
-      },
-      {
-        "name": "GetCheckpointGroupTags",
+        "name": "GetCheckpointTags",
         "params": [
           "projectPath:string",
           "assetId:string"
         ],
         "returns": [
-          "[]models.CheckpointGroupTag",
+          "[]models.CheckpointTag",
           "error"
         ]
       },
@@ -1402,15 +1391,27 @@
         ]
       },
       {
-        "name": "SetCheckpointGroupTag",
+        "name": "SetCheckpointTag",
         "params": [
           "projectPath:string",
           "tagId:string",
           "name:string",
+          "checkpointId:string"
+        ],
+        "returns": [
+          "models.CheckpointTag",
+          "error"
+        ]
+      },
+      {
+        "name": "SetCheckpointTagsForGroup",
+        "params": [
+          "projectPath:string",
+          "name:string",
           "groupId:string"
         ],
         "returns": [
-          "models.CheckpointGroupTag",
+          "[]models.CheckpointTag",
           "error"
         ]
       },

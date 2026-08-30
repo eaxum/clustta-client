@@ -218,15 +218,15 @@ func (ue UntrackedCollection) MarshalJSON() ([]byte, error) {
 }
 
 type AssetDependency struct {
-	Id                   string  `db:"id" json:"id"`
-	MTime                int     `db:"mtime" json:"mtime"`
-	AssetId              string  `db:"asset_id" json:"asset_id"`
-	DependencyId         string  `db:"dependency_id" json:"dependency_id"`
-	DependencyTypeId     string  `db:"dependency_type_id" json:"dependency_type_id"`
-	ResolutionMode       string  `db:"resolution_mode" json:"resolution_mode"`
-	CheckpointId         *string `db:"checkpoint_id" json:"checkpoint_id,omitempty"`
-	CheckpointGroupTagId *string `db:"checkpoint_group_tag_id" json:"checkpoint_group_tag_id,omitempty"`
-	Synced               bool    `db:"synced" json:"synced"`
+	Id               string  `db:"id" json:"id"`
+	MTime            int     `db:"mtime" json:"mtime"`
+	AssetId          string  `db:"asset_id" json:"asset_id"`
+	DependencyId     string  `db:"dependency_id" json:"dependency_id"`
+	DependencyTypeId string  `db:"dependency_type_id" json:"dependency_type_id"`
+	ResolutionMode   string  `db:"resolution_mode" json:"resolution_mode"`
+	CheckpointId     *string `db:"checkpoint_id" json:"checkpoint_id,omitempty"`
+	CheckpointTagId  *string `db:"checkpoint_tag_id" json:"checkpoint_tag_id,omitempty"`
+	Synced           bool    `db:"synced" json:"synced"`
 }
 
 type AssetDependencyEdge struct {
@@ -238,8 +238,8 @@ type AssetDependencyEdge struct {
 }
 
 type DependencySelectorOptions struct {
-	Checkpoints []Checkpoint         `json:"checkpoints"`
-	Tags        []CheckpointGroupTag `json:"tags"`
+	Checkpoints []Checkpoint    `json:"checkpoints"`
+	Tags        []CheckpointTag `json:"tags"`
 }
 
 type DependencyBuildPlanEntry struct {
@@ -367,12 +367,13 @@ type CheckpointGroup struct {
 	Synced    bool   `db:"synced" json:"synced"`
 }
 
-type CheckpointGroupTag struct {
-	Id      string `db:"id" json:"id"`
-	MTime   int64  `db:"mtime" json:"mtime"`
-	Name    string `db:"name" json:"name"`
-	GroupId string `db:"group_id" json:"group_id"`
-	Synced  bool   `db:"synced" json:"synced"`
+type CheckpointTag struct {
+	Id           string `db:"id" json:"id"`
+	MTime        int64  `db:"mtime" json:"mtime"`
+	Name         string `db:"name" json:"name"`
+	AssetId      string `db:"asset_id" json:"asset_id"`
+	CheckpointId string `db:"checkpoint_id" json:"checkpoint_id"`
+	Synced       bool   `db:"synced" json:"synced"`
 }
 
 type Checkpoint struct {
