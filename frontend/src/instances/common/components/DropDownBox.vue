@@ -17,8 +17,8 @@
       <div v-if="isExpanded" v-stop-propagation class="listbox-list-items-root"
         :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px', width: listItemsWidth + 'px', maxHeight: listItemMaxHeight + 'px' }">
         <div class="listbox-list-items">
-          <div v-for="(item, index) in filteredItems" :key="getItemKey(item, index)" :value="getItemValue(item)" @click="selectItem(item)"
-            class="listbox-item" :aria-disabled="isItemDisabled(item)" :class="{ 'listbox-item-closed': isUnique(getItemValue(item)) === true, 'listbox-item-selected': getItemValue(item) === props.selectedItem, 'listbox-item-disabled': isItemDisabled(item) }">
+          <div v-for="(item, index) in filteredItems" :key="getItemKey(item, index)" :value="getItemSelectionValue(item)" @click="selectItem(item)"
+            class="listbox-item" :aria-disabled="isItemDisabled(item)" :class="{ 'listbox-item-closed': isUnique(getItemSelectionValue(item)) === true, 'listbox-item-selected': getItemSelectionValue(item) === props.selectedItem, 'listbox-item-disabled': isItemDisabled(item) }">
             <div class="listbox-item-text-mask" @mouseenter="startScrollText($event, index)"
               @mouseleave="stopScrollText($event)">
               <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -70,6 +70,13 @@ const getItemValue = (item) => {
   return item.name || item.value || item.label || '';
 };
 
+const getItemSelectionValue = (item) => {
+  if (typeof item === 'object' && item !== null && 'selectionValue' in item) {
+    return item.selectionValue;
+  }
+  return getItemValue(item);
+};
+
 const getItemIcon = (item) => {
   if (typeof item === 'string') {
     return null;
@@ -115,7 +122,7 @@ const WRAP_PAD_X = 6;
 const WRAP_PAD_Y = 6;
 const filteredItems = computed(() => {
   if (!props.items.length) return [];
-  const selectedIdx = props.items.findIndex(item => getItemValue(item) === props.selectedItem);
+  const selectedIdx = props.items.findIndex(item => getItemSelectionValue(item) === props.selectedItem);
   if (selectedIdx <= 0) return props.items;
   const reordered = props.items.slice();
   const [selected] = reordered.splice(selectedIdx, 1);
@@ -125,15 +132,20 @@ const filteredItems = computed(() => {
 
 const isPlaceholder = computed(() => !props.selectedItem);
 
-const selectedListItem = computed(() => { 
-  return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : props.placeHolder
+const selectedItemObject = computed(() => (
+  props.items.find(item => getItemSelectionValue(item) === props.selectedItem)
+));
+
+const selectedListItem = computed(() => {
+  if (selectedItemObject.value) return utils.capitalizeStr(getItemValue(selectedItemObject.value));
+  return props.selectedItem ? utils.capitalizeStr(props.selectedItem) : props.placeHolder;
 });
 
 const selectedItemIcon = computed(() => {
   if (!props.selectedItem || !isObjectArray.value) {
     return null;
   }
-  const selectedObj = props.items.find(item => getItemValue(item) === props.selectedItem);
+  const selectedObj = selectedItemObject.value;
   return selectedObj ? getItemIcon(selectedObj) : null;
 });
 
@@ -141,7 +153,7 @@ const selectedItemIconTooltip = computed(() => {
   if (!props.selectedItem || !isObjectArray.value) {
     return '';
   }
-  const selectedObj = props.items.find(item => getItemValue(item) === props.selectedItem);
+  const selectedObj = selectedItemObject.value;
   return selectedObj ? getItemIconTooltip(selectedObj) : '';
 });
 
@@ -149,7 +161,7 @@ const selectedItemIconClass = computed(() => {
   if (!props.selectedItem || !isObjectArray.value) {
     return '';
   }
-  const selectedObj = props.items.find(item => getItemValue(item) === props.selectedItem);
+  const selectedObj = selectedItemObject.value;
   return selectedObj ? getItemIconClass(selectedObj) : '';
 });
 
@@ -240,7 +252,7 @@ const toggleList = () => {
 
 const selectItem = (item) => {
   if (isItemDisabled(item)) return;
-  const itemValue = getItemValue(item);
+  const itemValue = getItemSelectionValue(item);
   props.onSelect(itemValue, props.extraData);
   isExpanded.value = false;
 };

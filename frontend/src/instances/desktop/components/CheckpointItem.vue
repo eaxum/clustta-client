@@ -73,6 +73,11 @@
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
+        <div v-if="checkpoint.tags?.length || checkpoint.pin_count" class="checkpoint-selector-indicators">
+            <span v-for="tag in checkpoint.tags" :key="tag.id" class="checkpoint-tag">{{ tag.name }}</span>
+            <span v-if="checkpoint.pin_count" class="checkpoint-pin">Pinned by {{ checkpoint.pin_count }}</span>
+        </div>
+
     </div>
 </template>
 
@@ -563,6 +568,30 @@ onBeforeUnmount(() => {
 .profile-img {
     width: 100%;
     height: 100%;
+}
+
+.checkpoint-selector-indicators {
+    display: flex;
+    flex: 0 0 100%;
+    flex-wrap: wrap;
+    gap: .25rem;
+    width: 100%;
+    padding: .15rem .4rem .25rem 2.3rem;
+    box-sizing: border-box;
+    background-color: var(--surface-3);
+}
+
+.checkpoint-tag,
+.checkpoint-pin {
+    padding: .1rem .3rem;
+    border: 1px solid var(--selected);
+    border-radius: .3rem;
+    color: var(--text-muted);
+    font-size: .62rem;
+}
+
+.checkpoint-pin {
+    border-color: var(--warning);
 }
 </style>
 

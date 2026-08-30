@@ -22,7 +22,37 @@
     </div>
     
     <div v-else-if="assetDependencies.length" class="sidebar-scroll">
-      <ItemsList :items="assetDependencies" :isDependency="true" :showRemove="canManageDependencies" :forList="true"/>
+      <div class="dependency-items">
+        <div v-for="dependency in assetDependencies" :key="dependency.id" class="dependency-row">
+          <AssetItem :item="dependency">
+            <template #persistent>
+              <DependencySelector
+                v-if="dependency.dependencyEdge"
+                :ref="element => setDependencySelectorRef(dependency.id, element)"
+                :edge="dependency.dependencyEdge"
+                :ownerAssetId="selectedAsset.id"
+                :editable="canManageDependencies"
+                :triggerOnBadge="false"
+                @updated="handleSelectorUpdated"
+              />
+              <span v-else class="collection-selector">Latest collection</span>
+            </template>
+            <template #actions>
+              <ActionButton
+                v-if="canManageDependencies && dependency.dependencyEdge"
+                :icon="getAppIcon('edit')"
+                v-tooltip="'Edit dependency version'"
+                :buttonFunction="event => openDependencySelector(event, dependency.id)"
+              />
+              <ActionButton
+                v-if="canManageDependencies"
+                :icon="getAppIcon('minus-circle')"
+                :buttonFunction="() => removeDependency(dependency.id, dependency.type)"
+              />
+            </template>
+          </AssetItem>
+        </div>
+      </div>
       
       <div class="bottom-bar">
         <ActionButton :icon="getAppIcon('floppy-disk')" v-tooltip="$t('panes.saveAsPreset')" :buttonFunction="openSavePresetModal" />
@@ -62,6 +92,8 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import AssetItem from '@/instances/desktop/components/AssetItem.vue';
+import DependencySelector from '@/instances/desktop/components/DependencySelector.vue';
 import DependencyPresetItem from '@/instances/desktop/components/DependencyPresetItem.vue';
 import FilterButton from '@/instances/desktop/components/FilterButton.vue';
 import ItemsList from '@/instances/desktop/components/ItemsList.vue';
@@ -88,6 +120,7 @@ const isLoadingData = ref(false);
 const searchQuery = ref('');
 const allDependencies = ref([]);
 const availableDependencies = ref([]);
+const dependencySelectorRefs = new Map();
 
 // computed props
 const selectedAsset = computed(() => {
@@ -226,7 +259,7 @@ const applyPreset = async (preset) => {
   const skippedCount = preset.dependencies.length - depsToAdd.length;
   
   for (const dep of depsToAdd) {
-    await addDependency(dep.id, dep.type);
+    await addDependency(dep.id, dep.type, dep);
   }
 
   if (skippedCount > 0) {
@@ -283,11 +316,19 @@ const emitUpdates = (assetId, updates) => {
 
 const getAssetDependencies = async() => {
 	let project = projectStore.activeProject
+  if (!selectedAsset.value?.id || !project?.uri) {
+    assetDependencies.value = [];
+    return;
+  }
   let allDependencies;
   const selectedAssetDependencies = assetStore.selectedAsset?.dependencies || [] ;
   const selectedAssetCollectionDependencies = assetStore.selectedAsset?.collection_dependencies || [];
   allDependencies = [ ...selectedAssetDependencies, ...selectedAssetCollectionDependencies];
-  const children = await AssetService.GetAssetDependencies(project.uri, allDependencies);
+  const [children, dependencyEdges] = await Promise.all([
+    AssetService.GetAssetDependencies(project.uri, allDependencies),
+    AssetService.GetAssetDependencyEdges(project.uri, selectedAsset.value.id),
+  ]);
+  const edgesByDependencyId = new Map(dependencyEdges.map(edge => [edge.dependency_id, edge]));
 
   for (let i = 0; i < children.length; i++) {
       let item = children[i];
@@ -326,10 +367,28 @@ const getAssetDependencies = async() => {
         preview = "data:image/png;base64," + item.preview;
       }
       children[i].preview = preview;
+      children[i].dependencyEdge = edgesByDependencyId.get(item.id);
     }
 
     assetDependencies.value = children;
 }
+
+const handleSelectorUpdated = (updatedEdge) => {
+  const dependency = assetDependencies.value.find(item => item.id === updatedEdge.dependency_id);
+  if (dependency) dependency.dependencyEdge = updatedEdge;
+};
+
+const setDependencySelectorRef = (dependencyId, element) => {
+  if (element) {
+    dependencySelectorRefs.set(dependencyId, element);
+    return;
+  }
+  dependencySelectorRefs.delete(dependencyId);
+};
+
+const openDependencySelector = (event, dependencyId) => {
+  dependencySelectorRefs.get(dependencyId)?.openEditor(event);
+};
 
 const handleRemoveDependency = (payload) => {
   removeDependency(payload.id, payload.itemType);
@@ -374,7 +433,7 @@ const removeDependency = async (dependencyId, itemType) => {
   
 };
 
-const addDependency = async (dependencyId, itemType) => {
+const addDependency = async (dependencyId, itemType, selector = null) => {
   if (!canManageDependencies.value) return;
   const asset = assetStore.selectedAsset;
   let selectedAssetDependencies;
@@ -394,7 +453,18 @@ const addDependency = async (dependencyId, itemType) => {
       return;
     }
     
-    await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
+    const resolutionMode = selector?.resolution_mode || 'floating';
+    const checkpointId = selector?.checkpoint_id || '';
+    const checkpointGroupTagId = selector?.checkpoint_group_tag_id || '';
+    await AssetService.AddAssetDependencyWithSelector(
+      projectStore.activeProject.uri,
+      asset.id,
+      dependencyId,
+      dependencyTypeID,
+      resolutionMode,
+      checkpointId,
+      checkpointGroupTagId,
+    )
       .then((response) => {
         notificationStore.addNotification(t('notifications.dependencyAdded'), "", "success");
         
@@ -519,7 +589,12 @@ onUnmounted(() => {
 
 .bottom-bar{
   display: flex;
+  flex: 0 0 auto;
   justify-content: flex-end;
+  gap: .25rem;
+  width: 100%;
+  padding-top: .35rem;
+  background: var(--surface-1);
 }
 
 .general-pane-header{
@@ -583,5 +658,37 @@ onUnmounted(() => {
   text-transform: uppercase;
   padding: .25rem .5rem;
 }
+
+.collection-selector {
+  padding: .2rem .45rem;
+  border: 1px solid var(--border-color);
+  border-radius: .35rem;
+  color: var(--text-muted);
+  font-size: .68rem;
+}
+
+.dependency-row {
+  width: 100%;
+}
+
+.dependency-items {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  flex-direction: column;
+  gap: .4rem;
+  padding-right: 2px;
+}
+
+.dependency-items::-webkit-scrollbar {
+  width: 4px;
+}
+
+.dependency-items::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background-color: var(--surface-inverse);
+}
+
 </style>
 

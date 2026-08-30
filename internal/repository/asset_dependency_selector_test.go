@@ -89,6 +89,13 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 	if edge.ResolvedCheckpointId == nil || *edge.ResolvedCheckpointId != "boy-cp-1" {
 		t.Fatalf("expected pinned edge to resolve boy-cp-1, got %+v", edge)
 	}
+	referenceCounts, err := GetCheckpointDependencyReferenceCounts(tx, "boy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if referenceCounts["boy-cp-1"] != 1 {
+		t.Fatalf("expected one exact-pin follower, got %+v", referenceCounts)
+	}
 
 	if _, err = BeginCheckpointGroup(tx, "release", CheckpointGroupTypeMulti); err != nil {
 		t.Fatal(err)
@@ -114,6 +121,17 @@ func TestDependencySelectorsResolveFloatingPinnedAndTagged(t *testing.T) {
 	}
 	if edge.ResolvedCheckpointId == nil || *edge.ResolvedCheckpointId != "release-boy" || edge.TagName != tag.Name {
 		t.Fatalf("unexpected tagged edge: %+v", edge)
+	}
+	if _, err = BeginCheckpointGroup(tx, "incompatible-release", CheckpointGroupTypeMulti); err != nil {
+		t.Fatal(err)
+	}
+	insertCheckpointGroupMember(t, tx, "incompatible-prop", "prop", "incompatible-release", 5)
+	insertCheckpointGroupMember(t, tx, "incompatible-other", "shot", "incompatible-release", 6)
+	if _, err = FinalizeCheckpointGroup(tx, "incompatible-release"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = SetCheckpointGroupTag(tx, tag.Id, tag.Name, "incompatible-release"); err == nil {
+		t.Fatal("expected tag move that omits a follower asset to fail")
 	}
 	if err = DeleteCheckpointGroupTag(tx, tag.Id); err == nil {
 		t.Fatal("expected referenced tag deletion to fail")

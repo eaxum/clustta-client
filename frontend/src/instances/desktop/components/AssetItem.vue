@@ -12,6 +12,10 @@
       </span>
     </div>
 
+    <div v-if="slots.persistent" class="asset-item-persistent">
+      <slot name="persistent" />
+    </div>
+
     <div v-if="showActions" class="asset-item-actions">
       <ActionButton
         v-if="showNavigate"
@@ -258,6 +262,13 @@ watch(() => `${extension.value}:${explicitIcon.value}`, loadIcon, { immediate: t
   overflow: hidden;
   transform: translateX(.5rem);
   transition: max-width .2s ease-in-out, opacity .2s ease-out, transform .2s ease-out;
+}
+
+.asset-item-persistent {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .25rem;
 }
 
 .asset-item:hover .asset-item-actions {

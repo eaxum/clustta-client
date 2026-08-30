@@ -110,6 +110,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
       // dependency
       dependencyGraphModal: false,
+      dependencyBuildPlanModal: false,
 
       // image viewer
       imageViewerModal: false,
@@ -123,6 +124,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
     // Image viewer payload (thumbnail src + title + source file) for imageViewerModal.
     imageViewer: { src: "", title: "", filePath: "", extension: "" },
+    dependencyBuildPlan: { rootAssetId: "", plan: null },
   }),
   getters: {},
   actions: {
@@ -158,6 +160,10 @@ export const useDesktopModalStore = defineStore("desktopModals", {
     openImageViewer(src, title = "", filePath = "", extension = "") {
       this.imageViewer = { src, title, filePath, extension };
       this.setModalVisibility("imageViewerModal", true);
+    },
+    openDependencyBuildPlan(rootAssetId, plan) {
+      this.dependencyBuildPlan = { rootAssetId, plan };
+      this.setModalVisibility("dependencyBuildPlanModal", true);
     },
   },
 });

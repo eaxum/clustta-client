@@ -1291,6 +1291,28 @@
         ]
       },
       {
+        "name": "GetCheckpointDependencyReferenceCounts",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "map[string]int",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCheckpointGroupTagFollowerAssetIds",
+        "params": [
+          "projectPath:string",
+          "tagId:string"
+        ],
+        "returns": [
+          "[]string",
+          "error"
+        ]
+      },
+      {
         "name": "GetCheckpointGroupTags",
         "params": [
           "projectPath:string",

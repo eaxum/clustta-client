@@ -30,6 +30,7 @@ export const useMenu = defineStore("useMenu", {
       moveToCollectionSubMenu: false,
       sortMenu: false,
       viewMenu: false,
+      compactEditMenu: false,
     },
 
     // Sub-menu navigation state
@@ -56,8 +57,18 @@ export const useMenu = defineStore("useMenu", {
       'manageTagsMenu',
       'accountMenu',
       'sortMenu',
-      'viewMenu'
+      'viewMenu',
+      'compactEditMenu'
     ],
+
+    compactEditMenuData: {
+      key: '',
+      title: '',
+      loading: false,
+      options: [],
+      selectedId: '',
+      onSelect: null,
+    },
 
     menuEl: null,
     position: { x: 0, y: 0 },
@@ -165,6 +176,23 @@ export const useMenu = defineStore("useMenu", {
       }
     },
 
+    async showCompactEditMenu(event, data) {
+      this.compactEditMenuData = {
+        key: data.key || '',
+        title: data.title || '',
+        loading: data.loading || false,
+        options: data.options || [],
+        selectedId: data.selectedId || '',
+        onSelect: data.onSelect || null,
+      };
+      await this.showContextMenu(event, 'compactEditMenu', true, { anchor: true, position: 'bottom' });
+    },
+
+    updateCompactEditMenu(key, updates) {
+      if (this.compactEditMenuData.key !== key) return;
+      this.compactEditMenuData = { ...this.compactEditMenuData, ...updates };
+    },
+
     hideContextMenu(event) {
       if (this.contextMenuVisible) {
         this.contextMenuVisible = false;
@@ -190,6 +218,14 @@ export const useMenu = defineStore("useMenu", {
       for (const menuName in this.menuStates) {
         this.menuStates[menuName] = false;
       }
+      this.compactEditMenuData = {
+        key: '',
+        title: '',
+        loading: false,
+        options: [],
+        selectedId: '',
+        onSelect: null,
+      };
       this.activeMenu = null;
       this.contextMenuVisible = false;
     },

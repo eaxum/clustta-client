@@ -549,6 +549,36 @@ func (c *CheckpointService) GetCheckpointGroupTags(projectPath, assetId string) 
 	return repository.GetCheckpointGroupTagsForAsset(tx, assetId)
 }
 
+// GetCheckpointDependencyReferenceCounts returns exact-pin follower counts for an asset.
+func (c *CheckpointService) GetCheckpointDependencyReferenceCounts(projectPath, assetId string) (map[string]int, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	return repository.GetCheckpointDependencyReferenceCounts(tx, assetId)
+}
+
+// GetCheckpointGroupTagFollowerAssetIds returns assets required by a moving tag.
+func (c *CheckpointService) GetCheckpointGroupTagFollowerAssetIds(projectPath, tagId string) ([]string, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+	return repository.GetCheckpointGroupTagFollowerAssetIds(tx, tagId)
+}
+
 // SetCheckpointGroupTag creates, renames, or moves a checkpoint group tag.
 func (c *CheckpointService) SetCheckpointGroupTag(projectPath, tagId, name, groupId string) (models.CheckpointGroupTag, error) {
 	dbConn, err := utils.OpenDb(projectPath)

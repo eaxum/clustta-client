@@ -43,6 +43,7 @@
                                 </div>
                             </div>
                             <div class="dependency-item-actions">
+                                <span v-if="dep.resolutionLabel" class="dependency-selector-label">{{ dep.resolutionLabel }}</span>
                                 <span @click="removeDependencyFromPreset(dep, index)" class="single-action-button" v-tooltip="$t('components.dependencyPresetItem.remove')">
                                     <img class="small-icons" :src="getAppIcon('minus-circle')">
                                 </span>
@@ -156,7 +157,17 @@ const fetchEnrichedDependencies = async () => {
         children[i].preview = preview;
     }
 
-    enrichedDependencies.value = children;
+    const presetDependencies = new Map(props.preset.dependencies.map(dependency => [dependency.id, dependency]));
+    enrichedDependencies.value = children.map((child) => {
+        const dependency = presetDependencies.get(child.id);
+        let resolutionLabel = '';
+        if (child.type === 'asset') {
+            if (dependency?.resolution_mode === 'pinned') resolutionLabel = 'Pinned';
+            else if (dependency?.resolution_mode === 'tagged') resolutionLabel = 'Tagged';
+            else resolutionLabel = 'Latest';
+        }
+        return { ...child, resolutionLabel };
+    });
 };
 
 const getAppIcon = (iconName) => {
@@ -226,6 +237,14 @@ const toggleExpanded = async () => {
     transition: all .2s ease-in-out;
     min-height: 50px;
     min-height: max-content;
+}
+
+.dependency-selector-label {
+    padding: .15rem .35rem;
+    border: 1px solid var(--border-color);
+    border-radius: .3rem;
+    color: var(--text-muted);
+    font-size: .65rem;
 }
 
 .preset-item-container:hover {

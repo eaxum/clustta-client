@@ -153,8 +153,11 @@ const refreshCheckpoints = async () => {
   }
 
   let asset = assetStore.selectedAsset;
-  let assetCheckpoints = await CheckpointService.GetCheckpoints(projectStore.activeProject.uri, asset.id)
-    .then((data) => {
+  const [assetCheckpoints, groupTags, referenceCounts] = await Promise.all([
+    CheckpointService.GetCheckpoints(projectStore.activeProject.uri, asset.id),
+    CheckpointService.GetCheckpointGroupTags(projectStore.activeProject.uri, asset.id),
+    CheckpointService.GetCheckpointDependencyReferenceCounts(projectStore.activeProject.uri, asset.id),
+  ]).then((data) => {
       return data;
     })
     .catch((error) => {
@@ -164,7 +167,12 @@ const refreshCheckpoints = async () => {
         "error",
         false
       );
-    });
+    }) || [[], [], {}];
+  const tagsByGroupId = new Map();
+  groupTags.forEach(tag => {
+    if (!tagsByGroupId.has(tag.group_id)) tagsByGroupId.set(tag.group_id, []);
+    tagsByGroupId.get(tag.group_id).push(tag);
+  });
 
   trayStates.checkpointsLoaded = true;
   if (!assetCheckpoints || !assetCheckpoints.length) return;
@@ -222,6 +230,9 @@ const refreshCheckpoints = async () => {
       author_profile: authorProfile,
       avatarColor: userStore.userProfileColor(authorId),
       synced: !projectStore.activeProject?.has_remote || checkpoint.synced,
+      group_id: checkpoint.group_id,
+      tags: tagsByGroupId.get(checkpoint.group_id) || [],
+      pin_count: referenceCounts[checkpoint.id] || 0,
     };
 
     const existingCheckpoint = checkpoints.value.find(cp => cp.checkpoint_id === checkpoint.id);

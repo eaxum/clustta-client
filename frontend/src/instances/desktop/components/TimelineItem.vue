@@ -21,6 +21,12 @@
                             utils.formatDate(timelineItem.created_at, locale) }}</div>
                     </div>
                 </div>
+                <div v-if="timelineItem.tags?.length" class="timeline-tags">
+                    <span v-for="tag in timelineItem.tags" :key="tag.id" class="timeline-tag">{{ tag.name }}</span>
+                    <span v-if="timelineItem.follower_count" class="timeline-followers">
+                        {{ timelineItem.follower_count }} followers
+                    </span>
+                </div>
             </div>
 
             <div v-if="!isItemExpanded" class="checkpoint-item-actions">
@@ -117,12 +123,13 @@ const getAppIcon = (iconName) => {
 };
 
 // Returns whether this item is currently expanded.
-const isItemExpanded = computed(() => props.expandedId === props.timelineItem.created_at);
+const timelineIdentity = computed(() => props.timelineItem.group_id || props.timelineItem.created_at);
+const isItemExpanded = computed(() => props.expandedId === timelineIdentity.value);
 
 // Toggles the expanded state of this timeline item.
 const toggleVersions = () => {
     if (!isItemExpanded.value) {
-        emit('updateExpanded', props.timelineItem.created_at);
+        emit('updateExpanded', timelineIdentity.value);
     } else {
         emit('updateExpanded', '');
     }
@@ -474,5 +481,21 @@ onMounted(() => {
 .profile-img {
     width: 100%;
     height: 100%;
+}
+
+.timeline-tags,
+.checkpoint-selector-indicators {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .25rem;
+}
+
+.timeline-tag,
+.timeline-followers {
+    padding: .1rem .3rem;
+    border: 1px solid var(--selected);
+    border-radius: .3rem;
+    color: var(--text-muted);
+    font-size: .62rem;
 }
 </style>

@@ -121,6 +121,30 @@ export function FinalizeCheckpointGroup(projectPath, groupId) {
 }
 
 /**
+ * GetCheckpointDependencyReferenceCounts returns exact-pin follower counts for an asset.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<{ [_: string]: number }>}
+ */
+export function GetCheckpointDependencyReferenceCounts(projectPath, assetId) {
+    return $Call.ByID(629976125, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType4($result);
+    }));
+}
+
+/**
+ * GetCheckpointGroupTagFollowerAssetIds returns assets required by a moving tag.
+ * @param {string} projectPath
+ * @param {string} tagId
+ * @returns {$CancellablePromise<string[]>}
+ */
+export function GetCheckpointGroupTagFollowerAssetIds(projectPath, tagId) {
+    return $Call.ByID(3160106364, projectPath, tagId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType5($result);
+    }));
+}
+
+/**
  * GetCheckpointGroupTags returns tags compatible with an asset.
  * @param {string} projectPath
  * @param {string} assetId
@@ -128,7 +152,7 @@ export function FinalizeCheckpointGroup(projectPath, groupId) {
  */
 export function GetCheckpointGroupTags(projectPath, assetId) {
     return $Call.ByID(1306415561, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType5($result);
+        return $$createType7($result);
     }));
 }
 
@@ -166,7 +190,7 @@ export function GetLatestCheckpoint(projectPath, assetId) {
  */
 export function GetTimeline(projectPath) {
     return $Call.ByID(3258604816, projectPath).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType7($result);
+        return $$createType9($result);
     }));
 }
 
@@ -180,7 +204,7 @@ export function GetTimeline(projectPath) {
  */
 export function Revert(projectPath, remoteUrl, assetIds) {
     return $Call.ByID(3999685591, projectPath, remoteUrl, assetIds).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType8($result);
+        return $$createType10($result);
     }));
 }
 
@@ -229,7 +253,7 @@ export function RevertToCheckpoint(projectPath, remoteUrl, assetId, checkpointId
  */
 export function SetCheckpointGroupTag(projectPath, tagId, name, groupId) {
     return $Call.ByID(4136921404, projectPath, tagId, name, groupId).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType6($result);
     }));
 }
 
@@ -268,8 +292,10 @@ const $$createType0 = models$0.Checkpoint.createFrom;
 const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = models$0.DependencyBuildResult.createFrom;
-const $$createType4 = models$0.CheckpointGroupTag.createFrom;
-const $$createType5 = $Create.Array($$createType4);
-const $$createType6 = repository$0.CompatTimeline.createFrom;
+const $$createType4 = $Create.Map($Create.Any, $Create.Any);
+const $$createType5 = $Create.Array($Create.Any);
+const $$createType6 = models$0.CheckpointGroupTag.createFrom;
 const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = $models.FetchResult.createFrom;
+const $$createType8 = repository$0.CompatTimeline.createFrom;
+const $$createType9 = $Create.Array($$createType8);
+const $$createType10 = $models.FetchResult.createFrom;

@@ -30,13 +30,15 @@ type Timeline struct {
 	Preview   []byte `db:"preview" json:"preview"`
 }
 type CompatTimeline struct {
-	CreatedAt  string   `db:"created_at" json:"created_at"`
-	AssetPaths []string `db:"asset_paths" json:"asset_paths"`
-	Extensions []string `db:"extensions" json:"extensions"`
-	GroupId    string   `db:"group_id" json:"group_id"`
-	Comment    string   `db:"comment" json:"comment"`
-	AuthorUID  string   `db:"author_id" json:"author_id"`
-	Preview    []byte   `db:"preview" json:"preview"`
+	CreatedAt     string                      `db:"created_at" json:"created_at"`
+	AssetPaths    []string                    `db:"asset_paths" json:"asset_paths"`
+	Extensions    []string                    `db:"extensions" json:"extensions"`
+	GroupId       string                      `db:"group_id" json:"group_id"`
+	Comment       string                      `db:"comment" json:"comment"`
+	AuthorUID     string                      `db:"author_id" json:"author_id"`
+	Preview       []byte                      `db:"preview" json:"preview"`
+	Tags          []models.CheckpointGroupTag `json:"tags"`
+	FollowerCount int                         `json:"follower_count"`
 }
 
 // nextCheckpointTime keeps checkpoint creation monotonic even when the system
@@ -474,6 +476,24 @@ func GetTimeline(tx *sqlx.Tx) ([]CompatTimeline, error) {
 		}
 		if i == len(checkpoints)-1 {
 			timeline = append(timeline, previousCheckpoint)
+		}
+	}
+
+	for i := range timeline {
+		if err = tx.Select(&timeline[i].Tags, `
+			SELECT * FROM checkpoint_group_tag
+			WHERE group_id = ?
+			ORDER BY name COLLATE NOCASE
+		`, timeline[i].GroupId); err != nil {
+			return timeline, err
+		}
+		if err = tx.Get(&timeline[i].FollowerCount, `
+			SELECT COUNT(*)
+			FROM asset_dependency ad
+			JOIN checkpoint_group_tag cgt ON cgt.id = ad.checkpoint_group_tag_id
+			WHERE cgt.group_id = ?
+		`, timeline[i].GroupId); err != nil {
+			return timeline, err
 		}
 	}
 

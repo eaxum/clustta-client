@@ -1,5 +1,5 @@
 <template>
-  <div ref="collaboratorItem" class="collaborator-item-main" :class="{ 'compact-mode': compact, 'compact-editing': compact && isEditing }" v-esc="handleEscKey" v-stop-propagation>
+  <div class="collaborator-item-main" :class="{ 'compact-mode': compact }" v-stop-propagation>
     <div class="collaborator-item-spacer">
       <ProfilePhoto :assigneeId="collaborator.id" :userPhoto="collaborator.photo" />
     </div>
@@ -7,7 +7,7 @@
     <div class="collaborator-item-root">
       <div class="collaborator-item-container">
 
-        <div v-if="!compact || !isEditing" class="collaborator-item-content">
+        <div class="collaborator-item-content">
           <div class="collaborator-item-details">
             <div class="collaborator-item-name">{{ userFullName }}</div>
             <div class="collaborator-item-email">{{ collaborator.email }}</div>
@@ -18,19 +18,15 @@
           <DropDownBox :selectedItem="collaborator.role_name || collaborator.role?.name" :items="collaboratorRoles" :onSelect="selectRole" />
         </div>
 
-        <div v-if="compact && isEditing && canEditRole" class="collaborator-item-dropdown compact-dropdown">
-          <DropDownBox :selectedItem="collaborator.role_name || collaborator.role?.name" :items="collaboratorRoles" :onSelect="selectRole" />
-        </div>
-
         <div v-if="!compact" class="collaborator-item-actions">
           <ActionButton v-if="canDeleteUser" :icon="getAppIcon('person-minus')" @click="deleteCollaborator(collaborator.id)" v-tooltip="$t('components.collaboratorItem.remove')" />
           <ActionButton :icon="getAppIcon('person-search')" @click="openUserProfile" v-tooltip="$t('components.collaboratorItem.viewProfile')" />
         </div>
 
-        <div v-if="compact && !isEditing && isProjectMember" class="collaborator-item-actions compact-actions-container">
+        <div v-if="compact && isProjectMember" class="collaborator-item-actions compact-actions-container">
           <div class="compact-role-meta" v-tooltip="displayRole">{{ displayRole }}</div>
           <div class="compact-hover-actions">
-            <ActionButton v-if="canEditRole" :icon="getAppIcon('edit')" @click="startEditing" v-tooltip="$t('components.collaboratorItem.editRole')" />
+            <ActionButton v-if="canEditRole" :icon="getAppIcon('edit')" @click="openRoleMenu" v-tooltip="$t('components.collaboratorItem.editRole')" />
             <ActionButton v-if="canDeleteUser" :icon="getAppIcon(isLoading ? 'loading' : 'person-minus')" :isLoading="isLoading" @click="deleteCollaborator(collaborator.id)" v-tooltip="isLoading ? $t('components.collaboratorItem.removing') : $t('components.collaboratorItem.remove')" />
           </div>
         </div>
@@ -48,7 +44,7 @@
 
 <script setup>
 // imports
-import { computed, ref, watch, onBeforeUnmount } from 'vue';
+import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Browser } from "@wailsio/runtime";
 
@@ -62,12 +58,14 @@ import { StudioService } from "@/services";
 
 // stores
 import { useIconStore } from '@/stores/icons';
+import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useStudioStore } from '@/stores/studio';
 import { useUserStore } from '@/stores/users';
 
 const iconStore = useIconStore();
+const menu = useMenu();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const studioStore = useStudioStore();
@@ -89,10 +87,6 @@ const props = defineProps({
   onRoleChange: { type: Function, default: null },
   roles: { type: Array, default: () => ['Admin', 'User'] },
 });
-
-// refs
-const collaboratorItem = ref(null);
-const isEditing = ref(false);
 
 // computed props
 const canDeleteUser = computed(() => {
@@ -150,13 +144,6 @@ const getAppIcon = (iconName) => {
   return iconStore.getAppIcon(iconName);
 };
 
-// Handles the escape key press to exit editing mode.
-const handleEscKey = () => {
-  if (props.compact && isEditing.value) {
-    stopEditing();
-  }
-};
-
 // Opens the collaborator's profile in a browser.
 const openUserProfile = () => {
   const profileUrl = `https://app.clustta.com/user/${props.collaborator.username}`;
@@ -164,65 +151,39 @@ const openUserProfile = () => {
 };
 
 // Handles role selection and updates the collaborator's role.
-const selectRole = (role) => {
+const selectRole = async (role) => {
   if (props.onRoleChange) {
-    props.onRoleChange(props.collaborator.id, role);
-    if (props.compact) {
-      stopEditing();
-    }
-    return;
+    await props.onRoleChange(props.collaborator.id, role);
+    return true;
   }
 
   const userId = props.collaborator.id;
   const selectedUser = studioStore.studioUsers.find((user) => user.id === userId);
 
-  StudioService.ChangeCollaboratorRole(props.collaborator.id, projectStore.selectedStudio.id, role)
-    .then(() => {
-      selectedUser.role_name = role;
-      if (props.compact) {
-        stopEditing();
-      }
-    })
-    .catch((error) => {
-      notificationStore.errorNotification(t('components.collaboratorItem.errorUpdatingRole'), error.response.data);
-    });
-};
-
-// Starts editing mode in compact view.
-const startEditing = () => {
-  isEditing.value = true;
-};
-
-// Stops editing mode in compact view.
-const stopEditing = () => {
-  isEditing.value = false;
-};
-
-// Handles clicks outside the component to exit editing mode.
-// Ignores clicks on teleported dropdown elements.
-const handleClickOutside = (event) => {
-  const isInsideComponent = collaboratorItem.value && collaboratorItem.value.contains(event.target);
-  const isInsideDropdown = event.target.closest('.listbox-list-items-root');
-  
-  if (!isInsideComponent && !isInsideDropdown) {
-    stopEditing();
+  try {
+    await StudioService.ChangeCollaboratorRole(props.collaborator.id, projectStore.selectedStudio.id, role);
+    selectedUser.role_name = role;
+    return true;
+  } catch (error) {
+    notificationStore.errorNotification(t('components.collaboratorItem.errorUpdatingRole'), error.response?.data || error);
+    return false;
   }
 };
 
-// watchers
-// Manages document click listener based on editing state.
-watch(isEditing, (editing) => {
-  if (editing) {
-    document.addEventListener('mousedown', handleClickOutside, { capture: true });
-  } else {
-    document.removeEventListener('mousedown', handleClickOutside, { capture: true });
-  }
-});
-
-// lifecycle hooks
-onBeforeUnmount(() => {
-  document.removeEventListener('mousedown', handleClickOutside, { capture: true });
-});
+const openRoleMenu = (event) => {
+  const currentRole = props.collaborator.role_name || props.collaborator.role?.name || '';
+  menu.showCompactEditMenu(event, {
+    key: `collaborator-role-${props.collaborator.id}`,
+    title: 'Collaborator role',
+    selectedId: currentRole,
+    options: collaboratorRoles.value.map(role => ({
+      id: role,
+      label: role.charAt(0).toUpperCase() + role.slice(1).toLowerCase(),
+      icon: getAppIcon('person'),
+    })),
+    onSelect: option => selectRole(option.id),
+  });
+};
 
 </script>
 
@@ -357,8 +318,7 @@ onBeforeUnmount(() => {
   transition: max-width .2s ease-in-out, opacity .2s ease-out, transform .2s ease-out;
 }
 
-.collaborator-item-main:hover .collaborator-item-actions,
-.collaborator-item-main.compact-editing .collaborator-item-actions {
+.collaborator-item-main:hover .collaborator-item-actions {
   max-width: 96px;
   opacity: 1;
   transform: translateX(0);
@@ -419,20 +379,4 @@ onBeforeUnmount(() => {
   transition: max-width .2s ease-in-out, opacity .2s ease-out, padding .2s ease-out, transform .2s ease-out;
 }
 
-.compact-mode:hover .compact-role-meta {
-  max-width: 0;
-  opacity: 0;
-  padding-left: 0;
-  padding-right: 0;
-  transform: translateX(-.25rem);
-}
-
-.compact-dropdown {
-  width: 200px;
-  min-width: 200px;
-}
-
-.compact-editing .collaborator-item-container {
-  justify-content: flex-end;
-}
 </style>

@@ -618,17 +618,7 @@ const buildWithDependencies = async () => {
       projectStore.activeProject.uri,
       props.asset.id,
     );
-    if (plan.conflicts?.length) {
-      throw new Error(plan.conflicts.map((conflict) => conflict.message).join('\n'));
-    }
-    await CheckpointService.ExecuteDependencyBuildPlan(
-      projectStore.activeProject.uri,
-      projectStore.getActiveProjectUrl,
-      props.asset.id,
-      plan.fingerprint,
-      false,
-    );
-    emitter.emit('refresh-browser');
+    modals.openDependencyBuildPlan(props.asset.id, plan);
   } catch (error) {
     notificationStore.errorNotification(t('notifications.errorRevertingAssets'), error);
   }

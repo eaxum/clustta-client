@@ -173,6 +173,27 @@ func SetCheckpointGroupTag(tx *sqlx.Tx, tagId, name, groupId string) (models.Che
 	if tagId == "" {
 		tagId = uuid.New().String()
 	}
+	missingAssets := []string{}
+	err = tx.Select(&missingAssets, `
+		SELECT DISTINCT ad.dependency_id
+		FROM asset_dependency ad
+		LEFT JOIN asset_checkpoint ac
+			ON ac.group_id = ?
+			AND ac.asset_id = ad.dependency_id
+			AND ac.trashed = 0
+		WHERE ad.checkpoint_group_tag_id = ?
+			AND ac.id IS NULL
+		ORDER BY ad.dependency_id
+	`, groupId, tagId)
+	if err != nil {
+		return models.CheckpointGroupTag{}, err
+	}
+	if len(missingAssets) > 0 {
+		return models.CheckpointGroupTag{}, fmt.Errorf(
+			"checkpoint group is missing assets required by tag followers: %s",
+			strings.Join(missingAssets, ", "),
+		)
+	}
 	now := utils.GetEpochTime()
 	_, err = tx.Exec(`
 		INSERT INTO checkpoint_group_tag (id, mtime, name, group_id, synced)
@@ -220,6 +241,18 @@ func GetCheckpointGroupTagsForAsset(tx *sqlx.Tx, assetId string) ([]models.Check
 		ORDER BY cgt.name COLLATE NOCASE
 	`, CheckpointGroupTypeMulti, assetId)
 	return tags, err
+}
+
+// GetCheckpointGroupTagFollowerAssetIds returns assets required by tagged edges.
+func GetCheckpointGroupTagFollowerAssetIds(tx *sqlx.Tx, tagId string) ([]string, error) {
+	assetIds := []string{}
+	err := tx.Select(&assetIds, `
+		SELECT DISTINCT dependency_id
+		FROM asset_dependency
+		WHERE checkpoint_group_tag_id = ?
+		ORDER BY dependency_id
+	`, tagId)
+	return assetIds, err
 }
 
 // GetCheckpointGroupAssetIds returns active assets represented by a group.

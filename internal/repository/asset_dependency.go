@@ -19,6 +19,28 @@ const (
 	DependencyResolutionTagged   = "tagged"
 )
 
+// GetCheckpointDependencyReferenceCounts returns active exact-pin followers by checkpoint.
+func GetCheckpointDependencyReferenceCounts(tx *sqlx.Tx, assetId string) (map[string]int, error) {
+	rows := []struct {
+		CheckpointId string `db:"checkpoint_id"`
+		Count        int    `db:"reference_count"`
+	}{}
+	err := tx.Select(&rows, `
+		SELECT checkpoint_id, COUNT(*) AS reference_count
+		FROM asset_dependency
+		WHERE dependency_id = ? AND resolution_mode = ?
+		GROUP BY checkpoint_id
+	`, assetId, DependencyResolutionPinned)
+	if err != nil {
+		return nil, err
+	}
+	counts := make(map[string]int, len(rows))
+	for _, row := range rows {
+		counts[row.CheckpointId] = row.Count
+	}
+	return counts, nil
+}
+
 func normalizeSelectorReference(reference *string) *string {
 	if reference == nil {
 		return nil

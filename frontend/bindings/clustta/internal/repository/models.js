@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as models$0 from "./models/models.js";
+
 export class CompatTimeline {
     /**
      * Creates a new CompatTimeline instance.
@@ -61,6 +65,20 @@ export class CompatTimeline {
              */
             this["preview"] = "";
         }
+        if (!("tags" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.CheckpointGroupTag[]}
+             */
+            this["tags"] = [];
+        }
+        if (!("follower_count" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["follower_count"] = 0;
+        }
 
         Object.assign(this, $$source);
     }
@@ -74,6 +92,7 @@ export class CompatTimeline {
         const $$createField1_0 = $$createType0;
         const $$createField2_0 = $$createType0;
         const $$createField6_0 = $Create.ByteSlice;
+        const $$createField7_0 = $$createType2;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("asset_paths" in $$parsedSource) {
             $$parsedSource["asset_paths"] = $$createField1_0($$parsedSource["asset_paths"]);
@@ -83,6 +102,9 @@ export class CompatTimeline {
         }
         if ("preview" in $$parsedSource) {
             $$parsedSource["preview"] = $$createField6_0($$parsedSource["preview"]);
+        }
+        if ("tags" in $$parsedSource) {
+            $$parsedSource["tags"] = $$createField7_0($$parsedSource["tags"]);
         }
         return new CompatTimeline(/** @type {Partial<CompatTimeline>} */($$parsedSource));
     }
@@ -256,8 +278,8 @@ export class PreLaunchHookSettings {
      * @returns {PreLaunchHookSettings}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType2;
-        const $$createField2_0 = $$createType4;
+        const $$createField1_0 = $$createType4;
+        const $$createField2_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("environment_variables" in $$parsedSource) {
             $$parsedSource["environment_variables"] = $$createField1_0($$parsedSource["environment_variables"]);
@@ -503,7 +525,9 @@ export class ProjectScriptSettings {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = PreLaunchEnvironmentVariable.createFrom;
+const $$createType1 = models$0.CheckpointGroupTag.createFrom;
 const $$createType2 = $Create.Array($$createType1);
-const $$createType3 = PreLaunchHook.createFrom;
+const $$createType3 = PreLaunchEnvironmentVariable.createFrom;
 const $$createType4 = $Create.Array($$createType3);
+const $$createType5 = PreLaunchHook.createFrom;
+const $$createType6 = $Create.Array($$createType5);

@@ -22,20 +22,34 @@
     <Handle v-if="data.nodeId" :style="nodeStyle" type="source" :position="Position.Right" />
     <div class="virtual-node-root" >
       <div class="virtual-node-container">
-        <div v-if="itemTypeIcon" class="virtual-node-icon-container">
-          <img class="large-icons" :src="itemTypeIcon">
+        <div v-if="nodeIcon" class="virtual-node-icon-container">
+          <img class="large-icons no-filter" :src="nodeIcon">
         </div>
         <!-- <div v-if="commonStore.showThumbs" class="virtual-node-preview-container">
           <div class="virtual-node-preview-image">
             <img v-if="data.preview" class="screenshot-thumb" :src="data.preview">
           </div>
         </div> -->
-        <div class="virtual-node-icon-container">
-          <img v-if="data.icon" class="large-icons no-filter" :src="data.icon">
-        </div>
         <div class="virtual-node-content" v-tooltip="data.asset_path">
-          <div class="virtual-node-details">
-            {{ utils.capitalizeStr(data.name) }}
+          <div class="virtual-node-labels">
+            <div class="virtual-node-details">
+              {{ utils.capitalizeStr(data.name) }}
+            </div>
+            <div v-if="hasDependencySelectors" class="virtual-node-selectors">
+              <DependencySelector
+                v-if="data.dependencyEdge"
+                :edge="data.dependencyEdge"
+                :ownerAssetId="data.dependencyEdge.asset_id"
+                :editable="data.canManageDependencies && data.dependencyEdge.asset_id === data.rootAssetId"
+                @updated="handleSelectorUpdated"
+              />
+              <span
+                v-else-if="data.collectionSelectorLabel"
+                class="collection-selector-label"
+              >
+                {{ data.collectionSelectorLabel }}
+              </span>
+            </div>
           </div>
         </div>
         
@@ -54,7 +68,7 @@
 
 
 // imports
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { Handle } from '@vue-flow/core';
 import { Position } from '@vue-flow/core';
 import utils from '@/services/utils';
@@ -68,6 +82,7 @@ import { useIconStore } from '@/stores/icons';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetItem from '@/instances/desktop/components/AssetItem.vue';
+import DependencySelector from '@/instances/desktop/components/DependencySelector.vue';
 
 // states/stores
 const iconStore = useIconStore();
@@ -154,6 +169,26 @@ const dependenciesCount = computed(() => {
   return item.dependencies.length + item.collection_dependencies.length
 });
 
+const resolvedExtensionIcon = ref('');
+const nodeIcon = computed(() => {
+  if (props.data.collection_type_id || props.data.type === 'collection') return itemTypeIcon.value;
+  return resolvedExtensionIcon.value || props.data.icon || getAppIcon('file');
+});
+
+const loadExtensionIcon = async () => {
+  resolvedExtensionIcon.value = '';
+  if (props.data.collection_type_id || props.data.type === 'collection') return;
+  const extension = String(props.data.extension || '').toLowerCase().replace(/^\./, '');
+  if (!extension) return;
+  resolvedExtensionIcon.value = await iconStore.getIcon(extension) || '';
+};
+
+const hasDependencySelectors = computed(() => {
+  return props.data.dependencyEdge || props.data.collectionSelectorLabel;
+});
+
+watch(() => `${props.data.id}:${props.data.extension}`, loadExtensionIcon, { immediate: true });
+
 // methods
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
@@ -168,6 +203,10 @@ const removeDependency = () => {
 const addDependency = () => {
   let itemType = props.data.type
   emitter.emit('addDependency', { id: props.data.id, itemType: itemType });
+};
+
+const handleSelectorUpdated = () => {
+  emitter.emit('dependency-selector-updated');
 };
 
 const selectItem = () => {
@@ -254,7 +293,7 @@ const selectItem = () => {
   background-color: darkblue;
   background-color: var(--surface-2);
   border-radius: 14px;
-  overflow: hidden;
+  overflow: visible;
   background-color: var(--surface-3);
   /* border-radius: var(--very-large-radius); */
 
@@ -272,7 +311,8 @@ const selectItem = () => {
   padding: .4rem;
   box-sizing: border-box;
   width: 100%;
-  height: 50px;
+  min-height: 50px;
+  height: auto;
   justify-content: space-between;
   transition: all .3s ease-out;
 }
@@ -375,6 +415,32 @@ const selectItem = () => {
   /* background-color: indigo; */
   width: 100%;
   overflow: hidden;
+}
+
+.virtual-node-labels {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  flex-direction: row;
+  align-items: center;
+  gap: .2rem;
+  white-space: nowrap;
+}
+
+.virtual-node-selectors {
+  display: flex;
+  flex: 0 0 auto;
+  max-width: 170px;
+  flex-wrap: nowrap;
+  gap: .2rem;
+}
+
+.collection-selector-label {
+  padding: .15rem .35rem;
+  border: 1px solid var(--border-color);
+  border-radius: .3rem;
+  color: var(--text-muted);
+  font-size: .62rem;
 }
 
 .virtual-node-count {

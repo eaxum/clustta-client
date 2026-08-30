@@ -88,10 +88,16 @@ const handleEnterKey = (event) => {
 const savePreset = async () => {
   isAwaitingResponse.value = true;
   
-  const dependencyData = dependencies.value.map((dep) => ({
-    id: dep.id,
-    type: dep.type
-  }));
+  const dependencyData = dependencies.value.map((dep) => {
+    const edge = dep.dependencyEdge;
+    return {
+      id: dep.id,
+      type: dep.type,
+      resolution_mode: edge?.resolution_mode || 'floating',
+      checkpoint_id: edge?.checkpoint_id || '',
+      checkpoint_group_tag_id: edge?.checkpoint_group_tag_id || '',
+    };
+  });
 
   const newPreset = {
     name: presetName.value,
