@@ -98,15 +98,15 @@ const calculateDotPositions = () => {
         dotPositions.value = positions;
 
         const segments = [];
-        const danger = getComputedStyle(railRef.value).getPropertyValue('--danger').trim();
+        const warning = getComputedStyle(railRef.value).getPropertyValue('--warning').trim();
         const steel = getComputedStyle(railRef.value).getPropertyValue('--surface-4').trim();
 
         // Returns the background value for a segment given the sync state at each end.
         const segmentBg = (startSynced, endSynced) => {
-            if (!startSynced && !endSynced) return danger;
+            if (!startSynced && !endSynced) return warning;
             if (startSynced && endSynced) return steel;
-            const from = startSynced ? steel : danger;
-            const to = endSynced ? steel : danger;
+            const from = startSynced ? steel : warning;
+            const to = endSynced ? steel : warning;
             return `linear-gradient(to bottom, ${from}, ${to})`;
         };
 
@@ -190,7 +190,7 @@ watch(() => [props.group.items, props.expandedId], () => {
 }
 
 .timeline-dot-alert {
-    background-color: var(--danger);
+    background-color: var(--warning);
 }
 
 .checkpoint-data {

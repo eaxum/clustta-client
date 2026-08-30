@@ -47,6 +47,16 @@
 
         <div v-if="isItemExpanded" class="menu-divider"></div>
 
+        <div v-if="isItemExpanded && (checkpoint.tags?.length || checkpoint.pin_count)"
+            class="checkpoint-selector-indicators">
+            <span v-if="checkpoint.pin_count" class="checkpoint-pin"
+                v-tooltip="`Pinned by ${checkpoint.pin_count} ${checkpoint.pin_count === 1 ? 'dependency' : 'dependencies'}`">
+                <img class="checkpoint-pin-icon" :src="getAppIcon('dependency')">
+                {{ checkpoint.pin_count }}
+            </span>
+            <span v-for="tag in checkpoint.tags" :key="tag.id" class="checkpoint-tag">{{ tag.name }}</span>
+        </div>
+
         <div v-if="!isItemExpanded" class="checkpoint-item-actions">
             <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
                 @click="revertToVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
@@ -56,9 +66,6 @@
                 <ActionButton v-else :icon="getAppIcon('launch')" v-tooltip="$t('components.checkpointItem.openCheckpoint')"
                     @click="viewVersion(checkpoint.ownerId, checkpoint.checkpoint_id)" />
             </template>
-            <ActionButton v-if="entitlementStore.canShareLink && userStore.canDo('manage_share_links') && checkpoint.synced && !accountStore.isStudioAuth" :icon="getAppIcon('data-upload')" v-tooltip="$t('components.checkpointItem.shareCheckpoint')" @click="openShareModal" />
-            <ActionButton v-if="userStore.canDo('delete_checkpoint')" :icon="getAppIcon('trash')" v-tooltip="$t('components.checkpointItem.deleteCheckpoint')"
-                @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
         <div v-else class="full-checkpoint-item-actions">
@@ -75,9 +82,14 @@
                 @click="prepDeletePopUpModal(checkpoint.checkpoint_id)" />
         </div>
 
-        <div v-if="checkpoint.tags?.length || checkpoint.pin_count" class="checkpoint-selector-indicators">
+        <div v-if="!isItemExpanded && (checkpoint.tags?.length || checkpoint.pin_count)"
+            class="checkpoint-selector-indicators">
+            <span v-if="checkpoint.pin_count" class="checkpoint-pin"
+                v-tooltip="`Pinned by ${checkpoint.pin_count} ${checkpoint.pin_count === 1 ? 'dependency' : 'dependencies'}`">
+                <img class="checkpoint-pin-icon" :src="getAppIcon('dependency')">
+                {{ checkpoint.pin_count }}
+            </span>
             <span v-for="tag in checkpoint.tags" :key="tag.id" class="checkpoint-tag">{{ tag.name }}</span>
-            <span v-if="checkpoint.pin_count" class="checkpoint-pin">Pinned by {{ checkpoint.pin_count }}</span>
         </div>
 
     </div>
@@ -590,20 +602,28 @@ onBeforeUnmount(() => {
     width: 100%;
     padding: .15rem .4rem .25rem 2.3rem;
     box-sizing: border-box;
-    background-color: var(--surface-3);
+    background-color: transparent;
 }
 
-.checkpoint-tag,
-.checkpoint-pin {
+.checkpoint-tag {
     padding: .1rem .3rem;
-    border: 1px solid var(--selected);
+    border: 1px solid var(--border-strong);
     border-radius: .3rem;
     color: var(--text-muted);
-    font-size: .62rem;
+    font-size: .72rem;
 }
 
 .checkpoint-pin {
-    border-color: var(--warning);
+    display: inline-flex;
+    align-items: center;
+    gap: .2rem;
+    color: var(--text-muted);
+    font-size: .72rem;
+}
+
+.checkpoint-pin-icon {
+    width: .9rem;
+    height: .9rem;
 }
 </style>
 
