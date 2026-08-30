@@ -769,6 +769,16 @@ func (s *SettingsService) SetShowTypeIcons(enabled bool) error {
 	return settings.SetShowTypeIcons(enabled)
 }
 
+// GetShowFileTypeIcons returns whether file type icons are shown in the browser.
+func (s *SettingsService) GetShowFileTypeIcons() (bool, error) {
+	return settings.GetShowFileTypeIcons()
+}
+
+// SetShowFileTypeIcons sets the show file type icons preference.
+func (s *SettingsService) SetShowFileTypeIcons(enabled bool) error {
+	return settings.SetShowFileTypeIcons(enabled)
+}
+
 // GetIntegrationCredential retrieves integration credentials for an integration.
 // Credentials are stored per user per integration (not per project).
 func (s *SettingsService) GetIntegrationCredential(integrationId string) (settings.IntegrationCredential, error) {

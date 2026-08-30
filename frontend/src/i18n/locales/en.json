@@ -1046,6 +1046,8 @@
     "hideExtensions": "Hide extensions",
     "showTypeIcons": "Show type icons",
     "hideTypeIcons": "Hide type icons",
+    "showFileTypeIcons": "Show file type icons",
+    "hideFileTypeIcons": "Hide file type icons",
     "nameColumn": "Name",
     "pathColumn": "Path",
     "loadingConflicts": "Loading conflict details...",

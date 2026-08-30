@@ -3772,6 +3772,14 @@
         ]
       },
       {
+        "name": "GetShowFileTypeIcons",
+        "params": null,
+        "returns": [
+          "bool",
+          "error"
+        ]
+      },
+      {
         "name": "GetShowTypeIcons",
         "params": null,
         "returns": [
@@ -4080,6 +4088,15 @@
         "name": "SetSharedProjectDirectory",
         "params": [
           "dir:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetShowFileTypeIcons",
+        "params": [
+          "enabled:bool"
         ],
         "returns": [
           "error"

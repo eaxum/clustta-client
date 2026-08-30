@@ -914,6 +914,8 @@
     "hideExtensions": "एक्सटेंशन छिपाएँ",
     "showTypeIcons": "प्रकार आइकन दिखाएँ",
     "hideTypeIcons": "प्रकार आइकन छिपाएँ",
+    "showFileTypeIcons": "फ़ाइल प्रकार आइकन दिखाएँ",
+    "hideFileTypeIcons": "फ़ाइल प्रकार आइकन छिपाएँ",
     "nameColumn": "नाम",
     "pathColumn": "पथ",
     "loadingConflicts": "विरोध विवरण लोड हो रहे हैं...",

@@ -469,6 +469,7 @@ function startCheckSycnTokenInterval() {
 onMounted(async () => {
     await platformStore.initialize();
     await settingsStore.initializeShowTypeIcons();
+    await settingsStore.initializeShowFileTypeIcons();
     await settingsStore.initializeOverwriteDroppedFiles();
     if (!platformStore.isWeb) {
         startCheckSycnTokenInterval();

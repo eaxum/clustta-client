@@ -938,6 +938,8 @@
     "hideExtensions": "확장자 숨기기",
     "showTypeIcons": "유형 아이콘 표시",
     "hideTypeIcons": "유형 아이콘 숨기기",
+    "showFileTypeIcons": "파일 유형 아이콘 표시",
+    "hideFileTypeIcons": "파일 유형 아이콘 숨기기",
     "nameColumn": "이름",
     "pathColumn": "경로",
     "loadingConflicts": "충돌 상세 로딩 중...",

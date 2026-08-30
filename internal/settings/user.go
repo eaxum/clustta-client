@@ -142,6 +142,7 @@ type Settings struct {
 	UntrackedVisibility   *bool  `json:"untracked_visibility,omitempty"`
 	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
 	ShowTypeIcons         *bool  `json:"show_type_icons,omitempty"`
+	ShowFileTypeIcons     *bool  `json:"show_file_type_icons,omitempty"`
 
 	ProjectsDir         string `json:"projects_dir"`
 	ProjectsDirBookmark []byte `json:"projects_dir_bookmark,omitempty"`
@@ -716,6 +717,29 @@ func SetShowTypeIcons(enabled bool) error {
 		return err
 	}
 	settings.ShowTypeIcons = &enabled
+	return saveSettings(settings)
+}
+
+// GetShowFileTypeIcons returns whether file type icons are shown in the browser.
+// Defaults to true if not set.
+func GetShowFileTypeIcons() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return true, err
+	}
+	if settings.ShowFileTypeIcons == nil {
+		return true, nil
+	}
+	return *settings.ShowFileTypeIcons, nil
+}
+
+// SetShowFileTypeIcons sets the show file type icons preference.
+func SetShowFileTypeIcons(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.ShowFileTypeIcons = &enabled
 	return saveSettings(settings)
 }
 

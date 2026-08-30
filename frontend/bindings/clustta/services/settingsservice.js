@@ -377,6 +377,14 @@ export function GetSharedProjectDirectory() {
 }
 
 /**
+ * GetShowFileTypeIcons returns whether file type icons are shown in the browser.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetShowFileTypeIcons() {
+    return $Call.ByID(3941461557);
+}
+
+/**
  * GetShowTypeIcons returns whether type icons are shown in the browser.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -692,6 +700,15 @@ export function SetProjectScriptSettings(projectPath, directory, extensions) {
  */
 export function SetSharedProjectDirectory(dir) {
     return $Call.ByID(2608064267, dir);
+}
+
+/**
+ * SetShowFileTypeIcons sets the show file type icons preference.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetShowFileTypeIcons(enabled) {
+    return $Call.ByID(1312392817, enabled);
 }
 
 /**

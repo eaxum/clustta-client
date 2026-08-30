@@ -898,6 +898,8 @@
     "hideExtensions": "Masquer les extensions",
     "showTypeIcons": "Afficher les icônes de type",
     "hideTypeIcons": "Masquer les icônes de type",
+    "showFileTypeIcons": "Afficher les icônes de type de fichier",
+    "hideFileTypeIcons": "Masquer les icônes de type de fichier",
     "nameColumn": "Nom",
     "pathColumn": "Chemin",
     "loadingConflicts": "Chargement des détails des conflits...",

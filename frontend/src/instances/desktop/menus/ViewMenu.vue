@@ -37,6 +37,10 @@
       :icon="getAppIcon('shapes')" :showLabel="true" :fullWidth="true"
       :label="settingsStore.showTypeIcons ? $t('modals.hideTypeIcons') : $t('modals.showTypeIcons')" :buttonFunction="toggleShowTypeIcons" />
 
+    <ActionButton v-if="!isKanbanActive"
+      :icon="getAppIcon('file')" :showLabel="true" :fullWidth="true"
+      :label="settingsStore.showFileTypeIcons ? $t('modals.hideFileTypeIcons') : $t('modals.showFileTypeIcons')" :buttonFunction="toggleShowFileTypeIcons" />
+
     <span v-if="!isKanbanActive && !commonStore.useGrid" class="menu-divider"></span>
 
     <!-- Collapse Section -->
@@ -159,6 +163,12 @@ const toggleShowUntracked = async () => {
 // Toggles the show type icons option.
 const toggleShowTypeIcons = async () => {
   await settingsStore.toggleShowTypeIcons();
+  menu.hideContextMenu();
+};
+
+// Toggles the show file type icons option.
+const toggleShowFileTypeIcons = async () => {
+  await settingsStore.toggleShowFileTypeIcons();
   menu.hideContextMenu();
 };
 

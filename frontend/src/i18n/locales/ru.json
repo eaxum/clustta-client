@@ -914,6 +914,8 @@
     "hideExtensions": "Скрыть расширения",
     "showTypeIcons": "Показать значки типов",
     "hideTypeIcons": "Скрыть значки типов",
+    "showFileTypeIcons": "Показать значки типов файлов",
+    "hideFileTypeIcons": "Скрыть значки типов файлов",
     "nameColumn": "Название",
     "pathColumn": "Путь",
     "loadingConflicts": "Загрузка деталей конфликта...",

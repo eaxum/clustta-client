@@ -915,6 +915,8 @@
     "hideExtensions": "Erweiterungen ausblenden",
     "showTypeIcons": "Typsymbole anzeigen",
     "hideTypeIcons": "Typsymbole ausblenden",
+    "showFileTypeIcons": "Dateitypsymbole anzeigen",
+    "hideFileTypeIcons": "Dateitypsymbole ausblenden",
     "nameColumn": "Name",
     "pathColumn": "Pfad",
     "loadingConflicts": "Konfliktdetails werden geladen...",

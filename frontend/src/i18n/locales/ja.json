@@ -912,6 +912,8 @@
     "hideExtensions": "拡張子を非表示",
     "showTypeIcons": "タイプアイコンを表示",
     "hideTypeIcons": "タイプアイコンを非表示",
+    "showFileTypeIcons": "ファイルタイプアイコンを表示",
+    "hideFileTypeIcons": "ファイルタイプアイコンを非表示",
     "nameColumn": "名前",
     "pathColumn": "パス",
     "loadingConflicts": "競合の詳細を読み込み中...",

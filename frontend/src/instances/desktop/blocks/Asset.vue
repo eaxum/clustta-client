@@ -38,7 +38,7 @@
           </div>
 
           <!-- Icon container at bottom left when preview is present -->
-          <div class="asset-item-icon-container asset-item-icon-overlay">
+          <div v-if="settingsStore.showFileTypeIcons" class="asset-item-icon-container asset-item-icon-overlay">
             <img v-if="asset.icon" class="small-icons no-filter overlay-icons" :src="asset.icon">
             <img v-else-if="isUntracked" class="small-icons overlay-icons" :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
             <span v-else class="app-ext">
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        <div v-else class="asset-item-icon-container">
+        <div v-else-if="settingsStore.showFileTypeIcons" class="asset-item-icon-container">
           <img class="gigantic-icons no-filter " :src="displayThumbnail">
         </div>
 
@@ -210,7 +210,7 @@
 
       <div class="asset-item-container drop-zone">
 
-        <div class="asset-item-icon-container" @click="console.log(asset)" >
+        <div v-if="settingsStore.showFileTypeIcons" class="asset-item-icon-container" @click="console.log(asset)" >
           <img v-if="asset.icon" class="large-icons no-filter" :src="asset.icon">
           <img v-else-if="isUntracked" class="small-icons " :src="getAppIcon(getFileTypeIcon(asset))" @error="$event.target.src = getAppIcon('file')">
           <span v-else class="app-ext">

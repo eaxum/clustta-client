@@ -8,6 +8,7 @@ export const useSettingsStore = defineStore("settings", {
     overwriteDroppedFiles: true,
     pendingTab: null,
     showTypeIcons: true,
+    showFileTypeIcons: true,
     locationsStale: false,
     projectEnvironmentVariables: [],
     preLaunchHooks: [],
@@ -188,6 +189,22 @@ export const useSettingsStore = defineStore("settings", {
       const newValue = !this.showTypeIcons;
       await SettingsService.SetShowTypeIcons(newValue);
       this.showTypeIcons = newValue;
+    },
+
+    // Loads the show file type icons state from user settings.
+    async initializeShowFileTypeIcons() {
+      try {
+        this.showFileTypeIcons = await SettingsService.GetShowFileTypeIcons();
+      } catch (error) {
+        console.log(error);
+      }
+    },
+
+    // Toggles show file type icons and persists the setting.
+    async toggleShowFileTypeIcons() {
+      const newValue = !this.showFileTypeIcons;
+      await SettingsService.SetShowFileTypeIcons(newValue);
+      this.showFileTypeIcons = newValue;
     },
 
     setModalVisibility(modalName, value) {

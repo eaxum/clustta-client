@@ -914,6 +914,8 @@
     "hideExtensions": "Nascondi estensioni",
     "showTypeIcons": "Mostra icone tipo",
     "hideTypeIcons": "Nascondi icone tipo",
+    "showFileTypeIcons": "Mostra icone tipo file",
+    "hideFileTypeIcons": "Nascondi icone tipo file",
     "nameColumn": "Nome",
     "pathColumn": "Percorso",
     "loadingConflicts": "Caricamento dettagli conflitti...",
