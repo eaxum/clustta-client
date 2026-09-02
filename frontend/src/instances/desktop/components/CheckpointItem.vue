@@ -45,8 +45,6 @@
             <ActionButton :icon="getAppIcon('paper-clip')" v-tooltip="$t('components.checkpointItem.viewAttachment')"/>
         </div>
 
-        <div v-if="isItemExpanded" class="menu-divider"></div>
-
         <div v-if="isItemExpanded && (checkpoint.tags?.length || checkpoint.pin_count)"
             class="checkpoint-selector-indicators">
             <span v-if="checkpoint.pin_count" class="checkpoint-pin"
@@ -56,6 +54,8 @@
             </span>
             <span v-for="tag in checkpoint.tags" :key="tag.id" class="checkpoint-tag">{{ tag.name }}</span>
         </div>
+
+        <div v-if="isItemExpanded" class="menu-divider"></div>
 
         <div v-if="!isItemExpanded" class="checkpoint-item-actions">
             <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
@@ -608,7 +608,7 @@ onBeforeUnmount(() => {
 .checkpoint-tag {
     padding: .1rem .3rem;
     border: 1px solid var(--border-strong);
-    border-radius: .3rem;
+    border-radius: 999px;
     color: var(--text-muted);
     font-size: .72rem;
 }

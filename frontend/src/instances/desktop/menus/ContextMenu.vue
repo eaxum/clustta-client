@@ -138,9 +138,8 @@ const endAnimation = (el) => {
 
 // Hides the context menu on document click.
 const hideContextMenu = (event) => {
-  if (menuEl.value) {
-    menu.hideContextMenu();
-  }
+  if (!menuEl.value || menuEl.value.contains(event.target)) return;
+  menu.hideContextMenu();
 };
 
 // Starts the enter animation for the menu.
@@ -166,11 +165,11 @@ const startLeaveAnimation = (el) => {
 // lifecycle hooks
 onMounted(() => {
   menu.menuEl = menuEl.value;
-  document.addEventListener('click', hideContextMenu);
+  document.addEventListener('pointerdown', hideContextMenu, true);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('click', hideContextMenu);
+  document.removeEventListener('pointerdown', hideContextMenu, true);
 });
 
 </script>

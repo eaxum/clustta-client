@@ -3,7 +3,7 @@
     <div class="input-section">
       <div class="horizontal-flex search-row">
         <input ref="searchInput" v-model="searchTerm" class="input-short" type="text" :maxlength="TAG_MAX_LENGTH"
-          placeholder="Search checkpoint tags" @keydown.enter="addNewTag" />
+          placeholder="Search or add tags" @keydown.enter="addNewTag" />
         <ActionButton v-if="searchTerm.length" :icon="iconStore.getAppIcon('close')" :allowDeactivate="true"
           v-tooltip="$t('components.searchBar.clearSearch')" :buttonFunction="clearSearch" />
       </div>
@@ -18,7 +18,8 @@
       <img class="small-icons" :src="iconStore.getAppIcon('tag')">
       <div class="horizontal-flex">
         <div class="tag-label">{{ utils.capitalizeStr(tag.name) }}</div>
-        <ToggleSwitch :switchValueProp="isAssigned(tag)" />
+        <CheckBox :modelValue="isAssigned(tag)" :disabled="isProcessing"
+          :ariaLabel="`${isAssigned(tag) ? 'Remove' : 'Assign'} ${tag.name}`" />
       </div>
     </span>
 
@@ -40,7 +41,7 @@ import { canActOnAsset } from '@/lib/permissions';
 import utils from '@/services/utils';
 import { CheckpointService } from '@/services';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
