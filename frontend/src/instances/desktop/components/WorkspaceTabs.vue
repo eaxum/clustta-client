@@ -160,19 +160,6 @@ const setWorkspace = (workspaceName) => {
     collectionStore.navigatedCollection = null;
   }
   
-  // Restore view mode if workspace has a saved viewMode
-  if (workspace.viewMode !== undefined) {
-    if (workspace.viewMode === 'compact') {
-      commonStore.setCompactView();
-    } else if (workspace.viewMode === 'dense') {
-      commonStore.setDenseView();
-    } else if (workspace.viewMode === 'grid') {
-      commonStore.setGridView();
-    } else if (workspace.viewMode === 'kanban') {
-      commonStore.setKanbanView();
-    }
-  }
-  
   commonStore.setActiveWorkspace(workspace);
   refreshWorkspace();
 };

@@ -137,7 +137,6 @@ type Settings struct {
 	Language              string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
 	EulaAccepted          bool   `json:"eula_accepted"`
 	ProjectGridView       bool   `json:"project_grid_view"`
-	UseGrid               bool   `json:"use_grid"`
 	DefaultViewMode       string `json:"default_view_mode"`
 	UntrackedVisibility   *bool  `json:"untracked_visibility,omitempty"`
 	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
@@ -207,13 +206,69 @@ func loadUserSettings() (Settings, error) {
 		return settings, err
 	}
 
-	if migrateLocationIDsToUUID(&settings) {
+	legacySettings := struct {
+		UseGrid *bool `json:"use_grid"`
+	}{}
+	if err = json.Unmarshal(file, &legacySettings); err != nil {
+		return settings, err
+	}
+
+	settingsChanged := migrateViewModes(&settings, legacySettings.UseGrid)
+	settingsChanged = migrateLocationIDsToUUID(&settings) || settingsChanged
+	if settingsChanged {
 		if saveErr := saveSettings(settings); saveErr != nil {
-			log.Printf("Failed to persist project location ID migration: %v", saveErr)
+			log.Printf("Failed to persist settings migration: %v", saveErr)
 		}
 	}
 
 	return settings, nil
+}
+
+const (
+	viewModeGrid   = "grid"
+	viewModeKanban = "kanban"
+	viewModeList   = "list"
+)
+
+func migrateViewModes(settings *Settings, legacyUseGrid *bool) bool {
+	defaultViewMode := normalizeViewMode(settings.DefaultViewMode)
+	if settings.DefaultViewMode == "" && legacyUseGrid != nil && *legacyUseGrid {
+		defaultViewMode = viewModeGrid
+	}
+
+	changed := settings.DefaultViewMode != defaultViewMode || legacyUseGrid != nil
+	settings.DefaultViewMode = defaultViewMode
+
+	for _, workspaces := range settings.WorkSpaces {
+		for _, workspaceData := range workspaces {
+			workspace, ok := workspaceData.(map[string]interface{})
+			if !ok {
+				continue
+			}
+			storedMode, exists := workspace["viewMode"]
+			if !exists {
+				continue
+			}
+			viewMode, ok := storedMode.(string)
+			normalizedMode := normalizeViewMode(viewMode)
+			if ok && viewMode == normalizedMode {
+				continue
+			}
+			workspace["viewMode"] = normalizedMode
+			changed = true
+		}
+	}
+
+	return changed
+}
+
+func normalizeViewMode(viewMode string) string {
+	switch viewMode {
+	case viewModeGrid, viewModeKanban:
+		return viewMode
+	default:
+		return viewModeList
+	}
 }
 
 // migrateLocationIDsToUUID rewrites any legacy non-UUID project location IDs
@@ -437,59 +492,26 @@ func SetLanguage(language string) error {
 	return saveSettings(settings)
 }
 
-func GetUseGrid() (bool, error) {
-	settings, err := loadUserSettings()
-	if err != nil {
-		return false, err
-	}
-	// Default to true (grid view)
-	if !settings.UseGrid {
-		// Check if this is first time (no setting saved yet)
-		// If UseGrid field doesn't exist in JSON, it defaults to false
-		// For new users, we want default to be true
-		settingsFile, _ := GetUserSettingsPath()
-		file, _ := os.ReadFile(settingsFile)
-		if !contains(string(file), "use_grid") {
-			settings.UseGrid = true
-			saveSettings(settings)
-		}
-	}
-	return settings.UseGrid, nil
-}
-
-func SetUseGrid(useGrid bool) error {
-	settings, err := loadUserSettings()
-	if err != nil {
-		return err
-	}
-	settings.UseGrid = useGrid
-	return saveSettings(settings)
-}
-
 // GetDefaultViewMode retrieves the default view mode setting.
-// Returns "compact" (list), "dense" (compact), or "grid".
+// Returns "list", "grid", or "kanban".
 func GetDefaultViewMode() (string, error) {
 	settings, err := loadUserSettings()
 	if err != nil {
-		return "compact", err
-	}
-	if settings.DefaultViewMode == "" {
-		if settings.UseGrid {
-			return "grid", nil
-		}
-		return "compact", nil
+		return viewModeList, err
 	}
 	return settings.DefaultViewMode, nil
 }
 
 // SetDefaultViewMode sets the default view mode.
 func SetDefaultViewMode(viewMode string) error {
+	if normalizeViewMode(viewMode) != viewMode {
+		return fmt.Errorf("invalid view mode %q", viewMode)
+	}
 	settings, err := loadUserSettings()
 	if err != nil {
 		return err
 	}
 	settings.DefaultViewMode = viewMode
-	settings.UseGrid = viewMode == "grid"
 	return saveSettings(settings)
 }
 

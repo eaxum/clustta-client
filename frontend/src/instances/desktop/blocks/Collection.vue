@@ -120,7 +120,7 @@
         </div> -->
 
         <div v-if="settingsStore.showTypeIcons" class="entity-item-icon-container">
-          <img :class="commonStore.viewMode === 'compact' ? 'large-icons' : 'small-icons'" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
+          <img class="small-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
         </div>
 
         <div class="collection-item-content selection-area">

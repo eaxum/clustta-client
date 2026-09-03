@@ -174,7 +174,7 @@ export function GetDefaultLocation() {
 
 /**
  * GetDefaultViewMode retrieves the default view mode setting.
- * Returns "compact" (list), "dense" (compact), or "grid".
+ * Returns "list", "grid", or "kanban".
  * @returns {$CancellablePromise<string>}
  */
 export function GetDefaultViewMode() {
@@ -433,14 +433,6 @@ export function GetThemeTint() {
  */
 export function GetUntrackedVisibility() {
     return $Call.ByID(829946761);
-}
-
-/**
- * GetUseGrid retrieves whether grid view is enabled.
- * @returns {$CancellablePromise<boolean>}
- */
-export function GetUseGrid() {
-    return $Call.ByID(3478254425);
 }
 
 /**
@@ -754,15 +746,6 @@ export function SetThemeTint(tint) {
  */
 export function SetUntrackedVisibility(enabled) {
     return $Call.ByID(3591904125, enabled);
-}
-
-/**
- * SetUseGrid sets whether to use grid view.
- * @param {boolean} useGrid
- * @returns {$CancellablePromise<void>}
- */
-export function SetUseGrid(useGrid) {
-    return $Call.ByID(733610941, useGrid);
 }
 
 /**

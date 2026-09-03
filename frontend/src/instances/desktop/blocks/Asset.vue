@@ -199,10 +199,10 @@
 
     <div v-if="settingsStore.showTypeIcons" class="asset-spacer" v-tooltip="assetTypeName" @click="console.log(asset)">
       <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
-        <img :class="[commonStore.viewMode === 'compact' ? 'large-icons' : 'small-icons', 'collection-collapsed']" :src="getAppIcon('generic')">
+        <img class="small-icons collection-collapsed" :src="getAppIcon('generic')">
       </span>
       <span v-else class="single-action-button single-action-button-disabled">
-        <img :class="[commonStore.viewMode === 'compact' ? 'large-icons' : 'small-icons', 'collection-collapsed']" :src="getAppIcon(asset.asset_type_icon)">
+        <img class="small-icons collection-collapsed" :src="getAppIcon(asset.asset_type_icon)">
       </span>
     </div>
 

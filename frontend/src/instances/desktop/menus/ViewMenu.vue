@@ -1,21 +1,6 @@
 <template>
   <div ref="viewMenu" class="filter-menu-container" v-stop-propagation>
 
-    <!-- View Mode Section -->
-    <!-- <ActionButton :icon="getAppIcon('list')" :showLabel="true" :fullWidth="true" :label="$t('menus.listView')"
-      :color="isListActive ? 'var(--surface-3)' : undefined" :buttonFunction="setListView" />
-
-    <ActionButton :icon="getAppIcon('list-compact')" :showLabel="true" :fullWidth="true" :label="$t('menus.compactView')"
-      :color="isDenseActive ? 'var(--surface-3)' : undefined" :buttonFunction="setDenseView" />
-
-    <ActionButton :icon="getAppIcon('four-squares')" :showLabel="true" :fullWidth="true" :label="$t('menus.gridView')"
-      :color="isGridActive ? 'var(--surface-3)' : undefined" :buttonFunction="setGridView" />
-
-    <ActionButton v-if="isDefaultWorkspace" :icon="getAppIcon('kanban')" :showLabel="true" :fullWidth="true" :label="$t('menus.kanbanView')"
-      :color="isKanbanActive ? 'var(--surface-3)' : undefined" :buttonFunction="setKanbanView" />
-
-    <span  v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')" class="menu-divider"></span> -->
-
     <!-- Display Options Section -->
     <ActionButton v-if="isDefaultWorkspace && !isKanbanActive && userStore.canDo('update_collection')"
       :icon="dndStore.lockUI ? getAppIcon('lock-closed') : getAppIcon('lock-open')" :showLabel="true" :fullWidth="true"
@@ -82,10 +67,7 @@ const viewMenu = ref(null);
 
 // computed properties
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
-const isDenseActive = computed(() => commonStore.viewMode === 'dense');
-const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
-const isListActive = computed(() => commonStore.viewMode === 'compact');
 const untrackedVisibilityLabel = computed(() => `${commonStore.showUntracked ? t('common.hide') : t('common.show')} ${t('menus.untracked')}`);
 
 // methods
@@ -99,38 +81,6 @@ const collapseAll = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
-
-const refreshView = () => emitter.emit('refresh-browser', {
-  hardRefresh: true
-});
-
-// Sets the view to dense list mode.
-const setDenseView = () => {
-  commonStore.setDenseView();
-  refreshView();
-  menu.hideContextMenu();
-};
-
-// Sets the view to grid mode.
-const setGridView = () => {
-  commonStore.setGridView();
-  refreshView();
-  menu.hideContextMenu();
-};
-
-// Sets the view to kanban mode.
-const setKanbanView = () => {
-  commonStore.setKanbanView();
-  refreshView();
-  menu.hideContextMenu();
-};
-
-// Sets the view to list mode.
-const setListView = () => {
-  commonStore.setListView();
-  refreshView();
-  menu.hideContextMenu();
-};
 
 // Toggles the hide extensions option.
 const toggleHideExtensions = () => {

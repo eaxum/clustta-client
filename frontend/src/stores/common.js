@@ -6,7 +6,12 @@ import { useCollectionStore } from "@/stores/collections";
 
 const cloneFilterList = (filters) => JSON.parse(JSON.stringify(filters ?? []));
 
-let defaultViewMode = 'dense';
+const VIEW_MODE_GRID = 'grid';
+const VIEW_MODE_KANBAN = 'kanban';
+const VIEW_MODE_LIST = 'list';
+const VALID_VIEW_MODES = new Set([VIEW_MODE_LIST, VIEW_MODE_GRID, VIEW_MODE_KANBAN]);
+
+let defaultViewMode = VIEW_MODE_LIST;
 await SettingsService.GetDefaultViewMode()
   .then((response) => {
     defaultViewMode = response;
@@ -45,14 +50,14 @@ export const useCommonStore = defineStore("common", {
     showDependencies: true,
     useDeep: false,
     navigatorMode: false,
-    useGrid: defaultViewMode === 'grid',
     viewMode: defaultViewMode,
+    defaultViewMode,
     previousViewMode: null,
     sortBy: 'name',
     sortOrder: 'asc',
     gridSize: 200,
-    listItemHeight: defaultViewMode === 'dense' ? 42 : 60,
-    listItemGap: defaultViewMode === 'dense' ? 2 : 4,
+    listItemHeight: 42,
+    listItemGap: 2,
 
     filterDependencyAssets: true,
     filterDependencyCollections: true,
@@ -91,6 +96,7 @@ export const useCommonStore = defineStore("common", {
     },
   }),
   getters: {
+    useGrid: (state) => state.viewMode === VIEW_MODE_GRID,
     getCollections: (state) => {
       return state.collections;
     },
@@ -156,19 +162,11 @@ export const useCommonStore = defineStore("common", {
 
       this.workspaceSearchQuery = workspace.workspaceSearchQuery;
       this.viewSearchQuery = workspace.workspaceSearchQuery || '';
-      this.applyViewMode(workspace.viewMode || defaultViewMode);
+      this.applyViewMode(workspace.viewMode || this.defaultViewMode);
       this.snapshotWorkspace();
     },
     applyViewMode(mode) {
-      this.viewMode = mode;
-      this.useGrid = mode === 'grid';
-      if (mode === 'dense') {
-        this.listItemGap = 2;
-        this.listItemHeight = 42;
-      } else if (mode === 'compact' || mode === 'list') {
-        this.listItemGap = 4;
-        this.listItemHeight = 60;
-      }
+      this.viewMode = VALID_VIEW_MODES.has(mode) ? mode : VIEW_MODE_LIST;
     },
     snapshotWorkspace() {
       const collectionStore = useCollectionStore();
@@ -235,64 +233,40 @@ export const useCommonStore = defineStore("common", {
       this.resourceFilters = [];
       this.workspaceSearchQuery = "";
       this.viewSearchQuery = "";
-      this.applyViewMode(defaultViewMode);
+      this.applyViewMode(this.defaultViewMode);
     },
     async setUntrackedVisibility(value) {
       this.showUntracked = value;
       defaultShowUntracked = value;
       await SettingsService.SetUntrackedVisibility(value);
     },
-    setCompactView() {
-      this.viewMode = 'compact';
-      this.useGrid = false;
-      this.listItemGap = 4;
-      this.listItemHeight = 60;
-      defaultViewMode = 'compact';
-      SettingsService.SetDefaultViewMode('compact');
+    setListView() {
+      this.applyViewMode(VIEW_MODE_LIST);
     },
     setGridView() {
-      this.viewMode = 'grid';
-      this.useGrid = true;
-      defaultViewMode = 'grid';
-      SettingsService.SetDefaultViewMode('grid');
+      this.applyViewMode(VIEW_MODE_GRID);
     },
     setKanbanView() {
-      if (this.viewMode !== 'kanban') {
+      if (this.viewMode !== VIEW_MODE_KANBAN) {
         this.previousViewMode = this.viewMode;
       }
-      this.viewMode = 'kanban';
-      this.useGrid = false;
-      defaultViewMode = 'kanban';
-      SettingsService.SetDefaultViewMode('kanban');
+      this.applyViewMode(VIEW_MODE_KANBAN);
     },
     restorePreviousView() {
-      const target = this.previousViewMode && this.previousViewMode !== 'kanban'
+      const target = this.previousViewMode && this.previousViewMode !== VIEW_MODE_KANBAN
         ? this.previousViewMode
-        : 'dense';
+        : VIEW_MODE_LIST;
       this.previousViewMode = null;
       switch (target) {
-        case 'grid': this.setGridView(); break;
-        case 'compact': this.setCompactView(); break;
-        case 'list': this.setListView(); break;
-        case 'dense':
-        default: this.setDenseView(); break;
+        case VIEW_MODE_GRID: this.setGridView(); break;
+        default: this.setListView(); break;
       }
     },
-    setDenseView() {
-      this.viewMode = 'dense';
-      this.useGrid = false;
-      this.listItemGap = 2;
-      this.listItemHeight = 42;
-      defaultViewMode = 'dense';
-      SettingsService.SetDefaultViewMode('dense');
-    },
-    setListView() {
-      this.viewMode = 'compact';
-      this.useGrid = false;
-      this.listItemGap = 4;
-      this.listItemHeight = 60;
-      defaultViewMode = 'compact';
-      SettingsService.SetDefaultViewMode('compact');
+    async setDefaultViewMode(mode) {
+      const viewMode = VALID_VIEW_MODES.has(mode) ? mode : VIEW_MODE_LIST;
+      await SettingsService.SetDefaultViewMode(viewMode);
+      this.defaultViewMode = viewMode;
+      this.applyViewMode(viewMode);
     },
   },
 });

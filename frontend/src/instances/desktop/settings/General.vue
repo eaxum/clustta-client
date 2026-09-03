@@ -217,8 +217,7 @@ const currentLanguageName = computed(() => {
 
 // Returns the display label for the current default view mode.
 const currentViewLabel = computed(() => {
-  const mode = commonStore.viewMode;
-  if (mode === 'dense') return t('settings.compact');
+  const mode = commonStore.defaultViewMode;
   if (mode === 'grid') return t('settings.grid');
   if (mode === 'kanban') return t('settings.kanban');
   return t('settings.list');
@@ -226,8 +225,7 @@ const currentViewLabel = computed(() => {
 
 // Returns the icon for the current default view mode.
 const defaultViewIcon = computed(() => {
-  const mode = commonStore.viewMode;
-  if (mode === 'dense') return 'list-compact';
+  const mode = commonStore.defaultViewMode;
   if (mode === 'grid') return 'four-squares';
   if (mode === 'kanban') return 'kanban';
   return 'list';
@@ -242,7 +240,6 @@ const themeIcon = computed(() => {
 // Returns the available view mode options for the dropdown.
 const viewModeOptions = computed(() => [
   t('settings.list'),
-  t('settings.compact'),
   t('settings.grid'),
   t('settings.kanban'),
 ]);
@@ -294,31 +291,26 @@ const tintSwatchStyle = (tint) => {
 };
 
 // Selects and applies the default view mode.
-const selectDefaultView = (viewLabel) => {
+const selectDefaultView = async (viewLabel) => {
   const listLabel = t('settings.list');
-  const compactLabel = t('settings.compact');
   const gridLabel = t('settings.grid');
   const kanbanLabel = t('settings.kanban');
-  let viewMode = 'compact';
-  if (viewLabel === compactLabel) viewMode = 'dense';
-  else if (viewLabel === gridLabel) viewMode = 'grid';
+  let viewMode = 'list';
+  if (viewLabel === gridLabel) viewMode = 'grid';
   else if (viewLabel === kanbanLabel) viewMode = 'kanban';
   else if (viewLabel !== listLabel) viewMode = 'grid';
 
-  SettingsService.SetDefaultViewMode(viewMode).then(() => {
-    if (viewMode === 'compact') commonStore.setCompactView();
-    else if (viewMode === 'dense') commonStore.setDenseView();
-    else if (viewMode === 'kanban') commonStore.setKanbanView();
-    else commonStore.setGridView();
+  try {
+    await commonStore.setDefaultViewMode(viewMode);
     notificationStore.addNotification(
       t('notifications.defaultViewUpdated'),
       t('notifications.defaultViewSet', { viewType: viewLabel }),
       "success"
     );
-  }).catch((error) => {
+  } catch (error) {
     console.log(error);
     notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdate'), "error");
-  });
+  }
 };
 
 const getAppIcon = (iconName) => {

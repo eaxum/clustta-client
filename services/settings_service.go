@@ -517,26 +517,8 @@ func (s *SettingsService) SetLanguage(language string) error {
 	return nil
 }
 
-// GetUseGrid retrieves whether grid view is enabled.
-func (s *SettingsService) GetUseGrid() (bool, error) {
-	useGrid, err := settings.GetUseGrid()
-	if err != nil {
-		return useGrid, err
-	}
-	return useGrid, nil
-}
-
-// SetUseGrid sets whether to use grid view.
-func (s *SettingsService) SetUseGrid(useGrid bool) error {
-	err := settings.SetUseGrid(useGrid)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // GetDefaultViewMode retrieves the default view mode setting.
-// Returns "compact" (list), "dense" (compact), or "grid".
+// Returns "list", "grid", or "kanban".
 func (s *SettingsService) GetDefaultViewMode() (string, error) {
 	viewMode, err := settings.GetDefaultViewMode()
 	if err != nil {

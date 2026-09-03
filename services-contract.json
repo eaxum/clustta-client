@@ -3832,14 +3832,6 @@
         ]
       },
       {
-        "name": "GetUseGrid",
-        "params": null,
-        "returns": [
-          "bool",
-          "error"
-        ]
-      },
-      {
         "name": "GetUseUpdateSync",
         "params": null,
         "returns": [
@@ -4144,15 +4136,6 @@
         "name": "SetUntrackedVisibility",
         "params": [
           "enabled:bool"
-        ],
-        "returns": [
-          "error"
-        ]
-      },
-      {
-        "name": "SetUseGrid",
-        "params": [
-          "useGrid:bool"
         ],
         "returns": [
           "error"

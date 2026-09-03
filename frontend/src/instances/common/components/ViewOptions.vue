@@ -4,7 +4,6 @@
 
     <template v-else>
       <ActionButton :icon="getAppIcon('list')" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
-      <ActionButton :icon="getAppIcon('list-compact')" v-tooltip="$t('menus.compactView')" :buttonFunction="setDenseView" />
       <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
       <ActionButton :icon="getAppIcon('kanban')" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
     </template>
@@ -30,16 +29,12 @@ const iconStore = useIconStore();
 const expanded = ref(false);
 
 // computed properties
-const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
-const isDenseActive = computed(() => commonStore.viewMode === 'dense');
 const isExpanded = computed(() => expanded.value || commonStore.viewMode === 'kanban');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
-const isListActive = computed(() => commonStore.viewMode === 'compact');
 
 // Returns the icon name for the currently active view mode.
 const activeIcon = computed(() => {
-  if (isDenseActive.value) return 'list-compact';
   if (isGridActive.value) return 'four-squares';
   if (isKanbanActive.value) return 'kanban';
   return 'list';
@@ -58,12 +53,6 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 const refreshView = () => emitter.emit('refresh-browser', {
   hardRefresh: true
 });
-
-// Sets the view to dense list mode.
-const setDenseView = () => {
-  commonStore.setDenseView();
-  refreshView();
-};
 
 // Sets the view to grid mode.
 const setGridView = () => {
