@@ -205,15 +205,7 @@ const signOutCurrentAccount = async () => {
     if (accountCount > 0) {
       const activeAccount = accountStore.activeAccount;
       if (activeAccount && activeAccount.user) {
-        userStore.user = activeAccount.user;
-        userStore.isUserAuthenticated = true;
-        
-        await themeStore.initializeTheme();
-        await projectStore.loadStudios();
-        await projectStore.loadProjects();
-        trayStates.refreshData();
-        
-        notificationStore.addNotification(t('notifications.accountSwitched'), `Switched to ${activeAccount.user.first_name} ${activeAccount.user.last_name}`, "success");
+        await accountStore.switchToAccount(activeAccount.user.id);
       }
     } else {
       userStore.user = null;

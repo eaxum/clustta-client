@@ -201,6 +201,7 @@ router.beforeEach(async (to, from, next) => {
   // Check authentication status
   setLoaderStatus('Checking authentication...');
   let isAuthenticated = false;
+  let hasCachedDesktopAccount = false;
   let userData = null;
   try {
     const result = await AuthService.IsAuthenticated();
@@ -216,18 +217,29 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
+  if (!isAuthenticated && !isWebMode) {
+    try {
+      userData = await AuthService.AuthUser();
+      hasCachedDesktopAccount = true;
+    } catch {
+      hasCachedDesktopAccount = false;
+    }
+  }
+
+  const canAccessProtectedRoute = isAuthenticated || hasCachedDesktopAccount;
+
   // Auth pages: redirect to home if already logged in (except pages that allow authenticated users)
   if (to.meta.isAuthPage && isAuthenticated && !to.meta.allowAuthenticated) {
     return next(isWebMode ? '/profile' : '/');
   }
 
   // Protected routes: redirect to welcome if not authenticated
-  if (to.meta.requiresAuth && !isAuthenticated) {
+  if (to.meta.requiresAuth && !canAccessProtectedRoute) {
     return next('/auth/welcome');
   }
 
-  // Initialize stores if user is authenticated and stores haven't been initialized yet
-  if (isAuthenticated && !storesInitialized && to.meta.requiresAuth) {
+  // Initialize stores if the user can access the protected route
+  if (canAccessProtectedRoute && !storesInitialized && to.meta.requiresAuth) {
     try {
       const userStore = useUserStore();
       const accountStore = useAccountStore();
@@ -238,7 +250,7 @@ router.beforeEach(async (to, from, next) => {
       
       // Set user data
       userStore.user = userData;
-      userStore.isUserAuthenticated = true;
+      userStore.isUserAuthenticated = isAuthenticated;
       
       // Initialize stores
       setLoaderStatus('Loading account...');

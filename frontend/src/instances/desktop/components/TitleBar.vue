@@ -1,6 +1,6 @@
 <template>
   <div style="--wails-draggable:drag" @dblclick="toggleMaximize" class="titlebar"
-    :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || paymentNeedsAttention || locationsStale }"
+    :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || paymentNeedsAttention || locationsStale || authenticationRequired }"
     v-stop-propagation>
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
@@ -55,10 +55,14 @@
     </div>
 
     <div v-if="os === 'darwin'" class="titlebar-buttons">
-      <div v-if="locationsStale" class="location-stale-pill" @click="fixStaleLocations" v-stop-propagation v-tooltip="$t('components.titleBar.locationStale')">
-        <img class="small-icons" :src="getAppIcon('alert')">
-        <span>{{ $t('components.titleBar.locationStalePill') }}</span>
-      </div>
+      <TitleBarStatusPill
+        v-for="status in titleBarStatuses"
+        :key="status.id"
+        :icon="status.icon"
+        :label="status.label"
+        :tooltip="status.tooltip"
+        @click="status.action"
+      />
       <PlanInfo />
       <ClusttaLogo  :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
     </div>
@@ -70,10 +74,14 @@
     </div>
 
     <div v-else-if="!platformStore.isWeb" class="titlebar-buttons">
-      <div v-if="locationsStale" class="location-stale-pill" @click="fixStaleLocations" v-stop-propagation v-tooltip="$t('components.titleBar.locationStale')">
-        <img class="small-icons" :src="getAppIcon('alert')">
-        <span>{{ $t('components.titleBar.locationStalePill') }}</span>
-      </div>
+      <TitleBarStatusPill
+        v-for="status in titleBarStatuses"
+        :key="status.id"
+        :icon="status.icon"
+        :label="status.label"
+        :tooltip="status.tooltip"
+        @click="status.action"
+      />
       <PlanInfo />
 
       <div class="titlebar-button minimize" @click="minimizeWindow">
@@ -118,6 +126,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import ClusttaLogo from '@/instances/common/components/ClusttaLogo.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import PlanInfo from '@/instances/common/components/PlanInfo.vue';
+import TitleBarStatusPill from '@/instances/desktop/components/TitleBarStatusPill.vue';
 import { useStudioStore } from '@/stores/studio';
 import { usePlatformStore } from '@/stores/platform';
 import { useAccountStore } from '@/stores/accounts';
@@ -198,16 +207,54 @@ const paymentNeedsAttention = computed(() => {
 
 const locationsStale = computed(() => settingsStore.locationsStale);
 
+const authenticationRequired = computed(() =>
+  !platformStore.isWeb &&
+  !isAuthPage.value &&
+  Boolean(userStore.user) &&
+  !userStore.isUserAuthenticated &&
+  !accountStore.isOfflineMode
+);
+
 // Navigates to Settings > Directories so the user can re-select stale folders.
 const fixStaleLocations = () => {
   settingsStore.pendingTab = 'directories';
   stage.setStageVisibility('settings', true);
 };
 
+const openLogin = () => {
+  modals.setModalVisibility('loginModal', true);
+};
+
 const getAppIcon = (iconName) => {
   const icon = iconStore.getAppIcon(iconName);
   return icon
 };
+
+const titleBarStatuses = computed(() => {
+  const statuses = [];
+
+  if (authenticationRequired.value) {
+    statuses.push({
+      id: 'authentication',
+      icon: getAppIcon('login'),
+      label: t('errors.authenticationRequired'),
+      tooltip: t('common.login'),
+      action: openLogin,
+    });
+  }
+
+  if (locationsStale.value) {
+    statuses.push({
+      id: 'locations',
+      icon: getAppIcon('alert'),
+      label: t('components.titleBar.locationStalePill'),
+      tooltip: t('components.titleBar.locationStale'),
+      action: fixStaleLocations,
+    });
+  }
+
+  return statuses;
+});
 
 
 
@@ -582,26 +629,6 @@ onBeforeUnmount(() => {
 .titlebar-inactive,
 [data-theme="dark"] .titlebar-inactive {
   background-color: var(--danger);
-}
-
-.location-stale-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 10px 3px 5px;
-  border-radius: var(--large-radius);
-  cursor: pointer;
-  font-size: 11px;
-  color: white;
-  background-color: var(--danger);
-  transition: background-color 0.15s ease;
-  white-space: nowrap;
-  height: 22px;
-  margin-right: 6px;
-}
-
-.location-stale-pill:hover {
-  background-color: hsl(0, 70%, 45%);
 }
 
 .title-only {

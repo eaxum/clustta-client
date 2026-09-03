@@ -251,6 +251,14 @@ export const useAccountStore = defineStore('accounts', {
         
         // Switch account using the core method
         const activeAccount = await this.switchAccount(userId);
+
+        let isAuthenticated = true;
+        try {
+          const authenticationResult = await AuthService.IsAuthenticated();
+          isAuthenticated = authenticationResult[0] === true;
+        } catch (error) {
+          console.warn('Unable to validate switched account; using cached credentials:', error);
+        }
         
         // Reset stores after successful switch
         userStore.$reset();
@@ -266,7 +274,7 @@ export const useAccountStore = defineStore('accounts', {
         if (activeAccount && activeAccount.user) {
           // Update user store with the switched account
           userStore.user = activeAccount.user;
-          userStore.isUserAuthenticated = true;
+          userStore.isUserAuthenticated = isAuthenticated;
           
           // Refresh application data for the new user
           await themeStore.initializeTheme();
