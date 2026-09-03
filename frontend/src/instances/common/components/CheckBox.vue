@@ -92,7 +92,7 @@ const handleChange = () => {
   width: var(--checkbox-size);
   height: var(--checkbox-size);
   box-sizing: border-box;
-  border-radius: 5px;
+  border-radius: 10px;
   background-color: var(--surface-1);
   transition: all 0.2s ease-in-out;
   border: 1.5px solid var(--border-strong);
@@ -120,6 +120,7 @@ const handleChange = () => {
   border: solid var(--accent-fg);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
+  border-bottom-right-radius: 3px;
   animation: checkmarkAppear 0.2s ease-in-out;
 }
 
