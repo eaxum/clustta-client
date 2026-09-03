@@ -214,17 +214,21 @@ const handleSSOError = (message) => {
   error.value = message;
 };
 
+const shouldResetWorkspace = (authenticatedUser) => {
+  return accountStore.isAdditionalAccount || userStore.user?.id !== authenticatedUser.id;
+};
+
 // Handles SSO success from the SSOLogin component.
 const handleSSOSuccess = async (data) => {
   error.value = '';
   isAwaitingResponse.value = true;
 
   try {
-    userStore.user = data.user;
-    userStore.isUserAuthenticated = true;
-    userStore.$reset();
-    projectStore.$reset();
-    trayStates.$reset();
+    if (shouldResetWorkspace(data.user)) {
+      userStore.$reset();
+      projectStore.$reset();
+      trayStates.$reset();
+    }
     modals.setModalVisibility('loginModal', false);
     userStore.user = data.user;
     userStore.isUserAuthenticated = true;
@@ -278,11 +282,11 @@ const logUserIn = async (usernameValue, passwordValue) => {
 
   await loginPromise
     .then(async (data) => {
-      userStore.user = data.user;
-      userStore.isUserAuthenticated = true;
-      userStore.$reset();
-      projectStore.$reset();
-      trayStates.$reset();
+      if (shouldResetWorkspace(data.user)) {
+        userStore.$reset();
+        projectStore.$reset();
+        trayStates.$reset();
+      }
       modals.setModalVisibility('loginModal', false);
       userStore.user = data.user;
       userStore.isUserAuthenticated = true;
