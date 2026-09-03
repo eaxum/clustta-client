@@ -21,7 +21,7 @@
 					v-tooltip="{ text: $t('common.refresh'), shortcut: 'refresh' }" :buttonFunction="refresh" />
 			</div>
 			<div class="action-bar" v-if="projects.length && projectStore.projectsLoaded || projectStore.projectSearchQuery">
-				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" :placeholder="$t('stages.searchProjects') + ' (F3)'" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
+				<SearchBar ref="searchBar" v-model="projectStore.projectSearchQuery" :placeholder="$t('stages.searchProjects') + ' [F3]'" :isLoading="!projectStore.projectsLoaded" @input="updateSearch" @clear="clearSearch" />
 			</div>
 		<div class="view-options">
 			<ActionButton v-if="projectStore.selectedStudio?.name === 'Personal'" :isDisabled="!untrackedProjects.length || operationsActive" :icon="getAppIcon(projectStore.showUntrackedProjects ? 'eye-cancel' : 'eye')" v-tooltip="projectStore.showUntrackedProjects ? $t('stages.hideUntrackedProjects') : $t('stages.showUntrackedProjects')"

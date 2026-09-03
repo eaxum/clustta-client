@@ -3,7 +3,7 @@
 		<div ref="browserFilters" class="dash-board-filter">
 			<Breadcrumbs :filteredResultCounts="breadcrumbResultCounts" :resultModeActive="stateBarInactive" />
 			<ActionButton v-if="!kanbanView" :icon="getAppIcon('filter')" :buttonFunction="toggleShowFilters" :isActive="showFilters" :showIndicator="filtersActive" v-tooltip="$t('stages.filters')" />
-			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search') + ' (F3)'" :isLoading="!assetStore.assetsLoaded"
+			<SearchBar ref="searchBar" v-model="commonStore.viewSearchQuery" :placeholder="$t('common.search') + ' [F3]'" :isLoading="!assetStore.assetsLoaded"
 				@input="debouncedUpdateSearch" @clear="clearSearch" />
 		</div>
 
