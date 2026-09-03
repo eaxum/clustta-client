@@ -801,6 +801,13 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 		return userData, err
 	}
 
+	checkpointTagsQuery := "SELECT * FROM asset_checkpoint_tag WHERE synced = 0"
+	assetCheckpointTags := []models.AssetCheckpointTag{}
+	err = tx.Select(&assetCheckpointTags, checkpointTagsQuery)
+	if err != nil && err != sql.ErrNoRows {
+		return userData, err
+	}
+
 	assetDependenciesQuery := "SELECT * FROM asset_dependency WHERE synced = 0"
 	assetDependencies := []models.AssetDependency{}
 	err = tx.Select(&assetDependencies, assetDependenciesQuery)
@@ -935,6 +942,7 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	userData.AssetTypes = assetTypes
 	userData.Assets = assets
 	userData.AssetCheckpoints = assetsCheckpoints
+	userData.AssetCheckpointTags = assetCheckpointTags
 	userData.AssetDependencies = assetDependencies
 	userData.CollectionDependencies = collectionDependencies
 

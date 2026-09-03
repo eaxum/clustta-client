@@ -4540,12 +4540,34 @@
         ]
       },
       {
+        "name": "DiscardAssetDependencyChange",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "edgeID:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "DiscardChanges",
         "params": [
           "projectPath:string",
           "remoteURL:string",
           "itemIds:[]string",
           "itemType:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "DiscardTagChange",
+        "params": [
+          "projectPath:string",
+          "remoteURL:string",
+          "tagID:string"
         ],
         "returns": [
           "error"

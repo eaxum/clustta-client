@@ -153,6 +153,13 @@ func DeleteCheckpointTag(tx *sqlx.Tx, assignmentId string) error {
 	if err != nil {
 		return err
 	}
+	assetTag := models.AssetTag{}
+	assetTagErr := tx.Get(&assetTag, `
+		SELECT * FROM asset_tag WHERE asset_id = ? AND tag_id = ?
+	`, assignment.AssetId, assignment.TagId)
+	if assetTagErr != nil && !errors.Is(assetTagErr, sql.ErrNoRows) {
+		return assetTagErr
+	}
 
 	var referenceCount int
 	if err = tx.Get(&referenceCount, `
@@ -167,5 +174,16 @@ func DeleteCheckpointTag(tx *sqlx.Tx, assignmentId string) error {
 	if err = base_service.Delete(tx, "asset_checkpoint_tag", assignmentId); err != nil {
 		return err
 	}
-	return RemoveTagFromAsset(tx, assignment.AssetId, assignment.TagId)
+	if err = RemoveTagFromAsset(tx, assignment.AssetId, assignment.TagId); err != nil {
+		return err
+	}
+	if !assignment.Synced {
+		if _, err = tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = 'asset_checkpoint_tag'", assignment.Id); err != nil {
+			return err
+		}
+	}
+	if assetTagErr == nil && !assetTag.Synced {
+		_, err = tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = 'asset_tag'", assetTag.Id)
+	}
+	return err
 }

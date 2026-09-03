@@ -35,13 +35,14 @@
       <div v-if="summary.other.length" class="changelog-group">
         <div class="changelog-group-header" @click="toggleGroup('other')">
           <ActionButton :icon="getAppIcon('chevron-right')" :isMini="true" :isInactive="true" :class="{ 'chevron-expanded': expandedGroups.other }" />
-          <span class="changelog-group-title">{{ $t('panes.templates') }}</span>
+          <span class="changelog-group-title">{{ $t('panes.other') }}</span>
           <span class="changelog-group-count">{{ summary.other.length }}</span>
           <div class="menu-divider"></div>
         </div>
 
         <div v-if="expandedGroups.other" class="changelog-group-items">
-          <ChangeItem v-for="item in summary.other" :key="item.id" :item="item" itemType="other" :isLoading="isLoading" @restore="(id) => restoreItem(id, 'template')" />
+          <ChangeItem v-for="item in summary.other" :key="item.id" :item="item" itemType="other" :isLoading="isLoading"
+            @discard="() => discardOtherItem(item)" @restore="(id) => restoreItem(id, 'template')" />
         </div>
       </div>
     </div>
@@ -170,6 +171,24 @@ const discardItem = async (itemId, itemType) => {
   isLoading.value = false;
 };
 
+const discardOtherItem = async (item) => {
+  if (item.source !== 'tag') return;
+  isLoading.value = true;
+  try {
+    await SyncService.DiscardTagChange(
+      projectStore.activeProject.uri,
+      projectStore.getActiveProjectUrl,
+      item.id,
+    );
+    await loadChanges();
+    emitter.emit('refresh-browser');
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorDiscardingChange'), error);
+  } finally {
+    isLoading.value = false;
+  }
+};
+
 // Navigates to the item in the browser view.
 const findItem = async (itemId, itemType) => {
   try {
@@ -249,9 +268,15 @@ const undoChild = async (child) => {
         await CheckpointService.DeleteCheckpoint(uri, child.id);
       }
     } else if (child.source === 'asset_dependency') {
-      await AssetService.RemoveAssetDependency(uri, child.parent_id, child.ref_id);
+      await SyncService.DiscardAssetDependencyChange(
+        uri,
+        projectStore.getActiveProjectUrl,
+        child.id,
+      );
     } else if (child.source === 'collection_dependency') {
       await AssetService.RemoveCollectionDependency(uri, child.parent_id, child.ref_id);
+    } else if (child.source === 'asset_checkpoint_tag') {
+      await CheckpointService.DeleteCheckpointTag(uri, child.id);
     } else if (child.source === 'asset_tag') {
       await TagService.RemoveTagFromAsset(uri, child.parent_id, child.ref_id);
     }

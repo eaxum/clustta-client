@@ -40,6 +40,17 @@ export function DiscardAllChanges(projectPath, remoteURL) {
 }
 
 /**
+ * DiscardAssetDependencyChange restores one dependency edge from the remote project state.
+ * @param {string} projectPath
+ * @param {string} remoteURL
+ * @param {string} edgeID
+ * @returns {$CancellablePromise<void>}
+ */
+export function DiscardAssetDependencyChange(projectPath, remoteURL, edgeID) {
+    return $Call.ByID(3042418727, projectPath, remoteURL, edgeID);
+}
+
+/**
  * DiscardChanges reverts specific items to their server state by fetching remote data
  * and selectively replacing local rows. itemType should be "asset" or "collection".
  * @param {string} projectPath
@@ -50,6 +61,17 @@ export function DiscardAllChanges(projectPath, remoteURL) {
  */
 export function DiscardChanges(projectPath, remoteURL, itemIds, itemType) {
     return $Call.ByID(337997455, projectPath, remoteURL, itemIds, itemType);
+}
+
+/**
+ * DiscardTagChange restores one project tag from the remote project state.
+ * @param {string} projectPath
+ * @param {string} remoteURL
+ * @param {string} tagID
+ * @returns {$CancellablePromise<void>}
+ */
+export function DiscardTagChange(projectPath, remoteURL, tagID) {
+    return $Call.ByID(646358590, projectPath, remoteURL, tagID);
 }
 
 /**

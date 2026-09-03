@@ -9,6 +9,7 @@ import (
 	"clustta/internal/utils"
 	"clustta/output"
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -788,6 +789,64 @@ func (s *SyncService) GetPendingChanges(projectPath string) (sync_service.Change
 	return summary, nil
 }
 
+// DiscardAssetDependencyChange restores one dependency edge from the remote project state.
+func (s *SyncService) DiscardAssetDependencyChange(projectPath, remoteURL, edgeID string) error {
+	if !utils.FileExists(projectPath) {
+		return error_service.ErrProjectNotFound
+	}
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	serverData, err := sync_service.FetchData(remoteURL, activeUser.Id)
+	if err != nil {
+		return fmt.Errorf("failed to fetch server data: %w", err)
+	}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err = sync_service.DiscardAssetDependencyChange(tx, serverData, edgeID); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+// DiscardTagChange restores one project tag from the remote project state.
+func (s *SyncService) DiscardTagChange(projectPath, remoteURL, tagID string) error {
+	if !utils.FileExists(projectPath) {
+		return error_service.ErrProjectNotFound
+	}
+	activeUser, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	serverData, err := sync_service.FetchData(remoteURL, activeUser.Id)
+	if err != nil {
+		return fmt.Errorf("failed to fetch server data: %w", err)
+	}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	if err = sync_service.DiscardTagChange(tx, serverData, tagID); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
 // DiscardChanges reverts specific items to their server state by fetching remote data
 // and selectively replacing local rows. itemType should be "asset" or "collection".
 func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []string, itemType string) error {
@@ -811,23 +870,39 @@ func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []st
 	}
 	defer dbConn.Close()
 
+	itemNames := make(map[string]string, len(itemIds))
+	for _, itemID := range itemIds {
+		itemName := itemID
+		var nameErr error
+		switch itemType {
+		case "asset":
+			nameErr = dbConn.Get(&itemName, "SELECT name FROM asset WHERE id = ?", itemID)
+		case "collection":
+			nameErr = dbConn.Get(&itemName, "SELECT name FROM collection WHERE id = ?", itemID)
+		default:
+			return fmt.Errorf("unsupported item type: %s", itemType)
+		}
+		if nameErr != nil && !errors.Is(nameErr, sql.ErrNoRows) {
+			return fmt.Errorf("failed to resolve %s name: %w", itemType, nameErr)
+		}
+		itemNames[itemID] = itemName
+	}
+
 	tx, err := dbConn.Beginx()
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
 
-	for _, itemId := range itemIds {
+	for _, itemID := range itemIds {
 		switch itemType {
 		case "asset":
-			err = sync_service.DiscardAssetChanges(tx, serverData, itemId)
+			err = sync_service.DiscardAssetChanges(tx, serverData, itemID)
 		case "collection":
-			err = sync_service.DiscardCollectionChanges(tx, serverData, itemId)
-		default:
-			return fmt.Errorf("unsupported item type: %s", itemType)
+			err = sync_service.DiscardCollectionChanges(tx, serverData, itemID)
 		}
 		if err != nil {
-			return fmt.Errorf("failed to discard changes for %s %s: %w", itemType, itemId, err)
+			return fmt.Errorf("failed to discard changes for %s %q: %w", itemType, itemNames[itemID], err)
 		}
 	}
 

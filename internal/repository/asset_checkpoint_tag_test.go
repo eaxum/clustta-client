@@ -54,8 +54,39 @@ func TestCheckpointTagMovesWithinOneAssetAndMaintainsAssetTag(t *testing.T) {
 	`, assignment.Id); err != nil {
 		t.Fatal(err)
 	}
-	if tombCount != 1 {
-		t.Fatalf("expected one checkpoint tag assignment tombstone, got %d", tombCount)
+	if tombCount != 0 {
+		t.Fatalf("expected an unsynced assignment removal to cancel its tombstone, got %d", tombCount)
+	}
+}
+
+func TestDeleteSyncedCheckpointTagCreatesTombstones(t *testing.T) {
+	_, tx := openDependencyTestDB(t)
+	insertDependencyAsset(t, tx, "boy")
+	insertTestCheckpoint(t, tx, "boy-cp", "boy", "boy-v1", 1)
+
+	assignment, err := SetCheckpointTag(tx, "", "approved", "boy-cp")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = tx.Exec("UPDATE asset_checkpoint_tag SET synced = 1 WHERE id = ?", assignment.Id); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = tx.Exec("UPDATE asset_tag SET synced = 1 WHERE asset_id = ? AND tag_id = ?", assignment.AssetId, assignment.TagId); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = DeleteCheckpointTag(tx, assignment.Id); err != nil {
+		t.Fatal(err)
+	}
+	var tombCount int
+	if err = tx.Get(&tombCount, `
+		SELECT COUNT(*) FROM tomb
+		WHERE (id = ? AND table_name = 'asset_checkpoint_tag') OR table_name = 'asset_tag'
+	`, assignment.Id); err != nil {
+		t.Fatal(err)
+	}
+	if tombCount != 2 {
+		t.Fatalf("expected checkpoint and asset tag tombstones, got %d", tombCount)
 	}
 }
 

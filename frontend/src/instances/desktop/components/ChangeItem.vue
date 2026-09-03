@@ -78,6 +78,7 @@ const hasChildren = computed(() => {
 const itemIcon = computed(() => {
   if (resolvedIcon.value) return resolvedIcon.value;
   if (props.item.icon) return getAppIcon(props.item.icon);
+  if (props.item.source === 'tag') return getAppIcon('tag');
   if (props.itemType === 'collection') return getAppIcon('folder');
   return getAppIcon('generic');
 });
@@ -93,7 +94,7 @@ const childDescription = (child) => {
 const childIcon = (source) => {
   if (source === 'asset_checkpoint') return getAppIcon('checkpoint-stone');
   if (source === 'asset_dependency' || source === 'collection_dependency') return getAppIcon('dependency');
-  if (source === 'asset_tag') return getAppIcon('tag');
+  if (source === 'asset_tag' || source === 'asset_checkpoint_tag') return getAppIcon('tag');
   if (source === 'collection_assignee') return getAppIcon('person');
   return getAppIcon('generic');
 };

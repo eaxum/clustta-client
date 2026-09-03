@@ -274,6 +274,7 @@ func MarkAllTablesUnsynced(tx *sqlx.Tx) error {
 		"collection_assignee",
 		"asset",
 		"asset_checkpoint",
+		"asset_checkpoint_tag",
 		"asset_dependency",
 		"collection_dependency",
 		"dependency_type",

@@ -1,6 +1,8 @@
 package sync_service
 
 import (
+	"clustta/internal/repository"
+	"clustta/internal/repository/models"
 	"clustta/internal/utils"
 	"database/sql"
 
@@ -9,12 +11,13 @@ import (
 
 // ChangeChild represents a nested sub-change belonging to a parent asset or collection.
 type ChangeChild struct {
-	ID          string `json:"id"`
-	ParentID    string `json:"parent_id"`
-	RefID       string `json:"ref_id,omitempty"`
-	Source      string `json:"source"`
-	Description string `json:"description"`
-	ChangeType  string `json:"change_type"`
+	ID             string `json:"id"`
+	ParentID       string `json:"parent_id"`
+	RefID          string `json:"ref_id,omitempty"`
+	Source         string `json:"source"`
+	Description    string `json:"description"`
+	ChangeType     string `json:"change_type"`
+	ResolutionMode string `json:"resolution_mode,omitempty"`
 }
 
 // ChangeSummaryItem represents a single unsynced change for the changelog UI.
@@ -51,12 +54,13 @@ type changeSummaryRow struct {
 
 // childRow is used internally for scanning child table queries.
 type childRow struct {
-	ID          string `db:"id"`
-	ParentID    string `db:"parent_id"`
-	RefID       string `db:"ref_id"`
-	Source      string `db:"source"`
-	Description string `db:"description"`
-	Trashed     bool   `db:"trashed"`
+	ID             string `db:"id"`
+	ParentID       string `db:"parent_id"`
+	RefID          string `db:"ref_id"`
+	Source         string `db:"source"`
+	Description    string `db:"description"`
+	Trashed        bool   `db:"trashed"`
+	ResolutionMode string `db:"resolution_mode"`
 }
 
 // classifyChangeType returns "deleted" if trashed, "new" if created after last sync, otherwise "modified".
@@ -115,7 +119,7 @@ func lookupCollectionInfo(tx *sqlx.Tx, collectionID string) (string, string) {
 
 // LoadChangeSummary returns a lightweight summary of all unsynced rows grouped by category.
 // Asset and collection children (checkpoints, dependencies, tags, assignees) are nested
-// under their parent item. "Other" only includes templates.
+// under their parent item. "Other" includes project-level records.
 func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 	summary := ChangeSummary{}
 
@@ -173,13 +177,33 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 	// Dependencies and tags (no trashed field — live rows are "added")
 	depQueries := []string{
 		`SELECT ad.id, ad.asset_id AS parent_id, ad.dependency_id AS ref_id, 'asset_dependency' AS source,
-		 COALESCE(a2.name, ad.dependency_id) AS description, 0 AS trashed
-		 FROM asset_dependency ad LEFT JOIN asset a2 ON ad.dependency_id = a2.id WHERE ad.synced = 0`,
+		 COALESCE(a2.name, ad.dependency_id) || CASE ad.resolution_mode
+			WHEN 'pinned' THEN ' - Pinned ' || COALESCE(NULLIF(ac.comment, ''), ac.created_at, ad.checkpoint_id)
+			WHEN 'tagged' THEN ' - ' || COALESCE(t.name, 'Missing tag')
+			ELSE ' - Latest'
+		 END AS description, 0 AS trashed, ad.resolution_mode
+		 FROM asset_dependency ad
+		 LEFT JOIN asset a2 ON ad.dependency_id = a2.id
+		 LEFT JOIN asset_checkpoint ac ON ad.checkpoint_id = ac.id
+		 LEFT JOIN asset_checkpoint_tag act ON ad.asset_checkpoint_tag_id = act.id
+		 LEFT JOIN tag t ON act.tag_id = t.id
+		 WHERE ad.synced = 0`,
+		`SELECT act.id, act.asset_id AS parent_id, act.tag_id AS ref_id, 'asset_checkpoint_tag' AS source,
+		 COALESCE(t.name, act.tag_id) || ' on ' || COALESCE(NULLIF(ac.comment, ''), ac.created_at, act.checkpoint_id) AS description,
+		 0 AS trashed, '' AS resolution_mode
+		 FROM asset_checkpoint_tag act
+		 LEFT JOIN tag t ON act.tag_id = t.id
+		 LEFT JOIN asset_checkpoint ac ON act.checkpoint_id = ac.id
+		 WHERE act.synced = 0`,
 		`SELECT at2.id, at2.asset_id AS parent_id, at2.tag_id AS ref_id, 'asset_tag' AS source,
-		 COALESCE(t.name, at2.tag_id) AS description, 0 AS trashed
-		 FROM asset_tag at2 LEFT JOIN tag t ON at2.tag_id = t.id WHERE at2.synced = 0`,
+		 COALESCE(t.name, at2.tag_id) AS description, 0 AS trashed, '' AS resolution_mode
+		 FROM asset_tag at2 LEFT JOIN tag t ON at2.tag_id = t.id
+		 WHERE at2.synced = 0 AND NOT EXISTS (
+			SELECT 1 FROM asset_checkpoint_tag act
+			WHERE act.asset_id = at2.asset_id AND act.tag_id = at2.tag_id AND act.synced = 0
+		 )`,
 		`SELECT cd.id, cd.asset_id AS parent_id, cd.dependency_id AS ref_id, 'collection_dependency' AS source,
-		 COALESCE(c2.name, cd.dependency_id) AS description, 0 AS trashed
+		 COALESCE(c2.name, cd.dependency_id) AS description, 0 AS trashed, '' AS resolution_mode
 		 FROM collection_dependency cd LEFT JOIN collection c2 ON cd.dependency_id = c2.id WHERE cd.synced = 0`,
 	}
 	for _, q := range depQueries {
@@ -191,8 +215,15 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 		for _, row := range rows {
 			child := ChangeChild{
 				ID: row.ID, ParentID: row.ParentID, RefID: row.RefID, Source: row.Source,
-				Description: row.Description,
-				ChangeType:  "added",
+				Description:    row.Description,
+				ChangeType:     "added",
+				ResolutionMode: row.ResolutionMode,
+			}
+			if row.Source == "asset_dependency" && row.ResolutionMode != "floating" {
+				child.ChangeType = "modified"
+			}
+			if row.Source == "asset_checkpoint_tag" {
+				child.ChangeType = "modified"
 			}
 			if parent, ok := assetMap[row.ParentID]; ok {
 				parent.Children = append(parent.Children, child)
@@ -298,7 +329,7 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 		}
 	}
 
-	// --- Other: Templates only ---
+	// --- Other: project-level records ---
 	type templateRow struct {
 		ID      string `db:"id"`
 		Name    string `db:"name"`
@@ -321,19 +352,152 @@ func LoadChangeSummary(tx *sqlx.Tx) (ChangeSummary, error) {
 		})
 	}
 
+	tagRows := []struct {
+		ID    string `db:"id"`
+		Name  string `db:"name"`
+		Mtime int    `db:"mtime"`
+	}{}
+	err = tx.Select(&tagRows, `
+		SELECT t.id, t.name, t.mtime FROM tag t
+		WHERE t.synced = 0
+		AND NOT EXISTS (
+			SELECT 1 FROM asset_checkpoint_tag act WHERE act.tag_id = t.id AND act.synced = 0
+		)
+		AND NOT EXISTS (
+			SELECT 1 FROM asset_tag at WHERE at.tag_id = t.id AND at.synced = 0
+		)
+	`)
+	if err != nil && err != sql.ErrNoRows {
+		return summary, err
+	}
+	for _, row := range tagRows {
+		summary.Other = append(summary.Other, ChangeSummaryItem{
+			ID: row.ID, Name: row.Name, Source: "tag",
+			ChangeType: "modified", Mtime: row.Mtime,
+		})
+	}
+
 	summary.TotalCount = len(summary.Assets) + len(summary.Collections) + len(summary.Other)
 	return summary, nil
+}
+
+// DiscardAssetDependencyChange restores one dependency edge from the remote snapshot.
+func DiscardAssetDependencyChange(tx *sqlx.Tx, serverData ProjectData, edgeID string) error {
+	var remoteDependency *models.AssetDependency
+	for index := range serverData.AssetDependencies {
+		if serverData.AssetDependencies[index].Id == edgeID {
+			remoteDependency = &serverData.AssetDependencies[index]
+			break
+		}
+	}
+
+	if remoteDependency == nil {
+		if _, err := tx.Exec("DELETE FROM asset_dependency WHERE id = ?", edgeID); err != nil {
+			return err
+		}
+		_, err := tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = 'asset_dependency'", edgeID)
+		return err
+	}
+
+	resolutionMode := remoteDependency.ResolutionMode
+	if resolutionMode == "" {
+		resolutionMode = "floating"
+	}
+	checkpointID := remoteDependency.CheckpointId
+	checkpointTagID := remoteDependency.AssetCheckpointTagId
+	if resolutionMode == "floating" {
+		checkpointID = nil
+		checkpointTagID = nil
+	}
+
+	_, err := tx.Exec(`
+		INSERT INTO asset_dependency (
+			id, mtime, asset_id, dependency_id, dependency_type_id,
+			resolution_mode, checkpoint_id, asset_checkpoint_tag_id, synced
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)
+		ON CONFLICT(id) DO UPDATE SET
+			mtime = excluded.mtime,
+			asset_id = excluded.asset_id,
+			dependency_id = excluded.dependency_id,
+			dependency_type_id = excluded.dependency_type_id,
+			resolution_mode = excluded.resolution_mode,
+			checkpoint_id = excluded.checkpoint_id,
+			asset_checkpoint_tag_id = excluded.asset_checkpoint_tag_id,
+			synced = 1
+	`, remoteDependency.Id, remoteDependency.MTime, remoteDependency.AssetId,
+		remoteDependency.DependencyId, remoteDependency.DependencyTypeId,
+		resolutionMode, checkpointID, checkpointTagID)
+	if err != nil {
+		return err
+	}
+	if _, err = tx.Exec("UPDATE asset_dependency SET synced = 1 WHERE id = ?", edgeID); err != nil {
+		return err
+	}
+	_, err = tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = 'asset_dependency'", edgeID)
+	return err
+}
+
+// DiscardTagChange restores one project tag from the remote snapshot.
+func DiscardTagChange(tx *sqlx.Tx, serverData ProjectData, tagID string) error {
+	for _, remoteTag := range serverData.Tags {
+		if remoteTag.Id != tagID {
+			continue
+		}
+		_, err := tx.Exec(`
+			INSERT INTO tag (id, mtime, name, synced) VALUES (?, ?, ?, 1)
+			ON CONFLICT(id) DO UPDATE SET
+				mtime = excluded.mtime, name = excluded.name, synced = 1
+		`, remoteTag.Id, remoteTag.MTime, remoteTag.Name)
+		if err != nil {
+			return err
+		}
+		if _, err = tx.Exec("UPDATE tag SET synced = 1 WHERE id = ?", tagID); err != nil {
+			return err
+		}
+		_, err = tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = 'tag'", tagID)
+		return err
+	}
+
+	if err := repository.DeleteTag(tx, tagID); err != nil {
+		return err
+	}
+	_, err := tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = 'tag'", tagID)
+	return err
 }
 
 // DiscardAssetChanges reverts a single asset and its related rows to the server state.
 // It deletes the local asset and related unsynced rows, then re-inserts from server data.
 func DiscardAssetChanges(tx *sqlx.Tx, serverData ProjectData, assetId string) error {
+	discardedRelationIDs := map[string][]string{}
+	relationQueries := map[string]string{
+		"asset_dependency":      "SELECT id FROM asset_dependency WHERE asset_id = ? OR dependency_id = ?",
+		"collection_dependency": "SELECT id FROM collection_dependency WHERE asset_id = ?",
+		"asset_checkpoint_tag":  "SELECT id FROM asset_checkpoint_tag WHERE asset_id = ?",
+		"asset_tag":             "SELECT id FROM asset_tag WHERE asset_id = ?",
+		"asset_checkpoint":      "SELECT id FROM asset_checkpoint WHERE asset_id = ?",
+	}
+	for table, query := range relationQueries {
+		args := []interface{}{assetId}
+		if table == "asset_dependency" {
+			args = append(args, assetId)
+		}
+		ids := []string{}
+		if err := tx.Select(&ids, query, args...); err != nil && err != sql.ErrNoRows {
+			return err
+		}
+		discardedRelationIDs[table] = ids
+	}
+
 	// Delete local asset and related rows
 	_, err := tx.Exec("DELETE FROM asset_dependency WHERE asset_id = ? OR dependency_id = ?", assetId, assetId)
 	if err != nil {
 		return err
 	}
 	_, err = tx.Exec("DELETE FROM collection_dependency WHERE asset_id = ?", assetId)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec("DELETE FROM asset_checkpoint_tag WHERE asset_id = ?", assetId)
 	if err != nil {
 		return err
 	}
@@ -377,17 +541,6 @@ func DiscardAssetChanges(tx *sqlx.Tx, serverData ProjectData, assetId string) er
 		}
 	}
 
-	// Re-insert related asset dependencies from server
-	for _, dep := range serverData.AssetDependencies {
-		if dep.AssetId == assetId || dep.DependencyId == assetId {
-			_, err = tx.Exec(`INSERT OR IGNORE INTO asset_dependency (id, mtime, asset_id, dependency_id, dependency_type_id, synced) VALUES (?,?,?,?,?,1)`,
-				dep.Id, dep.MTime, dep.AssetId, dep.DependencyId, dep.DependencyTypeId)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
 	// Re-insert related collection dependencies from server
 	for _, dep := range serverData.CollectionDependencies {
 		if dep.AssetId == assetId {
@@ -410,6 +563,51 @@ func DiscardAssetChanges(tx *sqlx.Tx, serverData ProjectData, assetId string) er
 		}
 	}
 
+	// Re-insert related checkpoint tag assignments from server.
+	for _, checkpointTag := range serverData.AssetCheckpointTags {
+		if checkpointTag.AssetId == assetId {
+			_, err = tx.Exec(`INSERT OR IGNORE INTO asset_checkpoint_tag (id, mtime, asset_id, tag_id, checkpoint_id, synced) VALUES (?,?,?,?,?,1)`,
+				checkpointTag.Id, checkpointTag.MTime, checkpointTag.AssetId, checkpointTag.TagId, checkpointTag.CheckpointId)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// Re-insert related asset dependencies after their checkpoint selectors exist.
+	for _, dep := range serverData.AssetDependencies {
+		if dep.AssetId == assetId || dep.DependencyId == assetId {
+			resolutionMode := dep.ResolutionMode
+			if resolutionMode == "" {
+				resolutionMode = "floating"
+			}
+			_, err = tx.Exec(`INSERT OR IGNORE INTO asset_dependency (
+				id, mtime, asset_id, dependency_id, dependency_type_id,
+				resolution_mode, checkpoint_id, asset_checkpoint_tag_id, synced
+			) VALUES (?,?,?,?,?,?,?,?,1)`, dep.Id, dep.MTime, dep.AssetId, dep.DependencyId,
+				dep.DependencyTypeId, resolutionMode, dep.CheckpointId, dep.AssetCheckpointTagId)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return clearRelationTombs(tx, discardedRelationIDs)
+}
+
+func clearRelationTombs(tx *sqlx.Tx, relationIDs map[string][]string) error {
+	for table, ids := range relationIDs {
+		if len(ids) == 0 {
+			continue
+		}
+		query, args, err := sqlx.In("DELETE FROM tomb WHERE table_name = ? AND id IN (?)", table, ids)
+		if err != nil {
+			return err
+		}
+		if _, err = tx.Exec(tx.Rebind(query), args...); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -510,7 +708,7 @@ func DiscardAllChanges(tx *sqlx.Tx, serverData ProjectData) error {
 	// Clear remaining unsynced rows in other tables by resetting to synced
 	otherTables := []string{
 		"collection_assignee", "asset_dependency", "collection_dependency",
-		"asset_checkpoint", "asset_tag", "user", "role", "status",
+		"asset_checkpoint_tag", "asset_checkpoint", "asset_tag", "user", "role", "status",
 		"dependency_type", "asset_type", "collection_type",
 		"template", "workflow", "workflow_link", "workflow_collection", "workflow_asset", "tag",
 	}
@@ -602,13 +800,6 @@ func writeOtherServerData(tx *sqlx.Tx, data ProjectData) error {
 			return err
 		}
 	}
-	for _, dep := range data.AssetDependencies {
-		_, err := tx.Exec(`INSERT OR IGNORE INTO asset_dependency (id, mtime, asset_id, dependency_id, dependency_type_id, synced) VALUES (?,?,?,?,?,1)`,
-			dep.Id, dep.MTime, dep.AssetId, dep.DependencyId, dep.DependencyTypeId)
-		if err != nil {
-			return err
-		}
-	}
 	for _, dep := range data.CollectionDependencies {
 		_, err := tx.Exec(`INSERT OR IGNORE INTO collection_dependency (id, mtime, asset_id, dependency_id, dependency_type_id, synced) VALUES (?,?,?,?,?,1)`,
 			dep.Id, dep.MTime, dep.AssetId, dep.DependencyId, dep.DependencyTypeId)
@@ -619,6 +810,27 @@ func writeOtherServerData(tx *sqlx.Tx, data ProjectData) error {
 	for _, cp := range data.AssetCheckpoints {
 		_, err := tx.Exec(`INSERT OR IGNORE INTO asset_checkpoint (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id, trashed, synced) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1)`,
 			cp.Id, cp.MTime, cp.CreatedAt, cp.AssetId, cp.XXHashChecksum, cp.TimeModified, cp.FileSize, cp.Comment, cp.Chunks, cp.AuthorUID, cp.PreviewId, cp.GroupId, cp.Trashed)
+		if err != nil {
+			return err
+		}
+	}
+	for _, checkpointTag := range data.AssetCheckpointTags {
+		_, err := tx.Exec(`INSERT OR IGNORE INTO asset_checkpoint_tag (id, mtime, asset_id, tag_id, checkpoint_id, synced) VALUES (?,?,?,?,?,1)`,
+			checkpointTag.Id, checkpointTag.MTime, checkpointTag.AssetId, checkpointTag.TagId, checkpointTag.CheckpointId)
+		if err != nil {
+			return err
+		}
+	}
+	for _, dep := range data.AssetDependencies {
+		resolutionMode := dep.ResolutionMode
+		if resolutionMode == "" {
+			resolutionMode = "floating"
+		}
+		_, err := tx.Exec(`INSERT OR IGNORE INTO asset_dependency (
+			id, mtime, asset_id, dependency_id, dependency_type_id,
+			resolution_mode, checkpoint_id, asset_checkpoint_tag_id, synced
+		) VALUES (?,?,?,?,?,?,?,?,1)`, dep.Id, dep.MTime, dep.AssetId, dep.DependencyId,
+			dep.DependencyTypeId, resolutionMode, dep.CheckpointId, dep.AssetCheckpointTagId)
 		if err != nil {
 			return err
 		}

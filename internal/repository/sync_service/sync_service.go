@@ -29,6 +29,7 @@ type ProjectData struct {
 	Assets                 []models.Asset                `json:"assets"`
 	AssetTypes             []models.AssetType            `json:"asset_types"`
 	AssetCheckpoints       []models.Checkpoint           `json:"assets_checkpoints"`
+	AssetCheckpointTags    []models.AssetCheckpointTag   `json:"asset_checkpoint_tags"`
 	AssetDependencies      []models.AssetDependency      `json:"asset_dependencies"`
 	CollectionDependencies []models.CollectionDependency `json:"collection_dependencies"`
 
@@ -62,6 +63,7 @@ func (d *ProjectData) IsEmpty() bool {
 	return len(d.Assets) == 0 &&
 		len(d.AssetTypes) == 0 &&
 		len(d.AssetCheckpoints) == 0 &&
+		len(d.AssetCheckpointTags) == 0 &&
 		len(d.AssetDependencies) == 0 &&
 		len(d.CollectionDependencies) == 0 &&
 		len(d.CollectionTypes) == 0 &&

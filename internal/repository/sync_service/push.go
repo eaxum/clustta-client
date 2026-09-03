@@ -231,6 +231,9 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 			if err != nil {
 				return err
 			}
+			if err = PreserveLocalVersionedDependencyChanges(tx); err != nil {
+				return err
+			}
 			if err = repository.MarkSyncableProjectConfigsSynced(tx); err != nil {
 				return err
 			}
@@ -290,6 +293,9 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 
 		err = utils.SetTablesToSynced(tx, ProjectTables)
 		if err != nil {
+			return err
+		}
+		if err = PreserveLocalVersionedDependencyChanges(tx); err != nil {
 			return err
 		}
 		if err = repository.MarkSyncableProjectConfigsSynced(tx); err != nil {

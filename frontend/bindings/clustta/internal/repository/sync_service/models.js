@@ -57,6 +57,13 @@ export class ChangeChild {
              */
             this["change_type"] = "";
         }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["resolution_mode"] = undefined;
+        }
 
         Object.assign(this, $$source);
     }

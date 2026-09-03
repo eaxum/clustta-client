@@ -10,8 +10,8 @@ import (
 
 type SyncOptions struct {
 	OnlyLatestCheckpoints bool `json:"only_latest_checkpoints"`
-	AssetDependencies      bool `json:"asset_dependencies"`
-	Assets                 bool `json:"assets"`
+	AssetDependencies     bool `json:"asset_dependencies"`
+	Assets                bool `json:"assets"`
 	Resources             bool `json:"resources"`
 	Templates             bool `json:"templates"`
 	Force                 bool `json:"force"`
@@ -22,8 +22,25 @@ var ProjectTables = []string{
 	"asset_type", "asset", "dependency_type", "asset_dependency", "collection_dependency",
 	"collection_type", "collection", "collection_assignee", "template",
 	"workflow", "workflow_link", "workflow_collection", "workflow_asset",
-	"asset_tag", "asset_checkpoint", "tomb",
+	"asset_checkpoint_tag", "asset_tag", "asset_checkpoint", "tomb",
 	"integration_project", "integration_collection_mapping", "integration_asset_mapping",
+}
+
+// PreserveLocalVersionedDependencyChanges keeps unsupported remote fields pending.
+func PreserveLocalVersionedDependencyChanges(tx *sqlx.Tx) error {
+	if _, err := tx.Exec("UPDATE asset_checkpoint_tag SET synced = 0"); err != nil {
+		return err
+	}
+	if _, err := tx.Exec("UPDATE tomb SET synced = 0 WHERE table_name = 'asset_checkpoint_tag'"); err != nil {
+		return err
+	}
+	_, err := tx.Exec(`
+		UPDATE asset_dependency SET synced = 0
+		WHERE resolution_mode != 'floating'
+		OR checkpoint_id IS NOT NULL
+		OR asset_checkpoint_tag_id IS NOT NULL
+	`)
+	return err
 }
 
 func clearTables(tx *sqlx.Tx, tables []string) error {
