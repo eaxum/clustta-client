@@ -5,7 +5,8 @@
       <img class="small-icons" :src="getAppIcon(assetType.icon)">
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(assetType.name) }} </div>
-        <CheckBox :modelValue="isFilterActive(assetType)" :ariaLabel="`Filter by ${assetType.name}`" />
+        <CheckBox :modelValue="isFilterActive(assetType)" :ariaLabel="`Filter by ${assetType.name}`"
+          @click.stop @change="toggleFilter(assetType)" />
       </div>
     </span>
 

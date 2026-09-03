@@ -33,7 +33,8 @@
       <img class="small-icons" :src="getAppIcon(collectionType.icon)">
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(collectionType.name) }} </div>
-        <CheckBox :modelValue="isFilterActive(collectionType)" :ariaLabel="`Filter by ${collectionType.name}`" />
+        <CheckBox :modelValue="isFilterActive(collectionType)" :ariaLabel="`Filter by ${collectionType.name}`"
+          @click.stop @change="toggleFilter(collectionType)" />
       </div>
     </span>
 

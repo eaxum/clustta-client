@@ -22,7 +22,7 @@
       <div class="horizontal-flex">
         <div class="tag-label"> {{ utils.capitalizeStr(tag.name) }} </div>
         <CheckBox :modelValue="isTagOnAll(tag)" :indeterminate="isTagOnSome(tag)" :disabled="isProcessing || !canUpdateAssets"
-          :ariaLabel="`Assign ${tag.name}`" />
+          :ariaLabel="`Assign ${tag.name}`" @click.stop @change="toggleTag(tag)" />
       </div>
     </span>
 

@@ -34,7 +34,8 @@
           </div>
         <div class="horizontal-flex">
           <div class="menu-item-text"> {{  utils.capitalizeStr(collaborator.name) }} </div>
-          <CheckBox :modelValue="isFilterActive(collaborator)" :ariaLabel="`Filter by ${collaborator.name}`" />
+          <CheckBox :modelValue="isFilterActive(collaborator)" :ariaLabel="`Filter by ${collaborator.name}`"
+            @click.stop @change="toggleFilter(collaborator)" />
         </div>
       </span>
 

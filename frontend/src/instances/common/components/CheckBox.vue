@@ -108,11 +108,6 @@ const handleChange = () => {
   border-color: var(--accent);
 }
 
-.checkbox-input:focus + .checkbox-box {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 .checkbox-checkmark {
   width: 5px;
   height: 9px;

@@ -5,7 +5,8 @@
       <img class="small-icons no-filter" :src="extension.icon">
       <div class="horizontal-flex">
         <div class="menu-item-text" > {{ extension?.name?.toUpperCase()}} </div>
-        <CheckBox :modelValue="isFilterActive(extension)" :ariaLabel="`Filter by ${extension?.name?.toUpperCase()}`" />
+        <CheckBox :modelValue="isFilterActive(extension)" :ariaLabel="`Filter by ${extension?.name?.toUpperCase()}`"
+          @click.stop @change="toggleFilter(extension)" />
       </div>
     </span>
 

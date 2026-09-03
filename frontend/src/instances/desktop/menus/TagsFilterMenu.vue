@@ -5,7 +5,8 @@
       <img class="small-icons" src="/icons/tags.svg">
       <div class="horizontal-flex">
         <div>{{ noTagsFilter.name }}</div>
-        <CheckBox :modelValue="isFilterActive(noTagsFilter)" ariaLabel="Filter items without tags" />
+        <CheckBox :modelValue="isFilterActive(noTagsFilter)" ariaLabel="Filter items without tags"
+          @click.stop @change="toggleFilter(noTagsFilter)" />
       </div>
     </span>
 
@@ -13,7 +14,8 @@
       <img class="small-icons" src="/icons/tags.svg">
       <div class="horizontal-flex">
         <div> {{ utils.capitalizeStr(tag.name) }} </div>
-        <CheckBox :modelValue="isFilterActive(tag)" :ariaLabel="`Filter by ${tag.name}`" />
+        <CheckBox :modelValue="isFilterActive(tag)" :ariaLabel="`Filter by ${tag.name}`"
+          @click.stop @change="toggleFilter(tag)" />
       </div>
     </span>
 

@@ -19,7 +19,8 @@
       <div class="horizontal-flex">
         <div class="tag-label">{{ utils.capitalizeStr(tag.name) }}</div>
         <CheckBox :modelValue="isAssigned(tag)" :disabled="isProcessing"
-          :ariaLabel="`${isAssigned(tag) ? 'Remove' : 'Assign'} ${tag.name}`" />
+          :ariaLabel="`${isAssigned(tag) ? 'Remove' : 'Assign'} ${tag.name}`"
+          @click.stop @change="toggleTag(tag)" />
       </div>
     </span>
 

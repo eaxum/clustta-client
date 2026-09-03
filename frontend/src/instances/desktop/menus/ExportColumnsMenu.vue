@@ -11,7 +11,7 @@
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ column.label }}</div>
         <CheckBox :modelValue="exportStore.selectedColumns.includes(column.key)" :disabled="column.required"
-          :ariaLabel="`Include ${column.label}`" />
+          :ariaLabel="`Include ${column.label}`" @click.stop @change="exportStore.toggleColumn(column)" />
       </div>
     </span>
   </div>

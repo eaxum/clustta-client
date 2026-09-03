@@ -5,7 +5,8 @@
       <img class="small-icons no-filter" :src="getStatusIcon(status)">
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ status.name.toUpperCase() }} </div>
-        <CheckBox :modelValue="isFilterActive(status)" :ariaLabel="`Filter by ${status.name}`" />
+        <CheckBox :modelValue="isFilterActive(status)" :ariaLabel="`Filter by ${status.name}`"
+          @click.stop @change="toggleFilter(status)" />
       </div>
     </span>
 
