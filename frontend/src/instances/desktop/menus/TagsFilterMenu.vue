@@ -5,7 +5,7 @@
       <img class="small-icons" src="/icons/tags.svg">
       <div class="horizontal-flex">
         <div>{{ noTagsFilter.name }}</div>
-        <ToggleSwitch :switchValueProp="isFilterActive(noTagsFilter)" />
+        <CheckBox :modelValue="isFilterActive(noTagsFilter)" ariaLabel="Filter items without tags" />
       </div>
     </span>
 
@@ -13,7 +13,7 @@
       <img class="small-icons" src="/icons/tags.svg">
       <div class="horizontal-flex">
         <div> {{ utils.capitalizeStr(tag.name) }} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(tag)" />
+        <CheckBox :modelValue="isFilterActive(tag)" :ariaLabel="`Filter by ${tag.name}`" />
       </div>
     </span>
 
@@ -28,7 +28,7 @@ import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
 // components
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';

@@ -33,7 +33,7 @@
       <img class="small-icons" :src="getAppIcon(collectionType.icon)">
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(collectionType.name) }} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(collectionType)" />
+        <CheckBox :modelValue="isFilterActive(collectionType)" :ariaLabel="`Filter by ${collectionType.name}`" />
       </div>
     </span>
 
@@ -49,6 +49,7 @@ import utils from '@/services/utils';
 import { useI18n } from 'vue-i18n';
 
 // components
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores

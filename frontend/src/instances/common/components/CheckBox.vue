@@ -6,16 +6,18 @@
       type="checkbox" 
       @change="handleChange"
       :disabled="disabled"
+      :indeterminate="indeterminate"
       :aria-label="ariaLabel"
     />
-    <span class="checkbox-box" :class="{ 'checked': checkboxValue }">
+    <span class="checkbox-box" :class="{ 'checked': checkboxValue, 'indeterminate': indeterminate }">
       <span v-if="checkboxValue" class="checkbox-checkmark"></span>
+      <span v-else-if="indeterminate" class="checkbox-indeterminate"></span>
     </span>
   </label>
 </template>
 
 <script setup>
-import { ref, computed, watch } from "vue";
+import { computed } from "vue";
 
 const props = defineProps({
   modelValue: {
@@ -23,6 +25,10 @@ const props = defineProps({
     default: false
   },
   disabled: {
+    type: Boolean,
+    default: false
+  },
+  indeterminate: {
     type: Boolean,
     default: false
   },
@@ -92,7 +98,8 @@ const handleChange = () => {
   border: 1.5px solid var(--border-strong);
 }
 
-.checkbox-box.checked {
+.checkbox-box.checked,
+.checkbox-box.indeterminate {
   background-color: var(--accent);
   border-color: var(--accent);
 }
@@ -114,6 +121,13 @@ const handleChange = () => {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
   animation: checkmarkAppear 0.2s ease-in-out;
+}
+
+.checkbox-indeterminate {
+  width: 9px;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--accent-fg);
 }
 
 @keyframes checkmarkAppear {

@@ -38,27 +38,27 @@
 }
 
 .filter-menu-container {
-    display: flex;
-    flex-direction: column;
-    color: white;
-    align-items: flex-start;
-    gap: .05rem;
-    padding: .3rem;
-    box-sizing: border-box;
-    width: max-content;
-    min-width: 200px;
-    width: min-content;
-    height: max-content;
-    max-height: 80vh;
-  }
+  display: flex;
+  flex-direction: column;
+  color: white;
+  align-items: flex-start;
+  gap: .05rem;
+  padding: .3rem;
+  box-sizing: border-box;
+  width: max-content;
+  min-width: 200px;
+  width: min-content;
+  height: max-content;
+  max-height: 80vh;
+}
 
-  .disabled{
-    opacity: .5;
-    pointer-events: none;
-  }
+.disabled{
+  opacity: .5;
+  pointer-events: none;
+}
 
 .menu-divider{
-width: 96%;
-border-bottom: 1px solid var(--border-strong) ;
-opacity: .1;
+  width: 100%;
+  border-bottom: 1px solid var(--border-strong) ;
+  /* opacity: .1; */
 } 

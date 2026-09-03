@@ -5,7 +5,7 @@
       <img class="small-icons no-filter" :src="getStatusIcon(status)">
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ status.name.toUpperCase() }} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(status)" />
+        <CheckBox :modelValue="isFilterActive(status)" :ariaLabel="`Filter by ${status.name}`" />
       </div>
     </span>
 
@@ -19,7 +19,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
 
 // components
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';

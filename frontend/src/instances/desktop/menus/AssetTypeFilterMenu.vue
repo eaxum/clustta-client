@@ -5,7 +5,7 @@
       <img class="small-icons" :src="getAppIcon(assetType.icon)">
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(assetType.name) }} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(assetType)" />
+        <CheckBox :modelValue="isFilterActive(assetType)" :ariaLabel="`Filter by ${assetType.name}`" />
       </div>
     </span>
 
@@ -20,7 +20,7 @@ import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
 // components
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useAssetStore } from '@/stores/assets';

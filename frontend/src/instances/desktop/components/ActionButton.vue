@@ -186,7 +186,7 @@ onBeforeUnmount(() => {
   min-width: max-content;
   min-height: max-content;
   transition: all 0.3s ease;
-  opacity: 1;
+  opacity: .8;
   border-radius: var(--normal-radius);
   /* background-color: crimson; */
 }

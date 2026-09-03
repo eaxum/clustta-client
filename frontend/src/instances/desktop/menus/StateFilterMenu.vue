@@ -5,7 +5,7 @@
       <img class="small-icons" :class="{ 'no-filter' : isColored(state?.name)}" :src="getAppIcon(state.icon)">
       <div class="horizontal-flex">
         <div class="menu-item-text"> {{ utils.capitalizeStr(state.name) }} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(state)" />
+        <CheckBox :modelValue="isFilterActive(state)" :ariaLabel="`Filter by ${state.name}`" />
       </div>
     </span>
 
@@ -20,7 +20,7 @@ import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
 // components
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useCommonStore } from '@/stores/common';

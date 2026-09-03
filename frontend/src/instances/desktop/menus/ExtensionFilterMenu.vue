@@ -5,7 +5,7 @@
       <img class="small-icons no-filter" :src="extension.icon">
       <div class="horizontal-flex">
         <div class="menu-item-text" > {{ extension?.name?.toUpperCase()}} </div>
-        <ToggleSwitch :switchValueProp="isFilterActive(extension)" />
+        <CheckBox :modelValue="isFilterActive(extension)" :ariaLabel="`Filter by ${extension?.name?.toUpperCase()}`" />
       </div>
     </span>
 
@@ -19,7 +19,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import emitter from '@/lib/mitt';
 
 // components
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useAssetStore } from '@/stores/assets';

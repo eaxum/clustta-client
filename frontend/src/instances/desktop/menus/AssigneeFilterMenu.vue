@@ -23,6 +23,8 @@
       </div>
     </span>
 
+    <span class="menu-divider"></span>
+    
     <div ref="assigneeScrollContainer" class="assignee-scroll-container">
       <span v-if="!assigneeFilterActive && filteredCollaborators.length" class="menu-divider"></span>
 
@@ -32,7 +34,7 @@
           </div>
         <div class="horizontal-flex">
           <div class="menu-item-text"> {{  utils.capitalizeStr(collaborator.name) }} </div>
-          <ToggleSwitch :switchValueProp="isFilterActive(collaborator)"  />
+          <CheckBox :modelValue="isFilterActive(collaborator)" :ariaLabel="`Filter by ${collaborator.name}`" />
         </div>
       </span>
 
@@ -53,6 +55,7 @@ import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
 
 // components
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores

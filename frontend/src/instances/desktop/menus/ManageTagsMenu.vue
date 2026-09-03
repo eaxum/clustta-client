@@ -21,7 +21,8 @@
       <img class="small-icons" src="/icons/tags.svg">
       <div class="horizontal-flex">
         <div class="tag-label"> {{ utils.capitalizeStr(tag.name) }} </div>
-        <ToggleSwitch :switchValueProp="isTagOnAll(tag)" />
+        <CheckBox :modelValue="isTagOnAll(tag)" :indeterminate="isTagOnSome(tag)" :disabled="isProcessing || !canUpdateAssets"
+          :ariaLabel="`Assign ${tag.name}`" />
       </div>
     </span>
 
@@ -47,7 +48,7 @@ import utils from '@/services/utils';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 // stores
 import { useIconStore } from '@/stores/icons';
@@ -142,6 +143,13 @@ const isTagOnAll = (tag) => {
   const assets = getSelectedAssets();
   if (!assets.length) return false;
   return assets.every((asset) => Array.isArray(asset.tags) && asset.tags.includes(tag.name));
+};
+
+// Returns true when a tag is assigned to some, but not all, selected assets.
+const isTagOnSome = (tag) => {
+  const assets = getSelectedAssets();
+  if (!assets.length || isTagOnAll(tag)) return false;
+  return assets.some((asset) => Array.isArray(asset.tags) && asset.tags.includes(tag.name));
 };
 
 // Toggles a tag on or off for all selected assets in a single batch call.

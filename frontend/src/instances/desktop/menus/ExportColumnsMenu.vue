@@ -10,7 +10,8 @@
       <img class="small-icons" :src="getAppIcon(columnIcon(column.key))" />
       <div class="horizontal-flex">
         <div class="menu-item-text">{{ column.label }}</div>
-        <ToggleSwitch :switchValueProp="exportStore.selectedColumns.includes(column.key)" />
+        <CheckBox :modelValue="exportStore.selectedColumns.includes(column.key)" :disabled="column.required"
+          :ariaLabel="`Include ${column.label}`" />
       </div>
     </span>
   </div>
@@ -19,7 +20,7 @@
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 
-import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import CheckBox from '@/instances/common/components/CheckBox.vue';
 
 import { useExportStore } from '@/stores/exports';
 import { useIconStore } from '@/stores/icons';
