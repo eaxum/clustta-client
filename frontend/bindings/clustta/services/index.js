@@ -14,6 +14,7 @@ import * as CollectionService from "./collectionservice.js";
 import * as DependencyTypeService from "./dependencytypeservice.js";
 import * as DeploymentService from "./deploymentservice.js";
 import * as DialogService from "./dialogservice.js";
+import * as DragOutService from "./dragoutservice.js";
 import * as EntitlementService from "./entitlementservice.js";
 import * as ExportService from "./exportservice.js";
 import * as FSService from "./fsservice.js";
@@ -47,6 +48,7 @@ export {
     DependencyTypeService,
     DeploymentService,
     DialogService,
+    DragOutService,
     EntitlementService,
     ExportService,
     FSService,
@@ -87,6 +89,7 @@ export {
     DeploymentRequest,
     DeploymentResponse,
     DeploymentStatus,
+    DragOutRequest,
     EntitlementBundle,
     EntitlementLimits,
     EntitlementUsage,

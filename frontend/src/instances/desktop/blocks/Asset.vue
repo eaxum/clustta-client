@@ -90,6 +90,7 @@
             
             <!-- Row 2: Action Buttons (shows on hover) -->
             <div class="asset-item-grid-actions-row">
+              <NativeDragHandle v-if="!isUntracked && !isGhost" :asset="asset" />
               
               <!-- Untracked label for untracked items -->
               <div v-if="isUntracked" class="asset-item-grid-untracked-label">
@@ -295,6 +296,7 @@
 
           <!-- asset actions -->
           <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="asset-item-actions">
+            <NativeDragHandle v-if="!isGhost" :asset="asset" />
             <div v-if="loadingAssetState" class="file-state">
                 <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
                   v-tooltip="$t('common.loading')" />
@@ -355,6 +357,7 @@ import { generateAvatar } from '@/lib/avatar';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import NativeDragHandle from '@/instances/common/components/NativeDragHandle.vue';
 import GridStatusMenu from '@/instances/desktop/menus/GridStatusMenu.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';

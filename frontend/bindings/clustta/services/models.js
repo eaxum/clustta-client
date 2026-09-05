@@ -1102,6 +1102,52 @@ export class DeploymentStatus {
     }
 }
 
+export class DragOutRequest {
+    /**
+     * Creates a new DragOutRequest instance.
+     * @param {Partial<DragOutRequest>} [$$source = {}] - The source object to create the DragOutRequest.
+     */
+    constructor($$source = {}) {
+        if (!("project_path" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["project_path"] = "";
+        }
+        if (!("project_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["project_id"] = "";
+        }
+        if (!("asset_ids" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["asset_ids"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DragOutRequest instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DragOutRequest}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType6;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("asset_ids" in $$parsedSource) {
+            $$parsedSource["asset_ids"] = $$createField2_0($$parsedSource["asset_ids"]);
+        }
+        return new DragOutRequest(/** @type {Partial<DragOutRequest>} */($$parsedSource));
+    }
+}
+
 /**
  * EntitlementBundle is the complete entitlement state for an entity.
  */
@@ -1219,10 +1265,10 @@ export class EntitlementBundle {
      * @returns {EntitlementBundle}
      */
     static createFrom($$source = {}) {
-        const $$createField10_0 = $$createType6;
-        const $$createField11_0 = $$createType7;
-        const $$createField12_0 = $$createType8;
-        const $$createField13_0 = $$createType8;
+        const $$createField10_0 = $$createType7;
+        const $$createField11_0 = $$createType8;
+        const $$createField12_0 = $$createType6;
+        const $$createField13_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("limits" in $$parsedSource) {
             $$parsedSource["limits"] = $$createField10_0($$parsedSource["limits"]);
@@ -1494,8 +1540,8 @@ export class ExportRequest {
      * @returns {ExportRequest}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType8;
-        const $$createField2_0 = $$createType8;
+        const $$createField0_0 = $$createType6;
+        const $$createField2_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("asset_ids" in $$parsedSource) {
             $$parsedSource["asset_ids"] = $$createField0_0($$parsedSource["asset_ids"]);
@@ -1534,7 +1580,7 @@ export class FetchResult {
      * @returns {FetchResult}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType8;
+        const $$createField0_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("restored_asset_ids" in $$parsedSource) {
             $$parsedSource["restored_asset_ids"] = $$createField0_0($$parsedSource["restored_asset_ids"]);
@@ -1984,7 +2030,7 @@ export class Plan {
      * @returns {Plan}
      */
     static createFrom($$source = {}) {
-        const $$createField14_0 = $$createType8;
+        const $$createField14_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("feature_keys" in $$parsedSource) {
             $$parsedSource["feature_keys"] = $$createField14_0($$parsedSource["feature_keys"]);
@@ -2044,7 +2090,7 @@ export class PreLaunchTrustInfo {
      * @returns {PreLaunchTrustInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType8;
+        const $$createField4_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("scripts" in $$parsedSource) {
             $$parsedSource["scripts"] = $$createField4_0($$parsedSource["scripts"]);
@@ -2272,7 +2318,7 @@ export class PurgeRecursiveUntrackedItemsResult {
      * @returns {PurgeRecursiveUntrackedItemsResult}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType8;
+        const $$createField3_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("errors" in $$parsedSource) {
             $$parsedSource["errors"] = $$createField3_0($$parsedSource["errors"]);
@@ -3152,9 +3198,9 @@ const $$createType2 = $Create.Array($Create.Any);
 const $$createType3 = $Create.Array($Create.Any);
 const $$createType4 = $Create.Array($Create.Any);
 const $$createType5 = $Create.Array($Create.Any);
-const $$createType6 = EntitlementLimits.createFrom;
-const $$createType7 = EntitlementUsage.createFrom;
-const $$createType8 = $Create.Array($Create.Any);
+const $$createType6 = $Create.Array($Create.Any);
+const $$createType7 = EntitlementLimits.createFrom;
+const $$createType8 = EntitlementUsage.createFrom;
 const $$createType9 = ExportColumn.createFrom;
 const $$createType10 = $Create.Array($$createType9);
 const $$createType11 = $Create.Map($Create.Any, $Create.Any);
