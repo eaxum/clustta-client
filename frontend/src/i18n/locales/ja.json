@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "プロジェクトを準備中",
+      "receiving": "プロジェクトデータを受信中",
+      "previews": "プレビューを受信中 {current}/{total}",
+      "transfer": "受信中 {current}/{total}",
+      "finishing": "ダウンロードを完了しています",
+      "completed": "ダウンロード完了",
+      "cancelFailed": "ダウンロードをキャンセルできませんでした。もう一度お試しください。"
+    }
+  },
   "common": {
     "settings": "設定",
     "accept": "承認",

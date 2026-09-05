@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "프로젝트 준비 중",
+      "receiving": "프로젝트 데이터 수신 중",
+      "previews": "미리보기 수신 중 {current}/{total}",
+      "transfer": "수신 중 {current}/{total}",
+      "finishing": "다운로드 마무리 중",
+      "completed": "다운로드 완료",
+      "cancelFailed": "다운로드를 취소할 수 없습니다. 다시 시도해 주세요."
+    }
+  },
   "common": {
     "accept": "수락",
     "add": "추가",

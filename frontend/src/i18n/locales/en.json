@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "Preparing project",
+      "receiving": "Receiving project data",
+      "previews": "Receiving previews {current}/{total}",
+      "transfer": "Receiving {current}/{total}",
+      "finishing": "Finishing download",
+      "completed": "Download complete",
+      "cancelFailed": "Could not cancel the download. Please try again."
+    }
+  },
   "common": {
     "accept": "Accept",
     "add": "Add",

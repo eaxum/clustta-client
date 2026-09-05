@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "Projekt wird vorbereitet",
+      "receiving": "Projektdaten werden empfangen",
+      "previews": "Vorschaubilder werden empfangen {current}/{total}",
+      "transfer": "Empfangen: {current}/{total}",
+      "finishing": "Download wird abgeschlossen",
+      "completed": "Download abgeschlossen",
+      "cancelFailed": "Der Download konnte nicht abgebrochen werden. Bitte versuche es erneut."
+    }
+  },
   "common": {
     "settings": "Einstellungen",
     "accept": "Akzeptieren",

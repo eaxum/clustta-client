@@ -24,6 +24,14 @@ import (
 
 type SyncService struct{}
 
+const (
+	projectDownloadOperation   = "project-download"
+	downloadPhasePreparing     = "preparing"
+	downloadPhaseReceiving     = "receiving"
+	downloadPhaseCompleted     = "completed"
+	downloadTransferPercentage = 98
+)
+
 func (s *SyncService) CancelSync() {
 	mu.Lock()
 	if cancel != nil {
@@ -37,7 +45,7 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 
 	ctx := getContext()
 	if ctx.Err() != nil {
-		return errors.New("operation cancelled before starting")
+		return errors.New("cancelled")
 	}
 
 	app := application.Get()
@@ -84,9 +92,16 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 	// Create buffered channels to prevent blocking
 	errChan := make(chan error, 1)
 	progressChan := make(chan output.ProgressReport, 10)
+	progressDone := make(chan struct{})
+	defer func() {
+		close(progressChan)
+		<-progressDone
+	}()
+	downloadTitle := fmt.Sprintf("Downloading %s Project", projectName)
 
 	// Start progress update goroutine
 	go func() {
+		defer close(progressDone)
 		for {
 			select {
 			case <-ctx.Done():
@@ -103,10 +118,12 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 	// Initial progress
 	select {
 	case <-ctx.Done():
-		return errors.New("operation cancelled")
+		return errors.New("cancelled")
 	case progressChan <- output.ProgressReport{
-		Title:         fmt.Sprintf("Downloading %s  Project", projectName),
-		Message:       fmt.Sprintf("Downloading %s  Project", projectName),
+		Title:         downloadTitle,
+		Message:       "Preparing project",
+		Operation:     projectDownloadOperation,
+		Phase:         downloadPhasePreparing,
 		Percentage:    0,
 		Current:       1,
 		Total:         1,
@@ -118,13 +135,19 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 		if ctx.Err() != nil {
 			return
 		}
+		percentage := 0.0
+		if total > 0 {
+			percentage = min(max(float64(current)/float64(total), 0), 1) * downloadTransferPercentage
+		}
 		select {
 		case <-ctx.Done():
 			return
 		case progressChan <- output.ProgressReport{
-			Title:         fmt.Sprintf("Downloading %s  Project", projectName),
+			Title:         downloadTitle,
+			Operation:     projectDownloadOperation,
+			Phase:         downloadPhaseReceiving,
 			Message:       message,
-			Percentage:    float64(current) / float64(total) * 98,
+			Percentage:    percentage,
 			Current:       1,
 			Total:         1,
 			ExtraMessage:  extraMessage,
@@ -160,7 +183,6 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 					}
 				}
 			}
-			close(progressChan)
 			return err
 		}
 	case <-ctx.Done():
@@ -179,20 +201,24 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 			}
 
 		}
-		close(progressChan) // Stop progress updates
-		return errors.New("operation cancelled")
+		return errors.New("cancelled")
 	}
 
-	close(progressChan)
 	progress := output.ProgressReport{
-		Title:         fmt.Sprintf("Downloading %s  Project", projectName),
-		Message:       fmt.Sprintf("Downloading %s  Project", projectName),
+		Title:         downloadTitle,
+		Message:       "Download complete",
+		Operation:     projectDownloadOperation,
+		Phase:         downloadPhaseCompleted,
 		Percentage:    100,
 		Current:       1,
 		Total:         1,
 		OperationType: "write",
 	}
-	app.Event.Emit("progress-update", progress)
+	// Queue completion behind transfer updates so stale progress cannot restart the UI.
+	select {
+	case progressChan <- progress:
+	case <-ctx.Done():
+	}
 	return nil
 }
 

@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "Préparation du projet",
+      "receiving": "Réception des données du projet",
+      "previews": "Réception des aperçus {current}/{total}",
+      "transfer": "Réception de {current}/{total}",
+      "finishing": "Finalisation du téléchargement",
+      "completed": "Téléchargement terminé",
+      "cancelFailed": "Impossible d’annuler le téléchargement. Veuillez réessayer."
+    }
+  },
   "common": {
     "settings": "Paramètres",
     "accept": "Accepter",

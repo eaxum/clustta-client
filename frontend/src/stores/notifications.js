@@ -19,6 +19,8 @@ export const useNotificationStore = defineStore("notifications", {
       extra_message: "",
       isMinimized: false,
       operationType: null, // 'read' or 'write'
+      operation: null,
+      phase: null,
     },
     activeWriteOperation: null,
     cancleFunction: null,
@@ -146,6 +148,8 @@ export const useNotificationStore = defineStore("notifications", {
         this.progress.total = total;
         this.progress.extra_message = extra_message;
         this.progress.operationType = operation_type;
+        this.progress.operation = progressData.operation || null;
+        this.progress.phase = progressData.phase || null;
         
         // Track active write operations
         if (operation_type === 'write') {
@@ -170,6 +174,8 @@ export const useNotificationStore = defineStore("notifications", {
         extra_message: "",
         isMinimized: false,
         operationType: null,
+        operation: null,
+        phase: null,
       };
       this.activeWriteOperation = null;
 

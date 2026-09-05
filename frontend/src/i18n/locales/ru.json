@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "Подготовка проекта",
+      "receiving": "Получение данных проекта",
+      "previews": "Получение превью {current}/{total}",
+      "transfer": "Получение {current}/{total}",
+      "finishing": "Завершение загрузки",
+      "completed": "Загрузка завершена",
+      "cancelFailed": "Не удалось отменить загрузку. Попробуйте ещё раз."
+    }
+  },
   "common": {
     "settings": "Настройки",
     "accept": "Принять",

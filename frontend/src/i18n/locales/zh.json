@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "正在准备项目",
+      "receiving": "正在接收项目数据",
+      "previews": "正在接收预览 {current}/{total}",
+      "transfer": "正在接收 {current}/{total}",
+      "finishing": "正在完成下载",
+      "completed": "下载完成",
+      "cancelFailed": "无法取消下载。请重试。"
+    }
+  },
   "common": {
     "settings": "设置",
     "accept": "接受",

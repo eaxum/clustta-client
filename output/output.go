@@ -16,6 +16,8 @@ type ProgressReport struct {
 	ExtraMessage      string      `json:"extra_message"`
 	ExtraMessageColor string      `json:"extra_message_color"`
 	OperationType     string      `json:"operation_type"` // "read" or "write"
+	Operation         string      `json:"operation,omitempty"`
+	Phase             string      `json:"phase,omitempty"`
 }
 
 type ErrorReport struct {

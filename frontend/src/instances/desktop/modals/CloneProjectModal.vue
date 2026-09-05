@@ -7,7 +7,14 @@
 
       <!-- Clone Progress Display -->
       <div v-if="isCloning" class="settings-section-card">
-        <ProgressSection variant="success" />
+        <ProgressSection variant="success" :show-title="false" :show-count="false" :message="progressMessage"
+          :percentage="isFinishing ? 100 : null" />
+      </div>
+
+      <div v-if="isCloning && !isFinishing" class="pop-up-actions">
+        <GeneralButton :label="isCancelling ? $t('components.flashMessage.cancelling') : $t('common.cancel')"
+          :isActive="!isCancelling" :disabled="isCancelling" :colored="false" :fullWidth="false"
+          :buttonFunction="cancelDownload" />
       </div>
 
       <span v-if="!isCloning && projectStore.activeProjectCover" class="screenshot-preview">
@@ -72,6 +79,8 @@ const { t } = useI18n();
 // refs
 const isAwaitingResponse = ref(false);
 const isCloning = ref(false);
+const isCancelling = ref(false);
+const isFinishing = ref(false);
 const isLoadingLocations = ref(false);
 const modalContainer = ref(null);
 const projectLocations = ref([]);
@@ -79,6 +88,12 @@ const selectedLocation = ref(null);
 
 // constants
 const title = t('modals.downloadProject', { name: projectStore.activeProject.name });
+const progressMessage = computed(() => {
+  if (isCancelling.value) return t('components.flashMessage.cancelling');
+  if (isFinishing.value) return t('progress.projectDownload.finishing');
+  if (!notificationStore.progress.running) return t('progress.projectDownload.preparing');
+  return '';
+});
 
 // computed
 // Returns whether the form is valid for submission.
@@ -130,6 +145,7 @@ const addNewLocation = async () => {
 
 // Clones the project from the server to the selected location.
 const cloneProject = async () => {
+  if (isCloning.value) return;
   if (!selectedLocation.value) {
     notificationStore.addNotification(t('notifications.noLocationSelected'), t('notifications.selectOrAddLocation'), 'error', false);
     return;
@@ -155,6 +171,9 @@ const cloneProject = async () => {
   notificationStore.canCancel = true;
   try {
     await SyncService.CloneProject(projectUrl, studioDisplayName, workingDirectory.value, syncOptions);
+    isFinishing.value = true;
+    isCancelling.value = false;
+    notificationStore.canCancel = false;
     projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
     projectStore.activeProject.working_directory = workingDirectory.value;
     if (selectedLocation.value) {
@@ -171,9 +190,26 @@ const cloneProject = async () => {
     console.error(error);
     notificationStore.errorNotification(t('notifications.errorCloningProject'), error);
   } finally {
+    notificationStore.resetProgress();
+    notificationStore.canCancel = false;
+    notificationStore.cancleFunction = null;
+    isCancelling.value = false;
+    isFinishing.value = false;
     stage.operationActive = false;
     isCloning.value = false;
     isAwaitingResponse.value = false;
+  }
+};
+
+const cancelDownload = async () => {
+  if (!isCloning.value || isCancelling.value || isFinishing.value) return;
+  isCancelling.value = true;
+  try {
+    await SyncService.CancelSync();
+  } catch (error) {
+    isCancelling.value = false;
+    console.error('Error cancelling project download:', error);
+    notificationStore.addNotification(t('progress.projectDownload.cancelFailed'), '', 'warning');
   }
 };
 

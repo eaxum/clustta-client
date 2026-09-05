@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "Preparando proyecto",
+      "receiving": "Recibiendo datos del proyecto",
+      "previews": "Recibiendo vistas previas {current}/{total}",
+      "transfer": "Recibiendo {current}/{total}",
+      "finishing": "Finalizando descarga",
+      "completed": "Descarga completada",
+      "cancelFailed": "No se pudo cancelar la descarga. Inténtalo de nuevo."
+    }
+  },
   "common": {
     "settings": "Configuración",
     "accept": "Aceptar",

@@ -1,4 +1,15 @@
 {
+  "progress": {
+    "projectDownload": {
+      "preparing": "प्रोजेक्ट तैयार हो रहा है",
+      "receiving": "प्रोजेक्ट डेटा प्राप्त हो रहा है",
+      "previews": "प्रीव्यू प्राप्त हो रहे हैं {current}/{total}",
+      "transfer": "प्राप्त हो रहा है {current}/{total}",
+      "finishing": "डाउनलोड पूरा किया जा रहा है",
+      "completed": "डाउनलोड पूरा हुआ",
+      "cancelFailed": "डाउनलोड रद्द नहीं किया जा सका। कृपया फिर से कोशिश करें।"
+    }
+  },
   "common": {
     "settings": "सेटिंग्स",
     "accept": "स्वीकार करें",
