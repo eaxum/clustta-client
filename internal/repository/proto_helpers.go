@@ -122,12 +122,15 @@ func ToPbAssetDependencies(assetDependencies []models.AssetDependency) []*reposi
 	pb := make([]*repositorypb.AssetDependency, len(assetDependencies))
 	for i, td := range assetDependencies {
 		pb[i] = &repositorypb.AssetDependency{
-			Id:               td.Id,
-			Mtime:            int64(td.MTime),
-			AssetId:          td.AssetId,
-			DependencyId:     td.DependencyId,
-			DependencyTypeId: td.DependencyTypeId,
-			Synced:           td.Synced,
+			Id:                   td.Id,
+			Mtime:                int64(td.MTime),
+			AssetId:              td.AssetId,
+			DependencyId:         td.DependencyId,
+			DependencyTypeId:     td.DependencyTypeId,
+			ResolutionMode:       td.ResolutionMode,
+			CheckpointId:         stringValue(td.CheckpointId),
+			AssetCheckpointTagId: stringValue(td.AssetCheckpointTagId),
+			Synced:               td.Synced,
 		}
 	}
 	return pb
@@ -610,12 +613,15 @@ func FromPbCollectionAssignees(pbs []*repositorypb.CollectionAssignee) []models.
 
 func FromPbAssetDependency(pb *repositorypb.AssetDependency) models.AssetDependency {
 	return models.AssetDependency{
-		Id:               pb.Id,
-		MTime:            int(pb.Mtime),
-		AssetId:          pb.AssetId,
-		DependencyId:     pb.DependencyId,
-		DependencyTypeId: pb.DependencyTypeId,
-		Synced:           pb.Synced,
+		Id:                   pb.Id,
+		MTime:                int(pb.Mtime),
+		AssetId:              pb.AssetId,
+		DependencyId:         pb.DependencyId,
+		DependencyTypeId:     pb.DependencyTypeId,
+		ResolutionMode:       pb.ResolutionMode,
+		CheckpointId:         optionalString(pb.CheckpointId),
+		AssetCheckpointTagId: optionalString(pb.AssetCheckpointTagId),
+		Synced:               pb.Synced,
 	}
 }
 
@@ -1111,4 +1117,52 @@ func FromPbIntegrationAssetMappings(pbs []*repositorypb.IntegrationAssetMapping)
 		items[i] = FromPbIntegrationAssetMapping(pb)
 	}
 	return items
+}
+
+func stringValue(value *string) string {
+	if value == nil {
+		return ""
+	}
+	return *value
+}
+
+func optionalString(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
+func ToPbAssetCheckpointTags(assignments []models.AssetCheckpointTag) []*repositorypb.AssetCheckpointTag {
+	pb := make([]*repositorypb.AssetCheckpointTag, len(assignments))
+	for i, assignment := range assignments {
+		pb[i] = &repositorypb.AssetCheckpointTag{
+			Id:           assignment.Id,
+			Mtime:        assignment.MTime,
+			AssetId:      assignment.AssetId,
+			TagId:        assignment.TagId,
+			CheckpointId: assignment.CheckpointId,
+			Synced:       assignment.Synced,
+		}
+	}
+	return pb
+}
+
+func FromPbAssetCheckpointTag(pb *repositorypb.AssetCheckpointTag) models.AssetCheckpointTag {
+	return models.AssetCheckpointTag{
+		Id:           pb.Id,
+		MTime:        pb.Mtime,
+		AssetId:      pb.AssetId,
+		TagId:        pb.TagId,
+		CheckpointId: pb.CheckpointId,
+		Synced:       pb.Synced,
+	}
+}
+
+func FromPbAssetCheckpointTags(pbs []*repositorypb.AssetCheckpointTag) []models.AssetCheckpointTag {
+	assignments := make([]models.AssetCheckpointTag, len(pbs))
+	for i, pb := range pbs {
+		assignments[i] = FromPbAssetCheckpointTag(pb)
+	}
+	return assignments
 }

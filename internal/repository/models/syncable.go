@@ -14,6 +14,8 @@ type Syncable interface {
 func (a Asset) SyncId() string                        { return a.Id }
 func (a Asset) SyncMTime() int                        { return a.MTime }
 func (a AssetDependency) SyncId() string              { return a.Id }
+func (a AssetCheckpointTag) SyncId() string           { return a.Id }
+func (a AssetCheckpointTag) SyncMTime() int           { return int(a.MTime) }
 func (a AssetDependency) SyncMTime() int              { return a.MTime }
 func (a AssetTag) SyncId() string                     { return a.Id }
 func (a AssetTag) SyncMTime() int                     { return a.MTime }

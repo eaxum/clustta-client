@@ -27,7 +27,6 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
-
 	metadataOnlyStorage, err := settings.GetMetadataOnlyStorage()
 	if err != nil {
 		return err
@@ -85,6 +84,7 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		Assets:                 repository.ToPbAssets(data.Assets),
 		AssetCheckpoints:       repository.ToPbCheckpoints(data.AssetCheckpoints),
 		AssetDependencies:      repository.ToPbAssetDependencies(data.AssetDependencies),
+		AssetCheckpointTags:    repository.ToPbAssetCheckpointTags(data.AssetCheckpointTags),
 		CollectionDependencies: repository.ToPbCollectionDependencies(data.CollectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(data.Statuses),
@@ -231,9 +231,6 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 			if err != nil {
 				return err
 			}
-			if err = PreserveLocalVersionedDependencyChanges(tx); err != nil {
-				return err
-			}
 			if err = repository.MarkSyncableProjectConfigsSynced(tx); err != nil {
 				return err
 			}
@@ -293,9 +290,6 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 
 		err = utils.SetTablesToSynced(tx, ProjectTables)
 		if err != nil {
-			return err
-		}
-		if err = PreserveLocalVersionedDependencyChanges(tx); err != nil {
 			return err
 		}
 		if err = repository.MarkSyncableProjectConfigsSynced(tx); err != nil {

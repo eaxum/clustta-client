@@ -246,6 +246,9 @@ func computeSyncTargets(tx *sqlx.Tx, data sync_service.ProjectData) (map[string]
 	if err := scan(tx, out, "asset_dependency", data.AssetDependencies); err != nil {
 		return nil, err
 	}
+	if err := scan(tx, out, "asset_checkpoint_tag", data.AssetCheckpointTags); err != nil {
+		return nil, err
+	}
 	if err := scan(tx, out, "collection_dependency", data.CollectionDependencies); err != nil {
 		return nil, err
 	}

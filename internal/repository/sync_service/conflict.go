@@ -37,6 +37,13 @@ func (e *SyncConflictError) Error() string {
 func ResolveConflicts(tx *sqlx.Tx, conflicts []ConflictInfo) error {
 	for _, conflict := range conflicts {
 		switch conflict.Type {
+		case "asset_checkpoint_tag":
+			if _, err := tx.Exec("UPDATE asset_checkpoint_tag SET id = ?, synced = 0 WHERE id = ?", conflict.ExistingId, conflict.LocalId); err != nil {
+				return fmt.Errorf("failed to remap checkpoint tag: %w", err)
+			}
+			if _, err := tx.Exec("UPDATE asset_dependency SET asset_checkpoint_tag_id = ?, synced = 0 WHERE asset_checkpoint_tag_id = ?", conflict.ExistingId, conflict.LocalId); err != nil {
+				return fmt.Errorf("failed to remap tagged dependencies: %w", err)
+			}
 		case "collection":
 			err := remapCollectionId(tx, conflict.LocalId, conflict.ExistingId)
 			if err != nil {
@@ -109,6 +116,10 @@ func remapAssetId(tx *sqlx.Tx, oldId, newId string) error {
 		newId, now, oldId)
 	if err != nil {
 		return fmt.Errorf("failed to update checkpoints: %w", err)
+	}
+
+	if _, err := tx.Exec("UPDATE asset_checkpoint_tag SET asset_id = ?, synced = 0 WHERE asset_id = ?", newId, oldId); err != nil {
+		return fmt.Errorf("failed to update checkpoint tag asset: %w", err)
 	}
 
 	_, err = tx.Exec(`UPDATE asset_dependency SET asset_id = ?, mtime = ?, synced = 0 WHERE asset_id = ?`,

@@ -506,24 +506,37 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		}
 	}
 
-	for _, dependency := range data.AssetDependencies {
-		if tombItems[dependency.Id] {
+	for _, assetTag := range data.AssetTags {
+		if tombItems[assetTag.Id] {
 			continue
 		}
-		_, err = repository.GetDependency(tx, dependency.Id)
+		_, err = repository.GetAssetTag(tx, assetTag.Id)
 		if err != nil {
-			if errors.Is(err, error_service.ErrAssetDependencyNotFound) {
-				_, err = repository.AddDependency(
-					tx, dependency.Id, dependency.AssetId, dependency.DependencyId, dependency.DependencyTypeId)
+			if errors.Is(err, error_service.ErrAssetTagNotFound) {
+				err = repository.AddTagToAssetById(tx, assetTag.Id, assetTag.AssetId, assetTag.TagId)
 				if err != nil {
-					if err.Error() == "UNIQUE constraint failed: asset_dependency.asset_id, asset_dependency.dependency_id" {
-						continue
-					}
 					return err
 				}
 			} else {
 				return err
 			}
+		}
+	}
+
+	for _, assignment := range data.AssetCheckpointTags {
+		if tombItems[assignment.Id] {
+			continue
+		}
+		if err = repository.SaveAssetCheckpointTag(tx, assignment); err != nil {
+			return err
+		}
+	}
+	for _, dependency := range data.AssetDependencies {
+		if tombItems[dependency.Id] {
+			continue
+		}
+		if err = repository.SaveDependency(tx, dependency); err != nil {
+			return err
 		}
 	}
 
@@ -661,23 +674,6 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 				if err != nil {
 					return err
 				}
-			}
-		}
-	}
-
-	for _, assetTag := range data.AssetTags {
-		if tombItems[assetTag.Id] {
-			continue
-		}
-		_, err = repository.GetAssetTag(tx, assetTag.Id)
-		if err != nil {
-			if errors.Is(err, error_service.ErrAssetTagNotFound) {
-				err = repository.AddTagToAssetById(tx, assetTag.Id, assetTag.AssetId, assetTag.TagId)
-				if err != nil {
-					return err
-				}
-			} else {
-				return err
 			}
 		}
 	}
@@ -998,13 +994,20 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 		}
 	}
 
-	for _, dependency := range data.AssetDependencies {
-		_, err = repository.AddDependency(
-			tx, dependency.Id, dependency.AssetId, dependency.DependencyId, dependency.DependencyTypeId)
+	for _, assetTag := range data.AssetTags {
+		err = repository.AddTagToAssetById(tx, assetTag.Id, assetTag.AssetId, assetTag.TagId)
 		if err != nil {
-			if err.Error() == "UNIQUE constraint failed: asset_dependency.asset_id, asset_dependency.dependency_id" {
-				continue
-			}
+			return err
+		}
+	}
+
+	for _, assignment := range data.AssetCheckpointTags {
+		if err = repository.SaveAssetCheckpointTag(tx, assignment); err != nil {
+			return err
+		}
+	}
+	for _, dependency := range data.AssetDependencies {
+		if err = repository.SaveDependency(tx, dependency); err != nil {
 			return err
 		}
 	}
@@ -1052,13 +1055,6 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 
 	for _, workflowAsset := range data.WorkflowAssets {
 		_, err = repository.CreateWorkflowAsset(tx, workflowAsset.Id, workflowAsset.Name, workflowAsset.WorkflowId, workflowAsset.AssetTypeId, workflowAsset.IsResource, workflowAsset.TemplateId, workflowAsset.Pointer, workflowAsset.IsLink)
-		if err != nil {
-			return err
-		}
-	}
-
-	for _, assetTag := range data.AssetTags {
-		err = repository.AddTagToAssetById(tx, assetTag.Id, assetTag.AssetId, assetTag.TagId)
 		if err != nil {
 			return err
 		}
@@ -1164,6 +1160,7 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 				Assets:                 repository.FromPbAssets(userDataPb.Assets),
 				AssetCheckpoints:       repository.FromPbCheckpoints(userDataPb.AssetCheckpoints),
 				AssetDependencies:      repository.FromPbAssetDependencies(userDataPb.AssetDependencies),
+				AssetCheckpointTags:    repository.FromPbAssetCheckpointTags(userDataPb.AssetCheckpointTags),
 				CollectionDependencies: repository.FromPbCollectionDependencies(userDataPb.CollectionDependencies),
 
 				Statuses:        repository.FromPbStatuses(userDataPb.Statuses),

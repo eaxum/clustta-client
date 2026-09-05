@@ -54,8 +54,8 @@ func TestCheckpointTagMovesWithinOneAssetAndMaintainsAssetTag(t *testing.T) {
 	`, assignment.Id); err != nil {
 		t.Fatal(err)
 	}
-	if tombCount != 0 {
-		t.Fatalf("expected an unsynced assignment removal to cancel its tombstone, got %d", tombCount)
+	if tombCount != 1 {
+		t.Fatalf("expected a tombstone even for a dirty assignment, got %d", tombCount)
 	}
 }
 

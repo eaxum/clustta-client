@@ -4,6 +4,7 @@ import (
 	"clustta/internal/base_service"
 	"database/sql"
 	"fmt"
+	"sort"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -32,10 +33,27 @@ func GetTomb(tx *sqlx.Tx, id string) (Tomb, error) {
 }
 
 func AddItemsToTomb(tx *sqlx.Tx, tombs []Tomb) error {
-	for _, tomb := range tombs {
-		query := fmt.Sprintf("DELETE FROM %s WHERE id = '%s';", tomb.TableName, tomb.Id)
-		_, err := tx.Exec(query)
-		if err != nil {
+	orderedTombs := append([]Tomb(nil), tombs...)
+	sort.SliceStable(orderedTombs, func(i, j int) bool {
+		return tombDeletePriority(orderedTombs[i].TableName) < tombDeletePriority(orderedTombs[j].TableName)
+	})
+	for _, tomb := range orderedTombs {
+		switch tomb.TableName {
+		case "asset", "asset_checkpoint", "asset_checkpoint_tag", "asset_dependency", "collection_dependency",
+			"asset_tag", "tag", "asset_type", "dependency_type", "collection", "collection_type",
+			"collection_assignee", "template", "status", "user", "role", "workflow", "workflow_link",
+			"workflow_asset", "workflow_collection", "integration_project",
+			"integration_asset_mapping", "integration_collection_mapping":
+		default:
+			return fmt.Errorf("invalid tomb table: %s", tomb.TableName)
+		}
+		if _, err := tx.Exec("DELETE FROM "+tomb.TableName+" WHERE id = ?", tomb.Id); err != nil {
+			return err
+		}
+		if _, err := tx.Exec(`
+			INSERT INTO tomb (id, mtime, table_name, synced) VALUES (?, ?, ?, 0)
+			ON CONFLICT(id) DO UPDATE SET mtime = MAX(tomb.mtime, excluded.mtime), synced = 0
+		`, tomb.Id, tomb.Mtime, tomb.TableName); err != nil {
 			return err
 		}
 	}
@@ -72,4 +90,17 @@ func IsItemInTomb(tx *sqlx.Tx, itemID, tableName string) (bool, error) {
 func RemoveItemFromTomb(tx *sqlx.Tx, itemID, tableName string) error {
 	_, err := tx.Exec("DELETE FROM tomb WHERE id = ? AND table_name = ?", itemID, tableName)
 	return err
+}
+
+func tombDeletePriority(tableName string) int {
+	switch tableName {
+	case "asset_dependency", "collection_dependency":
+		return 0
+	case "asset_checkpoint_tag":
+		return 1
+	case "asset":
+		return 3
+	default:
+		return 2
+	}
 }

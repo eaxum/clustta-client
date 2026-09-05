@@ -640,6 +640,26 @@ BEGIN
     SELECT RAISE(ABORT, 'tagged checkpoint cannot be deleted');
 END;
 
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_tag_remove_asset_tag AFTER DELETE ON asset_checkpoint_tag
+FOR EACH ROW
+BEGIN
+    DELETE FROM asset_tag WHERE asset_id = OLD.asset_id AND tag_id = OLD.tag_id;
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_pinned_delete BEFORE DELETE ON asset_checkpoint
+FOR EACH ROW
+WHEN EXISTS (SELECT 1 FROM asset_dependency WHERE checkpoint_id = OLD.id)
+BEGIN
+    SELECT RAISE(ABORT, 'pinned checkpoint cannot be deleted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_pinned_trash BEFORE UPDATE OF trashed ON asset_checkpoint
+FOR EACH ROW
+WHEN NEW.trashed = 1 AND EXISTS (SELECT 1 FROM asset_dependency WHERE checkpoint_id = OLD.id)
+BEGIN
+    SELECT RAISE(ABORT, 'pinned checkpoint cannot be trashed');
+END;
+
 CREATE TRIGGER IF NOT EXISTS asset_checkpoint_update AFTER UPDATE ON asset_checkpoint
 FOR EACH ROW
 WHEN OLD.mtime != NEW.mtime

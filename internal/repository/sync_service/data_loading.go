@@ -105,6 +105,12 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 		return ProjectData{}, err
 	}
 
+	assetCheckpointTags := []models.AssetCheckpointTag{}
+	checkpointTagsQuery := fmt.Sprintf("SELECT * FROM asset_checkpoint_tag WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	if err = tx.Select(&assetCheckpointTags, checkpointTagsQuery); err != nil {
+		return ProjectData{}, err
+	}
+
 	statuses, err := repository.GetStatuses(tx)
 	if err != nil {
 		return ProjectData{}, err
@@ -224,6 +230,7 @@ func OLDLoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	userData.AssetTypes = assetTypes
 	userData.Assets = assets
 	userData.AssetCheckpoints = assetsCheckpoints
+	userData.AssetCheckpointTags = assetCheckpointTags
 	userData.AssetDependencies = assetDependencies
 	userData.CollectionDependencies = collectionDependencies
 
@@ -338,6 +345,12 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	assetsCheckpoints := []models.Checkpoint{}
 	err = tx.Select(&assetsCheckpoints, checkpointQuery)
 	if err != nil {
+		return ProjectData{}, err
+	}
+
+	assetCheckpointTags := []models.AssetCheckpointTag{}
+	checkpointTagsQuery := fmt.Sprintf("SELECT * FROM asset_checkpoint_tag WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	if err = tx.Select(&assetCheckpointTags, checkpointTagsQuery); err != nil {
 		return ProjectData{}, err
 	}
 
@@ -462,6 +475,7 @@ func LoadUserData(tx *sqlx.Tx, userId string) (ProjectData, error) {
 	userData.AssetTypes = assetTypes
 	userData.Assets = assets
 	userData.AssetCheckpoints = assetsCheckpoints
+	userData.AssetCheckpointTags = assetCheckpointTags
 	userData.AssetDependencies = assetDependencies
 	userData.CollectionDependencies = collectionDependencies
 
@@ -574,6 +588,12 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 	assetsCheckpoints := []models.Checkpoint{}
 	err = tx.Select(&assetsCheckpoints, checkpointQuery)
 	if err != nil {
+		return []byte{}, err
+	}
+
+	assetCheckpointTags := []models.AssetCheckpointTag{}
+	checkpointTagsQuery := fmt.Sprintf("SELECT * FROM asset_checkpoint_tag WHERE asset_id IN (%s)", strings.Join(quotedAssetIds, ","))
+	if err = tx.Select(&assetCheckpointTags, checkpointTagsQuery); err != nil {
 		return []byte{}, err
 	}
 
@@ -721,6 +741,7 @@ func LoadUserDataPb(tx *sqlx.Tx, userId string) ([]byte, error) {
 		Assets:                 repository.ToPbAssets(assets),
 		AssetCheckpoints:       repository.ToPbCheckpoints(assetsCheckpoints),
 		AssetDependencies:      repository.ToPbAssetDependencies(assetDependencies),
+		AssetCheckpointTags:    repository.ToPbAssetCheckpointTags(assetCheckpointTags),
 		CollectionDependencies: repository.ToPbCollectionDependencies(collectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(statuses),
@@ -1036,6 +1057,11 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 		return []byte{}, err
 	}
 
+	assetCheckpointTags := []models.AssetCheckpointTag{}
+	if err = tx.Select(&assetCheckpointTags, "SELECT * FROM asset_checkpoint_tag WHERE synced = 0"); err != nil {
+		return []byte{}, err
+	}
+
 	assetDependenciesQuery := "SELECT * FROM asset_dependency WHERE synced = 0"
 	assetDependencies := []models.AssetDependency{}
 	err = tx.Select(&assetDependencies, assetDependenciesQuery)
@@ -1182,6 +1208,7 @@ func LoadChangedDataPb(tx *sqlx.Tx) ([]byte, error) {
 		Assets:                 repository.ToPbAssets(assets),
 		AssetCheckpoints:       repository.ToPbCheckpoints(assetsCheckpoints),
 		AssetDependencies:      repository.ToPbAssetDependencies(assetDependencies),
+		AssetCheckpointTags:    repository.ToPbAssetCheckpointTags(assetCheckpointTags),
 		CollectionDependencies: repository.ToPbCollectionDependencies(collectionDependencies),
 
 		Statuses:        repository.ToPbStatuses(statuses),
