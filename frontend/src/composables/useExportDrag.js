@@ -25,7 +25,7 @@ export function useExportDrag(assets, exportable) {
   const notifications = useNotificationStore();
   const previewEnabled = import.meta.env.VITE_NATIVE_DRAG_OUT === undefined
     ? import.meta.env.DEV : import.meta.env.VITE_NATIVE_DRAG_OUT === 'true';
-  const visible = computed(() => previewEnabled && platform.isDesktop && platform.isWindows && available.value);
+  const visible = computed(() => previewEnabled && platform.isDesktop && available.value);
   const enabled = computed(() => available.value && !dragging.value && !stage.operationActive
     && exportable.value);
 

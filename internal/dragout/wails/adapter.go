@@ -19,8 +19,9 @@ func Start(ctx context.Context, window *application.WebviewWindow, paths []strin
 			completed <- outcome{err: err}
 			return
 		}
-		result, err := dragout.Start(window.NativeWindow(), paths)
-		completed <- outcome{result, err}
+		dragout.Begin(window.NativeWindow(), paths, func(result dragout.Result, err error) {
+			completed <- outcome{result, err}
+		})
 	})
 	// Cancellation must not free an active native source or allow an overlapping session.
 	result := <-completed
