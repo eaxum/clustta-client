@@ -1252,7 +1252,7 @@
     "agentModel": "智能体模型"
   },
   "blocks": {
-    "dragIntoOtherApp": "拖入其他应用",
+    "dragIntoOtherApp": "拖入其他应用程序",
     "exportDragFailed": "无法拖动所选文件",
     "trustLaunchHookTitle": "Trust {name}",
     "trustLaunchHookMessage": "This project will run the following scripts before opening the asset: {scripts}. Trust is stored on this device and requested again when script contents change.",

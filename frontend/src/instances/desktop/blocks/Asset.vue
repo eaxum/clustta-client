@@ -433,7 +433,9 @@ const { displayThumbnail, osThumbnail } = useAssetThumbnail(
 );
 
 // computed
-const exportAssets = computed(() => getExportDragSelection(props.asset, stage.selectedItems));
+const exportAssets = computed(() => getExportDragSelection(
+  props.asset, stage.selectedItems, browserTreeStore.itemsByKey,
+));
 const isExportable = computed(() => !props.isUntracked && !props.isGhost && !isEditing.value
   && canExportFiles(exportAssets.value));
 

@@ -1252,7 +1252,7 @@
     "agentModel": "एजेंट मॉडल"
   },
   "blocks": {
-    "dragIntoOtherApp": "दूसरे ऐप में खींचें",
+    "dragIntoOtherApp": "दूसरे एप्लिकेशन में खींचें",
     "exportDragFailed": "चुनी गई फ़ाइलों को खींचा नहीं जा सका",
     "trustLaunchHookTitle": "Trust {name}",
     "trustLaunchHookMessage": "This project will run the following scripts before opening the asset: {scripts}. Trust is stored on this device and requested again when script contents change.",

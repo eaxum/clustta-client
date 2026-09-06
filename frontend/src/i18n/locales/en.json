@@ -1310,7 +1310,7 @@
     "collaboratorsTab": "Collaborators"
   },
   "blocks": {
-    "dragIntoOtherApp": "Drag into other app",
+    "dragIntoOtherApp": "Drag into other application",
     "exportDragFailed": "Could not drag the selected files",
     "loadingState": "Loading state",
     "outdatedClickToUpdate": "Outdated Items. Click to update",

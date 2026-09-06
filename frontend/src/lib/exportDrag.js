@@ -1,7 +1,10 @@
+import { getBrowserItemKey } from './browserTree.js';
+
 const LOCAL_FILE_STATES = new Set(['normal', 'modified', 'outdated']);
 
-export function getExportDragSelection(asset, selectedItems) {
-  return selectedItems.some((item) => item.id === asset.id) ? selectedItems : [asset];
+export function getExportDragSelection(asset, selectedItems, itemsByKey) {
+  const selection = selectedItems.some((item) => item.id === asset.id) ? selectedItems : [asset];
+  return selection.map((item) => itemsByKey[getBrowserItemKey(item)] || item);
 }
 
 export function canExportFiles(items) {
