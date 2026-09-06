@@ -7,8 +7,8 @@ import (
 
 	"clustta/internal/auth_service"
 	bridgeassets "clustta/internal/bridge/assets"
-	"clustta/internal/dragout"
-	wailsdrag "clustta/internal/dragout/wails"
+	"github.com/eaxum/wails-dragout"
+	wailsdrag "github.com/eaxum/wails-dragout/wails"
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 

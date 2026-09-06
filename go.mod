@@ -2,7 +2,11 @@ module clustta
 
 go 1.25.8
 
+// Local extraction checkout; replace with a tagged release before distribution.
+replace github.com/eaxum/wails-dragout => ../wails-dragout
+
 require (
+	github.com/eaxum/wails-dragout v0.1.0-alpha.1
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
