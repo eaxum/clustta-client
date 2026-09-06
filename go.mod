@@ -3,7 +3,7 @@ module clustta
 go 1.25.8
 
 require (
-	github.com/eaxum/wails-dragout v0.1.0-alpha.1
+	github.com/eaxum/wails-dragout v0.1.0-alpha.2
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
