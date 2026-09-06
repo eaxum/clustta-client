@@ -23,14 +23,12 @@ export function useExportDrag(assets, exportable) {
   const projects = useProjectStore();
   const stage = useStageStore();
   const notifications = useNotificationStore();
-  const previewEnabled = import.meta.env.VITE_NATIVE_DRAG_OUT === undefined
-    ? import.meta.env.DEV : import.meta.env.VITE_NATIVE_DRAG_OUT === 'true';
-  const visible = computed(() => previewEnabled && platform.isDesktop && available.value);
+  const visible = computed(() => platform.isDesktop && available.value);
   const enabled = computed(() => available.value && !dragging.value && !stage.operationActive
     && exportable.value);
 
   onMounted(async () => {
-    if (import.meta.env.VITE_PLATFORM === 'web' || !previewEnabled) return;
+    if (import.meta.env.VITE_PLATFORM === 'web' || !platform.isDesktop) return;
     try {
       const service = await loadService();
       capabilityPromise ??= service.Available();
