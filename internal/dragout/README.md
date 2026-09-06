@@ -8,9 +8,9 @@ Copyright (c) 2026 Eaxum for the port and integration. See `NOTICE` for attribut
 
 ## Architecture
 
-`Asset.vue` renders `NativeDragHandle.vue` in both grid and list actions. `useNativeDrag.js` snapshots selected asset IDs and calls the generated `DragOutService` binding. The service reads the trusted calling window from `application.WindowKey`, authenticates the current user, and delegates path resolution to `internal/bridge/assets`.
+`Asset.vue` renders `ExportDragHandle.vue` in place of the asset-type icon on hover in both grid and list views, using `grip-vertical` at 0.5 opacity. The asset component passes selection eligibility based on local file state (`normal`, `modified`, or `outdated`); mixed selections containing unavailable files cannot export. `useExportDrag.js` snapshots selected asset IDs and calls the generated `DragOutService` binding. The service reads the trusted calling window from `application.WindowKey`, authenticates the current user, and delegates path resolution to `internal/bridge/assets`.
 
-The request contains `project_path`, `project_id`, and `asset_ids`. The resolver opens the existing local project database read-only, verifies its ID and membership, enforces `pull_chunk` and the existing asset visibility rules, and constructs paths from repository metadata. It rejects links, missing files, directories, trashed assets, and canonical paths outside the project root. Pending local renames use the stored local path. It never downloads files or accepts frontend asset paths.
+The request contains `project_path`, `project_id`, and `asset_ids`. The resolver opens the existing local project database read-only, verifies its ID and membership, enforces the existing asset visibility rules without requiring download or structure-editing permissions, and constructs paths from repository metadata. It rejects links, missing files, directories, trashed assets, and canonical paths outside the project root. Pending local renames use the stored local path. It never downloads files or accepts frontend asset paths.
 
 The `wails` subpackage dispatches native work with `application.InvokeAsync`. The binding promise resolves to `dropped` or `cancelled`, or rejects with an actionable error. OLE initialization and cleanup run on the same UI thread. An active-session guard stays held until the native call returns, including after binding cancellation. `dropped` means target acceptance, not completion of the target's import/copy.
 
@@ -23,7 +23,7 @@ Focused checks:
 ```powershell
 go test ./internal/dragout ./internal/bridge/assets
 go test ./services -run TestDragOut
-node --test frontend/src/lib/nativeDrag.test.js
+node --test frontend/src/lib/exportDrag.test.js
 ```
 
 Automated coverage includes a real Windows shell data object for files in different directories, Unicode/spaced paths, missing files, real project-schema resolution, permissions, canonical path containment, and frontend selection rules. It does not simulate an OS drop.

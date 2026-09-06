@@ -76,9 +76,10 @@
             
             <!-- Row 1: Name/Meta (always visible) -->
             <div class="asset-item-grid-meta-row">
-              <div v-if="settingsStore.showTypeIcons" class="asset-item-grid-type-icon" >
-                <img v-if="isUntracked" class="small-icons" :src="getAppIcon('generic')">
-                <img v-else class="small-icons" :src="getAppIcon(asset.asset_type_icon)" v-tooltip="assetTypeName">
+              <div v-if="settingsStore.showTypeIcons" class="asset-item-grid-type-icon asset-type-icon-slot">
+                <img v-if="isUntracked" class="small-icons asset-type-icon" :src="getAppIcon('generic')">
+                <img v-else class="small-icons asset-type-icon" :src="getAppIcon(asset.asset_type_icon)" v-tooltip="assetTypeName">
+                <ExportDragHandle :assets="exportAssets" :exportable="isExportable" />
               </div>
               
               <div class="main-asset-item-grid-meta" :class="{ 'rename-pending-name': hasRenamePending }"
@@ -90,7 +91,6 @@
             
             <!-- Row 2: Action Buttons (shows on hover) -->
             <div class="asset-item-grid-actions-row">
-              <NativeDragHandle v-if="!isUntracked && !isGhost" :asset="asset" />
               
               <!-- Untracked label for untracked items -->
               <div v-if="isUntracked" class="asset-item-grid-untracked-label">
@@ -198,13 +198,11 @@
     }" 
     @dblclick="launchAssetCommand()">
 
-    <div v-if="settingsStore.showTypeIcons" class="asset-spacer" v-tooltip="assetTypeName" @click="console.log(asset)">
-      <span v-if="isUntracked" class="single-action-button single-action-button-disabled">
-        <img class="small-icons collection-collapsed" :src="getAppIcon('generic')">
+    <div v-if="settingsStore.showTypeIcons" class="asset-spacer asset-type-icon-slot">
+      <span class="single-action-button single-action-button-disabled asset-type-icon" v-tooltip="assetTypeName">
+        <img class="small-icons collection-collapsed" :src="getAppIcon(isUntracked ? 'generic' : asset.asset_type_icon)">
       </span>
-      <span v-else class="single-action-button single-action-button-disabled">
-        <img class="small-icons collection-collapsed" :src="getAppIcon(asset.asset_type_icon)">
-      </span>
+      <ExportDragHandle :assets="exportAssets" :exportable="isExportable" />
     </div>
 
     <div class="main-asset-item-root">
@@ -296,7 +294,6 @@
 
           <!-- asset actions -->
           <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="asset-item-actions">
-            <NativeDragHandle v-if="!isGhost" :asset="asset" />
             <div v-if="loadingAssetState" class="file-state">
                 <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
                   v-tooltip="$t('common.loading')" />
@@ -350,6 +347,7 @@ import { useI18n } from 'vue-i18n';
 import { Browser, Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
+import { canExportFiles, getExportDragSelection } from '@/lib/exportDrag';
 import { canActOnAsset, canCreateCheckpointForItem, isCheckpointBlockedByAssignment } from '@/lib/permissions';
 import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
@@ -357,7 +355,7 @@ import { generateAvatar } from '@/lib/avatar';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import NativeDragHandle from '@/instances/common/components/NativeDragHandle.vue';
+import ExportDragHandle from '@/instances/common/components/ExportDragHandle.vue';
 import GridStatusMenu from '@/instances/desktop/menus/GridStatusMenu.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
@@ -435,6 +433,10 @@ const { displayThumbnail, osThumbnail } = useAssetThumbnail(
 );
 
 // computed
+const exportAssets = computed(() => getExportDragSelection(props.asset, stage.selectedItems));
+const isExportable = computed(() => !props.isUntracked && !props.isGhost && !isEditing.value
+  && canExportFiles(exportAssets.value));
+
 // Returns the capitalized asset type name.
 const assetTypeName = computed(() => {
   return utils.capitalizeStr(props.asset?.asset_type_name);
@@ -1362,6 +1364,24 @@ onBeforeUnmount(() => {
 
 .asset-item-grid:hover .asset-item-grid-actions-row {
   display: flex;
+}
+
+.asset-type-icon-slot { position: relative; }
+
+.asset-type-icon-slot > .asset-type-icon { transition: none; }
+
+.asset-type-icon-slot > .export-drag-handle {
+  display: none;
+  position: absolute;
+  inset: 0;
+}
+
+.asset-item-main:hover .asset-type-icon-slot:has(> .export-drag-handle) > .asset-type-icon {
+  visibility: hidden;
+}
+
+.asset-item-main:hover .asset-type-icon-slot > .export-drag-handle {
+  display: inline-flex;
 }
 
 .asset-item-grid-type-icon {

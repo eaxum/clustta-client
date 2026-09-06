@@ -1,10 +1,9 @@
 import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
-import { useUserStore } from '@/stores/users';
 import { useNotificationStore } from '@/stores/notifications';
-import { canDragFiles, dragSelection } from '@/lib/nativeDrag';
 
 const available = ref(false);
 const dragging = ref(false);
@@ -18,18 +17,17 @@ function loadService() {
   return servicePromise;
 }
 
-export function useNativeDrag(asset) {
+export function useExportDrag(assets, exportable) {
+  const { t } = useI18n();
   const platform = usePlatformStore();
   const projects = useProjectStore();
   const stage = useStageStore();
-  const users = useUserStore();
   const notifications = useNotificationStore();
   const previewEnabled = import.meta.env.VITE_NATIVE_DRAG_OUT === undefined
     ? import.meta.env.DEV : import.meta.env.VITE_NATIVE_DRAG_OUT === 'true';
-  const visible = computed(() => previewEnabled && platform.isDesktop && platform.isWindows);
-  const selected = computed(() => dragSelection(asset.value, stage.selectedItems));
+  const visible = computed(() => previewEnabled && platform.isDesktop && platform.isWindows && available.value);
   const enabled = computed(() => available.value && !dragging.value && !stage.operationActive
-    && users.canDo('pull_chunk') && canDragFiles(selected.value));
+    && exportable.value);
 
   onMounted(async () => {
     if (import.meta.env.VITE_PLATFORM === 'web' || !previewEnabled) return;
@@ -42,7 +40,7 @@ export function useNativeDrag(asset) {
     }
   });
 
-  async function startDrag(event) {
+  async function startExportDrag(event) {
     event.preventDefault();
     if (!enabled.value) return;
     const project = projects.getActiveProject;
@@ -50,18 +48,18 @@ export function useNativeDrag(asset) {
     const request = {
       project_path: project.uri,
       project_id: project.id,
-      asset_ids: selected.value.map((item) => item.id),
+      asset_ids: assets.value.map((item) => item.id),
     };
     dragging.value = true;
     try {
       const service = await loadService();
       await service.StartDrag(request);
     } catch (error) {
-      notifications.errorNotification('Could not drag the selected files', error);
+      notifications.errorNotification(t('blocks.exportDragFailed'), error);
     } finally {
       dragging.value = false;
     }
   }
 
-  return { visible, enabled, startDrag };
+  return { visible, enabled, startExportDrag };
 }

@@ -1310,8 +1310,8 @@
     "collaboratorsTab": "Collaborators"
   },
   "blocks": {
-    "dragFilesOut": "Drag to copy files into another application",
-    "dragFilesUnavailable": "Select downloaded assets you can access to drag files out",
+    "dragIntoOtherApp": "Drag into other app",
+    "exportDragFailed": "Could not drag the selected files",
     "loadingState": "Loading state",
     "outdatedClickToUpdate": "Outdated Items. Click to update",
     "untrackedModifiedClickCheckpoint": "Untracked/Modified Items. Click to add checkpoints",

@@ -1252,6 +1252,8 @@
     "agentModel": "Modelo do agente"
   },
   "blocks": {
+    "dragIntoOtherApp": "Arrastar para outro aplicativo",
+    "exportDragFailed": "Não foi possível arrastar os arquivos selecionados",
     "trustLaunchHookTitle": "Trust {name}",
     "trustLaunchHookMessage": "This project will run the following scripts before opening the asset: {scripts}. Trust is stored on this device and requested again when script contents change.",
     "trustAndLaunch": "Trust and launch",

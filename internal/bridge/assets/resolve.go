@@ -60,15 +60,11 @@ func ResolveLocalFiles(ctx context.Context, projectPath, projectID, userID strin
 	}
 	var permissions struct {
 		ViewAsset bool `db:"view_asset"`
-		PullChunk bool `db:"pull_chunk"`
 	}
-	err = tx.GetContext(ctx, &permissions, `SELECT role.view_asset, role.pull_chunk
+	err = tx.GetContext(ctx, &permissions, `SELECT role.view_asset
 		FROM user JOIN role ON role.id = user.role_id WHERE user.id = ?`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("project access unavailable: %w", err)
-	}
-	if !permissions.PullChunk {
-		return nil, errors.New("you do not have permission to export project files")
 	}
 	visible := make(map[string]bool)
 	if !permissions.ViewAsset {

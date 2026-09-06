@@ -62,10 +62,10 @@ func TestResolveLocalFiles(t *testing.T) {
 	if _, err := db.Exec("UPDATE role SET pull_chunk = 0"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := resolve("user", "project", []string{"asset"}); err == nil {
-		t.Fatal("export allowed without file permission")
+	if _, err := resolve("user", "project", []string{"asset"}); err != nil {
+		t.Fatalf("local export must not require download permission: %v", err)
 	}
-	if _, err := db.Exec("UPDATE role SET pull_chunk = 1, view_asset = 0"); err != nil {
+	if _, err := db.Exec("UPDATE role SET view_asset = 0"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := resolve("user", "project", []string{"asset"}); err != nil {

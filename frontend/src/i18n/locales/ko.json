@@ -1276,6 +1276,8 @@
     "agentModel": "에이전트 모델"
   },
   "blocks": {
+    "dragIntoOtherApp": "다른 앱으로 드래그",
+    "exportDragFailed": "선택한 파일을 드래그할 수 없습니다",
     "trustLaunchHookTitle": "Trust {name}",
     "trustLaunchHookMessage": "This project will run the following scripts before opening the asset: {scripts}. Trust is stored on this device and requested again when script contents change.",
     "trustAndLaunch": "Trust and launch",
