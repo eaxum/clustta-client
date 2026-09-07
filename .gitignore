@@ -34,7 +34,6 @@ Clustta_template.xml
 # Project data
 *.clustta
 *.clst
-*.blend
 *.blend1
 *.csv
 projects/
