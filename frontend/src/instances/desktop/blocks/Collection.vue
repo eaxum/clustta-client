@@ -102,8 +102,15 @@
         v-tooltip="$t('common.loading')" />
     </div>
 
-    <div v-else class="collection-spacer" :class="{ 'collection-spacer-inactive': !!!props.hasChildren }">
-      <span @click="expandCollection()" class="single-action-button">
+    <div v-else class="collection-spacer collection-type-icon-slot"
+      :class="{ 'collection-type-icon-slot-with-type': settingsStore.showTypeIcons }">
+      <span v-if="settingsStore.showTypeIcons"
+        class="single-action-button single-action-button-disabled collection-type-icon"
+        v-tooltip="collectionTypeName">
+        <img class="small-icons" :src="getAppIcon(collectionTypeIcon)">
+      </span>
+      <span @click="expandCollection()" class="collection-expand-handle"
+        :class="{ 'collection-expand-handle-inactive': !props.hasChildren }">
         <img class="small-icons collection-collapsed" :class="{ 'collection-expanded': collection.id in stage.expandedCollections }"
           :src="getAppIcon('chevron-down')">
       </span>
@@ -118,10 +125,6 @@
             <img v-else class="screenshot-thumb" src='/page-states/no_image.png'>
           </div>
         </div> -->
-
-        <div v-if="settingsStore.showTypeIcons" class="entity-item-icon-container">
-          <img class="small-icons" :src="getAppIcon(collectionTypeIcon)" v-tooltip="collectionTypeName">
-        </div>
 
         <div class="collection-item-content selection-area">
           <div v-if="!isEditing" class="collection-item-details"
@@ -542,6 +545,7 @@ const emitCollectionUpdates = (collectionId, updates) => {
 
 // Expands or collapses the collection in the tree view.
 const expandCollection = () => {
+  if (!props.hasChildren) return;
   const collection = props.collection;
   stage.expandCollection(collection, props.isUntracked);
   cancelRename();
@@ -819,10 +823,6 @@ onBeforeUnmount(() => {
   transform: rotate(0deg);
 }
 
-.chevron-inactive {
-  opacity: .2;
-}
-
 .collection-item-main {
   display: flex;
   gap: .2rem;
@@ -1058,13 +1058,43 @@ onBeforeUnmount(() => {
   display: flex;
   box-sizing: border-box;
   align-items: center;
-  justify-content: center;
   overflow: hidden;
 }
 
-.collection-spacer-inactive {
-  opacity: .2;
-  pointer-events: none;
+.collection-type-icon {
+  transition: none;
+}
+
+.collection-expand-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: .5;
+  cursor: pointer;
+  user-select: none;
+}
+
+.collection-expand-handle:not(.collection-expand-handle-inactive):hover {
+  opacity: .7;
+}
+
+.collection-type-icon-slot-with-type > .collection-expand-handle {
+  display: none;
+  position: absolute;
+  inset: 0;
+}
+
+.collection-item-main:hover .collection-type-icon-slot-with-type > .collection-type-icon {
+  visibility: hidden;
+}
+
+.collection-item-main:hover .collection-type-icon-slot-with-type > .collection-expand-handle {
+  display: inline-flex;
+}
+
+.collection-expand-handle-inactive {
+  opacity: .1;
+  cursor: not-allowed;
 }
 
 .collection-spacer-empty {

@@ -7,8 +7,12 @@ export function getExportDragSelection(asset, selectedItems, itemsByKey) {
   return selection.map((item) => itemsByKey[getBrowserItemKey(item)] || item);
 }
 
-export function canExportFiles(items) {
+export function canDisplayExportDrag(items) {
   return items.length > 0 && items.every((item) => item.type === 'asset'
-    && !item.is_link && !item.pointer && !item.trashed
-    && Boolean(item.local_path || item.file_path) && LOCAL_FILE_STATES.has(item.file_status));
+    && !item.is_link && !item.pointer && !item.trashed);
+}
+
+export function canExportFiles(items) {
+  return canDisplayExportDrag(items) && items.every((item) =>
+    Boolean(item.local_path || item.file_path) && LOCAL_FILE_STATES.has(item.file_status));
 }

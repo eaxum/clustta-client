@@ -1311,6 +1311,7 @@
   },
   "blocks": {
     "dragIntoOtherApp": "Drag into other application",
+    "exportDragNotDownloaded": "Not downloaded",
     "exportDragFailed": "Could not drag the selected files",
     "loadingState": "Loading state",
     "outdatedClickToUpdate": "Outdated Items. Click to update",

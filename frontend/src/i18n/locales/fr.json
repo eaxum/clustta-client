@@ -1254,6 +1254,7 @@
   },
   "blocks": {
     "dragIntoOtherApp": "Glisser dans une autre application",
+    "exportDragNotDownloaded": "Non téléchargé",
     "exportDragFailed": "Impossible de faire glisser les fichiers sélectionnés",
     "trustLaunchHookTitle": "Trust {name}",
     "trustLaunchHookMessage": "This project will run the following scripts before opening the asset: {scripts}. Trust is stored on this device and requested again when script contents change.",

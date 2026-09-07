@@ -1253,6 +1253,7 @@
   },
   "blocks": {
     "dragIntoOtherApp": "Перетащить в другое приложение",
+    "exportDragNotDownloaded": "Не загружено",
     "exportDragFailed": "Не удалось перетащить выбранные файлы",
     "trustLaunchHookTitle": "Trust {name}",
     "trustLaunchHookMessage": "This project will run the following scripts before opening the asset: {scripts}. Trust is stored on this device and requested again when script contents change.",

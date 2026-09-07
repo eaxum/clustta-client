@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { computed, reactive } from 'vue';
-import { canExportFiles, getExportDragSelection } from './exportDrag.js';
+import { canDisplayExportDrag, canExportFiles, getExportDragSelection } from './exportDrag.js';
 
 const asset = { id: 'first', type: 'asset', file_path: 'C:/project/first.blend', file_status: 'normal' };
 const other = { ...asset, id: 'second' };
@@ -48,4 +48,12 @@ test('mixed selections never silently export only eligible assets', () => {
   ]) assert.equal(canExportFiles([asset, invalid]), false);
   assert.equal(canExportFiles([asset, other]), true);
   assert.equal(canExportFiles([]), false);
+});
+
+test('unavailable files display a disabled export handle', () => {
+  const unavailableAsset = { ...asset, file_path: '', file_status: 'fetchable' };
+
+  assert.equal(canDisplayExportDrag([unavailableAsset]), true);
+  assert.equal(canExportFiles([unavailableAsset]), false);
+  assert.equal(canDisplayExportDrag([{ ...unavailableAsset, is_link: true }]), false);
 });

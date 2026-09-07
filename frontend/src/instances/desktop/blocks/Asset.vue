@@ -79,7 +79,8 @@
               <div v-if="settingsStore.showTypeIcons" class="asset-item-grid-type-icon asset-type-icon-slot">
                 <img v-if="isUntracked" class="small-icons asset-type-icon" :src="getAppIcon('generic')">
                 <img v-else class="small-icons asset-type-icon" :src="getAppIcon(asset.asset_type_icon)" v-tooltip="assetTypeName">
-                <ExportDragHandle :assets="exportAssets" :exportable="isExportable" />
+                <ExportDragHandle :assets="exportAssets" :displayable="canDisplayExportHandle"
+                  :exportable="isExportable" />
               </div>
               
               <div class="main-asset-item-grid-meta" :class="{ 'rename-pending-name': hasRenamePending }"
@@ -202,7 +203,8 @@
       <span class="single-action-button single-action-button-disabled asset-type-icon" v-tooltip="assetTypeName">
         <img class="small-icons collection-collapsed" :src="getAppIcon(isUntracked ? 'generic' : asset.asset_type_icon)">
       </span>
-      <ExportDragHandle :assets="exportAssets" :exportable="isExportable" />
+      <ExportDragHandle :assets="exportAssets" :displayable="canDisplayExportHandle"
+        :exportable="isExportable" />
     </div>
 
     <div class="main-asset-item-root">
@@ -347,7 +349,7 @@ import { useI18n } from 'vue-i18n';
 import { Browser, Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { getParentPath } from '@/lib/pathlib';
-import { canExportFiles, getExportDragSelection } from '@/lib/exportDrag';
+import { canDisplayExportDrag, canExportFiles, getExportDragSelection } from '@/lib/exportDrag';
 import { canActOnAsset, canCreateCheckpointForItem, isCheckpointBlockedByAssignment } from '@/lib/permissions';
 import { isValidWeblink } from '@/lib/pointer';
 import utils from '@/services/utils';
@@ -436,8 +438,9 @@ const { displayThumbnail, osThumbnail } = useAssetThumbnail(
 const exportAssets = computed(() => getExportDragSelection(
   props.asset, stage.selectedItems, browserTreeStore.itemsByKey,
 ));
-const isExportable = computed(() => !props.isUntracked && !props.isGhost && !isEditing.value
-  && canExportFiles(exportAssets.value));
+const canDisplayExportHandle = computed(() => !props.isUntracked && !props.isGhost && !isEditing.value
+  && canDisplayExportDrag(exportAssets.value));
+const isExportable = computed(() => canDisplayExportHandle.value && canExportFiles(exportAssets.value));
 
 // Returns the capitalized asset type name.
 const assetTypeName = computed(() => {
