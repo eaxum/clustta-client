@@ -5,7 +5,7 @@ import (
 	"clustta/internal/repository/models"
 	"clustta/internal/settings"
 	"clustta/internal/utils"
-	_ "embed"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -32,6 +32,9 @@ var blenderPreLaunchScript []byte
 //go:embed template_files/maya_workspace.mel
 var mayaWorkspaceFile []byte
 
+//go:embed template_files/jack_of_all_trades/*.blend template_files/jack_of_all_trades/*.aup4 template_files/jack_of_all_trades/*.kra template_files/jack_of_all_trades/*.xcf
+var bundledAssetTemplates embed.FS
+
 type ProjectTemplateDefinition struct {
 	Name            string                  `json:"name"`
 	Icon            string                  `json:"icon"`
@@ -42,6 +45,13 @@ type ProjectTemplateDefinition struct {
 	PreLaunchHooks  []TemplatePreLaunchHook `json:"preLaunchHooks"`
 	Collections     []TemplateCollection    `json:"collections"`
 	ProjectFiles    []TemplateProjectFile   `json:"projectFiles"`
+	AssetTemplates  []TemplateAssetFile     `json:"assetTemplates"`
+	Tags            []string                `json:"tags"`
+}
+
+type TemplateAssetFile struct {
+	Name   string `json:"name"`
+	Source string `json:"source"`
 }
 
 type TemplatePreLaunchHook struct {
@@ -98,7 +108,7 @@ func InitializeDefaultTemplates(user *auth_service.User) error {
 		return nil
 	}
 
-	log.Printf("No default templates found, creating them at %s", templatesPath)
+	log.Printf("Creating missing default templates at %s", templatesPath)
 
 	var activeUser auth_service.User
 	if user != nil {
@@ -137,8 +147,7 @@ func InitializeDefaultTemplates(user *auth_service.User) error {
 	return nil
 }
 
-// hasDefaultTemplates reports whether any valid .clst template exists in the directory.
-// Corrupt or partially-created templates are quarantined so the defaults can be rebuilt.
+// hasDefaultTemplates reports whether every bundled template exists and is valid.
 func hasDefaultTemplates(templatesPath string) (bool, error) {
 	entries, err := os.ReadDir(templatesPath)
 	if err != nil {
@@ -148,8 +157,16 @@ func hasDefaultTemplates(templatesPath string) (bool, error) {
 		return false, err
 	}
 
+	definitions, err := loadTemplateDefinitions()
+	if err != nil {
+		return false, err
+	}
+	validTemplates := make(map[string]bool)
+	for _, definition := range definitions.Templates {
+		validTemplates[definition.Name+".clst"] = false
+	}
 	for _, entry := range entries {
-		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".clst") {
+		if _, bundled := validTemplates[entry.Name()]; entry.IsDir() || !bundled {
 			continue
 		}
 
@@ -157,16 +174,23 @@ func hasDefaultTemplates(templatesPath string) (bool, error) {
 		ok, err := VerifyProjectIntegrity(path)
 		if err != nil || !ok {
 			log.Printf("Removing corrupt template %s (integrity check failed: %v)", path, err)
-			os.Remove(path)
-			os.Remove(path + "-wal")
-			os.Remove(path + "-shm")
+			for _, filePath := range []string{path, path + "-wal", path + "-shm"} {
+				if err := os.Remove(filePath); err != nil && !os.IsNotExist(err) {
+					return false, err
+				}
+			}
 			continue
 		}
 
-		return true, nil
+		validTemplates[entry.Name()] = true
 	}
 
-	return false, nil
+	for _, definition := range definitions.Templates {
+		if !validTemplates[definition.Name+".clst"] {
+			return false, nil
+		}
+	}
+	return true, nil
 }
 
 // loadTemplateDefinitions reads and parses the embedded project_templates.json file
@@ -251,6 +275,13 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 		return fmt.Errorf("failed to set ignore list: %w", err)
 	}
 
+	if err := createBundledAssetTemplates(tx, tmpDir, templateDef.AssetTemplates); err != nil {
+		return err
+	}
+	if err := createTemplateTags(tx, templateDef.Tags); err != nil {
+		return err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		log.Printf("Failed to commit template: %v", err)
@@ -279,6 +310,32 @@ func createDefaultTemplate(templatePath string, templateDef ProjectTemplateDefin
 		return fmt.Errorf("failed to publish template %s: %w", templateDef.Name, err)
 	}
 
+	return nil
+}
+
+func createTemplateTags(tx *sqlx.Tx, names []string) error {
+	for _, name := range names {
+		if _, err := GetOrCreateTag(tx, name); err != nil {
+			return fmt.Errorf("create template tag %q: %w", name, err)
+		}
+	}
+	return nil
+}
+
+func createBundledAssetTemplates(tx *sqlx.Tx, directory string, definitions []TemplateAssetFile) error {
+	for _, definition := range definitions {
+		content, err := bundledAssetTemplates.ReadFile("template_files/" + definition.Source)
+		if err != nil {
+			return fmt.Errorf("read asset template %q: %w", definition.Name, err)
+		}
+		filePath := filepath.Join(directory, filepath.Base(definition.Source))
+		if err := os.WriteFile(filePath, content, 0o644); err != nil {
+			return err
+		}
+		if _, err := CreateTemplate(tx, definition.Name, filePath); err != nil {
+			return fmt.Errorf("create asset template %q: %w", definition.Name, err)
+		}
+	}
 	return nil
 }
 

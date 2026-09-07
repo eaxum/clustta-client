@@ -1947,6 +1947,7 @@ func SetProjectPreviewSynced(tx *sqlx.Tx) error {
 
 // TemplateData holds all data extracted from a project template
 type TemplateData struct {
+	Tags            []models.Tag
 	AssetTypes      []models.AssetType
 	CollectionTypes []models.CollectionType
 	IgnoreList      []string
@@ -2023,6 +2024,11 @@ func extractTemplateData(templatePath string) (*TemplateData, error) {
 		return nil, fmt.Errorf("failed to get collection types: %w", err)
 	}
 
+	tags, err := GetTags(templateTx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tags: %w", err)
+	}
+
 	// Extract ignore list
 	ignoreList, err := GetIgnoreList(templateTx)
 	if err != nil {
@@ -2045,6 +2051,7 @@ func extractTemplateData(templatePath string) (*TemplateData, error) {
 	}
 
 	return &TemplateData{
+		Tags:            tags,
 		AssetTypes:      assetTypes,
 		CollectionTypes: collectionTypes,
 		IgnoreList:      ignoreList,
@@ -2094,6 +2101,12 @@ func copyTemplateMetadata(projectPath string, data *TemplateData) ([]string, err
 				continue
 			}
 			return nil, fmt.Errorf("failed to create collection type %s: %w", collectionType.Name, err)
+		}
+	}
+
+	for _, tag := range data.Tags {
+		if _, err := GetOrCreateTag(projectTx, tag.Name); err != nil {
+			return nil, fmt.Errorf("failed to copy tag %q: %w", tag.Name, err)
 		}
 	}
 

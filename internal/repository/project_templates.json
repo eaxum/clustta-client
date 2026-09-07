@@ -421,6 +421,74 @@
         "node_modules",
         "__pycache__"
       ]
+    },
+    {
+      "name": "Jack of all Trades",
+      "icon": "palette",
+      "description": "Open-source creative starters for Blender, Audacity, Krita, and GIMP",
+      "assetTypes": [
+        {
+          "name": "3D",
+          "icon": "cube"
+        },
+        {
+          "name": "Artwork",
+          "icon": "palette"
+        },
+        {
+          "name": "Audio",
+          "icon": "music"
+        }
+      ],
+      "collectionTypes": [
+        {
+          "name": "Asset",
+          "icon": "cube"
+        },
+        {
+          "name": "Reference",
+          "icon": "image"
+        }
+      ],
+      "assetTemplates": [
+        {
+          "name": "Blender",
+          "source": "jack_of_all_trades/Blender.blend"
+        },
+        {
+          "name": "Audacity",
+          "source": "jack_of_all_trades/Audacity.aup4"
+        },
+        {
+          "name": "Krita",
+          "source": "jack_of_all_trades/krita.kra"
+        },
+        {
+          "name": "GIMP",
+          "source": "jack_of_all_trades/gimp.xcf"
+        }
+      ],
+      "ignoreList": [
+        ".DS_Store",
+        "Thumbs.db",
+        "*.tmp",
+        "*.bak",
+        "*.blend1",
+        "*.blend2",
+        "*.kra~",
+        "*.xcf~",
+        "__pycache__"
+      ],
+      "tags": [
+        "modeling",
+        "sculpting",
+        "rigging",
+        "animation",
+        "texturing",
+        "lighting",
+        "compositing",
+        "sound design"
+      ]
     }
   ]
 }
