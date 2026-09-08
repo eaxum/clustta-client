@@ -24,6 +24,11 @@
     </div>
 
     <PageState v-else :message="message()" :illustration="illustration()" />
+
+    <div class="bottom-bar">
+      <ActionButton :icon="getAppIcon('square-arrow-right-up')" :label="$t('panes.goToSettings')"
+        :showLabel="true" :buttonFunction="goToCollaboratorSettings" />
+    </div>
   </div>
 </template>
 
@@ -34,6 +39,7 @@ import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import CollaboratorItem from '@/instances/desktop/components/CollaboratorItem.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import SearchBar from '@/instances/desktop/components/SearchBar.vue';
@@ -46,6 +52,8 @@ import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
+import { useStageStore } from '@/stores/stages';
 import { useStudioStore } from '@/stores/studio';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
@@ -54,6 +62,8 @@ const assetStore = useAssetStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const settingsStore = useSettingsStore();
+const stageStore = useStageStore();
 const studioStore = useStudioStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
@@ -236,6 +246,12 @@ const clearSearch = () => {
   searchQuery.value = '';
 };
 
+const goToCollaboratorSettings = () => {
+  settingsStore.activeModalName = 'Collaborators';
+  settingsStore.setModalVisibility('collaborators', true);
+  stageStore.setStageVisibility('projectSettings', true);
+};
+
 // Removes a collaborator from the project.
 const deleteCollaborator = async (userId) => {
   const allCollaborators = userStore.getProjectCollaborators;
@@ -290,12 +306,23 @@ const updateSearch = () => {
 
 .collaborators-scroll-container {
   width: 96%;
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
   padding-right: 5px;
   padding-bottom: 1rem;
+}
+
+.bottom-bar {
+  display: flex;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: .25rem;
+  width: 96%;
+  padding-top: .35rem;
+  background: var(--surface-1);
 }
 
 .collaborators-scroll-container::-webkit-scrollbar {
