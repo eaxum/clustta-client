@@ -358,9 +358,9 @@ func main() {
 		Title:            "Clustta",
 		Frameless:        frameless,
 		Height:           734,
-		Width:            1020,
+		Width:            1280,
 		MinHeight:        734,
-		MinWidth:         1020,
+		MinWidth:         1280,
 		EnableFileDrop:   true,
 		BackgroundColour: application.NewRGB(0, 0, 0),
 

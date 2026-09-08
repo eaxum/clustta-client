@@ -434,7 +434,7 @@ func GetTheme() (string, error) {
 		return "", err
 	}
 	if settings.Theme == "" {
-		settings.Theme = "light"
+		settings.Theme = "dark"
 	}
 	return settings.Theme, nil
 }
