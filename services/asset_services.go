@@ -103,6 +103,9 @@ func authorizeAssetActionTx(tx *sqlx.Tx, action assetAction, assetIds []string) 
 	if !roleAllowsAssetAction(role, action) {
 		return fmt.Errorf("user does not have %s permission", action)
 	}
+	if action == assetActionRevertCheckpoint {
+		return authorizeCheckpointRestoreTx(tx, user, role, assetIds)
+	}
 	if role.Name == "admin" {
 		return nil
 	}
@@ -172,6 +175,55 @@ func (t *AssetService) AuthorizeCheckpoint(projectPath string, assetIds []string
 
 func (t *AssetService) AuthorizeRevert(projectPath string, assetIds []string) error {
 	return authorizeAssetAction(projectPath, assetActionRevertCheckpoint, assetIds)
+}
+
+func authorizeCheckpointRestoreTx(tx *sqlx.Tx, user models.User, role models.Role, assetIds []string) error {
+	if !role.ViewCheckpoint {
+		return errors.New("user does not have view_checkpoint permission")
+	}
+	if role.Name == "admin" || role.ViewAsset {
+		return nil
+	}
+	assets, err := repository.GetUserAssetsMinimal(tx, user.Id)
+	if err != nil {
+		return err
+	}
+	accessible := make(map[string]bool, len(assets))
+	for _, asset := range assets {
+		accessible[asset.Id] = true
+	}
+	for _, assetId := range assetIds {
+		if accessible[assetId] {
+			continue
+		}
+		var name string
+		if err := tx.Get(&name, "SELECT name || extension FROM asset WHERE id = ?", assetId); err != nil {
+			return err
+		}
+		return fmt.Errorf("user cannot restore checkpoint for asset %q: asset is outside accessible scope", name)
+	}
+	return nil
+}
+
+// Dependencies in this plan are resolved by the backend from the authorized root.
+func authorizeDependencyBuildTx(tx *sqlx.Tx, user models.User, role models.Role, plan models.DependencyBuildPlan) error {
+	if err := authorizeCheckpointRestoreTx(tx, user, role, []string{plan.RootAssetId}); err != nil {
+		return err
+	}
+	for _, entry := range plan.Entries {
+		if entry.MissingChunks && !role.PullChunk {
+			return errors.New("user does not have pull_chunk permission to download missing checkpoints")
+		}
+	}
+	return nil
+}
+
+func authorizeDependencyBuildPlanTx(tx *sqlx.Tx, plan models.DependencyBuildPlan) error {
+	user, role, err := activeAssetRole(tx)
+	if err != nil {
+		return err
+	}
+	return authorizeDependencyBuildTx(tx, user, role, plan)
 }
 
 type ChangedFiles struct {
@@ -1758,11 +1810,7 @@ func (t *AssetService) ResolveDependencyBuildPlan(projectPath, assetId string) (
 	if err != nil {
 		return plan, err
 	}
-	assetIds := make([]string, 0, len(plan.Entries))
-	for _, entry := range plan.Entries {
-		assetIds = append(assetIds, entry.AssetId)
-	}
-	if err = authorizeAssetActionTx(tx, assetActionRevertCheckpoint, assetIds); err != nil {
+	if err = authorizeDependencyBuildPlanTx(tx, plan); err != nil {
 		return models.DependencyBuildPlan{}, err
 	}
 	return plan, nil

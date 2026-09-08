@@ -948,10 +948,8 @@ func (c *CheckpointService) ExecuteDependencyBuildPlan(
 		return result, errors.New("build plan contains dependency conflicts")
 	}
 
-	assetIds := make([]string, 0, len(plan.Entries))
 	checkpointIdsToDownload := []string{}
 	for _, entry := range plan.Entries {
-		assetIds = append(assetIds, entry.AssetId)
 		if entry.RequiresOverwrite && !allowModified {
 			tx.Rollback()
 			return result, fmt.Errorf("asset %s has local modifications; overwrite confirmation is required", entry.AssetId)
@@ -965,7 +963,7 @@ func (c *CheckpointService) ExecuteDependencyBuildPlan(
 			checkpointIdsToDownload = append(checkpointIdsToDownload, entry.CheckpointId)
 		}
 	}
-	if err = authorizeAssetActionTx(tx, assetActionRevertCheckpoint, assetIds); err != nil {
+	if err = authorizeDependencyBuildPlanTx(tx, plan); err != nil {
 		tx.Rollback()
 		return result, err
 	}

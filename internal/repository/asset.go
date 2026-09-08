@@ -1386,7 +1386,7 @@ func GetUserAssetsMinimal(tx *sqlx.Tx, userId string) ([]models.Asset, error) {
 
 	sharedCollections := []string{}
 	query = "select id from collection where is_shared = 1"
-	err = tx.Select(&sharedCollections, query, userId)
+	err = tx.Select(&sharedCollections, query)
 	if err != nil {
 		return nil, err
 	}
