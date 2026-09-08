@@ -83,7 +83,13 @@
             <div class="simple-text-key">
               {{ $t('panes.assignedTo') }}
             </div>
-            <ActionButton v-if="assetStore.selectedAsset.assignee_id" :iconAfter="true" :label="userFullName" v-tooltip="$t('panes.seeAllAssets')" :buttonFunction="showAllAssets"/>
+            <div v-if="assignedUser" class="asset-assignee-actions">
+              <AssigneeItem v-stop-propagation class="asset-assignee" :assigneeId="assignedUser.id"
+                :name="userFullName" :userPhoto="assignedUser.photo" :avatarColor="assignedUserAvatarColor"
+                :isLoading="isUnassigning" @click="showAllAssets" v-tooltip="$t('panes.seeAllAssets')" />
+              <ActionButton v-if="canUnassignAsset" :icon="getAppIcon('person-minus')"
+                :buttonFunction="unassignAsset" v-tooltip="$t('common.unassign')" />
+            </div>
             <div v-else class="simple-text-value">
               {{ userFullName }}
             </div>
@@ -194,6 +200,7 @@ import { Browser, Clipboard } from '@wailsio/runtime';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
 import { useAssetThumbnail, getFileTypeIcon } from '@/composables/useAssetThumbnail';
+import { canActOnAsset } from '@/lib/permissions';
 
 // store imports
 import { useProjectStore } from '@/stores/projects';
@@ -244,6 +251,7 @@ const numberOfSelectedAssets = ref(0);
 const showTagInput = ref(false);
 const tagInputValue = ref('');
 const tagInput = ref(null);
+const isUnassigning = ref(false);
 
 // computed properties
 const assetTypeOptions = computed(() => {
@@ -375,6 +383,29 @@ const showAllAssets = () => {
   commonStore.onlyAssets = true;
   commonStore.onlyCollections = false;
   emitter.emit('refresh-browser');
+};
+
+const unassignAsset = async () => {
+  const asset = assetStore.selectedAsset;
+  const projectPath = projectStore.activeProject?.uri;
+  if (!asset?.id || !projectPath || !canUnassignAsset.value || isUnassigning.value) return;
+
+  isUnassigning.value = true;
+  try {
+    const result = await AssetService.UnassignAsset(projectPath, asset.id);
+    asset.assignee_id = null;
+
+    const storedAsset = assetStore.findAsset(asset.id);
+    if (storedAsset) storedAsset.assignee_id = null;
+
+    emitAssetUpdates(asset.id, [{ property: 'assignee_id', value: null }]);
+    notificationStore.notifyMetadataUpdate(result, t('notifications.assetUnassigned'));
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorUnassigningAsset'), error);
+    console.error('Error unassigning asset:', error);
+  } finally {
+    isUnassigning.value = false;
+  }
 };
 
 // Opens the tag input field and focuses it.
@@ -548,17 +579,26 @@ const setStatus = async (statusName) => {
   stage.operationActive = false;
 };
 
+const assignedUser = computed(() => {
+  const assigneeId = assetStore.selectedAsset?.assignee_id;
+  return assigneeId ? userStore.getUserData(assigneeId) : null;
+});
+
+const assignedUserAvatarColor = computed(() => {
+  return assignedUser.value ? userStore.userProfileColor(assignedUser.value.id) : '';
+});
+
+const canUnassignAsset = computed(() => {
+  return canActOnAsset('unassign_asset', assetStore.selectedAsset);
+});
+
 const userFullName = computed(() => {
-  let assigneeId = assetStore.selectedAsset.assignee_id
-  let user = userStore.getUserData(assigneeId);
-  if (assigneeId && user) {
-    let fullname = `${user.first_name} ${user.last_name}`;
-    return fullname
-  } else if(!assigneeId) {
-    return t('panes.nobody')
-  } else {
-    return t('notifications.removedUser')
+  if (assignedUser.value) {
+    return `${assignedUser.value.first_name} ${assignedUser.value.last_name}`;
   }
+  return assetStore.selectedAsset?.assignee_id
+    ? t('notifications.removedUser')
+    : t('panes.nobody');
 });
 
 const lastCheckpoint = computed(() => {
@@ -787,6 +827,20 @@ onBeforeUnmount(() => {
   min-height: 30px;
   height: min-content;
   border-bottom: var(--transparent-line);
+}
+
+.asset-assignee-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.asset-assignee {
+  width: auto;
+  min-width: 0;
 }
 
 .menu-divider {
