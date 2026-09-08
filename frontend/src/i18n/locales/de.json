@@ -1030,6 +1030,7 @@
     "archiveProjectTitle": "\"{name}\" archivieren",
     "ascending": "Aufsteigend",
     "assigned": "Zugewiesen",
+    "unknownAssignee": "[Gelöschter Benutzer]",
     "assets": "Assets",
     "accountSettings": "Kontoeinstellungen",
     "buildProject": "Projekt erstellen",

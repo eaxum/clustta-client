@@ -1030,6 +1030,7 @@
     "archiveProjectTitle": "\"{name}\"をアーカイブ",
     "ascending": "昇順",
     "assigned": "割り当て済み",
+    "unknownAssignee": "[削除されたユーザー]",
     "assets": "アセット",
     "accountSettings": "アカウント設定",
     "buildProject": "プロジェクトをビルド",

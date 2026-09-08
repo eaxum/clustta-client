@@ -1029,6 +1029,7 @@
     "archiveProjectTitle": "归档「{name}」",
     "ascending": "升序",
     "assigned": "已分配",
+    "unknownAssignee": "[已删除的用户]",
     "assets": "资产",
     "accountSettings": "账户设置",
     "buildProject": "构建项目",

@@ -1030,6 +1030,7 @@
     "archiveProjectTitle": "Archiver \"{name}\"",
     "ascending": "Ascendant",
     "assigned": "Assigné",
+    "unknownAssignee": "[Utilisateur supprimé]",
     "assets": "Assets",
     "accountSettings": "Paramètres du compte",
     "buildProject": "Construire le projet",

@@ -1029,6 +1029,7 @@
     "archiveProjectTitle": "Архивировать \"{name}\"",
     "ascending": "По возрастанию",
     "assigned": "Назначено",
+    "unknownAssignee": "[Удалённый пользователь]",
     "assets": "Ресурсы",
     "accountSettings": "Настройки аккаунта",
     "buildProject": "Построить проект",

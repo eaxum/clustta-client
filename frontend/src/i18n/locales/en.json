@@ -1085,6 +1085,7 @@
     "archiveProjectTitle": "Archive \"{name}\"",
     "ascending": "Ascending",
     "assigned": "Assigned",
+    "unknownAssignee": "[Deleted User]",
     "assets": "Assets",
     "accountSettings": "Account Settings",
     "buildProject": "Build Project",

@@ -1053,6 +1053,7 @@
     "archiveProjectTitle": "「{name}」 보관",
     "ascending": "오름차순",
     "assigned": "할당됨",
+    "unknownAssignee": "[삭제된 사용자]",
     "assets": "에셋",
     "accountSettings": "계정 설정",
     "buildProject": "프로젝트 빌드",

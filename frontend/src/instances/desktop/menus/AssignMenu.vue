@@ -115,12 +115,13 @@ const searchUserTerm = ref('');
 const assignee = computed(() => {
   if (!asset.value || !asset.value.assignee_id) return;
 
-  const user = userStore.getUserData(asset.value.assignee_id);
+  const assigneeId = asset.value.assignee_id;
+  const user = userStore.getUserData(assigneeId);
   return {
-    name: `${user.first_name} ${user.last_name}` || user,
-    photo: user.photo || "",
-    avatarColor: userStore.userProfileColor(user.id),
-    id: user.id,
+    name: user ? `${user.first_name} ${user.last_name}` : t('menus.unknownAssignee'),
+    photo: user?.photo || "",
+    avatarColor: userStore.userProfileColor(assigneeId),
+    id: assigneeId,
   };
 });
 
@@ -132,7 +133,7 @@ const collaboratorsList = computed(() => {
     return utils.sortAlphabetically(formatCollaborators(availableCollaborators));
   }
 
-  const filteredCollaborators = allCollaborators.filter((item) => item.id !== assignee.value.id && item.username.toLowerCase().includes(searchUserTerm.value));
+  const filteredCollaborators = allCollaborators.filter((item) => item.id !== asset.value.assignee_id && item.username.toLowerCase().includes(searchUserTerm.value));
   return utils.sortAlphabetically(formatCollaborators(filteredCollaborators));
 });
 

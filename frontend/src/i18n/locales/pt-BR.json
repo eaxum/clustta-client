@@ -1029,6 +1029,7 @@
     "archiveProjectTitle": "Arquivar \"{name}\"",
     "ascending": "Ascendente",
     "assigned": "Atribuído",
+    "unknownAssignee": "[Usuário excluído]",
     "assets": "Ativos",
     "accountSettings": "Configurações da Conta",
     "buildProject": "Construir Projeto",

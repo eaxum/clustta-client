@@ -1029,6 +1029,7 @@
     "archiveProjectTitle": "\"{name}\" आर्काइव करें",
     "ascending": "आरोही",
     "assigned": "असाइन किया गया",
+    "unknownAssignee": "[हटाया गया उपयोगकर्ता]",
     "assets": "एसेट",
     "accountSettings": "खाता सेटिंग्स",
     "buildProject": "प्रोजेक्ट बिल्ड करें",

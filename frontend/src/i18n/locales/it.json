@@ -1029,6 +1029,7 @@
     "archiveProjectTitle": "Archivia \"{name}\"",
     "ascending": "Crescente",
     "assigned": "Assegnato",
+    "unknownAssignee": "[Utente eliminato]",
     "assets": "Asset",
     "accountSettings": "Impostazioni account",
     "buildProject": "Costruisci progetto",
