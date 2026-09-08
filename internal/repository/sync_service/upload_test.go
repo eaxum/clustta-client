@@ -12,7 +12,7 @@ import (
 func TestMarkAllTablesUnsyncedIncludesProjectConfigs(t *testing.T) {
 	db := sqlx.MustOpen("sqlite3", ":memory:")
 	t.Cleanup(func() { db.Close() })
-	db.MustExec(`CREATE TABLE config (name TEXT PRIMARY KEY, value TEXT, mtime INTEGER, synced BOOLEAN)`)
+	db.MustExec(repository.ProjectSchema)
 	db.MustExec(`INSERT INTO config (name, value, mtime, synced) VALUES
 		('project_preview', '', 1, 1),
 		('dcc_prelaunch_hooks', '{}', 1, 1),
