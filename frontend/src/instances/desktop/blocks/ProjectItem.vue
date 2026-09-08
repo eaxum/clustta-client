@@ -249,10 +249,18 @@ const openMenu = (event) => {
 
 // Reveals the project directory in the file explorer.
 const revealInExplorer = async () => {
-  const project = projectStore.getActiveProject;
-  await FSService.MakeDirs(project.working_directory);
-  FSService.RevealInExplorer(project.working_directory);
-  menu.hideContextMenu();
+  const workingDirectory = props.project?.working_directory;
+  if (typeof workingDirectory !== 'string' || !workingDirectory.trim()) {
+    notificationStore.addNotification(t('notifications.invalidWorkingDirectory'), t('notifications.workingDirectoryEmpty'), 'error');
+    return;
+  }
+  try {
+    await FSService.MakeDirs(workingDirectory);
+    await FSService.RevealInExplorer(workingDirectory);
+    menu.hideContextMenu();
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.openFolder'), error);
+  }
 };
 
 // Selects the project and updates the active state.
