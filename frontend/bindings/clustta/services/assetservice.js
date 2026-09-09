@@ -424,6 +424,7 @@ export function GetDependencySelectorOptions(projectPath, dependencyId) {
 }
 
 /**
+ * GetRecursiveDependencies returns visible dependencies; nonpositive depth expands the complete graph and collection contents.
  * @param {string} projectPath
  * @param {string} assetId
  * @param {number} maxDepth
@@ -529,6 +530,18 @@ export function ResolveBuildDependencies(projectPath, assetId) {
 export function ResolveDependencyBuildPlan(projectPath, assetId) {
     return $Call.ByID(754413715, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType12($result);
+    }));
+}
+
+/**
+ * ResolveDependencyGraphPlan returns checkpoint metadata without build readiness checks.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<models$0.DependencyGraphPlan>}
+ */
+export function ResolveDependencyGraphPlan(projectPath, assetId) {
+    return $Call.ByID(1664293559, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType13($result);
     }));
 }
 
@@ -649,3 +662,4 @@ const $$createType9 = $models.AssetsStates.createFrom;
 const $$createType10 = models$0.DependencySelectorOptions.createFrom;
 const $$createType11 = $Create.Array($Create.Any);
 const $$createType12 = models$0.DependencyBuildPlan.createFrom;
+const $$createType13 = models$0.DependencyGraphPlan.createFrom;

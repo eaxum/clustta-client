@@ -242,6 +242,17 @@ type DependencySelectorOptions struct {
 	Tags        []AssetCheckpointTag `json:"tags"`
 }
 
+type DependencyGraphPlanEntry struct {
+	AssetId          string `json:"asset_id"`
+	CheckpointId     string `json:"checkpoint_id"`
+	DependencyEdgeId string `json:"dependency_edge_id,omitempty"`
+}
+
+type DependencyGraphPlan struct {
+	Entries   []DependencyGraphPlanEntry `json:"entries"`
+	Conflicts []DependencyBuildConflict  `json:"conflicts"`
+}
+
 type DependencyBuildPlanEntry struct {
 	AssetId            string   `json:"asset_id"`
 	CheckpointId       string   `json:"checkpoint_id"`

@@ -110,6 +110,26 @@ Build plans resolve the complete graph to dependency-first exact checkpoint
 entries. Each plan reports conflicts, missing chunks, locally modified files,
 and a fingerprint. A plan with conflicts cannot be executed.
 
+The desktop graph uses the separate Wails method
+`AssetService.ResolveDependencyGraphPlan(projectPath, assetId)`. Its response
+contains `entries` (`asset_id`, `checkpoint_id`, optional `dependency_edge_id`)
+and `conflicts` using the build conflict format. It resolves the complete graph
+without reading local asset files, checking chunks, or loading checkpoint
+previews. It requires checkpoint read permission and access to the root asset,
+but does not require download permission. Build readiness fields and execution
+fingerprints are not included; the bridge build-plan and execution APIs retain
+their readiness checks and existing contracts.
+
+The direct desktop view shows only the root asset's outgoing dependencies and
+selectors, without a transitive conflict scan. Full graph resolves all reachable
+assets and collection contents without a depth limit, retaining direct links as
+well as nested relationships. `GetRecursiveDependencies` accepts depth `1` for
+direct dependencies and `0` for the full graph; returned items include `parentId`
+and `parentIds` so shared collection relationships can all be drawn.
+Requests run in parallel where possible. The graph is drawn once its requested
+selectors and, in full mode, conflicts are resolved. Failed requests preserve
+the previous graph; responses from a previous selection or closed graph are ignored.
+
 Build requests accept:
 
 ```json

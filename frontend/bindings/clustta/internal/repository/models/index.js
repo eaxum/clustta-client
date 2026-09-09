@@ -13,6 +13,8 @@ export {
     DependencyBuildPlan,
     DependencyBuildPlanEntry,
     DependencyBuildResult,
+    DependencyGraphPlan,
+    DependencyGraphPlanEntry,
     DependencySelectorOptions,
     DependencyType,
     IntegrationProject,

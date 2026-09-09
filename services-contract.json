@@ -817,6 +817,17 @@
         ]
       },
       {
+        "name": "ResolveDependencyGraphPlan",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "models.DependencyGraphPlan",
+          "error"
+        ]
+      },
+      {
         "name": "ResolveDependencyBuildPlan",
         "params": [
           "projectPath:string",

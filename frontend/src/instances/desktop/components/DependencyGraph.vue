@@ -3,6 +3,8 @@
     <div class="page-list-container">
       <div class="dependency-graph-header">
         <div class="dependency-count"> {{ message }}</div>
+        <div v-if="isLoadingGraph" role="status">{{ $t('common.loading') }}</div>
+        <div v-else-if="graphLoadFailed" class="dependency-conflict-count">{{ $t('common.error') }}</div>
         <div v-if="graphConflictCount" class="dependency-conflict-count">{{ graphConflictCount }} conflicts</div>
         <div class="dependency-toggle-container">
           <div class="input-label"> {{ $t('components.dependencyGraph.fullGraph') }}</div>
@@ -130,14 +132,19 @@ const graphData = ref({ nodes: [], edges: [] });
 const isLoadingGraph = ref(false);
 const isLoadingSidebar = ref(false);
 const graphConflictCount = ref(0);
+const graphLoadFailed = ref(false);
+let graphRequestId = 0;
+let graphDisposed = false;
 
 // vars
-const { fitView, getNodes, addNodes, addEdges, setNodes, setEdges } = useVueFlow();
+const { fitView, setNodes, setEdges } = useVueFlow();
 const smoothNode = false;
 const nodeStyle = smoothNode ? 'smoothstep' : '';
 
 // computed props
-const maxDepth = computed(() => { return useMaxDepth.value ? 4 : 1 });
+const DIRECT_DEPENDENCY_DEPTH = 1;
+const FULL_DEPENDENCY_DEPTH = 0;
+const maxDepth = computed(() => useMaxDepth.value ? FULL_DEPENDENCY_DEPTH : DIRECT_DEPENDENCY_DEPTH);
 const canManageDependencies = computed(() => canActOnAsset('manage_dependencies', assetStore.selectedAsset));
 
 const filtersActive = computed(() => {
@@ -326,27 +333,39 @@ const updateFilteredCollections = async () => {
 };
 
 const buildGraphFromDependencies = async () => {
+  const requestId = ++graphRequestId;
+  const projectPath = projectStore.activeProject?.uri;
+  const depth = maxDepth.value;
+  const fullGraph = depth === FULL_DEPENDENCY_DEPTH;
+  const isCurrentRequest = () => !graphDisposed && requestId === graphRequestId
+    && projectStore.activeProject?.uri === projectPath
+    && assetStore.selectedAsset?.id === selectedAsset?.id;
   isLoadingGraph.value = true;
   const selectedAsset = assetStore.selectedAsset;
+  graphLoadFailed.value = false;
+  graphConflictCount.value = 0;
   
-  if (!selectedAsset) {
+  if (!selectedAsset || !projectPath) {
     graphData.value = { nodes: [], edges: [] };
+    dependencies.value = [];
+    totalAssetDepsCount.value = 0;
     isLoadingGraph.value = false;
     return;
   }
 
+  // Capture rejection immediately, even while the relationship request is pending.
+  const loadGraphPlan = async () => {
+    try {
+      return { plan: await AssetService.ResolveDependencyGraphPlan(projectPath, selectedAsset.id) };
+    } catch (error) {
+      return { error };
+    }
+  };
+  const graphPlanPromise = fullGraph ? loadGraphPlan() : Promise.resolve({ plan: { entries: [], conflicts: [] } });
+
   try {
-    // Use the new recursive dependencies service with proper depth control
-    const [dependencyItems, buildPlan] = await Promise.all([
-      AssetService.GetRecursiveDependencies(
-        projectStore.activeProject.uri,
-        selectedAsset.id,
-        maxDepth.value,
-      ),
-      AssetService.ResolveDependencyBuildPlan(projectStore.activeProject.uri, selectedAsset.id),
-    ]);
-    const conflictingAssetIds = new Set(buildPlan.conflicts.map(conflict => conflict.asset_id));
-    graphConflictCount.value = buildPlan.conflicts.length;
+    const dependencyItems = await AssetService.GetRecursiveDependencies(projectPath, selectedAsset.id, depth);
+    if (!isCurrentRequest()) return;
 
     const nodes = [];
     const edges = [];
@@ -371,11 +390,10 @@ const buildGraphFromDependencies = async () => {
       },
       sourcePosition: Position.Left,
       targetPosition: Position.Right,
-      class: conflictingAssetIds.has(selectedAsset.id) ? 'dependency-conflict-node' : '',
+      class: '',
     };
     nodes.push(parentNode);
 
-    totalAssetDepsCount.value = dependencyItems.length;
 
     dependencyItems.forEach(item => {
       let actualItem;
@@ -400,7 +418,7 @@ const buildGraphFromDependencies = async () => {
 
       const node = {
         id: nodeId,
-        label: `${actualItem.name}${itemDepth === maxDepth.value ? ' (...)' : ''}`,
+        label: `${actualItem.name}${itemDepth === depth ? ' (...)' : ''}`,
         position: { x: 0, y: 0 },
         type: 'custom',
         data: {
@@ -409,48 +427,25 @@ const buildGraphFromDependencies = async () => {
           parentId: parentAssetId,
           depth: itemDepth,
           dependencyEdge: null,
-          collectionSelectorLabel: '',
+          collectionSelectorLabel: item.collection ? 'Latest collection' : '',
           rootAssetId: selectedAsset.id,
           canManageDependencies: canManageDependencies.value,
         },
         sourcePosition: Position.Left,
         targetPosition: Position.Right,
-        class: conflictingAssetIds.has(actualItem.id) ? 'dependency-conflict-node' : '',
+        class: '',
       };
       nodes.push(node);
     });
 
-    const assetItems = nodes.filter(node => node.data.type === 'asset' || node.data.id === selectedAsset.id);
+    const assetItems = nodes.filter(node => node.data.id === selectedAsset.id || (fullGraph && node.data.type === 'asset'));
     const edgeGroups = await Promise.all(assetItems.map(node => (
-      AssetService.GetAssetDependencyEdges(projectStore.activeProject.uri, node.data.id)
+      AssetService.GetAssetDependencyEdges(projectPath, node.data.id)
     )));
+    if (!isCurrentRequest()) return;
     const selectorEdges = edgeGroups.flat();
     const selectorPairs = new Set();
     const incomingEdgesByAssetId = new Map();
-    const visibleAssetIds = new Set(assetItems.map(node => node.data.id));
-    const selectorAdjacency = new Map();
-    selectorEdges.forEach(edge => {
-      if (!visibleAssetIds.has(edge.asset_id) || !visibleAssetIds.has(edge.dependency_id)) return;
-      if (!selectorAdjacency.has(edge.asset_id)) selectorAdjacency.set(edge.asset_id, []);
-      selectorAdjacency.get(edge.asset_id).push(edge);
-    });
-
-    const hasAlternateSelectorPath = (sourceAssetId, targetAssetId, excludedEdgeId) => {
-      const visited = new Set([sourceAssetId]);
-      const queue = [sourceAssetId];
-      while (queue.length) {
-        const currentAssetId = queue.shift();
-        for (const edge of selectorAdjacency.get(currentAssetId) || []) {
-          if (edge.id === excludedEdgeId) continue;
-          if (edge.dependency_id === targetAssetId) return true;
-          if (visited.has(edge.dependency_id)) continue;
-          visited.add(edge.dependency_id);
-          queue.push(edge.dependency_id);
-        }
-      }
-      return false;
-    };
-
     selectorEdges.forEach(edge => {
       const source = nodeIdMap.get(edge.asset_id);
       const target = nodeIdMap.get(edge.dependency_id);
@@ -458,9 +453,6 @@ const buildGraphFromDependencies = async () => {
       selectorPairs.add(`${edge.asset_id}:${edge.dependency_id}`);
       if (!incomingEdgesByAssetId.has(edge.dependency_id)) incomingEdgesByAssetId.set(edge.dependency_id, []);
       incomingEdgesByAssetId.get(edge.dependency_id).push(edge);
-      const isRedundantRootEdge = edge.asset_id === selectedAsset.id
-        && hasAlternateSelectorPath(edge.asset_id, edge.dependency_id, edge.id);
-      if (isRedundantRootEdge) return;
       edges.push({
         id: edge.id,
         source,
@@ -485,11 +477,11 @@ const buildGraphFromDependencies = async () => {
       }
 
       const childNodeId = nodeIdMap.get(actualItem.id);
-      const parentNodeId = nodeIdMap.get(parentAssetId);
-      
-      const hasSelectorEdge = selectorPairs.has(`${parentAssetId}:${actualItem.id}`);
-      const hasIncomingRelationship = edges.some(edge => edge.target === childNodeId);
-      if (childNodeId && parentNodeId && childNodeId !== parentNodeId && !hasSelectorEdge && !hasIncomingRelationship) {
+      const parentIds = item.parentIds || [parentAssetId];
+      parentIds.forEach(parentId => {
+        const parentNodeId = nodeIdMap.get(parentId);
+        if (!childNodeId || !parentNodeId || childNodeId === parentNodeId) return;
+        if (selectorPairs.has(`${parentId}:${actualItem.id}`)) return;
         const childNode = nodes.find(node => node.id === childNodeId);
         if (childNode) childNode.data.collectionSelectorLabel = 'Latest collection';
         edges.push({
@@ -498,11 +490,17 @@ const buildGraphFromDependencies = async () => {
           target: childNodeId,
           type: nodeStyle,
         });
-      }
+      });
     });
 
-    const planEntriesByAssetId = new Map(buildPlan.entries.map(entry => [entry.asset_id, entry]));
+    const graphPlanResult = await graphPlanPromise;
+    if (!isCurrentRequest()) return;
+    if ('error' in graphPlanResult) throw graphPlanResult.error;
+    const graphPlan = graphPlanResult.plan;
+    const conflictingAssetIds = new Set(graphPlan.conflicts.map(conflict => conflict.asset_id));
+    const planEntriesByAssetId = new Map(graphPlan.entries.map(entry => [entry.asset_id, entry]));
     nodes.forEach(node => {
+      node.class = conflictingAssetIds.has(node.data.id) ? 'dependency-conflict-node' : '';
       const incomingEdges = incomingEdgesByAssetId.get(node.data.id) || [];
       if (!incomingEdges.length) return;
       const directEdge = incomingEdges.find(edge => edge.asset_id === selectedAsset.id);
@@ -510,21 +508,19 @@ const buildGraphFromDependencies = async () => {
       const resolvedEdge = incomingEdges.find(edge => edge.id === resolvedEdgeId);
       node.data.dependencyEdge = directEdge || resolvedEdge || incomingEdges[0];
     });
-
-    // Update dependencies ref for other computed properties
-    const allDependencyIds = dependencyItems.map(item => {
-      if (item.asset) return item.asset.id;
-      if (item.collection) return item.collection.id;
-      return item.id;
-    });
-    dependencies.value = allDependencyIds;
-
+    dependencies.value = dependencyItems.map(item => (item.asset || item.collection || item).id);
+    totalAssetDepsCount.value = dependencyItems.length;
+    graphConflictCount.value = graphPlan.conflicts.length;
     graphData.value = { nodes, edges };
   } catch (error) {
+    if (!isCurrentRequest()) return;
+    graphLoadFailed.value = true;
     console.error("Error building graph:", error);
     notificationStore.errorNotification(t('components.dependencyGraph.errorBuildingGraph'), error);
   } finally {
-    isLoadingGraph.value = false;
+    if (isCurrentRequest()) {
+      isLoadingGraph.value = false;
+    }
   }
 };
 
@@ -564,35 +560,18 @@ const applyDagreLayout = (nodes, edges) => {
 const updateGraphLayout = (newGraph) => {
   const nodesWithLayout = applyDagreLayout(newGraph.nodes, newGraph.edges)
   graphElements.value = [...nodesWithLayout, ...newGraph.edges]
-  nextTick(() => {
-    setNodes(nodesWithLayout)
-    setEdges(newGraph.edges)
-  })
+  setNodes(nodesWithLayout)
+  setEdges(newGraph.edges)
 };
 
 // Watch for graph data changes and update layout
 watch(graphData, (newGraphData) => {
-  if (newGraphData.nodes.length > 0 || newGraphData.edges.length > 0) {
-    updateGraphLayout(newGraphData);
-  }
+  updateGraphLayout(newGraphData);
 }, { immediate: true });
 
-// Watch for depth changes and rebuild graph
-watch(maxDepth, () => {
+watch([() => projectStore.activeProject?.uri, () => assetStore.selectedAsset?.id], () => {
   buildGraphFromDependencies();
 });
-
-// Watch for show toggles and rebuild graph  
-watch([showAssets, showCollections], () => {
-  buildGraphFromDependencies();
-});
-
-// Watch for selected asset changes and rebuild graph
-watch(() => assetStore.selectedAsset, async (newAsset) => {
-  if (newAsset) {
-    await buildGraphFromDependencies();
-  }
-}, { immediate: false });
 
 // Watch for filter changes and update filtered assets and collections
 watch(
@@ -740,29 +719,18 @@ const handleRemoveDependency = (payload) => {
   removeDependency(payload.id, payload.itemType);
 };
 
-onMounted(async () => {
-  // commonStore.resetFilters();
-  
-  // Fetch sidebar data first
-  await fetchSidebarData();
-  
-  // Build initial graph if there's a selected asset
-  if (assetStore.selectedAsset) {
-    await buildGraphFromDependencies();
-  }
-  
-  nextTick(() => {
-    addNodes(graphElements.value.filter(el => el.position))
-    addEdges(graphElements.value.filter(el => !el.position))
-  })
-  
+onMounted(() => {
   emitter.on('selectItem', handleSelectItem);
   emitter.on('addDependency', handleAddDependency);
   emitter.on('removeDependency', handleRemoveDependency);
   emitter.on('dependency-selector-updated', handleGraphSelectorUpdated);
+  void fetchSidebarData();
+  void buildGraphFromDependencies();
 });
 
 onUnmounted(() => {
+  graphDisposed = true;
+  graphRequestId += 1;
   emitter.off('selectItem', handleSelectItem)
   emitter.off('addDependency', handleAddDependency)
   emitter.off('removeDependency', handleRemoveDependency)

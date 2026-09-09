@@ -1792,6 +1792,29 @@ func (t *AssetService) ResolveBuildDependencies(projectPath, assetId string) ([]
 	return repository.ResolveBuildDependencies(tx, assetId)
 }
 
+// ResolveDependencyGraphPlan returns checkpoint metadata without build readiness checks.
+func (t *AssetService) ResolveDependencyGraphPlan(projectPath, assetId string) (models.DependencyGraphPlan, error) {
+	plan := models.DependencyGraphPlan{}
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return plan, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return plan, err
+	}
+	defer tx.Rollback()
+	user, role, err := activeAssetRole(tx)
+	if err != nil {
+		return plan, err
+	}
+	if err = authorizeCheckpointRestoreTx(tx, user, role, []string{assetId}); err != nil {
+		return plan, err
+	}
+	return repository.ResolveDependencyGraphPlan(tx, assetId)
+}
+
 // ResolveDependencyBuildPlan returns a frozen dependency-first checkpoint plan.
 func (t *AssetService) ResolveDependencyBuildPlan(projectPath, assetId string) (models.DependencyBuildPlan, error) {
 	plan := models.DependencyBuildPlan{}
@@ -2156,6 +2179,7 @@ func (t *AssetService) GetAssetDependencies(projectPath string, assetIds []strin
 	return result, nil
 }
 
+// GetRecursiveDependencies returns visible dependencies; nonpositive depth expands the complete graph and collection contents.
 func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId string, maxDepth int) ([]interface{}, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -2187,7 +2211,7 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 
 	// Get all asset info for checking asset existence
 	allAssetInfo := []models.Asset{}
-	query = `SELECT id FROM asset WHERE trashed = 0`
+	query = `SELECT id, collection_id FROM asset WHERE trashed = 0`
 	err = tx.Select(&allAssetInfo, query)
 	if err != nil {
 		return []interface{}{}, err
@@ -2195,7 +2219,7 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 
 	// Get all collection info for checking collection existence
 	allCollectionInfo := []models.Collection{}
-	query = `SELECT id FROM collection WHERE trashed = 0`
+	query = `SELECT id, parent_id FROM collection WHERE trashed = 0`
 	err = tx.Select(&allCollectionInfo, query)
 	if err != nil {
 		return []interface{}{}, err
@@ -2211,58 +2235,53 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 	result := []interface{}{}
 	dependenciesMap := make(map[string]DependencyInfo) // track dependency info
 
-	// Helper function to collect dependencies recursively
-	var collectDependencies func(string, int, string)
-	collectDependencies = func(currentAssetId string, currentDepth int, parentAssetId string) {
-		if currentDepth >= maxDepth {
-			return
-		}
-
-		// If we encounter the original assetId, skip collecting it or its dependencies
-		if currentAssetId == assetId && currentDepth > 0 {
-			return
-		}
-
-		// Get direct asset dependencies
-		for _, assetDep := range allAssetDependencies {
-			if assetDep.AssetId == currentAssetId {
-				depId := assetDep.DependencyId
-				if depId == assetId {
-					// Skip collecting the original assetId as a dependency
-					continue
-				}
-				if existing, exists := dependenciesMap[depId]; !exists || currentDepth+1 < existing.Depth {
-					dependenciesMap[depId] = DependencyInfo{
-						ID:       depId,
-						Depth:    currentDepth + 1,
-						ParentID: currentAssetId, // The current asset is the parent of this dependency
-					}
-					collectDependencies(depId, currentDepth+1, currentAssetId)
-				}
-			}
-		}
-
-		// Get collection dependencies (collections only, no child traversal)
-		for _, collectionDep := range allCollectionDependencies {
-			if collectionDep.AssetId == currentAssetId {
-				collectionId := collectionDep.DependencyId
-				if collectionId == assetId {
-					// Skip collecting the original assetId as a dependency
-					continue
-				}
-				if existing, exists := dependenciesMap[collectionId]; !exists || currentDepth+1 < existing.Depth {
-					dependenciesMap[collectionId] = DependencyInfo{
-						ID:       collectionId,
-						Depth:    currentDepth + 1,
-						ParentID: currentAssetId, // The current asset is the parent of this collection dependency
-					}
-				}
-			}
+	activeIds := make(map[string]bool)
+	children := make(map[string][]string)
+	for _, asset := range allAssetInfo {
+		activeIds[asset.Id] = true
+		if maxDepth <= 0 && asset.CollectionId != "" {
+			children[asset.CollectionId] = append(children[asset.CollectionId], asset.Id)
 		}
 	}
+	for _, collection := range allCollectionInfo {
+		activeIds[collection.Id] = true
+		if maxDepth <= 0 && collection.ParentId != "" {
+			children[collection.ParentId] = append(children[collection.ParentId], collection.Id)
+		}
+	}
+	for _, dependency := range allAssetDependencies {
+		children[dependency.AssetId] = append(children[dependency.AssetId], dependency.DependencyId)
+	}
+	for _, dependency := range allCollectionDependencies {
+		children[dependency.AssetId] = append(children[dependency.AssetId], dependency.DependencyId)
+	}
 
-	// Start recursive collection from the given asset
-	collectDependencies(assetId, 0, "")
+	parentIds := make(map[string][]string)
+	queue := []DependencyInfo{{ID: assetId}}
+	visited := map[string]bool{assetId: true}
+	for index := 0; index < len(queue); index++ {
+		current := queue[index]
+		if maxDepth > 0 && current.Depth >= maxDepth {
+			continue
+		}
+		for _, dependencyId := range children[current.ID] {
+			if !activeIds[dependencyId] || dependencyId == assetId {
+				continue
+			}
+			parentIds[dependencyId] = append(parentIds[dependencyId], current.ID)
+			if visited[dependencyId] {
+				continue
+			}
+			visited[dependencyId] = true
+			dependency := DependencyInfo{
+				ID:       dependencyId,
+				Depth:    current.Depth + 1,
+				ParentID: current.ID,
+			}
+			dependenciesMap[dependencyId] = dependency
+			queue = append(queue, dependency)
+		}
+	}
 
 	// Get all dependency IDs
 	dependencyIds := make([]string, 0, len(dependenciesMap))
@@ -2304,11 +2323,12 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 		for _, asset := range assets {
 			depInfo := dependenciesMap[asset.Id]
 			assetWithDepth := map[string]interface{}{
-				"asset":    asset,
-				"name":     asset.Name,
-				"depth":    depInfo.Depth,
-				"parentId": depInfo.ParentID,
-				"type":     "asset",
+				"asset":     asset,
+				"name":      asset.Name,
+				"depth":     depInfo.Depth,
+				"parentId":  depInfo.ParentID,
+				"parentIds": parentIds[asset.Id],
+				"type":      "asset",
 			}
 			result = append(result, assetWithDepth)
 		}
@@ -2347,6 +2367,7 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 				"collection": collection,
 				"depth":      depInfo.Depth,
 				"parentId":   depInfo.ParentID,
+				"parentIds":  parentIds[collection.Id],
 				"type":       "collection",
 			}
 			result = append(result, collectionWithDepth)

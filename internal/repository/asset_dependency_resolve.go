@@ -2,11 +2,14 @@ package repository
 
 import (
 	"crypto/sha256"
+	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
+	"clustta/internal/error_service"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
 
@@ -23,15 +26,40 @@ type buildRequirement struct {
 }
 
 type dependencyBuildResolver struct {
-	tx            *sqlx.Tx
-	requirements  map[string][]buildRequirement
-	visitState    map[string]int
-	orderedAssets []string
-	conflicts     []models.DependencyBuildConflict
+	tx                  *sqlx.Tx
+	checkBuildReadiness bool
+	requirements        map[string][]buildRequirement
+	visitState          map[string]int
+	orderedAssets       []string
+	conflicts           []models.DependencyBuildConflict
 }
 
 // ResolveDependencyBuildPlan freezes the dependency graph to exact checkpoints.
 func ResolveDependencyBuildPlan(tx *sqlx.Tx, rootAssetId string) (models.DependencyBuildPlan, error) {
+	return resolveDependencyPlan(tx, rootAssetId, true)
+}
+
+// ResolveDependencyGraphPlan resolves checkpoints and conflicts without local readiness checks.
+func ResolveDependencyGraphPlan(tx *sqlx.Tx, rootAssetId string) (models.DependencyGraphPlan, error) {
+	plan, err := resolveDependencyPlan(tx, rootAssetId, false)
+	if err != nil {
+		return models.DependencyGraphPlan{}, err
+	}
+	graphPlan := models.DependencyGraphPlan{
+		Entries:   make([]models.DependencyGraphPlanEntry, 0, len(plan.Entries)),
+		Conflicts: plan.Conflicts,
+	}
+	for _, entry := range plan.Entries {
+		graphPlan.Entries = append(graphPlan.Entries, models.DependencyGraphPlanEntry{
+			AssetId:          entry.AssetId,
+			CheckpointId:     entry.CheckpointId,
+			DependencyEdgeId: entry.DependencyEdgeId,
+		})
+	}
+	return graphPlan, nil
+}
+
+func resolveDependencyPlan(tx *sqlx.Tx, rootAssetId string, checkBuildReadiness bool) (models.DependencyBuildPlan, error) {
 	plan := models.DependencyBuildPlan{
 		RootAssetId: rootAssetId,
 		ResolvedAt:  utils.GetEpochTime(),
@@ -39,15 +67,20 @@ func ResolveDependencyBuildPlan(tx *sqlx.Tx, rootAssetId string) (models.Depende
 		Warnings:    []string{},
 		Conflicts:   []models.DependencyBuildConflict{},
 	}
-	if _, err := GetAsset(tx, rootAssetId); err != nil {
+	var rootExists bool
+	if err := tx.Get(&rootExists, "SELECT EXISTS(SELECT 1 FROM asset WHERE id = ?)", rootAssetId); err != nil {
 		return plan, err
+	}
+	if !rootExists {
+		return plan, error_service.ErrAssetNotFound
 	}
 
 	resolver := dependencyBuildResolver{
-		tx:           tx,
-		requirements: map[string][]buildRequirement{},
-		visitState:   map[string]int{},
-		conflicts:    []models.DependencyBuildConflict{},
+		tx:                  tx,
+		checkBuildReadiness: checkBuildReadiness,
+		requirements:        map[string][]buildRequirement{},
+		visitState:          map[string]int{},
+		conflicts:           []models.DependencyBuildConflict{},
 	}
 	rootCheckpointId, err := resolver.latestCheckpointId(rootAssetId)
 	if err != nil {
@@ -248,8 +281,14 @@ func (r *dependencyBuildResolver) resolveAssetRequirements(assetId string) (mode
 		return models.DependencyBuildPlanEntry{}, conflicts, nil
 	}
 
-	checkpoint, err := GetCheckpoint(r.tx, selected.checkpointId)
-	if err != nil || checkpoint.Trashed || checkpoint.AssetId != assetId {
+	checkpoint := models.Checkpoint{}
+	err := r.tx.Get(&checkpoint, `
+		SELECT id, asset_id, trashed FROM asset_checkpoint WHERE id = ?
+	`, selected.checkpointId)
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
+		return models.DependencyBuildPlanEntry{}, nil, err
+	}
+	if errors.Is(err, sql.ErrNoRows) || checkpoint.Trashed || checkpoint.AssetId != assetId {
 		conflicts = append(conflicts, models.DependencyBuildConflict{
 			AssetId:       assetId,
 			CheckpointIds: []string{selected.checkpointId},
@@ -258,36 +297,42 @@ func (r *dependencyBuildResolver) resolveAssetRequirements(assetId string) (mode
 		})
 		return models.DependencyBuildPlanEntry{}, conflicts, nil
 	}
-	missingChunks, err := checkpoint.HasMissingChunks(r.tx)
-	if err != nil {
-		return models.DependencyBuildPlanEntry{}, nil, err
-	}
-	fileStatus, err := GetAssetState(r.tx, assetId)
-	if err != nil {
-		return models.DependencyBuildPlanEntry{}, nil, err
-	}
-	return models.DependencyBuildPlanEntry{
+	entry := models.DependencyBuildPlanEntry{
 		AssetId:            assetId,
 		CheckpointId:       selected.checkpointId,
 		ResolutionMode:     selected.resolutionMode,
 		DependencyEdgeId:   selected.dependencyEdgeId,
 		RequestedByAssetId: selected.requestedByAssetId,
 		ResolutionPath:     selected.path,
-		MissingChunks:      missingChunks,
-		FileStatus:         fileStatus,
-		RequiresOverwrite:  fileStatus == "modified",
-	}, conflicts, nil
+	}
+	if !r.checkBuildReadiness {
+		return entry, conflicts, nil
+	}
+	if err = r.tx.Get(&checkpoint.Chunks, "SELECT chunks FROM asset_checkpoint WHERE id = ?", checkpoint.Id); err != nil {
+		return models.DependencyBuildPlanEntry{}, nil, err
+	}
+	entry.MissingChunks, err = checkpoint.HasMissingChunks(r.tx)
+	if err != nil {
+		return models.DependencyBuildPlanEntry{}, nil, err
+	}
+	entry.FileStatus, err = GetAssetState(r.tx, assetId)
+	if err != nil {
+		return models.DependencyBuildPlanEntry{}, nil, err
+	}
+	entry.RequiresOverwrite = entry.FileStatus == "modified"
+	return entry, conflicts, nil
 }
 
 func (r *dependencyBuildResolver) latestCheckpointId(assetId string) (string, error) {
-	checkpoint, err := GetLatestCheckpoint(r.tx, assetId)
-	if err != nil {
-		if err.Error() == "no checkpoints" {
-			return "", nil
-		}
-		return "", err
+	var checkpointId string
+	err := r.tx.Get(&checkpointId, `
+		SELECT id FROM asset_checkpoint
+		WHERE asset_id = ? AND trashed = 0 ORDER BY created_at DESC LIMIT 1
+	`, assetId)
+	if errors.Is(err, sql.ErrNoRows) {
+		return "", nil
 	}
-	return checkpoint.Id, nil
+	return checkpointId, err
 }
 
 func (r *dependencyBuildResolver) addRequirement(requirement buildRequirement) {

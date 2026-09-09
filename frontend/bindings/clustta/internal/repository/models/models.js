@@ -806,6 +806,91 @@ export class DependencyBuildResult {
     }
 }
 
+export class DependencyGraphPlan {
+    /**
+     * Creates a new DependencyGraphPlan instance.
+     * @param {Partial<DependencyGraphPlan>} [$$source = {}] - The source object to create the DependencyGraphPlan.
+     */
+    constructor($$source = {}) {
+        if (!("entries" in $$source)) {
+            /**
+             * @member
+             * @type {DependencyGraphPlanEntry[]}
+             */
+            this["entries"] = [];
+        }
+        if (!("conflicts" in $$source)) {
+            /**
+             * @member
+             * @type {DependencyBuildConflict[]}
+             */
+            this["conflicts"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DependencyGraphPlan instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DependencyGraphPlan}
+     */
+    static createFrom($$source = {}) {
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("entries" in $$parsedSource) {
+            $$parsedSource["entries"] = $$createField0_0($$parsedSource["entries"]);
+        }
+        if ("conflicts" in $$parsedSource) {
+            $$parsedSource["conflicts"] = $$createField1_0($$parsedSource["conflicts"]);
+        }
+        return new DependencyGraphPlan(/** @type {Partial<DependencyGraphPlan>} */($$parsedSource));
+    }
+}
+
+export class DependencyGraphPlanEntry {
+    /**
+     * Creates a new DependencyGraphPlanEntry instance.
+     * @param {Partial<DependencyGraphPlanEntry>} [$$source = {}] - The source object to create the DependencyGraphPlanEntry.
+     */
+    constructor($$source = {}) {
+        if (!("asset_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["asset_id"] = "";
+        }
+        if (!("checkpoint_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["checkpoint_id"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["dependency_edge_id"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new DependencyGraphPlanEntry instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {DependencyGraphPlanEntry}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new DependencyGraphPlanEntry(/** @type {Partial<DependencyGraphPlanEntry>} */($$parsedSource));
+    }
+}
+
 export class DependencySelectorOptions {
     /**
      * Creates a new DependencySelectorOptions instance.
@@ -836,8 +921,8 @@ export class DependencySelectorOptions {
      * @returns {DependencySelectorOptions}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType7;
-        const $$createField1_0 = $$createType9;
+        const $$createField0_0 = $$createType9;
+        const $$createField1_0 = $$createType11;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("checkpoints" in $$parsedSource) {
             $$parsedSource["checkpoints"] = $$createField0_0($$parsedSource["checkpoints"]);
@@ -1747,7 +1832,7 @@ export class User {
      */
     static createFrom($$source = {}) {
         const $$createField7_0 = $Create.ByteSlice;
-        const $$createField10_0 = $$createType10;
+        const $$createField10_0 = $$createType12;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("photo" in $$parsedSource) {
             $$parsedSource["photo"] = $$createField7_0($$parsedSource["photo"]);
@@ -1824,9 +1909,9 @@ export class Workflow {
      * @returns {Workflow}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType12;
-        const $$createField5_0 = $$createType14;
-        const $$createField6_0 = $$createType16;
+        const $$createField4_0 = $$createType14;
+        const $$createField5_0 = $$createType16;
+        const $$createField6_0 = $$createType18;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField4_0($$parsedSource["assets"]);
@@ -2093,14 +2178,16 @@ const $$createType2 = DependencyBuildPlanEntry.createFrom;
 const $$createType3 = $Create.Array($$createType2);
 const $$createType4 = DependencyBuildConflict.createFrom;
 const $$createType5 = $Create.Array($$createType4);
-const $$createType6 = Checkpoint.createFrom;
+const $$createType6 = DependencyGraphPlanEntry.createFrom;
 const $$createType7 = $Create.Array($$createType6);
-const $$createType8 = AssetCheckpointTag.createFrom;
+const $$createType8 = Checkpoint.createFrom;
 const $$createType9 = $Create.Array($$createType8);
-const $$createType10 = Role.createFrom;
-const $$createType11 = WorkflowAsset.createFrom;
-const $$createType12 = $Create.Array($$createType11);
-const $$createType13 = WorkflowCollection.createFrom;
+const $$createType10 = AssetCheckpointTag.createFrom;
+const $$createType11 = $Create.Array($$createType10);
+const $$createType12 = Role.createFrom;
+const $$createType13 = WorkflowAsset.createFrom;
 const $$createType14 = $Create.Array($$createType13);
-const $$createType15 = WorkflowLink.createFrom;
+const $$createType15 = WorkflowCollection.createFrom;
 const $$createType16 = $Create.Array($$createType15);
+const $$createType17 = WorkflowLink.createFrom;
+const $$createType18 = $Create.Array($$createType17);
