@@ -1007,6 +1007,8 @@ const unassignAssets = async () => {
   stage.operationActive = false;
 };
 
+const viewDetails = () => filterList('Details');
+
 // Switches to the checkpoints tab.
 const viewCheckpoints = () => filterList('Checkpoints');
 
@@ -1031,12 +1033,14 @@ watchEffect(() => { if (detailsPaneRoot.value) menu.clickOutsideMask = detailsPa
 // lifecycle hooks
 onMounted(() => {
   panes.setPaneVisibility('projectDetails', true);
+  emitter.on('view-details', viewDetails);
   emitter.on('view-checkpoints', viewCheckpoints);
   emitter.on('view-changelog', viewChanges);
 });
 
 onUnmounted(() => {
   panes.setPaneVisibility('projectDetails', true);
+  emitter.off('view-details', viewDetails);
   emitter.off('view-checkpoints', viewCheckpoints);
   emitter.off('view-changelog', viewChanges);
 });

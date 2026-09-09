@@ -24,7 +24,9 @@
     <div v-else-if="assetDependencies.length" class="sidebar-scroll">
       <div class="dependency-items">
         <div v-for="dependency in assetDependencies" :key="dependency.id" class="dependency-row">
-          <AssetItem :item="dependency">
+          <AssetItem :item="dependency" :hideExtension="commonStore.hideExtensions" :showNavigate="true"
+            :navigateTooltip="dependency.type === 'collection' ? $t('menus.goToCollection') : $t('menus.goToAsset')"
+            @navigate="goToDependency">
             <template #persistent>
               <DependencySelector
                 v-if="dependency.dependencyEdge"
@@ -90,6 +92,7 @@ import { useCommonStore } from '@/stores/common';
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
 import { useAssetStore } from '@/stores/assets';
+import { useCollectionStore } from '@/stores/collections';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 import { useMenu } from '@/stores/menu';
@@ -111,6 +114,7 @@ const commonStore = useCommonStore();
 const stage = useStageStore();
 const notificationStore = useNotificationStore();
 const assetStore = useAssetStore();
+const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -147,6 +151,34 @@ const isFilterActive = computed(() => {
 
 
 // methods
+const goToDependency = async (dependency) => {
+  try {
+    const isCollection = dependency.type === 'collection';
+    const collection = isCollection ? dependency : dependency.collection_id
+      ? await CollectionService.GetCollectionByID(projectStore.activeProject.uri, dependency.collection_id)
+      : null;
+
+    commonStore.activeWorkspace = 'Project';
+    commonStore.viewSearchQuery = '';
+    commonStore.resetFilters();
+    commonStore.navigatorMode = true;
+    stage.deselectAllItems();
+    collectionStore.navigateToCollection(collection);
+
+    if (isCollection) {
+      collectionStore.selectCollection(dependency);
+    } else {
+      assetStore.selectAsset(dependency);
+    }
+    stage.firstSelectedItemId = dependency.id;
+    stage.markedItems = [dependency.id];
+    emitter.emit('view-details');
+    emitter.emit('refresh-browser');
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.failedToNavigate'), error);
+  }
+};
+
 const showFilterMenu = (event, menuName) => {
 	if (menu.activeMenu === menuName && menu.contextMenuVisible) {
 		menu.disableAllMenus();
