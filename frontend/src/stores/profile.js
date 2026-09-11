@@ -81,9 +81,9 @@ export const useProfileStore = defineStore("profile", {
         instagram: profileData.instagram_link || profileData.InstagramLink || '',
       };
       
-      const tools = profileData.tools;
+      const tools = Array.isArray(profileData.tools) ? profileData.tools : [];
 
-      const skills = profileData.skills;
+      const skills = Array.isArray(profileData.skills) ? profileData.skills : [];
       this.profile = {
         ...this.profile,
         ...profileData,
