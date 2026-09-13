@@ -73,11 +73,11 @@ onMounted(async () => {
   width: 100%;
   box-sizing: border-box;
   border-left: var(--transparent-line);
-  left: 15px;
+  left: 8px;
 }
 
 .indent-style{
-  padding-left: 30px;
+  padding-left: 15px;
 }
 
 .virtua-skeleton-container{
