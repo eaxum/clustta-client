@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia';
+import { buildPendingTransfers, isTransferPending } from '@/lib/activity';
 import {
   browserRootParentKey,
   getBrowserItemKey,
@@ -8,6 +9,7 @@ import {
 export const useBrowserTreeStore = defineStore('browserTree', {
   state: () => ({
     projectUri: '',
+    pendingTransfers: {},
     itemsByKey: {},
     childKeysByParent: {},
     loadedParents: {},
@@ -17,6 +19,7 @@ export const useBrowserTreeStore = defineStore('browserTree', {
   }),
 
   getters: {
+    isPending: (state) => (projectUri, item) => isTransferPending(state.pendingTransfers, projectUri, item),
     getItem: (state) => (itemKey) => state.itemsByKey[itemKey] || null,
     getChildren: (state) => (parentKey) => {
       const childKeys = state.childKeysByParent[parentKey] || [];
@@ -30,6 +33,19 @@ export const useBrowserTreeStore = defineStore('browserTree', {
   },
 
   actions: {
+    updatePendingTransfers(operations) {
+      const previousPending = this.pendingTransfers[this.projectUri];
+      this.pendingTransfers = buildPendingTransfers(operations);
+      for (const operation of operations) {
+        if (operation.project_uri !== this.projectUri) continue;
+        const restored = (operation.restored_asset_ids || []).filter((id) =>
+          previousPending?.assets.has(id) && !this.pendingTransfers[this.projectUri]?.assets.has(id));
+        this.markAssetsAvailable(restored);
+      }
+      for (const item of Object.values(this.itemsByKey)) {
+        item.pending = this.isPending(this.projectUri, item);
+      }
+    },
     setProject(projectUri) {
       const nextProjectUri = projectUri || '';
       if (this.projectUri === nextProjectUri) return;
@@ -69,6 +85,7 @@ export const useBrowserTreeStore = defineStore('browserTree', {
       const childKeys = [];
 
       for (const item of reconciledItems) {
+        item.pending = this.isPending(this.projectUri, item);
         const itemKey = getBrowserItemKey(item);
         if (!itemKey) continue;
 

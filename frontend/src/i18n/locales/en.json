@@ -1,4 +1,29 @@
 {
+  "activity": {
+    "savedTooltip": "{size} saved",
+    "downloadedTooltip": "{size} downloaded",
+    "rebuildingTooltip": "Rebuilding: {percent}%",
+    "transferTooltip": "{saved} saved, {downloaded} downloaded",
+    "pending": "Pending",
+    "filterPlaceholder": "Filter activity...",
+    "noMatches": "No matching activity",
+    "noActivity": "No activity yet",
+    "maximizePanel": "Maximize panel",
+    "restorePanel": "Restore panel height",
+    "closePanel": "Close panel",
+    "title": "Activity",
+    "running": "Running",
+    "queued": "Queued",
+    "completed": "Completed",
+    "failed": "Failed",
+    "cancelled": "Cancelled",
+    "cancelling": "Cancelling",
+    "cancel": "Cancel",
+    "clearFinished": "Clear finished",
+    "dismiss": "Dismiss",
+    "details": "Requested asset details",
+    "requestedAssets": "Requested assets [{count}]"
+},
   "progress": {
     "projectDownload": {
       "preparing": "Preparing project",

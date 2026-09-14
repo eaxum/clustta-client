@@ -6,8 +6,10 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/repository/sync_service"
+	"clustta/internal/transfer"
 	"clustta/internal/utils"
 	"clustta/output"
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -65,6 +67,12 @@ func (c *CheckpointService) DeleteCheckpoint(projectPath, checkpointId string) e
 // RevertToCheckpoint reverts a asset to a specific checkpoint state.
 // Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, checkpointId string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset()
 
 	ctx := getContext()
@@ -209,7 +217,7 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, 
 	if err = tx.Rollback(); err != nil {
 		return err
 	}
-	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+	if err = clearChunkCache(projectPath, dbConn); err != nil {
 		return err
 	}
 
@@ -228,6 +236,12 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, 
 // AddCheckpoint creates new checkpoints for multiple assets.
 // Returns the created checkpoints or an error if the operation fails.
 func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extensions []string, message, previewPath, groupId string, useAsThumbnail, sendToIntegration bool) ([]models.Checkpoint, error) {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return nil, admissionErr
+	}
+	defer releaseTransfer()
+
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -346,6 +360,12 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 // AddUntrackedAsset tracks previously untracked files and creates checkpoints for them.
 // Returns the newly tracked assets or an error if the operation fails.
 func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir string, assetPaths []string, completed, totalAssets int, message, previewPath, groupId string) ([]models.Asset, error) {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return nil, admissionErr
+	}
+	defer releaseTransfer()
+
 	app := application.Get()
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -711,37 +731,32 @@ func (c *CheckpointService) GetTimeline(projectPath string) ([]repository.Compat
 // Revert reverts multiple assets to their latest checkpoints.
 // Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []string) (FetchResult, error) {
-	result := FetchResult{RestoredAssetIds: make([]string, 0)}
-	defer reset()
-
-	ctx := getContext()
-	if ctx.Err() != nil {
-		return result, errors.New("operation cancelled before starting")
-	}
-
-	app := application.Get()
-	user, err := auth_service.GetActiveUser()
+	action, err := beginTransfer(context.Background(), projectPath, "fetch", "Fetching assets")
 	if err != nil {
-		return result, err
+		return FetchResult{}, err
 	}
+	if err := action.prepareAndWait(assetIds, "", ""); err != nil {
+		action.finish(err)
+		return FetchResult{}, err
+	}
+	result, err := c.revertAssets(action, remoteUrl, assetIds)
+	action.finish(err)
+	return result, err
+}
 
-	errChan := make(chan error, 1)
-	progressChan := make(chan output.ProgressReport, 10)
-
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return
-			case progress, ok := <-progressChan:
-				if !ok {
-					return
-				}
-				app.Event.Emit("progress-update", progress)
-			}
+func (c *CheckpointService) revertAssets(action *transferAction, remoteUrl string, assetIds []string) (FetchResult, error) {
+	uniqueIDs := make([]string, 0, len(assetIds))
+	seenIDs := map[string]bool{}
+	for _, id := range assetIds {
+		if !seenIDs[id] {
+			uniqueIDs = append(uniqueIDs, id)
+			seenIDs[id] = true
 		}
-	}()
+	}
+	assetIds = uniqueIDs
 
+	result := FetchResult{RestoredAssetIds: []string{}}
+	ctx, projectPath, user := action.ctx, action.path, action.user
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return result, err
@@ -753,21 +768,30 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 	}
 	defer tx.Rollback()
 
-	select {
-	case <-ctx.Done():
-		return result, errors.New("operation cancelled")
-	case progressChan <- output.ProgressReport{
-		Title:      "Reverting",
-		Message:    "Preparing to Revert",
-		Percentage: 0,
-		Current:    1,
-		Total:      1,
-	}:
-	}
+	action.report(output.ProgressReport{Message: "Preparing to fetch files", Total: 1})
 
 	if len(assetIds) == 0 {
 		return result, nil
 	}
+
+	requestedAssets := []models.Asset{}
+	fileStates := map[string]transferFileState{}
+	for _, assetID := range assetIds {
+		asset, err := repository.GetAsset(tx, assetID)
+		if err != nil {
+			return result, err
+		}
+		state, err := captureTransferFile(asset.GetFilePath())
+		if err != nil {
+			return result, err
+		}
+		fileStates[asset.Id] = state
+		requestedAssets = append(requestedAssets, asset)
+	}
+	if err := action.authorize(tx, assetIds, false); err != nil {
+		return result, err
+	}
+	action.assets(requestedAssets)
 
 	checkpointQuery, checkpointArgs, err := sqlx.In(
 		"SELECT * FROM asset_checkpoint WHERE trashed = 0 AND asset_id IN (?) ORDER BY created_at DESC",
@@ -806,49 +830,17 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		}
 	}
 
+	if err := action.authorize(tx, assetIds, len(checkpointIdsToDownload) > 0); err != nil {
+		return result, err
+	}
 	err = tx.Rollback()
 	if err != nil {
 		return result, err
 	}
 
 	if len(checkpointIdsToDownload) != 0 {
-		callBack := func(current int, total int, message string, extraMessage string) {
-			if ctx.Err() != nil {
-				return
-			}
-			select {
-			case <-ctx.Done():
-				return
-			case progressChan <- output.ProgressReport{
-				Title:        "Downloading files",
-				Message:      message,
-				Percentage:   (float64(current) / float64(total) * 99),
-				Current:      1,
-				Total:        1,
-				ExtraMessage: extraMessage,
-			}:
-			default: // Skip progress update if channel is full
-			}
-		}
-
-		go func() {
-			err := sync_service.DownloadCheckpoints(ctx, projectPath, remoteUrl, checkpointIdsToDownload, user.Id, callBack)
-			if ctx.Err() == nil { // Only send error if not cancelled
-				errChan <- err
-			}
-		}()
-
-		select {
-		case err = <-errChan:
-			if err != nil {
-				if errors.Is(err, syscall.ECONNREFUSED) {
-					return result, errors.New("download failed, connection refused")
-				}
-				return result, errors.New("download failed, check your connection")
-			}
-		case <-ctx.Done():
-			close(progressChan) // Stop progress updates
-			return result, errors.New("cancelled")
+		if err = sync_service.DownloadCheckpoints(ctx, projectPath, remoteUrl, checkpointIdsToDownload, user.Id, action.downloaded); err != nil {
+			return result, err
 		}
 	}
 
@@ -856,48 +848,48 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		return result, ctx.Err()
 	}
 
+	releaseWrite, err := transfer.Write(ctx, projectPath)
+	if err != nil {
+		return result, err
+	}
+	defer releaseWrite()
 	totalAssets := len(revertableAssetIds)
 	for i, assetId := range revertableAssetIds {
+		if err := ctx.Err(); err != nil {
+			return result, err
+		}
 		tx, err := dbConn.Beginx()
 		if err != nil {
 			return result, err
 		}
+		if err := action.authorize(tx, []string{assetId}, false); err != nil {
+			tx.Rollback()
+			return result, err
+		}
 		asset, err := repository.GetAsset(tx, assetId)
 		if err != nil {
+			tx.Rollback()
 			return result, err
 		}
 		callBack := func(current int, total int, message string, extraMessage string) {
-			progress := output.ProgressReport{
-				Title:      "Reverting",
-				Message:    asset.Name,
-				Percentage: float64(current) / float64(total) * 100,
-				Current:    i + 1,
-				Total:      totalAssets,
-			}
-			app.Event.Emit("progress-update", progress)
+			action.rebuilding(i, totalAssets, current, total, asset.Name)
 		}
 
+		if err := fileStates[assetId].verify(asset.GetFilePath()); err != nil {
+			tx.Rollback()
+			return result, err
+		}
 		err = repository.RevertToLatestCheckpoint(tx, assetId, asset.GetFilePath(), callBack)
 		if err != nil {
 			tx.Rollback()
 			return result, err
 		}
-		tx.Rollback()
+		if err := tx.Rollback(); err != nil {
+			return result, err
+		}
 		result.RestoredAssetIds = append(result.RestoredAssetIds, assetId)
+		action.restored(result.RestoredAssetIds)
 	}
-	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
-		return result, err
-	}
-
-	close(progressChan)
-	progress := output.ProgressReport{
-		Title:      "Reverting",
-		Message:    "Reverting",
-		Percentage: 100,
-		Current:    1,
-		Total:      1,
-	}
-	app.Event.Emit("progress-update", progress)
 	return result, nil
 }
 
@@ -906,6 +898,12 @@ func (c *CheckpointService) ExecuteDependencyBuildPlan(
 	projectPath, remoteUrl, rootAssetId, expectedFingerprint string,
 	allowModified bool,
 ) (models.DependencyBuildResult, error) {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return models.DependencyBuildResult{}, admissionErr
+	}
+	defer releaseTransfer()
+
 	result := models.DependencyBuildResult{
 		PlanFingerprint: expectedFingerprint,
 		Restored:        []models.DependencyBuildPlanEntry{},
@@ -1037,7 +1035,7 @@ func (c *CheckpointService) ExecuteDependencyBuildPlan(
 		}
 		result.Restored = append(result.Restored, entry)
 	}
-	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+	if err = clearChunkCache(projectPath, dbConn); err != nil {
 		return result, err
 	}
 	result.PlanFingerprint = plan.Fingerprint
@@ -1047,6 +1045,12 @@ func (c *CheckpointService) ExecuteDependencyBuildPlan(
 // RevertAssetPaths reverts assets by their file paths to latest checkpoints.
 // Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, assetPaths []string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset()
 
 	ctx := getContext()
@@ -1215,7 +1219,7 @@ func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, asse
 		}
 		tx.Rollback()
 	}
-	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+	if err = clearChunkCache(projectPath, dbConn); err != nil {
 		return err
 	}
 
@@ -1232,6 +1236,12 @@ func (c *CheckpointService) RevertAssetPaths(projectPath, remoteUrl string, asse
 }
 
 func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpointTime string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset() // Ensure context is reset when we're done
 
 	ctx := getContext()
@@ -1406,7 +1416,7 @@ func (c *CheckpointService) RevertProject(projectPath, remoteUrl string, checkpo
 		}
 		tx.Rollback()
 	}
-	if err = clearChunkCacheIfEnabled(projectPath, dbConn); err != nil {
+	if err = clearChunkCache(projectPath, dbConn); err != nil {
 		return err
 	}
 
@@ -1449,6 +1459,12 @@ func (c *CheckpointService) AddMissingGroupIds(projectPath string) error {
 // SquashAssets combines multiple untracked files into a single asset with sequential checkpoints.
 // The first file becomes the initial checkpoint, and subsequent files are added as additional checkpoints.
 func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, filePaths []string, assetName, collectionId string, deleteSourceFiles bool, checkpointComments []string) (models.Asset, error) {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return models.Asset{}, admissionErr
+	}
+	defer releaseTransfer()
+
 	if len(filePaths) < 2 {
 		return models.Asset{}, errors.New("at least two files are required for squash")
 	}

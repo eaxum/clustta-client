@@ -789,3 +789,68 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
   background-color: var(--surface-1);
 }
 
+
+.app-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.app-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: var(--small-radius);
+  background-color: var(--surface-4);
+}
+.app-scrollbar::-webkit-scrollbar-track {
+  border-radius: var(--small-radius);
+  background: transparent;
+}
+
+.pending-clock img {
+  animation: pending-clock-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pending-clock-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pending-clock img {
+    animation: none;
+  }
+}
+
+.expandable-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 250px;
+  min-height: 0;
+  box-sizing: border-box;
+  color: var(--text);
+  background-color: var(--surface-1);
+  border-radius: var(--large-radius);
+  overflow: hidden;
+  animation: panel-slide-up .18s ease-out;
+}
+.expandable-panel.panel-maximized {
+  height: 100%;
+}
+@keyframes panel-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .expandable-panel {
+    animation: none;
+  }
+}

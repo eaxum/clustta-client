@@ -9,6 +9,7 @@ import (
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/repository/repositorypb"
+	"clustta/internal/transfer"
 	"clustta/internal/utils"
 	"clustta/output"
 	"database/sql"
@@ -1097,6 +1098,12 @@ func (t *AssetService) MoveAssetsToCollection(projectPath string, assetIds []str
 }
 
 func (t *AssetService) DeleteAsset(projectPath, assetId string, removeFiles bool) error {
+	release, err := transfer.Exclusive(projectPath)
+	if err != nil {
+		return err
+	}
+	defer release()
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err

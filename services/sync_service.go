@@ -6,6 +6,7 @@ import (
 	"clustta/internal/repository/sync_service"
 	"clustta/internal/repository/sync_service/update"
 	"clustta/internal/settings"
+	"clustta/internal/transfer"
 	"clustta/internal/utils"
 	"clustta/output"
 	"context"
@@ -81,6 +82,20 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 		return err
 	}
 	projectPath := filepath.Join(studioProjectsDir, projectName) + ".clst"
+	canonicalProject, err := transfer.CanonicalProject(projectPath)
+	if err != nil {
+		return err
+	}
+	releaseTransfer, err := transfer.Exclusive(canonicalProject)
+	if err != nil {
+		return err
+	}
+	defer releaseTransfer()
+	releaseDestination, err := transfer.ReserveDestination(canonicalProject, workingDir)
+	if err != nil {
+		return err
+	}
+	defer releaseDestination()
 
 	if _, err := os.Stat(workingDir); os.IsNotExist(err) {
 		err = os.MkdirAll(workingDir, os.ModePerm)
@@ -223,6 +238,12 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 }
 
 func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, syncOptions sync_service.SyncOptions) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset() // Ensure context is reset when we're done
 
 	ctx := getContext()
@@ -405,6 +426,12 @@ func (s *SyncService) SyncData(projectPath, remoteURL string, pullChunk bool, sy
 }
 
 func (s *SyncService) PullLatestCheckpoints(projectPath, remoteURL string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset() // Ensure context is reset when we're done
 
 	ctx := getContext()
@@ -543,6 +570,12 @@ func (s *SyncService) UpdateProject(projectPath string, remoteURL string) error 
 }
 
 func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk bool, syncOptions sync_service.SyncOptions) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset() // Ensure context is reset when we're done
 
 	ctx := getContext()
@@ -591,6 +624,12 @@ func (s *SyncService) PullData(projectPath string, remoteURL string, pullChunk b
 }
 
 func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pullChunk bool, syncOptions sync_service.SyncOptions) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset()
 
 	ctx := getContext()
@@ -644,87 +683,16 @@ func (s *SyncService) PushCheckpoints(projectPath string, remoteURL string, pull
 }
 
 func (s *SyncService) DownloadCheckpoint(projectPath, remoteURL, checkpointId string) error {
-	defer reset() // Ensure context is reset when we're done
-
-	ctx := getContext()
-	if ctx.Err() != nil {
-		return errors.New("operation cancelled before starting")
-	}
-
-	app := application.Get()
-	user, err := auth_service.GetActiveUser()
+	action, err := beginTransfer(context.Background(), projectPath, "checkpoint", "Downloading checkpoint")
 	if err != nil {
 		return err
 	}
-
-	// Create buffered channels to prevent blocking
-	errChan := make(chan error, 1)
-	progressChan := make(chan output.ProgressReport, 10)
-
-	// Start progress update goroutine
-	go func() {
-		for {
-			select {
-			case <-ctx.Done():
-				return // Exit immediately on cancellation
-			case progress, ok := <-progressChan:
-				if !ok {
-					return
-				}
-				app.Event.Emit("progress-update", progress)
-			}
-		}
-	}()
-
-	callBack := func(current int, total int, message string, extraMessage string) {
-		if ctx.Err() != nil {
-			return
-		}
-		select {
-		case <-ctx.Done():
-			return
-		case progressChan <- output.ProgressReport{
-			Title:        "Downloading Checkpoint",
-			Message:      message,
-			Percentage:   (float64(current) / float64(total) * 99),
-			Current:      1,
-			Total:        1,
-			ExtraMessage: extraMessage,
-		}:
-		default: // Skip progress update if channel is full
-		}
+	err = action.prepareAndWait(nil, "", checkpointId)
+	if err == nil {
+		err = action.downloadCheckpoint(remoteURL, checkpointId)
 	}
-
-	go func() {
-		err := sync_service.DownloadCheckpoint(ctx, projectPath, remoteURL, checkpointId, user.Id, callBack)
-		if ctx.Err() == nil { // Only send error if not cancelled
-			errChan <- err
-		}
-	}()
-
-	select {
-	case err = <-errChan:
-		if err != nil {
-			if errors.Is(err, syscall.ECONNREFUSED) {
-				return errors.New("download failed, connection refused")
-			}
-			return errors.New("download failed, check your connection")
-		}
-	case <-ctx.Done():
-		close(progressChan) // Stop progress updates
-		return errors.New("cancelled")
-	}
-
-	close(progressChan)
-	progress := output.ProgressReport{
-		Title:      "Downloading Checkpoint",
-		Message:    "Receiving",
-		Percentage: 100,
-		Current:    1,
-		Total:      1,
-	}
-	app.Event.Emit("progress-update", progress)
-	return nil
+	action.finish(err)
+	return err
 }
 
 func (s *SyncService) IsUnsynced(projectPath string) (bool, error) {
@@ -876,6 +844,12 @@ func (s *SyncService) DiscardTagChange(projectPath, remoteURL, tagID string) err
 // DiscardChanges reverts specific items to their server state by fetching remote data
 // and selectively replacing local rows. itemType should be "asset" or "collection".
 func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []string, itemType string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
 	}
@@ -942,6 +916,12 @@ func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []st
 // DiscardAllChanges reverts all unsynced changes to the server state.
 // This replaces the nuclear PullData(force=true) approach with selective replacement.
 func (s *SyncService) DiscardAllChanges(projectPath, remoteURL string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
 	}
@@ -982,6 +962,12 @@ func (s *SyncService) DiscardAllChanges(projectPath, remoteURL string) error {
 
 // SyncAsset pushes a single asset and its checkpoints (including chunks and previews) to the server.
 func (s *SyncService) SyncAsset(projectPath, remoteURL, assetId string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	defer reset()
 
 	ctx := getContext()

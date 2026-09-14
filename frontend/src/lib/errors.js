@@ -21,6 +21,9 @@ const errorCodeMap = {
 
 // Patterns matched against the full error message string.
 const errorPatternMap = [
+  { pattern: /unreachable network|network is unreachable|no such host|ENETUNREACH/i, message: "Unable to reach the server. Check your connection and try again." },
+  { pattern: /timeout|timed out|deadline exceeded/i, message: "The request timed out. Please try again." },
+  { pattern: /connection reset|unexpected EOF/i, message: "The connection was interrupted. Please try again." },
   { pattern: /connection\s*(was\s*)?refused/i, message: "Server unreachable" },
   { pattern: /forcibly closed by the remote host/i, message: "Connection lost" },
   { pattern: /cannot .+ in offline mode/i, message: "Unavailable in offline mode" },
@@ -60,4 +63,21 @@ export function friendlyErrorMessage(raw) {
   }
 
   return null;
+}
+
+export function formatError(error) {
+  let message = typeof error === 'string' ? error : error?.message || error?.error || '';
+  if (typeof message !== 'string') message = message?.message || '';
+  if (!message) return 'Something went wrong. Please try again.';
+  if (message.trim().startsWith('{')) {
+    try {
+      const parsed = JSON.parse(message);
+      message = parsed.message || parsed.error?.message || parsed.error || message;
+    } catch (error) {
+      if (!(error instanceof SyntaxError)) throw error;
+      // Keep malformed server responses readable as plain text.
+    }
+  }
+  if (typeof message !== 'string') return 'Something went wrong. Please try again.';
+  return friendlyErrorMessage(message) || message.replace(/https?:\/\/[^\s"'<>]+/gi, '[server]').replace(/^Error:\s*/, '');
 }

@@ -1,23 +1,41 @@
 <template>
-    <div class="info-bar-wrapper" v-stop-propagation>
-        <div v-if="debugModeEnabled" class="debug-console-container">
-            <DebugConsole @close="toggleDebugConsole" />
+    <div class="info-bar-wrapper" :class="{ 'info-bar-maximized': maximized }" v-stop-propagation>
+        <div v-if="activity.expanded" class="expandable-panel-container">
+            <ActivityPanel :maximized="maximized" @toggle-maximize="maximized = !maximized" @restore="maximized = false" />
         </div>
-        
+        <div v-if="debugModeEnabled" class="expandable-panel-container">
+            <DebugConsole :maximized="maximized" @toggle-maximize="maximized = !maximized" @close="toggleDebugConsole" />
+        </div>
+
         <div class="info-bar-root" :style="{ backgroundColor : bgColor }">
+
+        <button class="activity-toggle" :class="{ 'mini-progress': showActivityProgress }"
+          :aria-expanded="activity.expanded" :aria-label="$t('activity.title')"
+          v-tooltip="showActivityProgress ? currentActivity.title : $t('activity.title')" @click="toggleActivity">
+          <img :src="getAppIcon('activity')" class="small-icons" alt="" />
+          <template v-if="showActivityProgress">
+            <span class="mini-progress-count">[{{ activity.batchIDs.indexOf(currentActivity.operation_id) + 1 }}/{{ activity.batchIDs.length }}]</span>
+            <span class="mini-progress-text">{{ activityDisplayName(currentActivity) }}</span>
+            <span class="mini-progress-bar" role="progressbar" :aria-label="currentActivity.title"
+              :aria-valuenow="currentActivity.total > 0 ? currentActivity.percentage : undefined" aria-valuemin="0" aria-valuemax="100">
+              <span class="mini-progress-fill" :style="{ width: currentActivity.percentage + '%' }"></span>
+            </span>
+          </template>
+          <span v-else-if="activity.operations.length">{{ activity.operations.length }}</span>
+        </button>
 
         <div v-if="currentPrompt" ref="promptItem" :class="['prompt-message', currentPrompt.type]">
             <span class="text-container" >{{ currentPrompt.message }}</span>
         </div>
 
-        <div v-if="progressRunning && progressMinimized" 
-             @click="restoreProgress" 
+        <div v-if="!currentActivity && progressRunning && progressMinimized"
+             @click="restoreProgress"
              class="mini-progress"
              :class="{ 'write-operation': isWriteOperation }"
              v-tooltip="progressTooltip">
           <div class="mini-progress-content">
             <span class="mini-progress-count">[{{ progressCurrent }}/{{ progressTotal }}]</span>
-            <span class="mini-progress-text">{{ progressTitle }} - {{ progressPercentage }}%</span>
+            <span class="mini-progress-text">{{ sentenceCase(progressTitle) }} - {{ progressPercentage }}%</span>
           </div>
           <div class="mini-progress-bar">
             <div class="mini-progress-fill" :style="{ width: progressPercentage + '%' }"></div>
@@ -33,7 +51,7 @@
             <span class="text-container" >{{ utils.capitalizeStr(notification.message) }}</span>
         </div>
 
-        
+
 
         <ActionButton :icon="getAppIcon(bridgeEnabled ? 'brick-cancel' : 'brick')" v-tooltip="bridgeEnabled ? $t('components.infoBar.clickToStopBridge') : $t('components.infoBar.clickToStartBridge')" :buttonFunction="toggleBridge" />
 
@@ -50,9 +68,10 @@
 
 <script setup>
 // imports
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Events } from "@wailsio/runtime";
+import { activityDisplayName, sentenceCase } from '@/lib/activity';
 import emitter from '@/lib/mitt';
 import utils from '@/services/utils';
 
@@ -60,6 +79,8 @@ const { t } = useI18n();
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import { useActivityStore } from '@/stores/activity';
+import ActivityPanel from '@/instances/desktop/components/ActivityPanel.vue';
 import DebugConsole from '@/instances/desktop/components/DebugConsole.vue';
 
 // stores
@@ -74,6 +95,8 @@ const notificationStore = useNotificationStore();
 const platformStore = usePlatformStore();
 const settingsStore = useSettingsStore();
 const updateStore = useUpdateStore();
+const activity = useActivityStore();
+let stopActivityEvents;
 
 // props
 const props = defineProps({
@@ -81,10 +104,16 @@ const props = defineProps({
 });
 
 // refs
-const altKeyActive = ref(false);
 const clusttaVersion = ref('');
 const currentPrompt = ref(null);
 const debugModeEnabled = ref(false);
+const maximized = ref(false);
+const emit = defineEmits(['maximize-changed']);
+watch(maximized, (value) => emit('maximize-changed', value));
+watch(() => activity.expanded || debugModeEnabled.value, (visible) => { if (!visible) maximized.value = false });
+watch(() => activity.expanded, (expanded) => { if (expanded) debugModeEnabled.value = false });
+const currentActivity = computed(() => activity.running[0]);
+const showActivityProgress = computed(() => !!currentActivity.value && !activity.expanded);
 const notification = ref(false);
 const notificationItem = ref(null);
 const timer = ref(null);
@@ -98,54 +127,34 @@ const restrictedMessages = [
 // computed properties
 const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 
-const isOutdated = computed(() => {
-  return updateStore.isUpdateAvailable;
-});
+const isOutdated = computed(() => updateStore.isUpdateAvailable);
 
-const isUpdateRequired = computed(() => {
-  return updateStore.isUpdateRequired;
-});
+const isUpdateRequired = computed(() => updateStore.isUpdateRequired);
 
-const latestVersion = computed(() => {
-  return updateStore.latestVersion;
-});
+const latestVersion = computed(() => updateStore.latestVersion);
 
 const notificationIcon = computed(() => {
   const icons = { error: 'close-circle', warning: 'alert', success: 'check-circle', info: 'info' };
   return icons[notification.value?.type] || 'info';
 });
 
-const isWriteOperation = computed(() => {
-  return notificationStore.progress.operationType === 'write';
-});
+const isWriteOperation = computed(() => notificationStore.progress.operationType === 'write');
 
-const progressCurrent = computed(() => {
-  return notificationStore.progress.current || 0;
-});
+const progressCurrent = computed(() => notificationStore.progress.current || 0);
 
-const progressMinimized = computed(() => {
-  return notificationStore.progress.isMinimized;
-});
+const progressMinimized = computed(() => notificationStore.progress.isMinimized);
 
-const progressPercentage = computed(() => {
-  return Math.round(notificationStore.progress.percentage) || 0;
-});
+const progressPercentage = computed(() => Math.round(notificationStore.progress.percentage) || 0);
 
-const progressRunning = computed(() => {
-  return notificationStore.progress.running;
-});
+const progressRunning = computed(() => notificationStore.progress.running);
 
-const progressTitle = computed(() => {
-  return notificationStore.progress.title || '';
-});
+const progressTitle = computed(() => notificationStore.progress.title || '');
 
 const progressTooltip = computed(() => {
   return t('components.infoBar.clickToRestore', { title: progressTitle.value });
 });
 
-const progressTotal = computed(() => {
-  return notificationStore.progress.total || 0;
-});
+const progressTotal = computed(() => notificationStore.progress.total || 0);
 
 // event handlers
 const handleAddMessage = (payload) => {
@@ -168,9 +177,7 @@ const handleAddPrompt = (payload) => {
   showPrompt(promptData);
 };
 
-const handleClearPrompt = () => {
-  currentPrompt.value = null;
-};
+const handleClearPrompt = () => { currentPrompt.value = null };
 
 // Register event listeners based on platform
 if (platformStore.isWeb) {
@@ -181,11 +188,11 @@ if (platformStore.isWeb) {
   Events.On("add_message", async (message) => {
     handleAddMessage(message.data);
   });
-  
+
   Events.On("add_prompt", async (prompt) => {
     handleAddPrompt(prompt.data);
   });
-  
+
   Events.On("clear_prompt", async () => {
     handleClearPrompt();
   });
@@ -193,46 +200,26 @@ if (platformStore.isWeb) {
 
 // methods
 
-// Clears the current notification.
-const clearNotification = () => {
-  notification.value = null;
-  timer.value = null;
-};
-
-// Clears the current prompt.
-const clearPrompt = () => {
-  currentPrompt.value = null;
-};
-
-// Detects if the Alt modifier key is pressed.
-const detectModifier = (event) => {
-  altKeyActive.value = event.getModifierState('Alt');
-};
-
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Opens the appropriate update destination for the current channel.
-const handleUpdateClick = () => {
-  updateStore.handleUpdateClick();
-};
+const handleUpdateClick = () => { updateStore.handleUpdateClick() };
 
 // Restores the progress indicator from minimized state.
-const restoreProgress = () => {
-  notificationStore.restoreProgress();
-};
+const restoreProgress = () => { notificationStore.restoreProgress() };
 
 // Displays a notification message with auto-dismiss timer.
 const showMessage = async (data) => {
   const messageText = data.message?.toLowerCase() || '';
-  const isRestricted = restrictedMessages.some(restricted => 
+  const isRestricted = restrictedMessages.some(restricted =>
     messageText.includes(restricted.toLowerCase())
   );
-  
+
   if (isRestricted) {
     return;
   }
-  
+
   notification.value = data;
   clearTimeout(timer.value);
   timer.value = setTimeout(() => {
@@ -241,14 +228,10 @@ const showMessage = async (data) => {
 };
 
 // Displays a prompt message.
-const showPrompt = async (data) => {
-  currentPrompt.value = data;
-};
+const showPrompt = async (data) => { currentPrompt.value = data };
 
 // Stops the notification auto-dismiss timer.
-const stopTimer = () => {
-  clearTimeout(timer.value);
-};
+const stopTimer = () => { clearTimeout(timer.value) };
 
 // Toggles the bridge HTTP server on or off.
 const toggleBridge = async () => {
@@ -259,25 +242,34 @@ const toggleBridge = async () => {
   }
 };
 
-// Toggles the debug console visibility.
+// Toggles the Activity panel.
+const toggleActivity = () => {
+  if (activity.expanded) {
+    activity.expanded = false;
+    return;
+  }
+  debugModeEnabled.value = false;
+  notificationStore.minimizeProgress();
+  activity.open();
+};
+
 const toggleDebugConsole = () => {
+  activity.expanded = false;
   debugModeEnabled.value = !debugModeEnabled.value;
 };
 
 // lifecycle hooks
 onMounted(async () => {
+  if (!platformStore.isWeb) stopActivityEvents = await activity.initialize();
   await updateStore.initialize();
   clusttaVersion.value = updateStore.currentVersion || await utils.getRawClusttaVersion();
   updateStore.startAutoCheck();
   await settingsStore.initializeBridge();
-  window.addEventListener('keydown', detectModifier);
-  window.addEventListener('keyup', detectModifier);
 });
 
 onBeforeUnmount(() => {
+  stopActivityEvents?.();
   updateStore.stopAutoCheck();
-  window.removeEventListener('keydown', detectModifier);
-  window.removeEventListener('keyup', detectModifier);
 });
 
 
@@ -286,18 +278,58 @@ onBeforeUnmount(() => {
 <style scoped>
 @import "@/assets/desktop.css";
 
+.activity-toggle {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  background: transparent;
+  color: var(--text);
+  border: 0;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.activity-toggle .small-icons, .activity-toggle .mini-progress-count {
+  flex-shrink: 0;
+}
+.activity-toggle .mini-progress-text {
+  font-weight: 600;
+  max-width: 240px;
+}
+.activity-toggle .mini-progress-bar {
+  width: 100px;
+}
+.activity-toggle .mini-progress-fill {
+  display: block;
+}
+
 .info-bar-wrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
   background-color: var(--surface-3);
   box-sizing: border-box;
-  z-index: 99999;
+  /* z-index: 9; */
 }
 
-.debug-console-container {
+.expandable-panel-container {
   padding: .4rem ;
   padding-bottom: 0;
+}
+
+.info-bar-maximized {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  border-radius: 24px 24px 0px 0px;
+}
+.info-bar-maximized .expandable-panel-container {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.info-bar-root {
+  flex-shrink: 0;
 }
 
 .info-bar-root{

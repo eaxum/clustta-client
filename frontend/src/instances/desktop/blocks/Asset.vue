@@ -136,7 +136,11 @@
           <!-- File state section (absolute positioned, always visible) -->
           <div v-if="!isEditing" class="asset-item-grid-file-state-absolute">
 
-            <div v-if="loadingAssetState" class="file-state">
+            <div v-if="isPending" class="file-state">
+              <ActionButton class="pending-clock" :icon="getAppIcon('clock')"
+                :isInactive="true" :allowDeactivate="true" v-tooltip="$t('activity.pending')" />
+            </div>
+            <div v-else-if="loadingAssetState" class="file-state">
               <ActionButton :isLoading="true" :icon="getAppIcon('loading')"  
                 v-tooltip="$t('common.loading')" />
             </div>
@@ -296,7 +300,11 @@
 
           <!-- asset actions -->
           <div v-if="!isEditing && !isUntracked && !statusMenuDisplayed" class="asset-item-actions">
-            <div v-if="loadingAssetState" class="file-state">
+            <div v-if="isPending" class="file-state">
+              <ActionButton class="pending-clock" :icon="getAppIcon('clock')"
+                :isInactive="true" :allowDeactivate="true" v-tooltip="$t('activity.pending')" />
+            </div>
+            <div v-else-if="loadingAssetState" class="file-state">
                 <ActionButton :isLoading="true" :icon="getAppIcon('loading')" 
                   v-tooltip="$t('common.loading')" />
             </div>
@@ -388,6 +396,7 @@ import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
 const browserTreeStore = useBrowserTreeStore();
+const isPending = computed(() => browserTreeStore.isPending(projectStore.activeProject?.uri, { id: props.asset.id, type: 'asset' }));
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();

@@ -106,7 +106,7 @@ export const useNotificationStore = defineStore("notifications", {
       }
       this.resetProgress();
       
-      if (errorMesage === "cancelled") {
+      if (errorMesage === "cancelled" || errorMesage === "context canceled") {
         return;
       }
 

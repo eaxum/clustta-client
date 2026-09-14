@@ -43,7 +43,9 @@
         </div>
         
         <div v-if="!isEditing" class="collection-item-grid-status">
-          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
+          <ActionButton v-if="isPending" class="pending-clock" :icon="getAppIcon('clock')"
+            :isInactive="true" :allowDeactivate="true" v-tooltip="$t('activity.pending')" />
+          <ActionButton v-else-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else-if="!isUntracked">
             <ActionButton v-if="collectionStateFlags.has_modified && canCheckpointCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
@@ -175,7 +177,9 @@
         </div>
         <!-- Optimized collection-item-actions using GetCollectionStateFlags -->
         <div v-if="!isEditing && !isUntracked" class="collection-item-actions">
-          <ActionButton v-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
+          <ActionButton v-if="isPending" class="pending-clock" :icon="getAppIcon('clock')"
+            :isInactive="true" :allowDeactivate="true" v-tooltip="$t('activity.pending')" />
+          <ActionButton v-else-if="loadingCollectionState" :isLoading="true" :icon="getAppIcon('loading')" v-tooltip="$t('blocks.loadingState')" />
           <template v-else>
             <ActionButton v-if="collectionStateFlags.has_modified && !(collection.id in stage.expandedCollections) && canCheckpointCollection"
               @click="prepAllCheckpointModal(props.collection.collection_path)" 
@@ -257,6 +261,7 @@ import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
 const browserTreeStore = useBrowserTreeStore();
+const isPending = computed(() => browserTreeStore.isPending(projectStore.activeProject?.uri, { id: props.collection.id, collection_path: props.collection.collection_path, type: 'collection' }));
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const dndStore = useDndStore();

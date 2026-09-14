@@ -1423,7 +1423,7 @@ func DownloadCheckpoint(ctx context.Context, projectPath, remoteUrl string, chec
 	}
 	tx.Rollback()
 
-	if len(missingChunks) > 0 {
+	if len(allChunks) > 0 {
 		err = chunk_service.PullStreamChunks(ctx, projectPath, remoteUrl, missingChunks, allChunks, totalSize, callback)
 		if err != nil {
 			return err
@@ -1460,7 +1460,7 @@ func DownloadCheckpoints(ctx context.Context, projectPath, remoteUrl string, che
 	}
 	tx.Rollback()
 
-	if len(missingChunks) > 0 {
+	if len(allChunks) > 0 {
 		err = chunk_service.PullStreamChunks(ctx, projectPath, remoteUrl, missingChunks, allChunks, totalSize, callback)
 		if err != nil {
 			return err

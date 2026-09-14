@@ -8,6 +8,7 @@ import (
 	"clustta/internal/settings"
 	"clustta/internal/system_icon"
 	"clustta/internal/system_thumbnail"
+	"clustta/internal/transfer"
 	"clustta/internal/utils"
 	"clustta/output"
 	"compress/gzip"
@@ -375,6 +376,11 @@ func (f *FSService) FileHash(path string) (string, error) {
 
 // DeleteFolder removes a folder and all its contents recursively.
 func (f *FSService) DeleteFolder(path string) error {
+	release, err := transfer.Removal(path)
+	if err != nil {
+		return err
+	}
+	defer release()
 	if err := validatePath(path); err != nil {
 		return err
 	}
@@ -383,6 +389,11 @@ func (f *FSService) DeleteFolder(path string) error {
 
 // DeleteFile removes a single file from the file system.
 func (f *FSService) DeleteFile(path string) error {
+	release, err := transfer.Removal(path)
+	if err != nil {
+		return err
+	}
+	defer release()
 	if err := validatePath(path); err != nil {
 		return err
 	}

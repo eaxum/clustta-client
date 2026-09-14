@@ -180,25 +180,13 @@ const openCheckpointTagMenu = (event) => {
     menu.showContextMenu(event, 'checkpointTagMenu', true);
 };
 
-const downloadCheckpoint = (checkpointId) => {
-    const callback = (progress) => {
-        notificationStore.updateProgress(progress);
+const downloadCheckpoint = async (checkpointId) => {
+    try {
+        await SyncService.DownloadCheckpoint(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, checkpointId);
+        emit('refreshCheckpoints');
+    } catch (error) {
+        notificationStore.errorNotification(t('components.checkpointItem.errorDownloading'), error);
     }
-    notificationStore.cancleFunction = SyncService.CancelSync
-    notificationStore.canCancel = true
-    SyncService.DownloadCheckpoint(projectStore.activeProject.uri, projectStore.getActiveProjectUrl, checkpointId)
-        .then((response) => {
-            emit('refreshCheckpoints');
-        })
-        .catch((error) => {
-            notificationStore.resetProgress()
-            notificationStore.addNotification(
-                t('components.checkpointItem.errorDownloading'),
-                error.message,
-                "error",
-                false
-            )
-        });
 };
 
 const revertToVersion = (id, checkpointId) => {

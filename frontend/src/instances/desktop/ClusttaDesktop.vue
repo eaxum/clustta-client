@@ -6,13 +6,13 @@
 		<ModalView v-if="modals.activeModal" />
 		<div class="desktop-container">
 			<div ref="desktopBody" id="desktop-body" class="desktop-body tray-root">
-				<SidePane v-if="panes.enabledPanes.includes(stage.selectedStage)" :isWideScreen="isWideScreen" />
+				<SidePane v-if="panes.enabledPanes.includes(stage.selectedStage)" v-show="!panelMaximized" :isWideScreen="isWideScreen" />
 				<div class="active-project">
-					<HeaderBar v-if="stage.activeStage !== 'projects'" />
-					<div ref="mainAreaContainer" class="main-area">
+					<HeaderBar v-if="stage.activeStage !== 'projects'" v-show="!panelMaximized" />
+					<div v-show="!panelMaximized" ref="mainAreaContainer" class="main-area">
 						<CenterStage />
 					</div>
-					<InfoBar v-if="!platformStore.isWeb" />
+					<InfoBar v-if="!platformStore.isWeb" @maximize-changed="panelMaximized = $event" />
 				</div>
 			</div>
 		</div>
@@ -46,6 +46,7 @@ import { Events } from "@wailsio/runtime";
 // refs
 const desktopBody = ref(null);
 const isMaximized = ref(false);
+const panelMaximized = ref(false);
 const mainAreaContainer = ref(null);
 // states/stores
 const menu = useMenu();

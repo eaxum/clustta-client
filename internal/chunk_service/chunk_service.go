@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
+	"clustta/internal/transfer"
 	"clustta/internal/utils"
 	"context"
 	"crypto/sha256"
@@ -23,6 +24,28 @@ import (
 	kzstd "github.com/klauspost/compress/zstd"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+const maxDownloadRequests = 8
+
+var downloadSlots = make(chan struct{}, maxDownloadRequests)
+
+type downloadIdentityKey struct{}
+
+func DownloadContext(ctx context.Context) context.Context {
+	request := &http.Request{Header: make(http.Header)}
+	auth_service.AttachBearerToken(request)
+	return context.WithValue(ctx, downloadIdentityKey{}, request.Header.Get("Authorization"))
+}
+
+func authorizeDownload(ctx context.Context, request *http.Request) {
+	if authorization, ok := ctx.Value(downloadIdentityKey{}).(string); ok {
+		if authorization != "" {
+			request.Header.Set("Authorization", authorization)
+		}
+		return
+	}
+	auth_service.AttachBearerToken(request)
+}
 
 // idleTimeoutConn wraps a net.Conn and resets the read deadline on every Read call.
 // If no data arrives within the idle duration, the connection is closed.
@@ -309,7 +332,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 				return err
 			}
 
-			req, err := http.NewRequest("GET", dataUrl, bytes.NewBuffer(jsonData))
+			req, err := http.NewRequestWithContext(ctx, "GET", dataUrl, bytes.NewBuffer(jsonData))
 			if err != nil {
 				return err
 			}
@@ -377,143 +400,122 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 	return nil
 }
 
-func processTLVStream(ctx context.Context, projectPath string, r io.Reader, downloadedSize, totalSize int, chunksCountMap map[string]int, callback func(int, int, string, string)) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
-	}
+const streamBatchSize = 50
+const streamBatchBytes = 8 * 1024 * 1024
+const maxStreamChunkSize = 16777215
 
-	dbConn, err := utils.OpenDb(projectPath)
+type receivedChunk struct {
+	hash string
+	data []byte
+	size int
+}
+
+func storeReceivedChunks(ctx context.Context, projectPath string, chunks []receivedChunk) error {
+	if len(chunks) == 0 {
+		return nil
+	}
+	release, err := transfer.Write(ctx, projectPath)
 	if err != nil {
 		return err
 	}
-	defer dbConn.Close()
+	defer release()
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	for _, chunk := range chunks {
+		if _, err = tx.Exec("INSERT INTO chunk (hash, data, size) VALUES (?, ?, ?) ON CONFLICT(hash) DO NOTHING", chunk.hash, chunk.data, chunk.size); err != nil {
+			return err
+		}
+	}
+	if err = tx.Commit(); err != nil {
+		return err
+	}
+	return nil
+}
 
+func processTLVStream(ctx context.Context, projectPath string, r io.Reader, downloadedSize, totalSize int, chunksCountMap map[string]int, callback func(int, int, string, string)) error {
 	decoder, err := kzstd.NewReader(nil)
 	if err != nil {
 		return err
 	}
 	defer decoder.Close()
-	seenChunks := make(map[string]bool)
-
+	batch := make([]receivedChunk, 0, streamBatchSize)
+	batchBytes := 0
+	seen := map[string]bool{}
 	savedSize := downloadedSize
-
-	// Batch commits for better SQLite performance.
-	const batchSize = 50
-	pendingCount := 0
-
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return err
-	}
-
-	// commitBatch commits the current transaction and starts a new one.
-	commitBatch := func() error {
-		if err := tx.Commit(); err != nil {
-			return fmt.Errorf("error writing data: %w", err)
+	flush := func() error {
+		if err := storeReceivedChunks(ctx, projectPath, batch); err != nil {
+			return err
 		}
-		pendingCount = 0
-		newTx, err := dbConn.Beginx()
+		for _, chunk := range batch {
+			downloadedSize += chunk.size * chunksCountMap[chunk.hash]
+			savedSize += chunk.size*chunksCountMap[chunk.hash] - len(chunk.data)
+		}
+		batch = batch[:0]
+		batchBytes = 0
+		reportDownloadProgress(downloadedSize, totalSize, savedSize, callback)
+		return nil
+	}
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		tag := make([]byte, sha256.Size)
+		if _, err := io.ReadFull(r, tag); err == io.EOF {
+			break
+		} else if err != nil {
+			return fmt.Errorf("reading chunk hash: %w", err)
+		}
+		lengthBytes := make([]byte, 4)
+		if _, err := io.ReadFull(r, lengthBytes); err != nil {
+			return err
+		}
+		length := binary.BigEndian.Uint32(lengthBytes)
+		if length == 0 || length > maxStreamChunkSize {
+			return fmt.Errorf("invalid chunk length: %d", length)
+		}
+		data := make([]byte, length)
+		if _, err := io.ReadFull(r, data); err != nil {
+			return err
+		}
+		hash := hex.EncodeToString(tag)
+		if seen[hash] {
+			continue
+		}
+		if _, requested := chunksCountMap[hash]; !requested {
+			return errors.New("server returned an unrequested chunk")
+		}
+		decoded, err := decoder.DecodeAll(data, nil)
 		if err != nil {
 			return err
 		}
-		tx = newTx
-		return nil
-	}
-
-	defer tx.Rollback()
-
-	for {
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-		// Read the TLV tag (hash, 32 bytes)
-		tag := make([]byte, 32)
-		_, err = io.ReadFull(r, tag)
-		if err == io.EOF {
-			break // End of stream
-		} else if err != nil {
-			return fmt.Errorf("error reading tag: %w", err)
-		}
-
-		// Read the TLV length (4 bytes, uint32)
-		lengthBuf := make([]byte, 4)
-		_, err = io.ReadFull(r, lengthBuf)
-		if err != nil {
-			return fmt.Errorf("error reading length: %w", err)
-		}
-		length := binary.BigEndian.Uint32(lengthBuf) // Use the full 4 bytes for length
-
-		// Validate the length
-		if length == 0 || length > 16777215 { // 3-byte max value
-			return fmt.Errorf("invalid length: %d", length)
-		}
-
-		// Read the TLV value (chunk data)
-		compressedValue := make([]byte, length)
-		_, err = io.ReadFull(r, compressedValue)
-		if err != nil {
-			return fmt.Errorf("error reading value: %w", err)
-		}
-
-		if ChunkExists(hex.EncodeToString(tag), tx, seenChunks) {
-			continue
-		}
-
-		decompressedValue, err := decoder.DecodeAll(compressedValue, nil)
-		if err != nil {
-			return fmt.Errorf("error decoding chunk: %w", err)
-		}
-
-		hash := sha256.Sum256(decompressedValue)
-		if !bytes.Equal(hash[:], tag) {
+		checksum := sha256.Sum256(decoded)
+		if !bytes.Equal(checksum[:], tag) {
 			return errors.New("invalid chunk data")
 		}
-		compressedSize := len(compressedValue)
-		size := len(decompressedValue)
-		// Store chunk in SQLite
-		_, err = tx.Exec("INSERT INTO chunk (hash, data, size) VALUES (?, ?, ?)",
-			hex.EncodeToString(tag),
-			compressedValue,
-			size,
-		)
-		if err != nil {
-			return fmt.Errorf("error inserting into DB: %w", err)
-		}
-
-		pendingCount++
-		if pendingCount >= batchSize {
-			if err := commitBatch(); err != nil {
+		seen[hash] = true
+		batch = append(batch, receivedChunk{hash, data, len(decoded)})
+		batchBytes += len(data)
+		if len(batch) == streamBatchSize || batchBytes >= streamBatchBytes {
+			if err := flush(); err != nil {
 				return err
 			}
 		}
-
-		downloadedSize += size * chunksCountMap[hex.EncodeToString(tag)]
-		savedSize += size - compressedSize
-		if chunksCountMap[hex.EncodeToString(tag)] > 1 {
-			savedSize += size * (chunksCountMap[hex.EncodeToString(tag)] - 1)
-		}
-		message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
-		extraMessage := ""
-
-		dataSavedPercentage := 0.0
-		if totalSize > 0 {
-			dataSavedPercentage = (float64(savedSize) / float64(downloadedSize)) * 100
-		}
-		if savedSize > 0 {
-			extraMessage = fmt.Sprintf("Data saved: %s (%.2f%%)", utils.BytesToHumanReadable(savedSize), dataSavedPercentage)
-		}
-
-		callback(downloadedSize, totalSize, message, extraMessage)
 	}
-
-	// Commit any remaining pending inserts.
-	if pendingCount > 0 {
-		if err := tx.Commit(); err != nil {
-			return fmt.Errorf("error writing data: %w", err)
-		}
+	if err := flush(); err != nil {
+		return err
 	}
-
-	return nil
+	if len(seen) != len(chunksCountMap) {
+		return errors.New("stream ended before all requested chunks arrived")
+	}
+	return ctx.Err()
 }
 
 func ProcessDownloadedChunksProgress(ctx context.Context, projectPath, remoteUrl string, missingChunkHashes []string, allChunkHashes []string, totalSize int, callback func(int, int, string, string)) (int, int, map[string]int, error) {
@@ -555,23 +557,17 @@ func ProcessDownloadedChunksProgress(ctx context.Context, projectPath, remoteUrl
 		}
 		downloadedSize += size * count
 
-		message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
-		extraMessage := ""
-
-		// dataSavedPercentage := 0.0
-		// if totalSize > 0 {
-		// 	dataSavedPercentage = (float64(downloadedSize) / float64(totalSize)) * 100
-		// }
-		if downloadedSize > 0 {
-			extraMessage = fmt.Sprintf("Data saved: %s (%.2f%%)", utils.BytesToHumanReadable(downloadedSize), 100.00)
-		}
-		callback(downloadedSize, totalSize, message, extraMessage)
+		reportDownloadProgress(downloadedSize, totalSize, downloadedSize, callback)
 	}
 
 	return downloadedSize, totalSize, chunksCountMap, nil
 }
 
 func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missingChunkHashes []string, allChunkHashes []string, totalSize int, callback func(int, int, string, string)) error {
+	if len(missingChunkHashes) == 0 {
+		_, _, _, err := ProcessDownloadedChunksProgress(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
+		return err
+	}
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -601,12 +597,18 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 			return err
 		}
 
-		req, err := http.NewRequest("GET", dataUrl, bytes.NewBuffer(jsonData))
+		req, err := http.NewRequestWithContext(ctx, "GET", dataUrl, bytes.NewBuffer(jsonData))
 		if err != nil {
 			return err
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-		auth_service.AttachBearerToken(req)
+		authorizeDownload(ctx, req)
+		select {
+		case downloadSlots <- struct{}{}:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		defer func() { <-downloadSlots }()
 		response, err := client.Do(req)
 		if err != nil {
 			return err
@@ -616,9 +618,13 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 		responseCode := response.StatusCode
 		if responseCode == 200 {
 			// Process the TLV stream
-			err = processTLVStream(ctx, projectPath, response.Body, downloadedSize, totalSize, chunksCountMap, callback)
+			requestedCounts := make(map[string]int, len(missingChunkHashes))
+			for _, hash := range missingChunkHashes {
+				requestedCounts[hash] = chunksCountMap[hash]
+			}
+			err = processTLVStream(ctx, projectPath, response.Body, downloadedSize, totalSize, requestedCounts, callback)
 			if err != nil {
-				return fmt.Errorf("error processing stream: %s", err.Error())
+				return fmt.Errorf("error processing stream: %w", err)
 			}
 		} else if responseCode == 400 {
 			body, err := io.ReadAll(response.Body)
@@ -639,6 +645,8 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 // PullChunksPresigned fetches presigned URLs from the server and downloads
 // chunks directly from cloud storage with bounded concurrency.
 func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, missingChunkHashes []string, allChunkHashes []string, totalSize int, callback func(int, int, string, string)) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 	downloadedSize, _, chunksCountMap, err := ProcessDownloadedChunksProgress(ctx, projectPath, remoteUrl, missingChunkHashes, allChunkHashes, totalSize, callback)
 	if err != nil {
 		return err
@@ -657,7 +665,7 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-	auth_service.AttachBearerToken(req)
+	authorizeDownload(ctx, req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
 	resp, err := client.Do(req)
@@ -678,6 +686,11 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 	if err != nil {
 		return fmt.Errorf("failed to decode chunk URLs: %w", err)
 	}
+	for _, hash := range missingChunkHashes {
+		if urlsResponse.URLs[hash] == "" {
+			return fmt.Errorf("missing download URL for chunk %s", hash)
+		}
+	}
 
 	type chunkResult struct {
 		hash string
@@ -685,46 +698,56 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 		err  error
 	}
 
-	const maxConcurrency = 8
-	resultsCh := make(chan chunkResult, len(urlsResponse.URLs))
-	sem := make(chan struct{}, maxConcurrency)
+	resultsCh := make(chan chunkResult, maxDownloadRequests)
+	sendResult := func(result chunkResult) {
+		select {
+		case resultsCh <- result:
+		case <-ctx.Done():
+		}
+	}
 	var wg sync.WaitGroup
+	defer func() { cancel(); wg.Wait() }()
 
-	for hash, url := range urlsResponse.URLs {
+	for _, hash := range missingChunkHashes {
+		url := urlsResponse.URLs[hash]
 		wg.Add(1)
 		go func(h, u string) {
 			defer wg.Done()
-			sem <- struct{}{}
-			defer func() { <-sem }()
+			select {
+			case downloadSlots <- struct{}{}:
+			case <-ctx.Done():
+				return
+			}
+			defer func() { <-downloadSlots }()
 
 			if ctx.Err() != nil {
-				resultsCh <- chunkResult{hash: h, err: ctx.Err()}
+				sendResult(chunkResult{hash: h, err: ctx.Err()})
 				return
 			}
 
 			dlReq, err := http.NewRequestWithContext(ctx, "GET", u, nil)
 			if err != nil {
-				resultsCh <- chunkResult{hash: h, err: err}
+				sendResult(chunkResult{hash: h, err: err})
 				return
 			}
 			dlResp, err := http.DefaultClient.Do(dlReq)
 			if err != nil {
-				resultsCh <- chunkResult{hash: h, err: err}
+				sendResult(chunkResult{hash: h, err: err})
 				return
 			}
 			defer dlResp.Body.Close()
 
 			if dlResp.StatusCode != 200 {
-				resultsCh <- chunkResult{hash: h, err: fmt.Errorf("download failed for chunk %s: status %d", h, dlResp.StatusCode)}
+				sendResult(chunkResult{hash: h, err: fmt.Errorf("download failed for chunk %s: status %d", h, dlResp.StatusCode)})
 				return
 			}
 
 			chunkData, err := io.ReadAll(dlResp.Body)
 			if err != nil {
-				resultsCh <- chunkResult{hash: h, err: err}
+				sendResult(chunkResult{hash: h, err: err})
 				return
 			}
-			resultsCh <- chunkResult{hash: h, data: chunkData}
+			sendResult(chunkResult{hash: h, data: chunkData})
 		}(hash, url)
 	}
 
@@ -733,19 +756,13 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 		close(resultsCh)
 	}()
 
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return err
-	}
-	defer dbConn.Close()
-
 	decoder, err := kzstd.NewReader(nil)
 	if err != nil {
 		return err
 	}
 	defer decoder.Close()
 
-	savedSize := 0
+	savedSize := downloadedSize
 	for result := range resultsCh {
 		if result.err != nil {
 			return result.err
@@ -766,21 +783,8 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 			return fmt.Errorf("hash mismatch for chunk %s", result.hash)
 		}
 
-		tx, err := dbConn.Beginx()
-		if err != nil {
+		if err := storeReceivedChunks(ctx, projectPath, []receivedChunk{{result.hash, compressedData, len(decompressedData)}}); err != nil {
 			return err
-		}
-
-		_, err = tx.Exec("INSERT INTO chunk (hash, data, size) VALUES (?, ?, ?)",
-			result.hash, compressedData, len(decompressedData))
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("error inserting chunk: %w", err)
-		}
-
-		err = tx.Commit()
-		if err != nil {
-			return fmt.Errorf("error writing chunk: %w", err)
 		}
 
 		compressedSize := len(compressedData)
@@ -791,19 +795,10 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 			savedSize += size * (chunksCountMap[result.hash] - 1)
 		}
 
-		message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(downloadedSize), utils.BytesToHumanReadable(totalSize))
-		extraMessage := ""
-		dataSavedPercentage := 0.0
-		if totalSize > 0 {
-			dataSavedPercentage = (float64(savedSize) / float64(downloadedSize)) * 100
-		}
-		if savedSize > 0 {
-			extraMessage = fmt.Sprintf("Data saved: %s (%.2f%%)", utils.BytesToHumanReadable(savedSize), dataSavedPercentage)
-		}
-		callback(downloadedSize, totalSize, message, extraMessage)
+		reportDownloadProgress(downloadedSize, totalSize, savedSize, callback)
 	}
 
-	return nil
+	return ctx.Err()
 }
 
 // PushChunksPresigned uploads chunks directly to cloud storage using presigned PUT URLs.
@@ -1318,4 +1313,15 @@ func PreloadChunkExistence(tx *sqlx.Tx, hashes []string, seenChunks map[string]b
 		}
 	}
 	return nil
+}
+
+func reportDownloadProgress(available, total, saved int, callback func(int, int, string, string)) {
+	saved = max(saved, 0)
+	percentage := 0.0
+	if available > 0 {
+		percentage = float64(saved) / float64(available) * 100
+	}
+	message := fmt.Sprintf("Receiving %s/%s", utils.BytesToHumanReadable(available), utils.BytesToHumanReadable(total))
+	extra := fmt.Sprintf("Data saved: %s (%.2f%%)", utils.BytesToHumanReadable(saved), percentage)
+	callback(available, total, message, extra)
 }

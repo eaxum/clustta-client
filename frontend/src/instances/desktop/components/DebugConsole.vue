@@ -1,22 +1,15 @@
 <template>
-  <div class="debug-console">
-    <div class="debug-console-header">
-      <div class="debug-console-title">
-        <img class="small-icons" :src="getAppIcon('console')">
-        <span>{{ $t('components.debugConsole.title') }}</span>
-        <span class="log-count">({{ searchQuery ? `${filteredLogs.length}/${logs.length}` : logs.length }})</span>
-      </div>
-      <div class="debug-console-actions">
-        <SearchBar v-model="searchQuery" :placeholder="$t('components.debugConsole.filterPlaceholder')" />
-        <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('components.debugConsole.copyLogs')" :buttonFunction="copyLogs" />
-        <ActionButton :icon="getAppIcon('file-search')" v-tooltip="$t('components.debugConsole.openLogsFolder')" :buttonFunction="openLogsFolder" />
-        <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="$t('components.debugConsole.submitDiagnostics')" :buttonFunction="openDiagnosticsModal" />
-        <ActionButton :icon="getAppIcon('broom')" v-tooltip="$t('components.debugConsole.clear')" :buttonFunction="clearLogs" />
-        <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('components.debugConsole.close')" :buttonFunction="closeConsole" />
-      </div>
-    </div>
-
-    <div ref="logsContainer" class="debug-console-logs">
+  <div class="debug-console expandable-panel" :class="{ 'panel-maximized': maximized }">
+    <ExpandablePanelHeader closeIcon="chevron-down" v-model="searchQuery" :title="$t('components.debugConsole.title')" icon="console"
+      :count="searchQuery ? `${filteredLogs.length}/${logs.length}` : logs.length"
+      :filterPlaceholder="$t('components.debugConsole.filterPlaceholder')" :maximized="maximized"
+      @toggle-maximize="$emit('toggle-maximize')" @close="closeConsole">
+      <ActionButton :icon="getAppIcon('copy')" v-tooltip="$t('components.debugConsole.copyLogs')" :buttonFunction="copyLogs" />
+      <ActionButton :icon="getAppIcon('file-search')" v-tooltip="$t('components.debugConsole.openLogsFolder')" :buttonFunction="openLogsFolder" />
+      <ActionButton :icon="getAppIcon('megaphone')" v-tooltip="$t('components.debugConsole.submitDiagnostics')" :buttonFunction="openDiagnosticsModal" />
+      <ActionButton :icon="getAppIcon('broom')" v-tooltip="$t('components.debugConsole.clear')" :buttonFunction="clearLogs" />
+    </ExpandablePanelHeader>
+    <div ref="logsContainer" class="debug-console-logs app-scrollbar">
       <div v-for="(log, index) in filteredLogs" :key="index" class="log-entry" :class="'log-' + log.type">
         <span class="log-time">{{ log.time }}</span>
         <span class="log-type">{{ log.type.toUpperCase() }}</span>
@@ -37,7 +30,7 @@ import { Events } from "@wailsio/runtime";
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import SearchBar from '@/instances/desktop/components/SearchBar.vue';
+import ExpandablePanelHeader from '@/instances/desktop/components/ExpandablePanelHeader.vue';
 
 // services
 import { FSService, SettingsService } from '@/services';
@@ -53,7 +46,8 @@ const notificationStore = useNotificationStore();
 
 const { t } = useI18n();
 
-const emit = defineEmits(['close']);
+defineProps({ maximized: { type: Boolean, default: false } });
+const emit = defineEmits(['close', 'toggle-maximize']);
 
 // refs
 const logs = ref([]);
@@ -337,60 +331,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.debug-console {
-  position: relative;
-  width: 100%;
-  height: 250px;
-  background-color: var(--surface-1);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  color: var(--text);
-  box-sizing: border-box;
-  border-radius: var(--large-radius);
-  /* padding: 1rem; */
-}
 
-.debug-console-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem;
-  background-color: var(--bg);
-  user-select: none;
-  border-radius: var(--normal-radius);
-
-}
-
-.debug-console-title {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  font-size: 13px;
-}
-
-.log-count {
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-.debug-console-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.debug-console-actions :deep(.searchbar-container) {
-  height: 28px;
-  min-height: 28px;
-  width: 180px;
-}
-
-.debug-console-actions :deep(.searchbar-input) {
-  font-size: 12px;
-  padding: 6px 8px;
-}
 
 .debug-console-logs {
   flex: 1;
@@ -398,19 +339,6 @@ onBeforeUnmount(() => {
   padding: 0.5rem;
   font-family: 'Consolas', 'Monaco', monospace;
   font-size: 12px;
-}
-
-.debug-console-logs::-webkit-scrollbar {
-  width: 4px;
-}
-
-.debug-console-logs::-webkit-scrollbar-thumb {
-  border-radius: var(--small-radius);
-  background-color: var(--surface-4);
-}
-
-.debug-console-logs::-webkit-scrollbar-track {
-  border-radius: var(--small-radius);
 }
 
 .log-entry {
@@ -426,10 +354,20 @@ onBeforeUnmount(() => {
   background-color: var(--hover);
 }
 
-.log-log { border-left: 2px solid var(--text-muted); }
-.log-info { border-left: 2px solid var(--info); }
-.log-warn { border-left: 2px solid var(--alert); background-color: rgba(255, 193, 7, 0.1); }
-.log-error { border-left: 2px solid var(--red); background-color: rgba(220, 53, 69, 0.1); }
+.log-log {
+  border-left: 2px solid var(--text-muted);
+}
+.log-info {
+  border-left: 2px solid var(--info);
+}
+.log-warn {
+  border-left: 2px solid var(--alert);
+  background-color: rgba(255, 193, 7, 0.1);
+}
+.log-error {
+  border-left: 2px solid var(--red);
+  background-color: rgba(220, 53, 69, 0.1);
+}
 
 .log-time {
   color: var(--text-muted);
@@ -443,10 +381,18 @@ onBeforeUnmount(() => {
   min-width: 45px;
 }
 
-.log-log .log-type { color: var(--text-muted); }
-.log-info .log-type { color: var(--info); }
-.log-warn .log-type { color: var(--alert); }
-.log-error .log-type { color: var(--red); }
+.log-log .log-type {
+  color: var(--text-muted);
+}
+.log-info .log-type {
+  color: var(--info);
+}
+.log-warn .log-type {
+  color: var(--alert);
+}
+.log-error .log-type {
+  color: var(--red);
+}
 
 .log-content {
   flex: 1;

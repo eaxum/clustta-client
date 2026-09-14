@@ -1,15 +1,17 @@
 <template>
   <div class="auth-guard-wrapper">
     <TitleBar v-if="!platformStore.isWeb" :titleOnly="true" />
-    <div class="auth-guard-root">
+    <div v-show="!panelMaximized" class="auth-guard-root">
       <LanguageSwitcher />
       <router-view />
     </div>
-    <InfoBar v-if="!platformStore.isWeb" />
+    <InfoBar v-if="!platformStore.isWeb" @maximize-changed="panelMaximized = $event" />
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
+const panelMaximized = ref(false);
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 import LanguageSwitcher from '@/instances/common/components/LanguageSwitcher.vue'
 import TitleBar from '@/instances/desktop/components/TitleBar.vue'

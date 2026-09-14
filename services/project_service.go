@@ -9,6 +9,7 @@ import (
 	"clustta/internal/repository/models"
 	"clustta/internal/repository/sync_service"
 	"clustta/internal/settings"
+	"clustta/internal/transfer"
 	"clustta/internal/utils"
 	"clustta/output"
 	"context"
@@ -339,6 +340,12 @@ func (p *ProjectService) ProjectsInfo(projectPaths []string) ([]repository.Proje
 }
 
 func (p *ProjectService) Purge(projectPath string) error {
+	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
+	if admissionErr != nil {
+		return admissionErr
+	}
+	defer releaseTransfer()
+
 	app := application.Get()
 
 	if !utils.FileExists(projectPath) {

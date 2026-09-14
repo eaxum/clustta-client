@@ -151,3 +151,7 @@ missing chunks and restores the exact checkpoint IDs in dependency-first order.
 
 Job states are `queued`, `running`, `cancelling`, `cancelled`, `succeeded`, and
 `failed`. Checkpoint and status jobs are not cancellable after submission.
+
+## Desktop transfer coordination
+
+Desktop checkpoint downloads and asset/collection fetches now have independent Activity IDs and cancellation. Existing Bridge job contracts are unchanged. Bridge build/revert and checkpoint/sync service calls use project admission and return a busy error when they conflict with active desktop transfers. See [Activity transfers](activity-transfers.md) for scope and verification.

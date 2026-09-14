@@ -6,7 +6,6 @@ import (
 	"clustta/internal/utils"
 	"clustta/output"
 	"context"
-	"log"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
@@ -50,8 +49,19 @@ func getContext() context.Context {
 	return ctx
 }
 
-// clearChunkCacheIfEnabled removes cached chunks after a completed transfer.
-func clearChunkCacheIfEnabled(projectPath string, dbConn *sqlx.DB) error {
+func clearChunkCache(projectPath string, dbConn *sqlx.DB) error {
+	return reclaimChunkCache(projectPath, dbConn, func() {
+		application.Get().Event.Emit("progress-update", output.ProgressReport{
+			Title:      "Reclaiming archive space",
+			Message:    "Compacting project archive",
+			Percentage: 99,
+			Current:    1,
+			Total:      1,
+		})
+	})
+}
+
+func reclaimChunkCache(projectPath string, dbConn *sqlx.DB, onCompaction func()) error {
 	enabled, err := settings.GetMetadataOnlyStorage()
 	if err != nil || !enabled {
 		return err
@@ -78,16 +88,8 @@ func clearChunkCacheIfEnabled(projectPath string, dbConn *sqlx.DB) error {
 		return err
 	}
 
-	if err = repository.VacuumIfNeeded(dbConn, projectPath, func() {
-		application.Get().Event.Emit("progress-update", output.ProgressReport{
-			Title:      "Reclaiming archive space",
-			Message:    "Compacting project archive",
-			Percentage: 99,
-			Current:    1,
-			Total:      1,
-		})
-	}); err != nil {
-		log.Printf("Failed to reclaim project archive space: %v", err)
+	if err = repository.VacuumIfNeeded(dbConn, projectPath, onCompaction); err != nil {
+		return err
 	}
 	return nil
 }
