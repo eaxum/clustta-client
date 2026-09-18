@@ -1,8 +1,12 @@
 <template>
   <div class="tabs-container">
-    <div class="tab-bar">
+    <div ref="tabBar" class="tab-bar">
+      <div class="selection-indicator" :class="{ 'selection-indicator-ready': isIndicatorReady }"
+        :style="indicatorStyle" aria-hidden="true"></div>
+
       <TransitionGroup name="tab-list">
-        <div v-for="(workspace, index) in workspaceTabs" :key="workspace.name" class="tab"
+        <div v-for="(workspace, index) in workspaceTabs" ref="workspaceTabElements" :key="workspace.name"
+          :data-workspace-name="workspace.name" class="tab"
           :class="{ 'active': isActiveTab(workspace), 'dragging': draggedTabIndex === index, 'right-tab-split': rightTabPosition(index), 'left-tab-split': leftTabPosition(index) }"
           @mousedown="startDrag($event, index)" @click="setWorkspace(workspace.name)" :style="getTabStyle(index)">
 
@@ -43,7 +47,7 @@
 
 <script setup>
 // imports
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { SettingsService } from "@/services";
 import emitter from '@/lib/mitt';
@@ -136,6 +140,40 @@ const draggedTabIndex = ref(null)
 const mouseOffset = ref({ x: 0, y: 0 })
 const dragPosition = ref({ x: 0, y: 0 })
 const tabRects = ref([]);
+const indicatorStyle = ref({ opacity: 0 });
+const isIndicatorReady = ref(false);
+const tabBar = ref(null);
+const workspaceTabElements = ref([]);
+
+let resizeObserver = null;
+
+const updateSelectionIndicator = () => {
+  if (!tabBar.value) return;
+
+  const selectedElement = workspaceTabElements.value.find((element) => {
+    return element.dataset.workspaceName === activeWorkspace.value;
+  });
+
+  if (!selectedElement) {
+    indicatorStyle.value = { opacity: 0 };
+    return;
+  }
+
+  const tabBarBounds = tabBar.value.getBoundingClientRect();
+  const selectedBounds = selectedElement.getBoundingClientRect();
+
+  indicatorStyle.value = {
+    width: `${selectedBounds.width}px`,
+    height: `${selectedBounds.height}px`,
+    opacity: 1,
+    transform: `translate3d(${selectedBounds.left - tabBarBounds.left}px, ${selectedBounds.top - tabBarBounds.top}px, 0)`,
+  };
+};
+
+const scheduleSelectionIndicatorUpdate = async () => {
+  await nextTick();
+  updateSelectionIndicator();
+};
 
 
 const setWorkspace = (workspaceName) => {
@@ -262,13 +300,26 @@ const updateTabRects = () => {
   })
 }
 
-onMounted(() => {
+watch(activeWorkspace, scheduleSelectionIndicatorUpdate);
+watch(workspaceTabs, scheduleSelectionIndicatorUpdate, { deep: true });
+
+onMounted(async () => {
   updateTabRects()
   window.addEventListener('resize', updateTabRects);
+
+  await scheduleSelectionIndicatorUpdate();
+
+  requestAnimationFrame(() => {
+    isIndicatorReady.value = true;
+  });
+
+  resizeObserver = new ResizeObserver(updateSelectionIndicator);
+  resizeObserver.observe(tabBar.value);
 })
 
 onUnmounted(() => {
   window.removeEventListener('resize', updateTabRects)
+  resizeObserver?.disconnect();
 });
 
 const addWorkspace = () => {
@@ -390,6 +441,20 @@ const getTabStyle = (index) => {
   align-items: center;
 }
 
+.selection-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--large-radius);
+  background-color: var(--surface-3);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.selection-indicator-ready {
+  transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out, opacity 0.2s ease-out;
+}
+
 .tab {
   color: var(--text);
   display: flex;
@@ -402,6 +467,7 @@ const getTabStyle = (index) => {
   box-sizing: border-box;
   user-select: none;
   position: relative;
+  z-index: 1;
   opacity: .4;
 }
 
@@ -495,7 +561,7 @@ const getTabStyle = (index) => {
   /* border-radius: 16px 16px 0px 0px; */
   border-radius: var(--large-radius);
   position: relative;
-  background-color: var(--surface-3);
+  background-color: transparent;
   opacity: 1;
 }
 

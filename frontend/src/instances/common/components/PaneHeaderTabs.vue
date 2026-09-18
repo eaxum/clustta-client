@@ -1,8 +1,12 @@
 <template>
-  <div class="header-tab-root"
+  <div ref="tabRoot" class="header-tab-root"
     :class="{ 'fullwidth-header-tab-root': fullWidth, 'icon-header-tab-root': iconsOnly }">
 
-    <div v-for="(dataType, index) in dataTypes" :key="dataType.id || dataType.name"
+    <div class="selection-indicator" :class="{ 'selection-indicator-ready': isIndicatorReady }"
+      :style="indicatorStyle" aria-hidden="true"></div>
+
+    <div v-for="(dataType, index) in dataTypes" ref="tabElements" :key="dataType.id || dataType.name"
+      :data-tab-key="dataType.id || dataType.name"
       v-tooltip="((filterIndex !== index || iconsOnly)) ? (dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name)) : ''"
       @click="filterList(index, dataType.id || dataType.name)" class="tab-button"
       :class="{ 'selected-tab-button': selectedTab === (dataType.id || dataType.name), 'fullwidth-tab-button': fullWidth }">
@@ -34,10 +38,8 @@ const getIconName = (path) => {
   return path.split('/').pop().replace('.svg', '');
 };
 
-import { ref, computed, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
-import { useTrayStates } from '@/stores/TrayStates';
+import { ref, onMounted, watch, nextTick, onBeforeUnmount } from 'vue';
 import utils from '@/services/utils';
-const trayStates = useTrayStates();
 
 const emit = defineEmits(['filter']);
 
@@ -66,6 +68,40 @@ const props = defineProps({
 });
 
 const filterIndex = ref(0);
+const indicatorStyle = ref({ opacity: 0 });
+const isIndicatorReady = ref(false);
+const tabElements = ref([]);
+const tabRoot = ref(null);
+
+let resizeObserver = null;
+
+const updateSelectionIndicator = () => {
+  if (!tabRoot.value) return;
+
+  const selectedElement = tabElements.value.find((element) => {
+    return element.dataset.tabKey === props.selectedTab;
+  });
+
+  if (!selectedElement) {
+    indicatorStyle.value = { opacity: 0 };
+    return;
+  }
+
+  const rootBounds = tabRoot.value.getBoundingClientRect();
+  const selectedBounds = selectedElement.getBoundingClientRect();
+
+  indicatorStyle.value = {
+    width: `${selectedBounds.width}px`,
+    height: `${selectedBounds.height}px`,
+    opacity: 1,
+    transform: `translate3d(${selectedBounds.left - rootBounds.left}px, ${selectedBounds.top - rootBounds.top}px, 0)`,
+  };
+};
+
+const scheduleSelectionIndicatorUpdate = async () => {
+  await nextTick();
+  updateSelectionIndicator();
+};
 
 const filterList = (index, dataType) => {
   highlightFilter(index);
@@ -76,7 +112,30 @@ const highlightFilter = (index) => {
   filterIndex.value = index;
 };
 
-onMounted(() => {
+watch(
+  () => [props.selectedTab, props.fullWidth, props.iconsOnly],
+  scheduleSelectionIndicatorUpdate,
+);
+
+watch(
+  () => props.dataTypes,
+  scheduleSelectionIndicatorUpdate,
+  { deep: true },
+);
+
+onMounted(async () => {
+  await scheduleSelectionIndicatorUpdate();
+
+  requestAnimationFrame(() => {
+    isIndicatorReady.value = true;
+  });
+
+  resizeObserver = new ResizeObserver(updateSelectionIndicator);
+  resizeObserver.observe(tabRoot.value);
+});
+
+onBeforeUnmount(() => {
+  resizeObserver?.disconnect();
 });
 </script>
 
@@ -93,6 +152,21 @@ onMounted(() => {
   gap: .2rem;
   padding: .3rem 0;
   color: var(--text);
+  position: relative;
+}
+
+.selection-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: var(--large-radius);
+  background-color: var(--surface-3);
+  pointer-events: none;
+  opacity: 0;
+}
+
+.selection-indicator-ready {
+  transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out, opacity 0.2s ease-out;
 }
 
 .fullwidth-header-tab-root {
@@ -135,6 +209,7 @@ onMounted(() => {
 
 .tab-button {
   position: relative;
+  z-index: 1;
   border-radius: 8px;
   box-sizing: border-box;
   cursor: pointer;
@@ -169,7 +244,7 @@ onMounted(() => {
 .selected-tab-button {
   outline-offset: -1px;
   width: 100%;
-  background-color: var(--surface-3);
+  background-color: transparent;
   opacity: 1;
   transition: background-color 0.2s ease-out, opacity 0.2s ease-out;
   min-width: 0;
