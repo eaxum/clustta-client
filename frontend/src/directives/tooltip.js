@@ -13,17 +13,9 @@ const setTooltipContent = (tooltipElement, content, shortcut) => {
   const isMac = document.documentElement.dataset.os === 'darwin';
   const keys = getShortcutKeys(shortcut, isMac);
   if (keys.length) {
-    const badgesElement = document.createElement('span');
-    badgesElement.className = 'shortcut-badges';
-
-    keys.forEach(key => {
-      const keyElement = document.createElement('kbd');
-      keyElement.className = 'shortcut-key';
-      keyElement.textContent = key;
-      badgesElement.appendChild(keyElement);
-    });
-
-    contentElement.appendChild(badgesElement);
+    const shortcutElement = document.createElement('span');
+    shortcutElement.textContent = `[${keys.join('+')}]`;
+    contentElement.appendChild(shortcutElement);
   }
 
   tooltipElement.appendChild(contentElement);

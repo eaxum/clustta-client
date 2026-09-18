@@ -1,6 +1,6 @@
 <template>
   <span v-if="keys.length" class="shortcut-badges" aria-hidden="true">
-    <kbd v-for="key in keys" :key="key" class="shortcut-key">{{ key }}</kbd>
+    <kbd class="shortcut-label">{{ keys.join('+') }}</kbd>
   </span>
 </template>
 
@@ -20,3 +20,17 @@ const props = defineProps({
 
 const keys = computed(() => getShortcutKeys(props.shortcut, platformStore.isMac));
 </script>
+
+<style scoped>
+.shortcut-label {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary, var(--text));
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+</style>
