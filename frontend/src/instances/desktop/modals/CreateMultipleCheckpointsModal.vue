@@ -15,6 +15,9 @@
             </div>
           </div>
 
+          <CheckpointSourceSelector ref="sourceSelector" :disabled="isAwaitingResponse"
+            :showExtensions="!hideExtensions" @validityChange="sourceSelectionValid = $event" />
+
           <div class="checkpoint-create-controls">
             <div v-if="assetStore.loadingAssetStates" class="horizontal-flex input-alert loading-items-count">
               <ActionButton :isLoading="true" :icon="getAppIcon('loading')"
@@ -128,6 +131,7 @@ import { canCreateCheckpointForItem } from '@/lib/permissions';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import AssetItem from '@/instances/desktop/components/AssetItem.vue';
+import CheckpointSourceSelector from '@/instances/desktop/components/CheckpointSourceSelector.vue';
 import CheckpointTagSelector from '@/instances/desktop/components/CheckpointTagSelector.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -173,6 +177,8 @@ const showCheckpointItems = ref(false);
 const showFullPath = ref(false);
 const useImageAsCover = ref(true);
 const checkpointTagName = ref('');
+const sourceSelector = ref(null);
+const sourceSelectionValid = ref(true);
 
 // constants
 const modifiedItemTabs = [
@@ -328,7 +334,8 @@ const totalCheckpointItems = computed(() => {
 // Returns whether the current checkpoint selection can be submitted.
 const canCreateCheckpoints = computed(() => {
   return !assetStore.loadingAssetStates
-    && totalCheckpointItems.value > 0;
+    && totalCheckpointItems.value > 0
+    && sourceSelectionValid.value;
 });
 
 const distinctTrackedAssetIds = computed(() => {
@@ -344,7 +351,7 @@ const closeModal = () => {
 
 // Creates checkpoints for all modified items.
 const createCheckPoints = async () => {
-  const startTime = performance.now();
+  if (isAwaitingResponse.value || !canCreateCheckpoints.value) return;
   isAwaitingResponse.value = true;
   const comment = message.value;
   const previewPath = '';
@@ -354,12 +361,13 @@ const createCheckPoints = async () => {
   const modifiedAssetKeysForCheckpoints = currentModifiedDisplayPaths.value.map(getModifiedAssetKey);
   const untracked = currentUntrackedPaths.value;
   try {
+    const sourceId = await sourceSelector.value.resolve();
     if (assetPathsForCheckpoints.length > 0) {
-      await CheckpointService.AddCheckpoint(projectStore.activeProject.uri, assetPathsForCheckpoints, extensionsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value, false);
+      await CheckpointService.AddCheckpointWithSource(projectStore.activeProject.uri, assetPathsForCheckpoints, extensionsForCheckpoints, comment, previewPath, groupId, useImageAsCover.value, false, sourceId);
     }
     for (let i = 0; i < untracked.length; i += 100) {
       const batch = untracked.slice(i, i + 100).map(getUntrackedCandidatePath);
-      await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, batch, i, untracked.length, comment, previewPath, groupId);
+      await CheckpointService.AddUntrackedAssetWithSource(projectStore.activeProject.uri, projectStore.activeProject.working_directory, batch, i, untracked.length, comment, previewPath, groupId, sourceId);
     }
     if (checkpointTagName.value) {
       try {
@@ -382,11 +390,7 @@ const createCheckPoints = async () => {
   } finally {
     isAwaitingResponse.value = false;
   }
-  const endTime = performance.now();
-  const executionTime = endTime - startTime;
-  const minutes = Math.floor(executionTime / 60000);
-  const seconds = Math.floor((executionTime % 60000) / 1000);
-  console.log(`createCheckPoints completed in: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+
 };
 
 // Returns the app icon path for the given icon name.

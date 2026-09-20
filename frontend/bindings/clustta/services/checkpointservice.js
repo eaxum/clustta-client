@@ -37,6 +37,25 @@ export function AddCheckpoint(projectPath, assetPaths, extensions, message, prev
 }
 
 /**
+ * AddCheckpointWithSource freezes one source reference for all checkpoints in the batch.
+ * @param {string} projectPath
+ * @param {string[]} assetPaths
+ * @param {string[]} extensions
+ * @param {string} message
+ * @param {string} previewPath
+ * @param {string} groupId
+ * @param {boolean} useAsThumbnail
+ * @param {boolean} sendToIntegration
+ * @param {string} sourceCheckpointId
+ * @returns {$CancellablePromise<models$0.Checkpoint[]>}
+ */
+export function AddCheckpointWithSource(projectPath, assetPaths, extensions, message, previewPath, groupId, useAsThumbnail, sendToIntegration, sourceCheckpointId) {
+    return $Call.ByID(1212397543, projectPath, assetPaths, extensions, message, previewPath, groupId, useAsThumbnail, sendToIntegration, sourceCheckpointId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * @param {string} projectPath
  * @returns {$CancellablePromise<void>}
  */
@@ -59,6 +78,25 @@ export function AddMissingGroupIds(projectPath) {
  */
 export function AddUntrackedAsset(projectPath, projectWorkingDir, assetPaths, completed, totalAssets, message, previewPath, groupId) {
     return $Call.ByID(3571873797, projectPath, projectWorkingDir, assetPaths, completed, totalAssets, message, previewPath, groupId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType2($result);
+    }));
+}
+
+/**
+ * AddUntrackedAssetWithSource records the source of newly tracked output files.
+ * @param {string} projectPath
+ * @param {string} projectWorkingDir
+ * @param {string[]} assetPaths
+ * @param {number} completed
+ * @param {number} totalAssets
+ * @param {string} message
+ * @param {string} previewPath
+ * @param {string} groupId
+ * @param {string} sourceCheckpointId
+ * @returns {$CancellablePromise<models$0.Asset[]>}
+ */
+export function AddUntrackedAssetWithSource(projectPath, projectWorkingDir, assetPaths, completed, totalAssets, message, previewPath, groupId, sourceCheckpointId) {
+    return $Call.ByID(174444052, projectPath, projectWorkingDir, assetPaths, completed, totalAssets, message, previewPath, groupId, sourceCheckpointId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType2($result);
     }));
 }
@@ -96,6 +134,18 @@ export function DeleteCheckpointTag(projectPath, tagId) {
 export function ExecuteDependencyBuildPlan(projectPath, remoteUrl, rootAssetId, expectedFingerprint, allowModified) {
     return $Call.ByID(2431386892, projectPath, remoteUrl, rootAssetId, expectedFingerprint, allowModified).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType3($result);
+    }));
+}
+
+/**
+ * GetCheckpoint retrieves a checkpoint for source selection and editing.
+ * @param {string} projectPath
+ * @param {string} checkpointId
+ * @returns {$CancellablePromise<models$0.Checkpoint>}
+ */
+export function GetCheckpoint(projectPath, checkpointId) {
+    return $Call.ByID(4096121321, projectPath, checkpointId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
     }));
 }
 
@@ -159,6 +209,17 @@ export function GetTimeline(projectPath) {
     return $Call.ByID(3258604816, projectPath).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType8($result);
     }));
+}
+
+/**
+ * ResolveCheckpointSource returns an exact source ID, resolving Latest only when requested.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @param {string} checkpointId
+ * @returns {$CancellablePromise<string>}
+ */
+export function ResolveCheckpointSource(projectPath, assetId, checkpointId) {
+    return $Call.ByID(985774744, projectPath, assetId, checkpointId);
 }
 
 /**
@@ -251,6 +312,19 @@ export function SetCheckpointTagsForGroup(projectPath, name, groupId) {
  */
 export function SquashAssets(projectPath, projectWorkingDir, filePaths, assetName, collectionId, deleteSourceFiles, checkpointComments) {
     return $Call.ByID(2209883097, projectPath, projectWorkingDir, filePaths, assetName, collectionId, deleteSourceFiles, checkpointComments);
+}
+
+/**
+ * UpdateCheckpoint saves comment, source, and optional tag changes in one transaction.
+ * @param {string} projectPath
+ * @param {string} checkpointId
+ * @param {string} comment
+ * @param {string} sourceCheckpointId
+ * @param {string[]} tagNames
+ * @returns {$CancellablePromise<void>}
+ */
+export function UpdateCheckpoint(projectPath, checkpointId, comment, sourceCheckpointId, tagNames) {
+    return $Call.ByID(2415861510, projectPath, checkpointId, comment, sourceCheckpointId, tagNames);
 }
 
 /**

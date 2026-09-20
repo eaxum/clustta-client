@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 
 export const useDesktopModalStore = defineStore("desktopModals", {
   state: () => ({
+    editCheckpoint: null,
     modalStates: {
       popUpModal: false,
       shareModal: false,
@@ -36,6 +37,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       addWebLinkModal: false,
 
       createCheckpointModal: false,
+      editCheckpointModal: false,
       createMultipleCheckpointsModal: false,
 
       importItemsModal: false,

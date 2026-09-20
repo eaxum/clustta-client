@@ -5,7 +5,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// MigrateV2_2 adds checkpoint tags and versioned dependency selectors.
+// MigrateV2_2 adds checkpoint sources, tags, and versioned dependency selectors.
 func MigrateV2_2(db *sqlx.DB, schema string) error {
 	_, err := db.Exec(`
 		DROP VIEW IF EXISTS full_asset;
@@ -25,6 +25,9 @@ func MigrateV2_2(db *sqlx.DB, schema string) error {
 		return err
 	}
 	if err := utils.AddColumnIfNotExist(db, "asset_dependency", "asset_checkpoint_tag_id", "TEXT", "", true); err != nil {
+		return err
+	}
+	if err := utils.AddColumnIfNotExist(db, "asset_checkpoint", "source_checkpoint_id", "TEXT", "", true); err != nil {
 		return err
 	}
 	if err := utils.CreateSchema(db, schema); err != nil {

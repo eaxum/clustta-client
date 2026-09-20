@@ -69,6 +69,8 @@
         </div>
 
         <div v-else class="full-checkpoint-item-actions">
+            <ActionButton v-if="canEditCheckpoint" :icon="getAppIcon('edit')"
+                v-tooltip="'Edit checkpoint'" :buttonFunction="openEditCheckpoint" />
             <ActionButton v-if="canManageCheckpointTags" :icon="getAppIcon('tag')"
                 v-tooltip="'Manage checkpoint tags'" @click="openCheckpointTagMenu" />
             <ActionButton v-if="!platformStore.isWeb" :icon="getAppIcon('revert')" v-tooltip="$t('components.checkpointItem.revertToCheckpoint')"
@@ -108,7 +110,7 @@ import { ref, onMounted, onBeforeUnmount, computed, nextTick, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import { generateAvatar } from '@/lib/avatar';
-import { canActOnAsset } from '@/lib/permissions';
+import { canActOnAsset, canCreateCheckpointForItem } from '@/lib/permissions';
 
 // services
 import { SyncService } from "@/services";
@@ -171,6 +173,12 @@ const justViewed = ref('');
 
 // computed properties
 const isItemExpanded = computed(() => props.expandedId === props.checkpoint.checkpoint_id);
+const canEditCheckpoint = computed(() => canCreateCheckpointForItem(assetStore.selectedAsset));
+const openEditCheckpoint = () => {
+    if (!canEditCheckpoint.value) return;
+    modals.editCheckpoint = props.checkpoint;
+    modals.setModalVisibility('editCheckpointModal', true);
+};
 const canManageCheckpointTags = computed(() => canActOnAsset('manage_dependencies', assetStore.selectedAsset));
 
 // methods

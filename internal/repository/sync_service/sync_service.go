@@ -467,43 +467,14 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 		}
 	}
 
-	localAssetCheckpoints, err := repository.GetSimpleCheckpoints(tx)
-	if err != nil {
-		return err
-	}
-	localAssetCheckpointsIndex := make(map[string]int)
-	for i, c := range localAssetCheckpoints {
-		localAssetCheckpointsIndex[c.Id] = i
-	}
-
-	createCheckpointQuery := `
-		INSERT INTO asset_checkpoint 
-		(id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id) 
-		VALUES (?, ?,?,?,?,?,?,?,?,?,?,?);
-	`
-	createCheckpointStmt, err := tx.Prepare(createCheckpointQuery)
-	if err != nil {
-		return err
-	}
-
-	for _, assetCheckpoint := range data.AssetCheckpoints {
-		if tombItems[assetCheckpoint.Id] {
-			continue
+	checkpoints := make([]models.Checkpoint, 0, len(data.AssetCheckpoints))
+	for _, checkpoint := range data.AssetCheckpoints {
+		if !tombItems[checkpoint.Id] {
+			checkpoints = append(checkpoints, checkpoint)
 		}
-
-		_, exists := localAssetCheckpointsIndex[assetCheckpoint.Id]
-		if !exists {
-			EpochTime, err := utils.RFC3339ToEpoch(assetCheckpoint.CreatedAt)
-			if err != nil {
-				return err
-			}
-
-			_, err = createCheckpointStmt.Exec(assetCheckpoint.Id, assetCheckpoint.MTime, EpochTime, assetCheckpoint.AssetId, assetCheckpoint.XXHashChecksum, assetCheckpoint.TimeModified, assetCheckpoint.FileSize, assetCheckpoint.Comment, assetCheckpoint.Chunks, assetCheckpoint.AuthorUID, assetCheckpoint.PreviewId, assetCheckpoint.GroupId)
-			if err != nil {
-				return err
-			}
-			continue
-		}
+	}
+	if err = repository.SaveCheckpoints(tx, checkpoints); err != nil {
+		return err
 	}
 
 	for _, assetTag := range data.AssetTags {
@@ -973,25 +944,8 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 		}
 	}
 
-	createCheckpointQuery := `
-		INSERT INTO asset_checkpoint 
-		(id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id) 
-		VALUES (?, ?,?,?,?,?,?,?,?,?,?,?);
-	`
-	createCheckpointStmt, err := tx.Prepare(createCheckpointQuery)
-	if err != nil {
+	if err = repository.SaveCheckpoints(tx, data.AssetCheckpoints); err != nil {
 		return err
-	}
-
-	for _, assetCheckpoint := range data.AssetCheckpoints {
-		EpochTime, err := utils.RFC3339ToEpoch(assetCheckpoint.CreatedAt)
-		if err != nil {
-			return err
-		}
-		_, err = createCheckpointStmt.Exec(assetCheckpoint.Id, assetCheckpoint.MTime, EpochTime, assetCheckpoint.AssetId, assetCheckpoint.XXHashChecksum, assetCheckpoint.TimeModified, assetCheckpoint.FileSize, assetCheckpoint.Comment, assetCheckpoint.Chunks, assetCheckpoint.AuthorUID, assetCheckpoint.PreviewId, assetCheckpoint.GroupId)
-		if err != nil {
-			return err
-		}
 	}
 
 	for _, assetTag := range data.AssetTags {

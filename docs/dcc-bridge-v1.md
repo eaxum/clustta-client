@@ -155,3 +155,27 @@ Job states are `queued`, `running`, `cancelling`, `cancelled`, `succeeded`, and
 ## Desktop transfer coordination
 
 Desktop checkpoint downloads and asset/collection fetches now have independent Activity IDs and cancellation. Existing Bridge job contracts are unchanged. Bridge build/revert and checkpoint/sync service calls use project admission and return a busy error when they conflict with active desktop transfers. See [Activity transfers](activity-transfers.md) for scope and verification.
+
+### Checkpoint sources
+
+Checkpoint creation accepts optional `sourceAssetId` and `sourceCheckpointId`.
+With only `sourceAssetId`, the bridge resolves the latest local checkpoint once
+before starting the creation job. An explicit checkpoint must belong to the
+specified source asset. Responses include nullable `source_checkpoint_id`.
+The reference is fixed and never follows later checkpoints automatically.
+
+Project schema 2.2 adds one nullable source column. Source selections are
+validated by the service; database triggers reject cycles and protect referenced
+checkpoints and assets from deletion/trash. The column is a logical reference
+rather than a foreign key because permission-filtered sync can omit source
+metadata. An unavailable source keeps its ID and is displayed as unavailable.
+
+Desktop checkpoint editing changes comment, source, and optional checkpoint tags
+atomically. Comment/source edits require checkpoint creation permission on the
+asset; tag changes also require `manage_dependencies`. A null tag list leaves
+tags unchanged; an empty list removes them. No audit history is recorded.
+
+Checkpoint metadata pushes require remote project schema 2.2. Upgrade the studio
+server alongside the client; older servers can ignore edits to existing
+checkpoints. Pulling from an older server is blocked when local source references
+would otherwise be lost.

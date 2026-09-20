@@ -5888,6 +5888,7 @@ export const repository = $root.repository = (() => {
          * @property {boolean|null} [trashed] Checkpoint trashed
          * @property {boolean|null} [synced] Checkpoint synced
          * @property {string|null} [group_id] Checkpoint group_id
+         * @property {string|null} [source_checkpoint_id] Checkpoint source_checkpoint_id
          */
 
         /**
@@ -6018,6 +6019,28 @@ export const repository = $root.repository = (() => {
         Checkpoint.prototype.group_id = "";
 
         /**
+         * Checkpoint source_checkpoint_id.
+         * @member {string|null|undefined} source_checkpoint_id
+         * @memberof repository.Checkpoint
+         * @instance
+         */
+        Checkpoint.prototype.source_checkpoint_id = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * Checkpoint _source_checkpoint_id.
+         * @member {"source_checkpoint_id"|undefined} _source_checkpoint_id
+         * @memberof repository.Checkpoint
+         * @instance
+         */
+        Object.defineProperty(Checkpoint.prototype, "_source_checkpoint_id", {
+            get: $util.oneOfGetter($oneOfFields = ["source_checkpoint_id"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
          * Creates a new Checkpoint instance using the specified properties.
          * @function create
          * @memberof repository.Checkpoint
@@ -6069,6 +6092,8 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 13, wireType 0 =*/104).bool(message.synced);
             if (message.group_id != null && Object.hasOwnProperty.call(message, "group_id"))
                 writer.uint32(/* id 14, wireType 2 =*/114).string(message.group_id);
+            if (message.source_checkpoint_id != null && Object.hasOwnProperty.call(message, "source_checkpoint_id"))
+                writer.uint32(/* id 15, wireType 2 =*/122).string(message.source_checkpoint_id);
             return writer;
         };
 
@@ -6161,6 +6186,10 @@ export const repository = $root.repository = (() => {
                         message.group_id = reader.string();
                         break;
                     }
+                case 15: {
+                        message.source_checkpoint_id = reader.string();
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -6196,6 +6225,7 @@ export const repository = $root.repository = (() => {
         Checkpoint.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            let properties = {};
             if (message.id != null && message.hasOwnProperty("id"))
                 if (!$util.isString(message.id))
                     return "id: string expected";
@@ -6238,6 +6268,11 @@ export const repository = $root.repository = (() => {
             if (message.group_id != null && message.hasOwnProperty("group_id"))
                 if (!$util.isString(message.group_id))
                     return "group_id: string expected";
+            if (message.source_checkpoint_id != null && message.hasOwnProperty("source_checkpoint_id")) {
+                properties._source_checkpoint_id = 1;
+                if (!$util.isString(message.source_checkpoint_id))
+                    return "source_checkpoint_id: string expected";
+            }
             return null;
         };
 
@@ -6302,6 +6337,8 @@ export const repository = $root.repository = (() => {
                 message.synced = Boolean(object.synced);
             if (object.group_id != null)
                 message.group_id = String(object.group_id);
+            if (object.source_checkpoint_id != null)
+                message.source_checkpoint_id = String(object.source_checkpoint_id);
             return message;
         };
 
@@ -6383,6 +6420,11 @@ export const repository = $root.repository = (() => {
                 object.synced = message.synced;
             if (message.group_id != null && message.hasOwnProperty("group_id"))
                 object.group_id = message.group_id;
+            if (message.source_checkpoint_id != null && message.hasOwnProperty("source_checkpoint_id")) {
+                object.source_checkpoint_id = message.source_checkpoint_id;
+                if (options.oneofs)
+                    object._source_checkpoint_id = "source_checkpoint_id";
+            }
             return object;
         };
 

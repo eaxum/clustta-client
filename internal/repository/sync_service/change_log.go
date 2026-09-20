@@ -533,8 +533,8 @@ func DiscardAssetChanges(tx *sqlx.Tx, serverData ProjectData, assetId string) er
 	// Re-insert related checkpoints from server
 	for _, cp := range serverData.AssetCheckpoints {
 		if cp.AssetId == assetId {
-			_, err = tx.Exec(`INSERT OR IGNORE INTO asset_checkpoint (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id, trashed, synced) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1)`,
-				cp.Id, cp.MTime, cp.CreatedAt, cp.AssetId, cp.XXHashChecksum, cp.TimeModified, cp.FileSize, cp.Comment, cp.Chunks, cp.AuthorUID, cp.PreviewId, cp.GroupId, cp.Trashed)
+			_, err = tx.Exec(`INSERT OR IGNORE INTO asset_checkpoint (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id, trashed, source_checkpoint_id, synced) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`,
+				cp.Id, cp.MTime, cp.CreatedAt, cp.AssetId, cp.XXHashChecksum, cp.TimeModified, cp.FileSize, cp.Comment, cp.Chunks, cp.AuthorUID, cp.PreviewId, cp.GroupId, cp.Trashed, cp.SourceCheckpointId)
 			if err != nil {
 				return err
 			}
@@ -808,8 +808,8 @@ func writeOtherServerData(tx *sqlx.Tx, data ProjectData) error {
 		}
 	}
 	for _, cp := range data.AssetCheckpoints {
-		_, err := tx.Exec(`INSERT OR IGNORE INTO asset_checkpoint (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id, trashed, synced) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1)`,
-			cp.Id, cp.MTime, cp.CreatedAt, cp.AssetId, cp.XXHashChecksum, cp.TimeModified, cp.FileSize, cp.Comment, cp.Chunks, cp.AuthorUID, cp.PreviewId, cp.GroupId, cp.Trashed)
+		_, err := tx.Exec(`INSERT OR IGNORE INTO asset_checkpoint (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size, comment, chunks, author_id, preview_id, group_id, trashed, source_checkpoint_id, synced) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`,
+			cp.Id, cp.MTime, cp.CreatedAt, cp.AssetId, cp.XXHashChecksum, cp.TimeModified, cp.FileSize, cp.Comment, cp.Chunks, cp.AuthorUID, cp.PreviewId, cp.GroupId, cp.Trashed, cp.SourceCheckpointId)
 		if err != nil {
 			return err
 		}

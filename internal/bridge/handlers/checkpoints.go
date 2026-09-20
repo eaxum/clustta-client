@@ -11,13 +11,14 @@ import (
 
 // checkpointResponse is the JSON shape returned for each checkpoint.
 type checkpointResponse struct {
-	ID           string `json:"id"`
-	GroupID      string `json:"group_id"`
-	Comment      string `json:"comment"`
-	AuthorUID    string `json:"author_id"`
-	CreatedAt    string `json:"created_at"`
-	FileSize     int    `json:"file_size"`
-	IsDownloaded bool   `json:"is_downloaded"`
+	SourceCheckpointID *string `json:"source_checkpoint_id"`
+	ID                 string  `json:"id"`
+	GroupID            string  `json:"group_id"`
+	Comment            string  `json:"comment"`
+	AuthorUID          string  `json:"author_id"`
+	CreatedAt          string  `json:"created_at"`
+	FileSize           int     `json:"file_size"`
+	IsDownloaded       bool    `json:"is_downloaded"`
 }
 
 // ListCheckpoints returns checkpoint history for a specific asset.
@@ -67,12 +68,13 @@ func ListCheckpoints(w http.ResponseWriter, r *http.Request) {
 
 func checkpointToResponse(checkpoint models.Checkpoint) checkpointResponse {
 	return checkpointResponse{
-		ID:           checkpoint.Id,
-		GroupID:      checkpoint.GroupId,
-		Comment:      checkpoint.Comment,
-		AuthorUID:    checkpoint.AuthorUID,
-		CreatedAt:    checkpoint.CreatedAt,
-		FileSize:     checkpoint.FileSize,
-		IsDownloaded: checkpoint.IsDownloaded,
+		SourceCheckpointID: checkpoint.SourceCheckpointId,
+		ID:                 checkpoint.Id,
+		GroupID:            checkpoint.GroupId,
+		Comment:            checkpoint.Comment,
+		AuthorUID:          checkpoint.AuthorUID,
+		CreatedAt:          checkpoint.CreatedAt,
+		FileSize:           checkpoint.FileSize,
+		IsDownloaded:       checkpoint.IsDownloaded,
 	}
 }

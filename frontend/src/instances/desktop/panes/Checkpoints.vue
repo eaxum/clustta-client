@@ -225,6 +225,7 @@ const refreshCheckpoints = async () => {
       preview: preview,
       ownerId: checkpoint.asset_id,
       checkpoint_id: checkpoint.id,
+      source_checkpoint_id: checkpoint.source_checkpoint_id,
       is_downloaded: checkpoint.is_downloaded,
       hash: checkpoint.xxhash_checksum,
       author_profile: authorProfile,
@@ -238,6 +239,8 @@ const refreshCheckpoints = async () => {
     const existingCheckpoint = checkpoints.value.find(cp => cp.checkpoint_id === checkpoint.id);
     if (!existingCheckpoint) {
       checkpoints.value.push(checkpointObj);
+    } else {
+      Object.assign(existingCheckpoint, checkpointObj);
     }
   }
 };

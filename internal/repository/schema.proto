@@ -186,6 +186,7 @@ message Checkpoint {
   bool trashed = 12;
   bool synced = 13;
   string group_id = 14;
+  optional string source_checkpoint_id = 15;
 }
 
 message Role {

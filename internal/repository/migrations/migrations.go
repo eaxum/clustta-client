@@ -30,7 +30,7 @@ func All() []Migration {
 		{Version: 1.9, Description: "Add manage_share_links permission", Up: MigrateV1_9},
 		{Version: 2.0, Description: "Add project storage tables", Up: MigrateV2_0},
 		{Version: 2.1, Description: "Add pending local path updates", Up: MigrateV2_1},
-		{Version: 2.2, Description: "Add versioned dependencies and checkpoint tags", Up: MigrateV2_2},
+		{Version: 2.2, Description: "Add versioned dependencies, checkpoint tags, and sources", Up: MigrateV2_2},
 	}
 }
 
@@ -38,6 +38,18 @@ func All() []Migration {
 func RunMigrations(db *sqlx.DB, currentVersion float64, schema string) error {
 	if currentVersion > LatestVersion {
 		return fmt.Errorf("project schema %.1f is newer than supported schema %.1f", currentVersion, LatestVersion)
+	}
+	// Earlier migrations reapply the latest schema before the final migration runs.
+	for _, table := range []string{"asset_checkpoint", "task_checkpoint"} {
+		exists, err := utils.TableExists(db, table)
+		if err != nil {
+			return err
+		}
+		if exists {
+			if err = utils.AddColumnIfNotExist(db, table, "source_checkpoint_id", "TEXT", "", true); err != nil {
+				return err
+			}
+		}
 	}
 	for _, m := range All() {
 		shouldRun := false

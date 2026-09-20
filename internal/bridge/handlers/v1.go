@@ -57,11 +57,13 @@ type dccProjectResponse struct {
 }
 
 type checkpointRequest struct {
-	FilePath       string `json:"filePath"`
-	Message        string `json:"message"`
-	PreviewPath    string `json:"previewPath"`
-	UseAsThumbnail bool   `json:"useAsThumbnail"`
-	Sync           *bool  `json:"sync"`
+	SourceAssetID      string `json:"sourceAssetId"`
+	SourceCheckpointID string `json:"sourceCheckpointId"`
+	FilePath           string `json:"filePath"`
+	Message            string `json:"message"`
+	PreviewPath        string `json:"previewPath"`
+	UseAsThumbnail     bool   `json:"useAsThumbnail"`
+	Sync               *bool  `json:"sync"`
 }
 
 type statusRequest struct {
@@ -112,6 +114,7 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"assets.build",
 			"checkpoints.list",
 			"checkpoints.create",
+			"checkpoints.sources",
 			"checkpoints.revert",
 			"checkpoint_tags.manage",
 			"jobs.get",
@@ -590,11 +593,17 @@ func V1CreateCheckpoint(w http.ResponseWriter, r *http.Request) {
 		syncAfterCheckpoint = *body.Sync
 	}
 
+	checkpointService := &services.CheckpointService{}
+	sourceID, err := checkpointService.ResolveCheckpointSource(project.Uri, body.SourceAssetID, body.SourceCheckpointID)
+	if err != nil {
+		jsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
 	idempotencyKey := operationKey(r, project.Id, asset.Id, "checkpoint")
 	job := startJob("checkpoint", idempotencyKey, false, func(update func(string, int)) (any, error) {
 		update("Creating checkpoint", 20)
 		checkpointService := &services.CheckpointService{}
-		checkpoints, addErr := checkpointService.AddCheckpoint(
+		checkpoints, addErr := checkpointService.AddCheckpointWithSource(
 			project.Uri,
 			[]string{asset.AssetPath},
 			[]string{asset.Extension},
@@ -603,6 +612,7 @@ func V1CreateCheckpoint(w http.ResponseWriter, r *http.Request) {
 			uuid.NewString(),
 			body.UseAsThumbnail,
 			true,
+			sourceID,
 		)
 		if addErr != nil {
 			return nil, addErr

@@ -754,3 +754,85 @@ func parseTimestampForGrouping(timestamp string) int64 {
 	// The actual time window logic can be enhanced later if needed
 	return 0
 }
+
+// ResolveCheckpointSource resolves a source selection against local project metadata.
+func ResolveCheckpointSource(tx *sqlx.Tx, assetId, checkpointId string) (*string, error) {
+	if assetId == "" && checkpointId == "" {
+		return nil, nil
+	}
+	var checkpoint models.Checkpoint
+	var err error
+	if checkpointId == "" {
+		checkpoint, err = GetLatestCheckpoint(tx, assetId)
+	} else {
+		checkpoint, err = GetCheckpoint(tx, checkpointId)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if checkpoint.Trashed || (assetId != "" && checkpoint.AssetId != assetId) {
+		return nil, errors.New("source checkpoint is unavailable or belongs to another asset")
+	}
+	var active bool
+	if err = tx.Get(&active, "SELECT trashed = 0 FROM asset WHERE id = ?", checkpoint.AssetId); err != nil {
+		return nil, err
+	}
+	if !active {
+		return nil, errors.New("source asset is trashed")
+	}
+	return &checkpoint.Id, nil
+}
+
+// UpdateCheckpoint edits metadata without changing the checkpoint's file or creation details.
+func UpdateCheckpoint(tx *sqlx.Tx, checkpointId, comment string, sourceId *string) error {
+	checkpoint, err := GetCheckpoint(tx, checkpointId)
+	if err != nil {
+		return err
+	}
+	if checkpoint.Trashed {
+		return errors.New("cannot edit a trashed checkpoint")
+	}
+	if sourceId != nil && (checkpoint.SourceCheckpointId == nil || *sourceId != *checkpoint.SourceCheckpointId) {
+		if _, err = ResolveCheckpointSource(tx, "", *sourceId); err != nil {
+			return err
+		}
+	}
+	_, err = tx.Exec(`UPDATE asset_checkpoint
+        SET comment = ?, source_checkpoint_id = ?, mtime = MAX(mtime + 1, unixepoch()), synced = 0
+        WHERE id = ? AND (comment IS NOT ? OR source_checkpoint_id IS NOT ?)`,
+		comment, sourceId, checkpointId, comment, sourceId)
+	return err
+}
+
+// SaveCheckpoints merges checkpoint metadata without replacing newer local edits.
+func SaveCheckpoints(tx *sqlx.Tx, checkpoints []models.Checkpoint) error {
+	// Clear replaced links first so valid batch edits do not create temporary cycles.
+	for _, checkpoint := range checkpoints {
+		if _, err := tx.Exec(`UPDATE asset_checkpoint SET source_checkpoint_id = NULL
+            WHERE id = ? AND mtime < ?`, checkpoint.Id, checkpoint.MTime); err != nil {
+			return err
+		}
+	}
+	for _, checkpoint := range checkpoints {
+		createdAt, err := utils.RFC3339ToEpoch(checkpoint.CreatedAt)
+		if err != nil {
+			return err
+		}
+		_, err = tx.Exec(`INSERT INTO asset_checkpoint
+            (id, mtime, created_at, asset_id, xxhash_checksum, time_modified, file_size,
+             comment, chunks, author_id, preview_id, group_id, trashed, source_checkpoint_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET comment = excluded.comment,
+                source_checkpoint_id = excluded.source_checkpoint_id,
+                trashed = excluded.trashed, mtime = excluded.mtime
+            WHERE excluded.mtime > asset_checkpoint.mtime`,
+			checkpoint.Id, checkpoint.MTime, createdAt, checkpoint.AssetId,
+			checkpoint.XXHashChecksum, checkpoint.TimeModified, checkpoint.FileSize,
+			checkpoint.Comment, checkpoint.Chunks, checkpoint.AuthorUID, checkpoint.PreviewId,
+			checkpoint.GroupId, checkpoint.Trashed, checkpoint.SourceCheckpointId)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

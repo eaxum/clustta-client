@@ -10,6 +10,9 @@
 
           <CheckpointTagSelector v-model="checkpointTagName" :assetIds="checkpointTagAssetIds" />
 
+          <CheckpointSourceSelector ref="sourceSelector" :disabled="isAwaitingResponse"
+            @validityChange="sourceSelectionValid = $event" />
+
           <div class="checkpoint-create-controls">
             <div v-if="!statusMenuDisplayed" class="attachment-area">
               <div class="asset-item-status-container" v-stop-propagation>
@@ -68,7 +71,8 @@
 
       <div class="pop-up-actions">
         <GeneralButton :label="$t('common.close')" :fullWidth="true" :buttonFunction="closeModal" :isActive="!isAwaitingResponse" :colored="false" />
-        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCheckPoint" :isActive="!isAwaitingResponse"
+        <GeneralButton :label="$t('common.create')" :fullWidth="true" @click="createCheckPoint"
+          :isActive="!isAwaitingResponse && sourceSelectionValid"
           :loading="isAwaitingResponse" />
       </div>
 
@@ -89,6 +93,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import Checkpoints from '@/instances/desktop/panes/Checkpoints.vue';
+import CheckpointSourceSelector from '@/instances/desktop/components/CheckpointSourceSelector.vue';
 import CheckpointTagSelector from '@/instances/desktop/components/CheckpointTagSelector.vue';
 import StatusMenu from '@/instances/desktop/menus/StatusMenu.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -122,6 +127,8 @@ const { t } = useI18n();
 const displayStatusMenu = ref(false);
 const checkpointPaneVisible = ref(false);
 const checkpointTagName = ref('');
+const sourceSelector = ref(null);
+const sourceSelectionValid = ref(true);
 const isAwaitingResponse = ref(false);
 const message = ref('');
 const modalContainer = ref(null);
@@ -231,49 +238,34 @@ const applyCheckpointTag = async (groupId) => {
 
 // Creates a checkpoint for the selected asset.
 const createCheckPoint = async () => {
+  if (isAwaitingResponse.value || !sourceSelectionValid.value) return;
   isAwaitingResponse.value = true;
-  const assetPath = assetStore.selectedAsset.asset_path;
-  const extension = assetStore.selectedAsset.extension;
-  const comment = message.value;
-  const previewPath = trayStates.previewFullPath;
+  const asset = assetStore.selectedAsset;
   const groupId = uuidv4();
-  if (assetStore.selectedAsset.type === 'asset') {
-    CheckpointService.AddCheckpoint(projectStore.activeProject.uri, [assetPath], [extension], comment, previewPath, groupId, useImageAsCover.value, sendToIntegrationEnabled.value)
-      .then(async () => {
-        await applyCheckpointTag(groupId);
-        emitter.emit('refresh-browser');
-        emitter.emit('update-checkpoints');
-        assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter((modifiedAssetPath) => modifiedAssetPath !== assetPath + extension);
-        if (assetStore.selectedAsset) assetStore.selectedAsset.file_status = 'normal';
-        projectStore.refreshProjects();
-        isAwaitingResponse.value = false;
-        closeModal();
-        if (syncAfterCheckpointEnabled.value) {
-          syncAsset();
-        }
-      })
-      .catch((error) => {
-        isAwaitingResponse.value = false;
-        notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
-      });
-  } else {
-    await CheckpointService.AddUntrackedAsset(projectStore.activeProject.uri, projectStore.activeProject.working_directory, [assetPath], 0, 1, comment, previewPath, groupId)
-      .then(async () => {
-        await applyCheckpointTag(groupId);
-        assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter((path) => path !== assetPath);
-        emitter.emit('refresh-browser');
-        emitter.emit('update-checkpoints');
-        projectStore.refreshProjects();
-        isAwaitingResponse.value = false;
-        closeModal();
-        if (syncAfterCheckpointEnabled.value) {
-          syncAsset();
-        }
-      })
-      .catch((error) => {
-        isAwaitingResponse.value = false;
-        notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
-      });
+  try {
+    const sourceId = await sourceSelector.value.resolve();
+    if (asset.type === 'asset') {
+      await CheckpointService.AddCheckpointWithSource(projectStore.activeProject.uri,
+        [asset.asset_path], [asset.extension], message.value, trayStates.previewFullPath,
+        groupId, useImageAsCover.value, sendToIntegrationEnabled.value, sourceId);
+      assetStore.modifiedAssetsPath = assetStore.modifiedAssetsPath.filter(path => path !== asset.asset_path + asset.extension);
+      asset.file_status = 'normal';
+    } else {
+      await CheckpointService.AddUntrackedAssetWithSource(projectStore.activeProject.uri,
+        projectStore.activeProject.working_directory, [asset.asset_path], 0, 1,
+        message.value, trayStates.previewFullPath, groupId, sourceId);
+      assetStore.untrackedAssetsPath = assetStore.untrackedAssetsPath.filter(path => path !== asset.asset_path);
+    }
+    await applyCheckpointTag(groupId);
+    emitter.emit('refresh-browser');
+    emitter.emit('update-checkpoints');
+    projectStore.refreshProjects();
+    closeModal();
+    if (syncAfterCheckpointEnabled.value) syncAsset();
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.errorCreatingCheckpoint'), error);
+  } finally {
+    isAwaitingResponse.value = false;
   }
 };
 

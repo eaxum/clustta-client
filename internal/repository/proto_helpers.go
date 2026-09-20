@@ -276,20 +276,21 @@ func ToPbCheckpoints(checkpoints []models.Checkpoint) []*repositorypb.Checkpoint
 	pb := make([]*repositorypb.Checkpoint, len(checkpoints))
 	for i, c := range checkpoints {
 		pb[i] = &repositorypb.Checkpoint{
-			Id:             c.Id,
-			Mtime:          int64(c.MTime),
-			CreatedAt:      c.CreatedAt,
-			AssetId:        c.AssetId,
-			XxhashChecksum: c.XXHashChecksum,
-			TimeModified:   int64(c.TimeModified),
-			FileSize:       int64(c.FileSize),
-			Comment:        c.Comment,
-			Chunks:         c.Chunks,
-			AuthorUid:      c.AuthorUID,
-			PreviewId:      c.PreviewId,
-			Trashed:        c.Trashed,
-			Synced:         c.Synced,
-			GroupId:        c.GroupId,
+			SourceCheckpointId: c.SourceCheckpointId,
+			Id:                 c.Id,
+			Mtime:              int64(c.MTime),
+			CreatedAt:          c.CreatedAt,
+			AssetId:            c.AssetId,
+			XxhashChecksum:     c.XXHashChecksum,
+			TimeModified:       int64(c.TimeModified),
+			FileSize:           int64(c.FileSize),
+			Comment:            c.Comment,
+			Chunks:             c.Chunks,
+			AuthorUid:          c.AuthorUID,
+			PreviewId:          c.PreviewId,
+			Trashed:            c.Trashed,
+			Synced:             c.Synced,
+			GroupId:            c.GroupId,
 		}
 	}
 	return pb
@@ -807,20 +808,21 @@ func FromPbAssetTags(pbs []*repositorypb.AssetTag) []models.AssetTag {
 
 func FromPbCheckpoint(pb *repositorypb.Checkpoint) models.Checkpoint {
 	return models.Checkpoint{
-		Id:             pb.Id,
-		MTime:          int(pb.Mtime),
-		CreatedAt:      pb.CreatedAt,
-		AssetId:        pb.AssetId,
-		XXHashChecksum: pb.XxhashChecksum,
-		TimeModified:   int(pb.TimeModified),
-		FileSize:       int(pb.FileSize),
-		Comment:        pb.Comment,
-		Chunks:         pb.Chunks,
-		AuthorUID:      pb.AuthorUid,
-		PreviewId:      pb.PreviewId,
-		Trashed:        pb.Trashed,
-		Synced:         pb.Synced,
-		GroupId:        pb.GroupId,
+		SourceCheckpointId: pb.SourceCheckpointId,
+		Id:                 pb.Id,
+		MTime:              int(pb.Mtime),
+		CreatedAt:          pb.CreatedAt,
+		AssetId:            pb.AssetId,
+		XXHashChecksum:     pb.XxhashChecksum,
+		TimeModified:       int(pb.TimeModified),
+		FileSize:           int(pb.FileSize),
+		Comment:            pb.Comment,
+		Chunks:             pb.Chunks,
+		AuthorUID:          pb.AuthorUid,
+		PreviewId:          pb.PreviewId,
+		Trashed:            pb.Trashed,
+		Synced:             pb.Synced,
+		GroupId:            pb.GroupId,
 	}
 }
 

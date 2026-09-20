@@ -1558,23 +1558,24 @@ func (x *AssetTag) GetSynced() bool {
 }
 
 type Checkpoint struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Mtime          int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	CreatedAt      string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	AssetId        string                 `protobuf:"bytes,4,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
-	XxhashChecksum string                 `protobuf:"bytes,5,opt,name=xxhash_checksum,json=xxhashChecksum,proto3" json:"xxhash_checksum,omitempty"`
-	TimeModified   int64                  `protobuf:"varint,6,opt,name=time_modified,json=timeModified,proto3" json:"time_modified,omitempty"`
-	FileSize       int64                  `protobuf:"varint,7,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
-	Comment        string                 `protobuf:"bytes,8,opt,name=comment,proto3" json:"comment,omitempty"`
-	Chunks         string                 `protobuf:"bytes,9,opt,name=chunks,proto3" json:"chunks,omitempty"`
-	AuthorUid      string                 `protobuf:"bytes,10,opt,name=author_uid,json=authorUid,proto3" json:"author_uid,omitempty"`
-	PreviewId      string                 `protobuf:"bytes,11,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
-	Trashed        bool                   `protobuf:"varint,12,opt,name=trashed,proto3" json:"trashed,omitempty"`
-	Synced         bool                   `protobuf:"varint,13,opt,name=synced,proto3" json:"synced,omitempty"`
-	GroupId        string                 `protobuf:"bytes,14,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state              protoimpl.MessageState `protogen:"open.v1"`
+	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Mtime              int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	CreatedAt          string                 `protobuf:"bytes,3,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	AssetId            string                 `protobuf:"bytes,4,opt,name=asset_id,json=assetId,proto3" json:"asset_id,omitempty"`
+	XxhashChecksum     string                 `protobuf:"bytes,5,opt,name=xxhash_checksum,json=xxhashChecksum,proto3" json:"xxhash_checksum,omitempty"`
+	TimeModified       int64                  `protobuf:"varint,6,opt,name=time_modified,json=timeModified,proto3" json:"time_modified,omitempty"`
+	FileSize           int64                  `protobuf:"varint,7,opt,name=file_size,json=fileSize,proto3" json:"file_size,omitempty"`
+	Comment            string                 `protobuf:"bytes,8,opt,name=comment,proto3" json:"comment,omitempty"`
+	Chunks             string                 `protobuf:"bytes,9,opt,name=chunks,proto3" json:"chunks,omitempty"`
+	AuthorUid          string                 `protobuf:"bytes,10,opt,name=author_uid,json=authorUid,proto3" json:"author_uid,omitempty"`
+	PreviewId          string                 `protobuf:"bytes,11,opt,name=preview_id,json=previewId,proto3" json:"preview_id,omitempty"`
+	Trashed            bool                   `protobuf:"varint,12,opt,name=trashed,proto3" json:"trashed,omitempty"`
+	Synced             bool                   `protobuf:"varint,13,opt,name=synced,proto3" json:"synced,omitempty"`
+	GroupId            string                 `protobuf:"bytes,14,opt,name=group_id,json=groupId,proto3" json:"group_id,omitempty"`
+	SourceCheckpointId *string                `protobuf:"bytes,15,opt,name=source_checkpoint_id,json=sourceCheckpointId,proto3,oneof" json:"source_checkpoint_id,omitempty"`
+	unknownFields      protoimpl.UnknownFields
+	sizeCache          protoimpl.SizeCache
 }
 
 func (x *Checkpoint) Reset() {
@@ -1701,6 +1702,13 @@ func (x *Checkpoint) GetSynced() bool {
 func (x *Checkpoint) GetGroupId() string {
 	if x != nil {
 		return x.GroupId
+	}
+	return ""
+}
+
+func (x *Checkpoint) GetSourceCheckpointId() string {
+	if x != nil && x.SourceCheckpointId != nil {
+		return *x.SourceCheckpointId
 	}
 	return ""
 }
@@ -3855,7 +3863,7 @@ const file_schema_proto_rawDesc = "" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x19\n" +
 	"\basset_id\x18\x03 \x01(\tR\aassetId\x12\x15\n" +
 	"\x06tag_id\x18\x04 \x01(\tR\x05tagId\x12\x16\n" +
-	"\x06synced\x18\x05 \x01(\bR\x06synced\"\x94\x03\n" +
+	"\x06synced\x18\x05 \x01(\bR\x06synced\"\xe4\x03\n" +
 	"\n" +
 	"Checkpoint\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
@@ -3875,7 +3883,9 @@ const file_schema_proto_rawDesc = "" +
 	"preview_id\x18\v \x01(\tR\tpreviewId\x12\x18\n" +
 	"\atrashed\x18\f \x01(\bR\atrashed\x12\x16\n" +
 	"\x06synced\x18\r \x01(\bR\x06synced\x12\x19\n" +
-	"\bgroup_id\x18\x0e \x01(\tR\agroupId\"\xf5\b\n" +
+	"\bgroup_id\x18\x0e \x01(\tR\agroupId\x125\n" +
+	"\x14source_checkpoint_id\x18\x0f \x01(\tH\x00R\x12sourceCheckpointId\x88\x01\x01B\x17\n" +
+	"\x15_source_checkpoint_id\"\xf5\b\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
@@ -4183,6 +4193,7 @@ func file_schema_proto_init() {
 	if File_schema_proto != nil {
 		return
 	}
+	file_schema_proto_msgTypes[16].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

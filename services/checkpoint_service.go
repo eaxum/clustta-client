@@ -236,6 +236,11 @@ func (c *CheckpointService) RevertToCheckpoint(projectPath, remoteUrl, assetId, 
 // AddCheckpoint creates new checkpoints for multiple assets.
 // Returns the created checkpoints or an error if the operation fails.
 func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extensions []string, message, previewPath, groupId string, useAsThumbnail, sendToIntegration bool) ([]models.Checkpoint, error) {
+	return c.AddCheckpointWithSource(projectPath, assetPaths, extensions, message, previewPath, groupId, useAsThumbnail, sendToIntegration, "")
+}
+
+// AddCheckpointWithSource freezes one source reference for all checkpoints in the batch.
+func (c *CheckpointService) AddCheckpointWithSource(projectPath string, assetPaths, extensions []string, message, previewPath, groupId string, useAsThumbnail, sendToIntegration bool, sourceCheckpointId string) ([]models.Checkpoint, error) {
 	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
 	if admissionErr != nil {
 		return nil, admissionErr
@@ -251,6 +256,9 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return []models.Checkpoint{}, err
+	}
+	if len(assetPaths) != len(extensions) {
+		return nil, errors.New("asset paths and extensions must have the same length")
 	}
 	authorId := user.Id
 
@@ -284,6 +292,10 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 		if err != nil {
 			return []models.Checkpoint{}, err
 		}
+		if err = authorizeAssetActionTx(tx, assetActionCreateCheckpoint, []string{asset.Id}); err != nil {
+			tx.Rollback()
+			return nil, err
+		}
 		callBack := func(current int, total int, message string, extraMessage string) {
 			progress := output.ProgressReport{
 				Title:      "Creating Checkpoint",
@@ -312,6 +324,21 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 		if err != nil {
 			tx.Rollback()
 			return []models.Checkpoint{}, err
+		}
+		if sourceCheckpointId != "" {
+			if err = authorizeCheckpointSourceTx(tx, sourceCheckpointId); err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			if err = repository.UpdateCheckpoint(tx, checkpoint.Id, checkpoint.Comment, &sourceCheckpointId); err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			checkpoint, err = repository.GetCheckpoint(tx, checkpoint.Id)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
 		}
 		if previewId != "" && useAsThumbnail {
 			err = repository.SetCollectionPreview(tx, asset.Id, "asset", previewId)
@@ -360,6 +387,11 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 // AddUntrackedAsset tracks previously untracked files and creates checkpoints for them.
 // Returns the newly tracked assets or an error if the operation fails.
 func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir string, assetPaths []string, completed, totalAssets int, message, previewPath, groupId string) ([]models.Asset, error) {
+	return c.AddUntrackedAssetWithSource(projectPath, projectWorkingDir, assetPaths, completed, totalAssets, message, previewPath, groupId, "")
+}
+
+// AddUntrackedAssetWithSource records the source of newly tracked output files.
+func (c *CheckpointService) AddUntrackedAssetWithSource(projectPath, projectWorkingDir string, assetPaths []string, completed, totalAssets int, message, previewPath, groupId, sourceCheckpointId string) ([]models.Asset, error) {
 	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
 	if admissionErr != nil {
 		return nil, admissionErr
@@ -477,12 +509,25 @@ func (c *CheckpointService) AddUntrackedAsset(projectPath, projectWorkingDir str
 			}
 			app.Event.Emit("progress-update", progress)
 		}
-		err = repository.CreateAssetFast(tx, "", assetName, assetType.Id, assetCollectionId, true, "", assetFilePath, previewId, user.Id, message, groupId, assetPath, statusId, callBack)
+		assetId := uuid.NewString()
+		err = repository.CreateAssetFast(tx, assetId, assetName, assetType.Id, assetCollectionId, true, "", assetFilePath, previewId, user.Id, message, groupId, assetPath, statusId, callBack)
 		if err != nil {
 			tx.Rollback()
 			return []models.Asset{}, err
 		}
 
+		if sourceCheckpointId != "" {
+			if err = authorizeCheckpointSourceTx(tx, sourceCheckpointId); err != nil {
+				return nil, err
+			}
+			checkpoint, err := repository.GetLatestCheckpoint(tx, assetId)
+			if err != nil {
+				return nil, err
+			}
+			if err = repository.UpdateCheckpoint(tx, checkpoint.Id, checkpoint.Comment, &sourceCheckpointId); err != nil {
+				return nil, err
+			}
+		}
 		err = tx.Commit()
 		if err != nil {
 			return []models.Asset{}, err
@@ -1662,4 +1707,114 @@ func (c *CheckpointService) SquashAssets(projectPath, projectWorkingDir string, 
 	})
 
 	return asset, nil
+}
+
+// ResolveCheckpointSource returns an exact source ID, resolving Latest only when requested.
+func (c *CheckpointService) ResolveCheckpointSource(projectPath, assetId, checkpointId string) (string, error) {
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return "", err
+	}
+	defer db.Close()
+	tx, err := db.Beginx()
+	if err != nil {
+		return "", err
+	}
+	defer tx.Rollback()
+	id, err := repository.ResolveCheckpointSource(tx, assetId, checkpointId)
+	if err != nil {
+		return "", err
+	}
+	if id == nil {
+		return "", nil
+	}
+	if err = authorizeCheckpointSourceTx(tx, *id); err != nil {
+		return "", err
+	}
+	return *id, nil
+}
+
+// GetCheckpoint retrieves a checkpoint for source selection and editing.
+func (c *CheckpointService) GetCheckpoint(projectPath, checkpointId string) (models.Checkpoint, error) {
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Checkpoint{}, err
+	}
+	defer db.Close()
+	tx, err := db.Beginx()
+	if err != nil {
+		return models.Checkpoint{}, err
+	}
+	defer tx.Rollback()
+	if err = authorizeCheckpointSourceTx(tx, checkpointId); err != nil {
+		return models.Checkpoint{}, err
+	}
+	return repository.GetCheckpoint(tx, checkpointId)
+}
+
+// UpdateCheckpoint saves comment, source, and optional tag changes in one transaction.
+func (c *CheckpointService) UpdateCheckpoint(projectPath, checkpointId, comment, sourceCheckpointId string, tagNames []string) error {
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	checkpoint, err := repository.GetCheckpoint(tx, checkpointId)
+	if err != nil {
+		return err
+	}
+	if err = authorizeAssetActionTx(tx, assetActionCreateCheckpoint, []string{checkpoint.AssetId}); err != nil {
+		return err
+	}
+	var sourceId *string
+	if sourceCheckpointId != "" {
+		if checkpoint.SourceCheckpointId == nil || *checkpoint.SourceCheckpointId != sourceCheckpointId {
+			if err = authorizeCheckpointSourceTx(tx, sourceCheckpointId); err != nil {
+				return err
+			}
+		}
+		sourceId = &sourceCheckpointId
+	}
+	if err = repository.UpdateCheckpoint(tx, checkpointId, comment, sourceId); err != nil {
+		return err
+	}
+	if tagNames != nil {
+		if err = authorizeAssetActionTx(tx, assetActionManageDependencies, []string{checkpoint.AssetId}); err != nil {
+			return err
+		}
+		assignments, err := repository.GetCheckpointTagsForAsset(tx, checkpoint.AssetId)
+		if err != nil {
+			return err
+		}
+		wanted := make(map[string]bool)
+		for _, name := range tagNames {
+			wanted[strings.ToLower(strings.TrimSpace(name))] = true
+		}
+		for _, assignment := range assignments {
+			if assignment.CheckpointId == checkpointId && !wanted[strings.ToLower(assignment.Name)] {
+				if err = repository.DeleteCheckpointTag(tx, assignment.Id); err != nil {
+					return err
+				}
+			}
+		}
+		for _, name := range tagNames {
+			if _, err = repository.SetCheckpointTag(tx, "", name, checkpointId); err != nil {
+				return err
+			}
+		}
+	}
+	return tx.Commit()
+}
+
+func authorizeCheckpointSourceTx(tx *sqlx.Tx, checkpointId string) error {
+	checkpoint, err := repository.GetCheckpoint(tx, checkpointId)
+	if err != nil {
+		return err
+	}
+	return authorizeAssetActionTx(tx, assetActionRevertCheckpoint, []string{checkpoint.AssetId})
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"clustta/internal/repository"
+	"clustta/internal/repository/models"
 )
 
 func TestRefreshRequested(t *testing.T) {
@@ -108,5 +109,24 @@ func TestDCCProjectResponseDoesNotExposeDatabaseURI(t *testing.T) {
 	}
 	if strings.Contains(string(payload), project.Uri) {
 		t.Fatalf("DCC response exposes the database path: %s", payload)
+	}
+}
+
+func TestCheckpointResponseIncludesSource(t *testing.T) {
+	sourceID := "source-checkpoint"
+	response := checkpointToResponse(models.Checkpoint{Id: "output", SourceCheckpointId: &sourceID})
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(encoded), `"source_checkpoint_id":"source-checkpoint"`) {
+		t.Fatalf("source missing from checkpoint response: %s", encoded)
+	}
+	var request checkpointRequest
+	if err = json.Unmarshal([]byte(`{"sourceAssetId":"source","sourceCheckpointId":"source-checkpoint"}`), &request); err != nil {
+		t.Fatal(err)
+	}
+	if request.SourceAssetID != "source" || request.SourceCheckpointID != sourceID {
+		t.Fatal("source selection not decoded")
 	}
 }

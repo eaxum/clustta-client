@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -119,6 +120,13 @@ func TestMigrateV2_2AddsVersionedDependencyAndCheckpointTagSchema(t *testing.T) 
 		t.Fatal("checkpoint_group should not be created")
 	}
 
+	var sourceColumnCount int
+	if err = db.Get(&sourceColumnCount, "SELECT count(*) FROM pragma_table_info('asset_checkpoint') WHERE name = 'source_checkpoint_id'"); err != nil {
+		t.Fatal(err)
+	}
+	if sourceColumnCount != 1 {
+		t.Fatal("expected checkpoint source column in migration 2.2")
+	}
 	var groupId string
 	if err = db.Get(&groupId, "SELECT group_id FROM asset_checkpoint WHERE id = 'checkpoint'"); err != nil {
 		t.Fatal(err)
@@ -131,7 +139,7 @@ func TestMigrateV2_2AddsVersionedDependencyAndCheckpointTagSchema(t *testing.T) 
 	if err = db.Get(&projectVersion, "SELECT value FROM config WHERE name = 'version'"); err != nil {
 		t.Fatal(err)
 	}
-	if projectVersion != "2.2" {
-		t.Fatalf("expected project version 2.2, got %s", projectVersion)
+	if projectVersion != fmt.Sprintf("%.1f", LatestVersion) {
+		t.Fatalf("expected project version %.1f, got %s", LatestVersion, projectVersion)
 	}
 }

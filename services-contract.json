@@ -1221,6 +1221,24 @@
         ]
       },
       {
+        "name": "AddCheckpointWithSource",
+        "params": [
+          "projectPath:string",
+          "assetPaths:[]string",
+          "extensions:[]string",
+          "message:string",
+          "previewPath:string",
+          "groupId:string",
+          "useAsThumbnail:bool",
+          "sendToIntegration:bool",
+          "sourceCheckpointId:string"
+        ],
+        "returns": [
+          "[]models.Checkpoint",
+          "error"
+        ]
+      },
+      {
         "name": "AddMissingGroupIds",
         "params": [
           "projectPath:string"
@@ -1240,6 +1258,24 @@
           "message:string",
           "previewPath:string",
           "groupId:string"
+        ],
+        "returns": [
+          "[]models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "AddUntrackedAssetWithSource",
+        "params": [
+          "projectPath:string",
+          "projectWorkingDir:string",
+          "assetPaths:[]string",
+          "completed:int",
+          "totalAssets:int",
+          "message:string",
+          "previewPath:string",
+          "groupId:string",
+          "sourceCheckpointId:string"
         ],
         "returns": [
           "[]models.Asset",
@@ -1277,6 +1313,17 @@
         ],
         "returns": [
           "models.DependencyBuildResult",
+          "error"
+        ]
+      },
+      {
+        "name": "GetCheckpoint",
+        "params": [
+          "projectPath:string",
+          "checkpointId:string"
+        ],
+        "returns": [
+          "models.Checkpoint",
           "error"
         ]
       },
@@ -1331,6 +1378,18 @@
         ],
         "returns": [
           "[]repository.CompatTimeline",
+          "error"
+        ]
+      },
+      {
+        "name": "ResolveCheckpointSource",
+        "params": [
+          "projectPath:string",
+          "assetId:string",
+          "checkpointId:string"
+        ],
+        "returns": [
+          "string",
           "error"
         ]
       },
@@ -1418,6 +1477,19 @@
         ],
         "returns": [
           "models.Asset",
+          "error"
+        ]
+      },
+      {
+        "name": "UpdateCheckpoint",
+        "params": [
+          "projectPath:string",
+          "checkpointId:string",
+          "comment:string",
+          "sourceCheckpointId:string",
+          "tagNames:[]string"
+        ],
+        "returns": [
           "error"
         ]
       },

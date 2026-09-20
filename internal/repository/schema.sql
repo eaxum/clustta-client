@@ -559,6 +559,7 @@ CREATE TABLE IF NOT EXISTS asset_checkpoint (
     time_modified INTEGER NOT NULL,
     file_size INTEGER NOT NULL,
     chunks TEXT NOT NULL,
+    source_checkpoint_id TEXT NULL,
     comment TEXT DEFAULT '' NOT NULL,
     author_id TEXT NOT NULL,
     group_id TEXT DEFAULT '' NOT NULL,
@@ -569,6 +570,60 @@ CREATE TABLE IF NOT EXISTS asset_checkpoint (
     FOREIGN KEY (asset_id) REFERENCES asset(id),
     FOREIGN KEY (author_id) REFERENCES user(id)
 );
+
+CREATE INDEX IF NOT EXISTS idx_asset_checkpoint_source ON asset_checkpoint(source_checkpoint_id);
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_source_insert BEFORE INSERT ON asset_checkpoint
+WHEN NEW.source_checkpoint_id IS NOT NULL
+BEGIN
+    SELECT RAISE(ABORT, 'checkpoint source cannot form a cycle')
+    WHERE NEW.source_checkpoint_id = NEW.id OR EXISTS (
+        WITH RECURSIVE sources(id) AS (
+            SELECT NEW.source_checkpoint_id
+            UNION
+            SELECT c.source_checkpoint_id FROM asset_checkpoint c JOIN sources s ON c.id = s.id
+            WHERE c.source_checkpoint_id IS NOT NULL
+        ) SELECT 1 FROM sources WHERE id = NEW.id
+    );
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_source_update BEFORE UPDATE OF source_checkpoint_id ON asset_checkpoint
+WHEN NEW.source_checkpoint_id IS NOT NULL AND NEW.source_checkpoint_id IS NOT OLD.source_checkpoint_id
+BEGIN
+    SELECT RAISE(ABORT, 'checkpoint source cannot form a cycle')
+    WHERE NEW.source_checkpoint_id = NEW.id OR EXISTS (
+        WITH RECURSIVE sources(id) AS (
+            SELECT NEW.source_checkpoint_id
+            UNION
+            SELECT c.source_checkpoint_id FROM asset_checkpoint c JOIN sources s ON c.id = s.id
+            WHERE c.source_checkpoint_id IS NOT NULL
+        ) SELECT 1 FROM sources WHERE id = NEW.id
+    );
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_source_delete BEFORE DELETE ON asset_checkpoint
+WHEN EXISTS (SELECT 1 FROM asset_checkpoint WHERE source_checkpoint_id = OLD.id)
+BEGIN
+    SELECT RAISE(ABORT, 'checkpoint is used as a source; remove its source references first');
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_source_trash BEFORE UPDATE OF trashed ON asset
+WHEN NEW.trashed = 1 AND OLD.trashed = 0
+AND EXISTS (
+    SELECT 1 FROM asset_checkpoint source
+    JOIN asset_checkpoint output ON output.source_checkpoint_id = source.id
+    WHERE source.asset_id = OLD.id
+)
+BEGIN
+    SELECT RAISE(ABORT, 'asset has checkpoints used as sources; remove their source references first');
+END;
+
+CREATE TRIGGER IF NOT EXISTS asset_checkpoint_source_trash BEFORE UPDATE OF trashed ON asset_checkpoint
+WHEN NEW.trashed = 1 AND OLD.trashed = 0
+AND EXISTS (SELECT 1 FROM asset_checkpoint WHERE source_checkpoint_id = OLD.id)
+BEGIN
+    SELECT RAISE(ABORT, 'checkpoint is used as a source; remove its source references first');
+END;
 
 CREATE TABLE IF NOT EXISTS asset_checkpoint_tag (
     id TEXT PRIMARY KEY,

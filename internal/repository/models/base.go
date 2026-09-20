@@ -380,23 +380,24 @@ type AssetCheckpointTag struct {
 }
 
 type Checkpoint struct {
-	Id               string `db:"id" json:"id"`
-	MTime            int    `db:"mtime" json:"mtime"`
-	CreatedAt        string `db:"created_at" json:"created_at"`
-	AssetId          string `db:"asset_id" json:"asset_id"`
-	XXHashChecksum   string `db:"xxhash_checksum" json:"xxhash_checksum"`
-	TimeModified     int    `db:"time_modified" json:"time_modified"`
-	FileSize         int    `db:"file_size" json:"file_size"`
-	Comment          string `db:"comment" json:"comment"`
-	Chunks           string `db:"chunks" json:"chunks"`
-	IsDownloaded     bool   `db:"is_downloaded" json:"is_downloaded"`
-	AuthorUID        string `db:"author_id" json:"author_id"`
-	GroupId          string `db:"group_id" json:"group_id"`
-	PreviewId        string `db:"preview_id" json:"preview_id"`
-	Preview          []byte `db:"preview" json:"preview"`
-	PreviewExtension string `db:"preview_extension" json:"preview_extension"`
-	Trashed          bool   `db:"trashed" json:"trashed"`
-	Synced           bool   `db:"synced" json:"synced"`
+	SourceCheckpointId *string `db:"source_checkpoint_id" json:"source_checkpoint_id"`
+	Id                 string  `db:"id" json:"id"`
+	MTime              int     `db:"mtime" json:"mtime"`
+	CreatedAt          string  `db:"created_at" json:"created_at"`
+	AssetId            string  `db:"asset_id" json:"asset_id"`
+	XXHashChecksum     string  `db:"xxhash_checksum" json:"xxhash_checksum"`
+	TimeModified       int     `db:"time_modified" json:"time_modified"`
+	FileSize           int     `db:"file_size" json:"file_size"`
+	Comment            string  `db:"comment" json:"comment"`
+	Chunks             string  `db:"chunks" json:"chunks"`
+	IsDownloaded       bool    `db:"is_downloaded" json:"is_downloaded"`
+	AuthorUID          string  `db:"author_id" json:"author_id"`
+	GroupId            string  `db:"group_id" json:"group_id"`
+	PreviewId          string  `db:"preview_id" json:"preview_id"`
+	Preview            []byte  `db:"preview" json:"preview"`
+	PreviewExtension   string  `db:"preview_extension" json:"preview_extension"`
+	Trashed            bool    `db:"trashed" json:"trashed"`
+	Synced             bool    `db:"synced" json:"synced"`
 }
 
 func (cp *Checkpoint) HasMissingChunks(tx *sqlx.Tx) (bool, error) {

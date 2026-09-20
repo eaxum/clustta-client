@@ -3,7 +3,7 @@
     <RenameInput v-if="isCreatingTag" v-model="newTagName" originalValue="" placeholder="Tag name"
       @confirm="confirmNewTag" @cancel="cancelNewTag" />
     <DropDownBox v-else :items="tagOptions" :selectedItem="selectedItem" :onSelect="selectTag"
-      :useFilter="false" placeHolder="No tag">
+      :useFilter="false" placeHolder="No tag" :disabled="disabled">
       <template #footer="{ close }">
         <div class="checkpoint-tag-dropdown-divider"></div>
         <button class="checkpoint-tag-create-action" type="button" @click="startNewTag(close)">
@@ -27,6 +27,7 @@ const NO_TAG = 'checkpoint-tag:none';
 const TAG_PREFIX = 'checkpoint-tag:';
 
 const props = defineProps({
+  disabled: { type: Boolean, default: false },
   assetIds: { type: Array, default: () => [] },
   modelValue: { type: String, default: '' },
 });

@@ -338,6 +338,13 @@ export class Checkpoint {
      * @param {Partial<Checkpoint>} [$$source = {}] - The source object to create the Checkpoint.
      */
     constructor($$source = {}) {
+        if (!("source_checkpoint_id" in $$source)) {
+            /**
+             * @member
+             * @type {string | null}
+             */
+            this["source_checkpoint_id"] = null;
+        }
         if (!("id" in $$source)) {
             /**
              * @member
@@ -467,10 +474,10 @@ export class Checkpoint {
      * @returns {Checkpoint}
      */
     static createFrom($$source = {}) {
-        const $$createField13_0 = $Create.ByteSlice;
+        const $$createField14_0 = $Create.ByteSlice;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("preview" in $$parsedSource) {
-            $$parsedSource["preview"] = $$createField13_0($$parsedSource["preview"]);
+            $$parsedSource["preview"] = $$createField14_0($$parsedSource["preview"]);
         }
         return new Checkpoint(/** @type {Partial<Checkpoint>} */($$parsedSource));
     }

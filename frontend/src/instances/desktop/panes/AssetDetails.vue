@@ -39,6 +39,17 @@
         <span v-if="userStore.canDo('update_asset')" class="menu-divider"></span>
 
         <div class="asset-details">
+          <div v-if="latestCheckpoint?.source_checkpoint_id" class="pane-parameter-detail">
+            <div class="simple-text-key">Source</div>
+            <div v-if="sourceAsset" class="asset-source-actions">
+              <AssetItem class="asset-source" :item="sourceAsset" :hideExtension="true"
+                :showBadge="false" variant="compact" />
+              <ActionButton :icon="getAppIcon('file-search')"
+                v-tooltip="$t('menus.goToAsset')" :buttonFunction="goToSource" />
+            </div>
+            <div v-else class="simple-text-value">Source unavailable</div>
+          </div>
+
           <div class="pane-parameter-detail">
             <div class="simple-text-key">
               {{ $t('panes.parent') }}
@@ -207,6 +218,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useUserStore } from '@/stores/users';
 import { useStageStore } from '@/stores/stages';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useStatusStore } from '@/stores/status';
 import { useIconStore } from '@/stores/icons';
@@ -217,10 +229,11 @@ import { useTagStore } from '@/stores/tags';
 import { useTrayStates } from '@/stores/TrayStates';
 
 // services
-import { AssetService, CheckpointService, IntegrationService } from "@/services";
+import { AssetService, CheckpointService, IntegrationService, CollectionService } from "@/services";
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import AssetItem from '@/instances/desktop/components/AssetItem.vue';
 import Chip from '@/instances/common/components/Chip.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
@@ -247,6 +260,29 @@ const assetTags = ref([]);
 const assetIntegrationDetails = ref(null);
 const multiStatusChange = ref(false);
 const latestCheckpoint = ref(null);
+const sourceAsset = ref(null);
+const collectionStore = useCollectionStore();
+const goToSource = async () => {
+  const asset = sourceAsset.value;
+  if (!asset) return;
+  try {
+    const collection = asset.collection_id
+      ? await CollectionService.GetCollectionByID(projectStore.activeProject.uri, asset.collection_id) : null;
+    commonStore.activeWorkspace = 'Project';
+    commonStore.viewSearchQuery = '';
+    commonStore.resetFilters();
+    commonStore.navigatorMode = true;
+    stage.deselectAllItems();
+    collectionStore.navigateToCollection(collection);
+    assetStore.selectAsset(asset);
+    stage.firstSelectedItemId = asset.id;
+    stage.markedItems = [asset.id];
+    emitter.emit('view-details');
+    emitter.emit('refresh-browser');
+  } catch (error) {
+    notificationStore.errorNotification('Unable to navigate to source', error);
+  }
+};
 const numberOfSelectedAssets = ref(0);
 const showTagInput = ref(false);
 const tagInputValue = ref('');
@@ -616,6 +652,7 @@ const lastCheckpoint = computed(() => {
 });
 
 const loadLatestCheckpoint = async () => {
+  sourceAsset.value = null;
   latestCheckpoint.value = null;
   
   if (!assetStore.selectedAsset || assetStore.selectedAsset.is_link) {
@@ -630,6 +667,15 @@ const loadLatestCheckpoint = async () => {
     );
     if (assetStore.selectedAsset?.id !== assetId) return;
     latestCheckpoint.value = checkpoint;
+    if (checkpoint.source_checkpoint_id) {
+      try {
+        const source = await CheckpointService.GetCheckpoint(projectStore.activeProject.uri, checkpoint.source_checkpoint_id);
+        const asset = await AssetService.GetAssetByID(projectStore.activeProject.uri, source.asset_id);
+        if (assetStore.selectedAsset?.id === assetId) sourceAsset.value = asset;
+      } catch (error) {
+        console.warn('Source checkpoint is unavailable:', error);
+      }
+    }
   } catch (error) {
     if (assetStore.selectedAsset?.id !== assetId) return;
     console.log('No checkpoint found or error:', error);
@@ -841,6 +887,27 @@ onBeforeUnmount(() => {
 .asset-assignee {
   width: auto;
   min-width: 0;
+}
+
+.asset-source-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.asset-source {
+  width: auto;
+  min-width: 0;
+  outline: 0px;
+  padding: 0 .3rem;
+}
+
+.asset-source:hover {
+  outline: 0px;
+  border-radius: var(--large-radius);
 }
 
 .menu-divider {

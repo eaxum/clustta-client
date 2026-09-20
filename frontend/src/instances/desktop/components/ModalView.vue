@@ -21,6 +21,7 @@ import ConsoleModal from '@/instances/desktop/modals/ConsoleModal.vue';
 import CreateAssetModal from '@/instances/desktop/modals/CreateAssetModal.vue';
 import DependencyGraphModal from '@/instances/desktop/modals/DependencyGraphModal.vue';
 import DependencyBuildPlanModal from '@/instances/desktop/modals/DependencyBuildPlanModal.vue';
+import EditCheckpointModal from '@/instances/desktop/modals/EditCheckpointModal.vue';
 import CreateCheckpointModal from '@/instances/desktop/modals/CreateCheckpointModal.vue';
 import CreateCollectionModal from '@/instances/desktop/modals/CreateCollectionModal.vue';
 import CreateMultipleCheckpointsModal from '@/instances/desktop/modals/CreateMultipleCheckpointsModal.vue';
@@ -135,6 +136,7 @@ const modalComponents = {
   dependencyGraphModal: DependencyGraphModal,
   dependencyBuildPlanModal: DependencyBuildPlanModal,
   createCheckpointModal: CreateCheckpointModal,
+  editCheckpointModal: EditCheckpointModal,
   createCollectionModal: CreateCollectionModal,
   createMultipleCheckpointsModal: CreateMultipleCheckpointsModal,
   editAssetModal: EditAssetModal,
