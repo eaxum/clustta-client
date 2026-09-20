@@ -9,7 +9,7 @@
 
 <script setup>
 // imports
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -44,6 +44,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 const handleClear = () => {
   model.value = '';
   emit('clear');
+  nextTick(() => focus());
 };
 
 // Focuses the input element.

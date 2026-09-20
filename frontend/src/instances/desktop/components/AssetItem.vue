@@ -1,10 +1,13 @@
 <template>
-  <div class="asset-item" :class="[`asset-item-${variant}`, { 'asset-item-clickable': clickable }]" @click="handleClick">
+  <div class="asset-item" :class="[`asset-item-${variant}`, {
+    'asset-item-clickable': clickable,
+    'asset-item-outline-disabled': disableOutline,
+  }]" @click="handleClick">
     <div class="asset-item-meta">
       <img class="asset-item-icon small-icons" :class="{ 'no-filter': hasResolvedIcon }" :src="displayIcon" @error="handleIconError" />
 
       <div class="asset-item-label">
-        <div class="asset-item-name" v-tooltip="displayName">{{ displayName }}</div>
+        <div class="asset-item-name" v-tooltip="tooltip || displayName">{{ displayName }}</div>
       </div>
 
       <span v-if="showBadge && normalizedKindLabel" class="asset-item-badge" :class="'badge-' + normalizedKind">
@@ -63,6 +66,10 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  tooltip: {
+    type: String,
+    default: '',
+  },
   kind: {
     type: String,
     default: '',
@@ -100,6 +107,10 @@ const props = defineProps({
     default: false,
   },
   clickable: {
+    type: Boolean,
+    default: false,
+  },
+  disableOutline: {
     type: Boolean,
     default: false,
   },
@@ -241,6 +252,10 @@ watch(() => `${extension.value}:${explicitIcon.value}`, loadIcon, { immediate: t
 
 .asset-item-clickable {
   cursor: pointer;
+}
+
+.asset-item-outline-disabled {
+  outline: none;
 }
 
 .asset-item-compact {

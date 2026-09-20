@@ -14,11 +14,16 @@
       <span class="list-box-parent-chevron"><img class="small-icons chevron" src="/icons/chevron_down_white.svg"></span>
     </div>
     <Teleport to="#app">
-      <div v-if="isExpanded" v-stop-propagation class="listbox-list-items-root"
+      <div v-if="isExpanded" ref="listItemsRoot" v-stop-propagation class="listbox-list-items-root"
         :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px', width: listItemsWidth + 'px', maxHeight: listItemMaxHeight + 'px' }">
-        <div class="listbox-list-items">
+        <div v-if="isSearchable" class="listbox-search" @click.stop @keydown.stop>
+          <SearchBar ref="searchBar" class="drop-down-search-bar" v-model="searchTerm" :placeholder="searchPlaceholder"
+            :isLoading="searchLoading" />
+        </div>
+        <div class="listbox-list-items" :class="{ 'listbox-searchable-items': isSearchable }">
           <div v-for="(item, index) in filteredItems" :key="getItemKey(item, index)" :value="getItemSelectionValue(item)" @click="selectItem(item)"
             class="listbox-item" :aria-disabled="isItemDisabled(item)" :class="{ 'listbox-item-closed': isUnique(getItemSelectionValue(item)) === true, 'listbox-item-selected': getItemSelectionValue(item) === props.selectedItem, 'listbox-item-disabled': isItemDisabled(item) }">
+            <slot name="item" :item="item" :close="closeList">
             <div class="listbox-item-text-mask" @mouseenter="startScrollText($event, index)"
               @mouseleave="stopScrollText($event)">
               <div class="listbox-item-text" :class="{ 'overflow-text': isHoveringIndex === index }" style="display: flex; align-items: center; gap: 0.5rem;">
@@ -26,11 +31,13 @@
                 {{ utils.capitalizeStr(getItemValue(item)) }}
               </div>
             </div>
+            </slot>
             <div v-if="$slots.itemAction" class="listbox-item-action" @click.stop>
               <slot name="itemAction" :item="item" :value="getItemValue(item)" :close="closeList" />
             </div>
           </div>
         </div>
+        <div v-if="isSearchable && !searchLoading && !filteredItems.length" class="listbox-empty">No results</div>
         <slot v-if="$slots.footer" name="footer" :close="closeList" />
       </div>
     </Teleport>
@@ -40,10 +47,11 @@
 <script setup>
 
 // imports
-import { computed, onMounted, watchEffect, ref, nextTick, onUnmounted } from 'vue';
+import { computed, onMounted, ref, nextTick, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import utils from "@/services/utils";
 import emitter from '@/lib/mitt';
+import SearchBar from '@/instances/desktop/components/SearchBar.vue';
 
 // states
 import { useStageStore } from '@/stores/stages';
@@ -55,8 +63,13 @@ const { t } = useI18n();
 
 // refs
 const listBoxParent = ref(null);
+const listItemsRoot = ref(null);
 const isHoveringIndex = ref(null);
 const isExpanded = ref(false);
+const searchTerm = ref('');
+const searchBar = ref(null);
+const listBoxId = Symbol('drop-down-box');
+const openListBoxEvent = 'openListBox';
 
 // Helper functions to handle both string arrays and object arrays
 const isObjectArray = computed(() => {
@@ -120,14 +133,24 @@ const listItemsPaddingTop = ref(0);
 // horizontal/vertical breathing room around the wrapped input
 const WRAP_PAD_X = 6;
 const WRAP_PAD_Y = 6;
+const DEFAULT_SEARCH_ITEM_THRESHOLD = 5;
+const isSearchable = computed(() => (
+  props.searchable || (props.items?.length || 0) > DEFAULT_SEARCH_ITEM_THRESHOLD
+));
 const filteredItems = computed(() => {
-  if (!props.items.length) return [];
-  const selectedIdx = props.items.findIndex(item => getItemSelectionValue(item) === props.selectedItem);
-  if (selectedIdx <= 0) return props.items;
-  const reordered = props.items.slice();
-  const [selected] = reordered.splice(selectedIdx, 1);
-  reordered.unshift(selected);
-  return reordered;
+  const query = searchTerm.value.trim().toLowerCase();
+  const items = (props.items || []).filter((item) => {
+    if (!isSearchable.value || !query) return true;
+    if (typeof item === 'string') return item.toLowerCase().includes(query);
+    const searchableText = [getItemValue(item), item.searchText, ...(item.searchTerms || [])]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase();
+    return searchableText.includes(query);
+  });
+  const selectedIdx = items.findIndex(item => getItemSelectionValue(item) === props.selectedItem);
+  if (selectedIdx > 0) items.unshift(...items.splice(selectedIdx, 1));
+  return items;
 });
 
 const isPlaceholder = computed(() => !props.selectedItem);
@@ -173,6 +196,9 @@ const props = defineProps({
       return false
     }
   },
+  searchable: { type: Boolean, default: false },
+  searchLoading: { type: Boolean, default: false },
+  searchPlaceholder: { type: String, default: 'Start typing...' },
   useFilter: { type: Boolean, default: true },
   minHeight: { type: Number, default: 35 },
   fullWidth: { type: Boolean, default: true },
@@ -207,6 +233,7 @@ const stopScrollText = (event) => {
 };
 
 const toggleList = () => {
+  searchTerm.value = '';
   if (props.disabled) return;
 
   const boundaryRect = listItemsBoundary.value ? listItemsBoundary.value.getBoundingClientRect() : null;
@@ -242,11 +269,18 @@ const toggleList = () => {
     listItemMaxHeight.value = Math.max(80, boundaryBottom - listParentTop);
   }
 
-  if (filteredItems.value.length) {
-    isExpanded.value = !isExpanded.value;
-  }
-  else {
+  if (!filteredItems.value.length) {
     isExpanded.value = false;
+    return;
+  }
+
+  const shouldExpand = !isExpanded.value;
+  if (shouldExpand) {
+    emitter.emit(openListBoxEvent, listBoxId);
+  }
+  isExpanded.value = shouldExpand;
+  if (isExpanded.value && isSearchable.value) {
+    nextTick(() => searchBar.value?.focus());
   }
 };
 
@@ -262,9 +296,10 @@ const closeList = () => {
 };
 
 const hideListContent = (event) => {
-  if (isExpanded.value && (event.target !== listBoxParent.value)) {
-    isExpanded.value = false;
-  }
+  if (!isExpanded.value) return;
+  if (listBoxParent.value?.contains(event.target)) return;
+  if (listItemsRoot.value?.contains(event.target)) return;
+  closeList();
 };
 
 const disableListBoxOnScroll = (event) => {
@@ -273,22 +308,23 @@ const disableListBoxOnScroll = (event) => {
   }
 };
 
-watchEffect(() => {
-	if (menu.clickOutsideMask) {
-    menu.clickOutsideMask.addEventListener('click', hideListContent);
-	}
-});
+const closeOtherListBox = (openedListBoxId) => {
+  if (openedListBoxId !== listBoxId) {
+    closeList();
+  }
+};
 
 // onMounted hook
 onMounted(() => {
   emitter.on('disableListBoxOnScroll', disableListBoxOnScroll);
+  emitter.on(openListBoxEvent, closeOtherListBox);
+  document.addEventListener('pointerdown', hideListContent, true);
 });
 
 onUnmounted(() => {
   emitter.off('disableListBoxOnScroll', disableListBoxOnScroll);
-	if (menu.clickOutsideMask) {
-    menu.clickOutsideMask.removeEventListener('click', hideListContent);
-	}
+  emitter.off(openListBoxEvent, closeOtherListBox);
+  document.removeEventListener('pointerdown', hideListContent, true);
 });
 
 </script>
@@ -404,13 +440,13 @@ onUnmounted(() => {
   color: black;
   color: var(--text);
   box-sizing: border-box;
+  display: flex;
   z-index: 100000;
   border-radius: var(--large-radius);
   min-height: 32px;
   line-height: 1.4 !important;
   background-color: var(--surface-2);
   overflow: hidden;
-  overflow-y: auto;
   max-height: 300px;
   text-align: left;
   flex-direction: column;
@@ -424,43 +460,45 @@ onUnmounted(() => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
-
-.listbox-list-items-root::-webkit-scrollbar {
-  border-radius: 4px;
-  width: 4px;
-}
-
-.listbox-list-items-root::-webkit-scrollbar-thumb {
-  border-radius: 4px;
-  background-color: rgba(255, 255, 255, 0.295);
-}
-
-.listbox-list-items-root::-webkit-scrollbar-track {
-    margin: 10px;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.295);
-}
-
 .listbox-list-items {
   color: var(--text);
   box-sizing: border-box;
+  padding-right: .3rem;
+  /* scrollbar-color: rgba(255, 255, 255, 0.295) rgba(0, 0, 0, 0.295); */
+  /* scrollbar-width: thin; */
   border-radius: var(--normal-radius);
-  min-height: min-content;
-  /* background-color: #2e2e2e; */
+  min-height: 0;
   overflow: hidden;
   overflow-y: auto;
   display: flex;
-  /* flex: 1; */
+  flex: 1 1 auto;
   flex-direction: column;
   flex-wrap: nowrap;
   height: max-content;
   gap: .2rem;
-  /* padding: .3rem .3rem;  */
-  /* background-color: blue; */
+}
+
+
+
+.listbox-list-items::-webkit-scrollbar {
+  border-radius: 4px;
+  width: 4px;
+}
+
+.listbox-list-items::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.295);
+}
+
+.listbox-list-items::-webkit-scrollbar-track {
+  /* margin: 10px; */
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.295);
 }
 
 .listbox-item {
   box-sizing: border-box;
+  flex-shrink: 0;
   list-style: none;
   cursor: pointer;
   background-color: transparent;
@@ -559,6 +597,31 @@ img.listbox-icon.listbox-icon-go {
   height: 35px;
   padding-right: 8px;
   overflow: hidden;
+}
+
+.listbox-search {
+  box-sizing: border-box;
+  width: 100%;
+  /* padding: .15rem; */
+  position: relative;
+  background: var(--surface-2);
+  z-index: 1;
+}
+
+.drop-down-search-bar {
+  border-radius: var(--normal-radius);
+}
+
+.listbox-empty {
+  box-sizing: border-box;
+  width: 100%;
+  padding: .4rem .5rem;
+  color: var(--surface-5);
+  font-size: 14px;
+}
+.listbox-searchable-items {
+  max-height: 25rem;
+  overflow-y: auto;
 }
 </style>
 
