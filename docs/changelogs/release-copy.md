@@ -1,61 +1,81 @@
-# Clustta 0.4.39 Release Copy
+# Clustta 0.4.40 Release Copy
 
 ## Release Inputs
 
-- Version: `0.4.39`
-- Previous version/tag: `v0.4.38`
-- New version/tag: `v0.4.39`
-- Compare range: `9b6f5241ad6ddc60caea51edf617f96f39e0cb53...HEAD`
-- Release headline: `Smarter project launches, stronger batch tools, and flexible exports`
+- Version: `0.4.40`
+- Previous version/tag: `v0.4.39`
+- New version/tag: `v0.4.40`
+- Compare range: `77923fb287640e029654fffd59bdba1aef85f565...HEAD`
+- Release headline: `Precise dependency builds, visible activity, and drag-and-drop exports`
 - Canny types: `new`, `improved`, `fixed`
 
 ## GitHub Release
 
-### Clustta 0.4.39
+### Clustta 0.4.40
+
+## New Features
+
+### Precise Dependency Builds
+
+Pin dependencies to specific checkpoints or follow tagged versions, then preview the exact files and versions a build will download. Conflicts resolve more efficiently, and dependency rows can take you straight to the related asset or collection.
+
+### Checkpoint Tags
+
+Tag checkpoints for use in dependency builds, making it easy to follow a named version instead of selecting a fixed checkpoint.
+
+### Checkpoint Provenance
+
+Record which asset checkpoint a new checkpoint was derived from. Choose a source asset, then use its latest checkpoint or select an exact version. Clustta saves that link with the checkpoint to preserve its lineage across the project.
+
+### Editable Checkpoints
+
+Update an existing checkpoint's comment, tags, and source checkpoint.
+
+### Activity Panel
+
+Track project downloads and other long-running work from the new Activity panel. Review progress and details, minimize the panel while continuing to work, and cancel supported downloads if needed.
+
+### Drag-and-Drop File Exports
+
+Drag assets from Clustta into the system file manager or another supported application. Native drag-out is available on Windows, macOS, and Linux, with platform-appropriate behavior and clearer availability hints.
+
+### Jack of All Trades Template
+
+Start mixed-media projects with a new template containing open-source starter files for Blender, Krita, GIMP, and Audacity, organized with useful tags.
 
 ## Improvements
 
-### Smarter Project Launches
+### Safer Project Compatibility and Sync
 
-Configure project pre-launch hooks for supported creative applications. Clustta can discover installed DCC versions, prepare project environments, and fetch required hook and environment dependencies before launch.
+Clustta now checks project schema and protocol compatibility before operations that could modify a project. Confirmed replicas can migrate safely, local changes are tracked more completely.
 
-### More Capable Agent Workflows
+### Clearer Downloads and Onboarding
 
-The Agent composer now supports `/` quick commands, `~` project script references, and `@` asset or collection references. The Agent can also plan scoped batch moves, renames, dependency changes, copies, and edits with clearer approval previews.
+Download progress now uses clearer localized phases and supports cancellation. Storage setup suggests sensible default paths and provides better macOS permission guidance.
 
-### Pending Renames Across Sync
+### Refined Browsing and Project Controls
 
-Local asset and collection renames now remain available while awaiting sync. Clustta preserves pending paths and applies remote path changes when items are fetched, keeping checkpoints, reverts, and local files aligned.
-
-### Flexible Exports and Project Organization
-
-Preview scoped asset exports, choose the columns to include, and save results in multiple file formats. Project settings now also include tag management, role duplication, and a no-tags filter.
-
-### Improved Kitsu Workflows
-
-Open the linked Kitsu task for a selected asset type, filter task outputs, and review selectable full-tree sync previews with clearer import and connection controls.
-
-### Smaller UX Polish
-
-- Checkpoints without messages now receive automatic version comments.
-- Dependency paths, workspace labels, title bar controls, navigation, and approval previews are clearer and more consistent.
+- Search supported dropdown lists more quickly and use direct checkboxes in filter menus.
+- Choose whether file type icons appear in the browser.
+- Use a streamlined list view, animated tab indicators, and clearer shortcut labels.
+- Open project settings from the collaborators pane and unassign users from asset details.
 
 ## Bug Fixes
 
-- **Authentication** - Restored the login prompt when a sync token expires.
-- **Project settings** - Fixed project configuration syncing and made environment variable updates safer.
-- **Collaborators** - Fixed Studio sync token updates, stale user records, and collaborator limit enforcement.
-- **Kitsu integration** - Fixed category metadata parsing and sync preview ordering.
-- **Agent tools** - Fixed script resolution, shortcut display, translations, and scoped dependency operations.
-- **Cross-platform UI** - Fixed macOS scrollbar and title bar spacing issues, plus Linux build command cleanup.
+- **Authentication** - Preserved project and user state when signing in again after a session expires.
+- **Dependencies** - Fixed checkpoint build permissions, dependency graph views, extension visibility, and conflict resolution.
+- **Sync** - Preserved custom asset types and icons when making a personal project remote and improved discard errors for local changes.
+- **Projects** - Fixed folder reveal actions so they open the selected project's folder.
+- **Assignments** - Handled deleted assignees correctly and improved assignee controls in asset details.
+- **Interface** - Improved default sizing, dark theme defaults, filters, skeleton spacing, responsive empty states, and other visual details.
 
-**Full Changelog**: `9b6f5241ad6ddc60caea51edf617f96f39e0cb53...HEAD`
+**Full Changelog**: `77923fb287640e029654fffd59bdba1aef85f565...HEAD`
 
 ## Canny Changelog
 
 ### Title
 
-Clustta 0.4.39 : Smarter project launches, stronger batch tools, and flexible exports
+Clustta 0.4.40 : Precise dependency builds, visible activity, and drag-and-drop exports
 
 ### Types
 
@@ -63,73 +83,82 @@ Clustta 0.4.39 : Smarter project launches, stronger batch tools, and flexible ex
 
 ### Body
 
-Clustta 0.4.39 adds configurable project launch workflows, more capable Agent batch tools, flexible exports, and improved project organization.
+Clustta 0.4.40 adds precise dependency version controls, checkpoint provenance, visible background activity, and cross-platform drag-and-drop exports.
 
-**New: Smarter Project Launches**
+**New: Precise Dependency Builds**
 
-Configure pre-launch hooks for supported creative applications while Clustta discovers installed versions, prepares project environments, and fetches required dependencies.
+Pin dependencies to exact checkpoints or follow tagged versions, preview what a build will download, and move directly from dependency rows to related assets and collections.
 
-**Improved: More Capable Agent Workflows**
+**New: Checkpoint Tags**
 
-Use `/` for quick commands, `~` to reference project scripts, and `@` to reference assets or collections. Scoped batch moves, renames, dependency changes, copies, and edits now have clearer approval previews.
+Tag checkpoints for dependency builds so dependencies can follow a named version.
 
-**New: Pending Renames Across Sync**
+**New: Checkpoint Provenance**
 
-Keep working with local asset and collection renames while they await sync, with pending and remote paths applied consistently when items are fetched.
+Record where a checkpoint came from by choosing a source asset and linking either its latest checkpoint or an exact version. Clustta stores the link as part of the checkpoint's lineage.
 
-**New: Flexible Exports and Organization**
+**New: Editable Checkpoints**
 
-Preview scoped exports, choose columns and file formats, manage project tags, duplicate roles, and filter items without tags.
+Update an existing checkpoint's comment, tags, and source checkpoint without recreating it.
 
-**Improved: Kitsu Workflows**
+**New: Activity Panel**
 
-Open linked tasks, filter outputs, and review selectable full-tree sync previews with clearer controls.
+Follow project downloads and other long-running work, inspect details, minimize the panel, and cancel supported downloads.
+
+**New: Drag-and-Drop File Exports**
+
+Drag eligible assets and collections into the system file manager or another supported application on Windows, macOS, and Linux.
+
+**Improved: Compatibility, Sync, and Onboarding**
+
+Benefit from safer project compatibility checks and migrations, more complete local change tracking, synced dependency selections, clearer download progress, and better storage setup guidance.
 
 **Fixed**
 
-- Fixed expired sync token login prompts and safer project setting updates.
-- Fixed collaborator records and limits, Kitsu metadata, and preview ordering.
-- Fixed Agent script resolution, shortcut display, translations, and cross-platform UI issues.
+- Fixed expired-session reauthentication without losing project context.
+- Fixed dependency permissions, graph views, conflict resolution, and extension visibility.
+- Fixed custom type and icon preservation when moving personal projects online.
+- Fixed selected project folder reveal actions, deleted assignees, and several interface details.
 
 ## Apple App Store
 
 ### What's New in This Version
 
-Clustta 0.4.39 improves project launches, batch workflows, exports, and reliability.
+Clustta 0.4.40 brings more precise dependency builds, visible activity, drag-and-drop exports, and safer project updates.
 
-- Configure pre-launch hooks and prepare DCC environments and dependencies before launch.
-- Use `/` quick commands, `~` script references, and `@` asset or collection references in the Agent.
-- Keep working with local renames while they await sync across fetched items, checkpoints, and reverts.
-- Preview exports, choose columns and formats, and manage project tags and roles.
-- Work more smoothly with Kitsu tasks, output filters, and sync previews.
-- Includes fixes for authentication, sync paths, checkpoints, collaborators, and cross-platform UI.
+- Pin dependencies to exact checkpoints or tagged versions and preview build downloads.
+- Tag checkpoints, record their source lineage, and edit checkpoint details after creation.
+- Track downloads and other long-running work in the new Activity panel.
+- Drag eligible assets and collections into supported apps and file locations.
+- Start mixed-media work with the new Jack of All Trades project template.
+- Includes improvements to project compatibility, sync, onboarding, authentication, and the interface.
 
 ## Microsoft Store
 
 ### Release Notes
 
-Clustta 0.4.39 improves project launches, batch workflows, exports, and reliability.
+Clustta 0.4.40 brings more precise dependency builds, visible activity, drag-and-drop exports, and safer project updates.
 
-- Configure pre-launch hooks and prepare DCC environments and dependencies before launch.
-- Use `/` quick commands, `~` script references, and `@` asset or collection references in the Agent.
-- Keep working with local renames while they await sync across fetched items, checkpoints, and reverts.
-- Preview exports, choose columns and formats, and manage project tags and roles.
-- Work more smoothly with Kitsu tasks, output filters, and sync previews.
-- Includes fixes for authentication, sync paths, checkpoints, collaborators, and cross-platform UI.
+- Pin dependencies to exact checkpoints or tagged versions and preview build downloads.
+- Tag checkpoints, record their source lineage, and edit checkpoint details after creation.
+- Track downloads and other long-running work in the new Activity panel.
+- Drag eligible assets and collections into supported apps and file locations.
+- Start mixed-media work with the new Jack of All Trades project template.
+- Includes improvements to project compatibility, sync, onboarding, authentication, and the interface.
 
 ## Short Store Summary
 
-Smarter project launches, stronger Agent batch tools, flexible exports, and reliability fixes.
+Precise dependency builds, checkpoint provenance, visible activity, and drag-and-drop exports.
 
 ## Flathub Release
 
-### Clustta 0.4.39
+### Clustta 0.4.40
 
-Clustta 0.4.39 adds smarter project launches, more capable Agent commands, flexible exports, pending renames across sync, and reliability improvements.
+Clustta 0.4.40 adds precise dependency version controls, checkpoint provenance, visible background activity, cross-platform drag-and-drop exports, and safer project updates.
 
-- Configure pre-launch hooks and prepare DCC environments and dependencies before launch.
-- Use `/` quick commands, `~` project script references, and `@` asset or collection references in the Agent.
-- Keep working with local renames while they await sync and apply remote paths consistently when items are fetched.
-- Preview exports, choose columns and formats, manage project tags, and duplicate roles.
-- Improve Kitsu workflows with linked tasks, output filters, and selectable sync previews.
-- Includes fixes for authentication, project settings, collaborators, Agent tools, and cross-platform UI.
+- Pin dependencies to exact checkpoints or tagged versions and preview build downloads.
+- Tag checkpoints, record their source lineage, and edit checkpoint details after creation.
+- Track downloads and other long-running work in the new Activity panel.
+- Drag eligible assets and collections into supported apps and file locations on Windows, macOS, and Linux.
+- Start mixed-media work with the new Jack of All Trades project template.
+- Includes improvements to project compatibility, sync, onboarding, authentication, dependency navigation, and interface polish.
