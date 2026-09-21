@@ -133,7 +133,7 @@ const listItemsPaddingTop = ref(0);
 // horizontal/vertical breathing room around the wrapped input
 const WRAP_PAD_X = 6;
 const WRAP_PAD_Y = 6;
-const DEFAULT_SEARCH_ITEM_THRESHOLD = 5;
+const DEFAULT_SEARCH_ITEM_THRESHOLD = 10;
 const isSearchable = computed(() => (
   props.searchable || (props.items?.length || 0) > DEFAULT_SEARCH_ITEM_THRESHOLD
 ));
