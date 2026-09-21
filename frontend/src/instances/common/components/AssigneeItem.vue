@@ -104,7 +104,7 @@ const triggerAction = () => {
   opacity: 1;
   visibility: visible;
   transition: opacity 0.2s ease-in-out;
-  /* display: flex; */
+  display: flex; 
 }
 
 .assignee-list-item-actions {
