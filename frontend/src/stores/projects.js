@@ -1,3 +1,5 @@
+import { projectAccessProblem, projectCompatibilityProblem, compatibilityProblem, parseCompatibilityError, compatibilityCacheKey, COMPATIBILITY_CACHE_KEY, PROJECT_SCHEMA } from '@/lib/compatibility';
+import { useDesktopModalStore } from './desktopModals';
 import { defineStore } from "pinia";
 import {
   SettingsService,
@@ -68,6 +70,7 @@ const validateStudioCapabilities = (capabilities) => {
 export const useProjectStore = defineStore("projects", {
   state: () => ({
     activeProject: null,
+    compatibilityCache: {},
     projectSearchQuery: "",
     activeProjectCover: "",
     pinnedProjects: [],
@@ -94,6 +97,14 @@ export const useProjectStore = defineStore("projects", {
     lastSelectedProjectId: "",
   }),
   getters: {
+    activeCompatibilityProblem: (state) => {
+      if (state.activeProject) return state.activeProject.compatibility_problem || null;
+      const remoteProject = state.projects.find(project => project.has_remote && !project.is_offline);
+      if (!remoteProject) return null;
+      const contract = remoteProject.compatibility;
+      return compatibilityProblem(contract ? { ...contract, project_schema: contract.schema } : null);
+    },
+
     getActiveProjectName: (state) => {
       if (state.projects.length && state.activeProject) {
         let project = state.activeProject;
@@ -146,6 +157,72 @@ export const useProjectStore = defineStore("projects", {
 
   },
   actions: {
+    cacheProjectCompatibility(project) {
+      if (!project.has_remote) return;
+      const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
+      if (!Object.keys(this.compatibilityCache).length) {
+        try {
+          const cached = JSON.parse(localStorage.getItem(COMPATIBILITY_CACHE_KEY) || '{}');
+          if (!cached || typeof cached !== 'object' || Array.isArray(cached)) throw new Error('Invalid compatibility cache');
+          this.compatibilityCache = cached;
+        } catch (error) {
+          console.error('Unable to read compatibility cache:', error);
+        }
+      }
+      project.compatibility_problem = projectCompatibilityProblem(project, this.compatibilityCache[key]);
+      if (project.is_offline) return;
+      this.compatibilityCache[key] = { verified: !project.compatibility_problem, problem: project.compatibility_problem, contract: project.compatibility };
+      this.saveCompatibilityCache();
+    },
+    saveCompatibilityCache() {
+      try {
+        localStorage.setItem(COMPATIBILITY_CACHE_KEY, JSON.stringify(this.compatibilityCache));
+      } catch (error) {
+        console.error('Unable to save compatibility cache:', error);
+      }
+    },
+    handleCompatibilityError(error, remote = this.activeProject?.remote) {
+      const problem = parseCompatibilityError(error);
+      if (!problem) return false;
+      const matchingProjects = [...this.projects, this.activeProject].filter(project => project?.remote === remote);
+      for (const project of matchingProjects) {
+        project.compatibility_problem = problem;
+        const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
+        this.compatibilityCache[key] = { verified: false, problem };
+      }
+      this.saveCompatibilityCache();
+      return true;
+    },
+    ensureProjectCompatible(project) {
+      if (!project.has_remote) {
+        if (!project.local_schema || project.local_schema === PROJECT_SCHEMA) return true;
+        project.compatibility_problem = compatibilityProblem(project.compatibility);
+      }
+      if (project.compatibility_problem === undefined) this.cacheProjectCompatibility(project);
+      if (!project.compatibility_problem) return true;
+      this.showCompatibilityProblem(project.compatibility_problem);
+      return false;
+    },
+    ensureProjectAccessible(project) {
+      if (project.compatibility_problem === undefined) this.cacheProjectCompatibility(project);
+      const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
+      const problem = projectAccessProblem(project, this.compatibilityCache[key]);
+      if (!problem) return true;
+      this.showCompatibilityProblem(problem);
+      return false;
+    },
+    showCompatibilityProblem(problem) {
+      const tray = useTrayStates();
+      const modals = useDesktopModalStore();
+      tray.resetPopUpModal();
+      tray.popUpModalTitle = 'Project update required';
+      tray.popUpModalMessage = problem.message;
+      tray.popUpModalIcon = 'alert';
+      tray.popUpModalButtons = ['Close', 'OK'];
+      tray.popUpModalFunction = () => modals.setModalVisibility('popUpModal', false);
+      modals.setModalVisibility('popUpModal', true);
+    },
+
     async resolveStudioUrl(studio = this.selectedStudio, { force = false } = {}) {
       if (!studio || studio.name === "Personal") return studio?.url || "";
 
@@ -355,6 +432,7 @@ export const useProjectStore = defineStore("projects", {
       }
     },
     async gotoProject(project) {
+      if (!this.ensureProjectAccessible(project)) return;
       const commonStore = useCommonStore();
       const collectionStore = useCollectionStore();
       const assetStore = useAssetStore();
@@ -476,6 +554,9 @@ export const useProjectStore = defineStore("projects", {
       await ProjectService.GetStudioProjects(studioUrl, studio.name, studio.hosting_mode || '', studio.id || '')
         .then(async (response) => {
           this.projects = response;
+          for (const project of this.projects) this.cacheProjectCompatibility(project);
+          const refreshed = this.projects.find(project => project.id === this.activeProject?.id && project.remote === this.activeProject?.remote);
+          if (refreshed && this.activeProject) this.activeProject.compatibility_problem = refreshed.compatibility_problem;
         })
         .catch((error) => {
           console.error(error);

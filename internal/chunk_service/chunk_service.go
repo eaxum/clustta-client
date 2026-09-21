@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
+	"clustta/internal/projecthttp"
 	"clustta/internal/transfer"
 	"clustta/internal/utils"
 	"context"
@@ -338,7 +339,7 @@ func PullChunks(ctx context.Context, projectPath, remoteUrl string, chunkInfos [
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 			auth_service.AttachBearerToken(req)
-			response, err := client.Do(req)
+			response, err := projecthttp.New(client).Do(req)
 			if err != nil {
 				return err
 			}
@@ -609,7 +610,7 @@ func PullStreamChunks(ctx context.Context, projectPath, remoteUrl string, missin
 			return ctx.Err()
 		}
 		defer func() { <-downloadSlots }()
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return err
 		}
@@ -668,7 +669,7 @@ func PullChunksPresigned(ctx context.Context, projectPath, remoteUrl string, mis
 	authorizeDownload(ctx, req)
 
 	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return err
 	}
@@ -864,7 +865,7 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		auth_service.AttachBearerToken(req)
 
-		resp, err := client.Do(req)
+		resp, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return err
 		}
@@ -1019,7 +1020,7 @@ func PushChunksPresigned(ctx context.Context, tx *sqlx.Tx, remoteUrl string, chu
 		confirmReq.Header.Set("Clustta-Agent", constants.USER_AGENT)
 		auth_service.AttachBearerToken(confirmReq)
 
-		confirmResp, err := client.Do(confirmReq)
+		confirmResp, err := projecthttp.New(client).Do(confirmReq)
 		if err != nil {
 			return err
 		}
@@ -1084,7 +1085,7 @@ func PushChunks(tx *sqlx.Tx, remoteUrl string, userId string, chunkInfos []Chunk
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 			auth_service.AttachBearerToken(req)
 
-			response, err := client.Do(req)
+			response, err := projecthttp.New(client).Do(req)
 			if err != nil {
 				return err
 			}
@@ -1182,7 +1183,7 @@ func PushChunksBatch(ctx context.Context, tx *sqlx.Tx, remoteUrl string, userId 
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 			auth_service.AttachBearerToken(req)
-			resp, err := client.Do(req)
+			resp, err := projecthttp.New(client).Do(req)
 			if err != nil {
 				return err
 			}

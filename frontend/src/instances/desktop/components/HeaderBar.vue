@@ -126,6 +126,9 @@ const getAppIcon = (iconName) => {
 };
 
 const getCloudIcon = computed(() => {
+	if (syncUnavailable.value) {
+		return 'cloud-cancel';
+	}
 	if (loginRequired.value) {
 		return 'login';
 	}
@@ -146,6 +149,7 @@ const getCloudIcon = computed(() => {
 
 // Returns the color for the cloud/sync button based on its state.
 const cloudIconColor = computed(() => {
+	if (syncUnavailable.value) return 'var(--danger)';
 	if (loginRequired.value) return 'var(--selected)';
 	if (!studioStore.appOnline || projectStore.getActiveProject?.is_offline) return 'var(--danger)';
 	if (!!notificationStore.getProgress.running) return null;
@@ -157,6 +161,7 @@ const isSyncing = computed(() => !!notificationStore.getProgress.running);
 
 // Returns the label text for the cloud/sync button.
 const cloudIconLabel = computed(() => {
+	if (syncUnavailable.value) return t('components.headerBar.syncUnavailable');
 	if (loginRequired.value) return t('common.login');
 	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
 	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
@@ -167,6 +172,7 @@ const cloudIconLabel = computed(() => {
 
 // Returns the tooltip text for the cloud/sync icon.
 const cloudIconTooltip = computed(() => {
+	if (syncUnavailable.value) return projectStore.activeCompatibilityProblem.message;
 	if (loginRequired.value) return t('common.login');
 	if (!studioStore.appOnline) return t('components.headerBar.serverUnreachable');
 	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.projectOffline');
@@ -210,6 +216,7 @@ const activeHeaderConfig = computed(() => {
 const unSynced = computed(() => { return projectStore.getActiveProject?.is_unsynced });
 const offline = computed(() => { return projectStore.getActiveProject?.is_offline });
 const loginRequired = computed(() => !userStore.isUserAuthenticated && !accountStore.isOfflineMode);
+const syncUnavailable = computed(() => !!projectStore.activeCompatibilityProblem);
 
 const revertButtonDisabled = computed(() => {
 	return !!notificationStore.getProgress.running || 
@@ -227,19 +234,10 @@ const revertButtonTooltip = computed(() => {
 });
 
 const syncButtonDisabled = computed(() => {
-	return !!notificationStore.getProgress.running || 
-	       stage.operationActive || 
-	       !projectStore.getActiveProject?.is_downloaded 
-	    //    !unSynced.value;
-});
-
-const syncButtonTooltip = computed(() => {
-	if (projectStore.serverIsBusy) return t('components.headerBar.serverBusy');
-	if (stage.operationActive) return t('components.headerBar.operationInProgress');
-	if (projectStore.getActiveProject?.is_offline) return t('components.headerBar.serverUnreachableSync');
-	if (!projectStore.getActiveProject?.is_downloaded) return t('components.headerBar.projectNotDownloaded');
-	if (!unSynced.value) return t('components.headerBar.sync');
-	return t('components.headerBar.sync');
+	return syncUnavailable.value ||
+	       !!notificationStore.getProgress.running ||
+	       stage.operationActive ||
+	       !projectStore.getActiveProject?.is_downloaded;
 });
 
 const syncProject = async () => {

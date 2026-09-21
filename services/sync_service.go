@@ -3,6 +3,7 @@ package services
 import (
 	"clustta/internal/auth_service"
 	"clustta/internal/error_service"
+	"clustta/internal/repository"
 	"clustta/internal/repository/sync_service"
 	"clustta/internal/repository/sync_service/update"
 	"clustta/internal/settings"
@@ -785,6 +786,9 @@ func (s *SyncService) GetPendingChanges(projectPath string) (sync_service.Change
 
 // DiscardAssetDependencyChange restores one dependency edge from the remote project state.
 func (s *SyncService) DiscardAssetDependencyChange(projectPath, remoteURL, edgeID string) error {
+	if err := repository.ValidateSyncCompatibility(projectPath, remoteURL); err != nil {
+		return err
+	}
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
 	}
@@ -814,6 +818,9 @@ func (s *SyncService) DiscardAssetDependencyChange(projectPath, remoteURL, edgeI
 
 // DiscardTagChange restores one project tag from the remote project state.
 func (s *SyncService) DiscardTagChange(projectPath, remoteURL, tagID string) error {
+	if err := repository.ValidateSyncCompatibility(projectPath, remoteURL); err != nil {
+		return err
+	}
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
 	}
@@ -844,6 +851,9 @@ func (s *SyncService) DiscardTagChange(projectPath, remoteURL, tagID string) err
 // DiscardChanges reverts specific items to their server state by fetching remote data
 // and selectively replacing local rows. itemType should be "asset" or "collection".
 func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []string, itemType string) error {
+	if err := repository.ValidateSyncCompatibility(projectPath, remoteURL); err != nil {
+		return err
+	}
 	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
 	if admissionErr != nil {
 		return admissionErr
@@ -916,6 +926,9 @@ func (s *SyncService) DiscardChanges(projectPath, remoteURL string, itemIds []st
 // DiscardAllChanges reverts all unsynced changes to the server state.
 // This replaces the nuclear PullData(force=true) approach with selective replacement.
 func (s *SyncService) DiscardAllChanges(projectPath, remoteURL string) error {
+	if err := repository.ValidateSyncCompatibility(projectPath, remoteURL); err != nil {
+		return err
+	}
 	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
 	if admissionErr != nil {
 		return admissionErr

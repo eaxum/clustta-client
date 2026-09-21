@@ -2974,7 +2974,7 @@ func (e *CollectionService) CreateCollectionType(projectPath, collectionTypeName
 			response.CollectionType.Synced = true
 			return response.CollectionType, nil
 		}
-		if !IsMetadataTransportFailure(remoteErr) {
+		if !canDeferMetadataMutation(remoteErr) {
 			return models.CollectionType{}, remoteErr
 		}
 	}
@@ -3038,7 +3038,7 @@ func (e *CollectionService) UpdateCollectionType(projectPath, id, collectionType
 			response.CollectionType.Synced = true
 			return response.CollectionType, nil
 		}
-		if !IsMetadataTransportFailure(remoteErr) {
+		if !canDeferMetadataMutation(remoteErr) {
 			return models.CollectionType{}, remoteErr
 		}
 	}

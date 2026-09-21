@@ -160,6 +160,7 @@ const cancelRename = () => {
 
 // Shows the clone project modal.
 const cloneProject = async (project) => {
+  if (!projectStore.ensureProjectCompatible(project)) return;
   await projectStore.setActiveProject(project);
   modals.setModalVisibility('cloneProjectModal', true);
 };

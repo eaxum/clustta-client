@@ -118,7 +118,7 @@ func TestCheckpointSourceMigrationFromOlderProject(t *testing.T) {
 	if _, err = db.Exec(schema); err != nil {
 		t.Fatal(err)
 	}
-	if err = migrations.RunMigrations(db, 2.1, ProjectSchema); err != nil {
+	if err = migrations.RunMigrations(db, "2.1", ProjectSchema); err != nil {
 		t.Fatal(err)
 	}
 	var count int

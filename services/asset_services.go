@@ -6,6 +6,7 @@ import (
 	"clustta/internal/constants"
 	"clustta/internal/error_service"
 	"clustta/internal/ignore"
+	"clustta/internal/projecthttp"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/repository/repositorypb"
@@ -923,7 +924,7 @@ func postStatusChangeRemote(remoteURL string, assetIds []string, statusId string
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return err
 	}
@@ -2636,7 +2637,7 @@ func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.A
 			response.AssetType.Synced = true
 			return response.AssetType, nil
 		}
-		if !IsMetadataTransportFailure(remoteErr) {
+		if !canDeferMetadataMutation(remoteErr) {
 			return models.AssetType{}, remoteErr
 		}
 	}
@@ -2697,7 +2698,7 @@ func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (mode
 			response.AssetType.Synced = true
 			return response.AssetType, nil
 		}
-		if !IsMetadataTransportFailure(remoteErr) {
+		if !canDeferMetadataMutation(remoteErr) {
 			return models.AssetType{}, remoteErr
 		}
 	}

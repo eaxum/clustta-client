@@ -1768,6 +1768,7 @@
       "noChangesToRevert": "पूर्ववत करने के लिए कोई परिवर्तन नहीं",
       "revertLocalChanges": "स्थानीय परिवर्तन पूर्ववत करें",
       "serverUnreachableSync": "सर्वर अनुपलब्ध",
+      "syncUnavailable": "सिंक उपलब्ध नहीं है",
       "sync": "सिंक",
       "projects": "प्रोजेक्ट",
       "back": "वापस",

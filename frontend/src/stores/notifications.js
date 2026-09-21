@@ -39,8 +39,8 @@ export const useNotificationStore = defineStore("notifications", {
       if (result?.requires_sync) {
         const message = successMessage || "Updated successfully";
         this.addNotification(
-          `${message}: Network unavailable, manual sync required`,
-          "The change was saved locally. Sync manually when the project server is available.",
+          `${message}: Saved locally, sync required`,
+          "The remote update was deferred. Sync when the project server is available and compatible.",
           "warning"
         );
       } else if (successMessage && notifyOnSuccess) {

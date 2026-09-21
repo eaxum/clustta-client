@@ -5,6 +5,7 @@ import (
 	"clustta/internal/auth_service"
 	"clustta/internal/chunk_service"
 	"clustta/internal/constants"
+	"clustta/internal/projecthttp"
 	"clustta/internal/repository"
 	"clustta/internal/repository/repositorypb"
 	"clustta/internal/settings"
@@ -24,6 +25,9 @@ import (
 )
 
 func PushData(ctx context.Context, projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
+	if err := repository.ValidateSyncCompatibility(projectPath, remoteUrl); err != nil {
+		return err
+	}
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -218,7 +222,7 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		client := &http.Client{
 			Timeout: 10 * time.Minute,
 		}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return err
 		}
@@ -319,6 +323,9 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 // PushAssetData loads a single asset and its checkpoints, uploads their chunks and previews,
 // then pushes the metadata to the server. On success it marks only the pushed rows as synced.
 func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func(int, int, string, string)) error {
+	if err := repository.ValidateSyncCompatibility(projectPath, remoteUrl); err != nil {
+		return err
+	}
 	if !utils.IsValidURL(remoteUrl) {
 		return fmt.Errorf("invalid remote URL: %s", remoteUrl)
 	}
@@ -440,7 +447,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 5 * time.Minute}
-	response, err := client.Do(req)
+	response, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return err
 	}

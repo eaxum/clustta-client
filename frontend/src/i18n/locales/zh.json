@@ -1768,6 +1768,7 @@
       "noChangesToRevert": "没有可还原的更改",
       "revertLocalChanges": "还原本地更改",
       "serverUnreachableSync": "服务器不可达",
+      "syncUnavailable": "无法同步",
       "sync": "同步",
       "projects": "项目",
       "back": "返回",

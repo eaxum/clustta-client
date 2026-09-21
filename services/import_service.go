@@ -20,7 +20,7 @@ import (
 type ImportService struct{}
 
 type ImportItems struct {
-	Assets    []models.Asset   `json:"assets"`
+	Assets      []models.Asset      `json:"assets"`
 	Collections []models.Collection `json:"collections"`
 }
 
@@ -184,13 +184,13 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 		}
 		collectionPath := getItemPath(rootFolder, dir, false)
 		collection := models.Collection{
-			Id:             uuid.New().String(),
-			Name:           dirName,
-			ParentId:       collectionParentId,
+			Id:                 uuid.New().String(),
+			Name:               dirName,
+			ParentId:           collectionParentId,
 			CollectionTypeId:   ruleCollectionType.Id,
 			CollectionTypeIcon: ruleCollectionType.Icon,
 			CollectionTypeName: ruleCollectionType.Name,
-			FilePath:       dir,
+			FilePath:           dir,
 			CollectionPath:     collectionPath,
 		}
 		collectionsMap[dir] = collection
@@ -215,21 +215,21 @@ func (i *ImportService) ImportFolder(projectPath, parentId string, folders, file
 		}
 		assetPath := getItemPath(rootFolder, asset, true)
 		assetData := models.Asset{
-			Id:           uuid.New().String(),
-			Name:         assetName,
+			Id:            uuid.New().String(),
+			Name:          assetName,
 			AssetTypeId:   ruleAssetType.Id,
 			AssetTypeName: ruleAssetType.Name,
 			AssetTypeIcon: ruleAssetType.Icon,
-			CollectionId:     collectionParentId,
-			FilePath:     asset,
-			IsResource:   true,
+			CollectionId:  collectionParentId,
+			FilePath:      asset,
+			IsResource:    true,
 			AssetPath:     assetPath,
 		}
 		assetsData = append(assetsData, assetData)
 	}
 
 	importItems := ImportItems{
-		Assets:    assetsData,
+		Assets:      assetsData,
 		Collections: collectionsData,
 	}
 	return importItems, nil

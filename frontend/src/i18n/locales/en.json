@@ -1848,6 +1848,7 @@
       "noChangesToRevert": "No changes to revert",
       "revertLocalChanges": "Revert local changes",
       "serverUnreachableSync": "Server Unreachable",
+      "syncUnavailable": "Sync unavailable",
       "sync": "Sync",
       "projects": "Projects",
       "back": "Back",

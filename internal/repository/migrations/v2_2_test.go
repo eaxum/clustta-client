@@ -1,7 +1,6 @@
 package migrations
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -75,7 +74,7 @@ func TestMigrateV2_2AddsVersionedDependencyAndCheckpointTagSchema(t *testing.T) 
 		t.Fatal(err)
 	}
 
-	if err = RunMigrations(db, 2.1, checkpointTagMigrationSchema); err != nil {
+	if err = RunMigrations(db, "2.1", checkpointTagMigrationSchema); err != nil {
 		t.Fatal(err)
 	}
 
@@ -139,7 +138,7 @@ func TestMigrateV2_2AddsVersionedDependencyAndCheckpointTagSchema(t *testing.T) 
 	if err = db.Get(&projectVersion, "SELECT value FROM config WHERE name = 'version'"); err != nil {
 		t.Fatal(err)
 	}
-	if projectVersion != fmt.Sprintf("%.1f", LatestVersion) {
-		t.Fatalf("expected project version %.1f, got %s", LatestVersion, projectVersion)
+	if projectVersion != LatestVersion {
+		t.Fatalf("expected project version %s, got %s", LatestVersion, projectVersion)
 	}
 }

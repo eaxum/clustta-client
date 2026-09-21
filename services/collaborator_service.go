@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
+	"clustta/internal/projecthttp"
 	"clustta/internal/repository/models"
 	"encoding/json"
 	"fmt"
@@ -37,7 +38,7 @@ func (c *CollaboratorService) GetCollaborators(remoteUrl string) ([]Collaborator
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +82,7 @@ func (c *CollaboratorService) AddCollaborators(remoteUrl string, userIds []strin
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +126,7 @@ func (c *CollaboratorService) AddCollaboratorsWithRole(remoteUrl string, userIds
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +158,7 @@ func (c *CollaboratorService) RemoveCollaborator(remoteUrl, userId string) error
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return err
 	}

@@ -1792,6 +1792,7 @@
       "noChangesToRevert": "되돌릴 변경 사항 없음",
       "revertLocalChanges": "로컬 변경 사항 되돌리기",
       "serverUnreachableSync": "서버에 연결할 수 없음",
+      "syncUnavailable": "동기화할 수 없음",
       "sync": "동기화",
       "projects": "프로젝트",
       "back": "뒤로",

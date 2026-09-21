@@ -2,6 +2,8 @@ package repository
 
 import (
 	"bytes"
+	"clustta/internal/compatibility"
+	"clustta/internal/projecthttp"
 	"context"
 	"database/sql"
 	"embed"
@@ -38,29 +40,31 @@ var templateFS embed.FS
 var ProjectSchema string
 
 type ProjectInfo struct {
-	Id               string   `json:"id"`
-	SyncToken        string   `json:"sync_token"`
-	PreviewId        string   `json:"preview_id"`
-	Name             string   `json:"name"`
-	Icon             string   `json:"icon"`
-	Version          float64  `json:"version"`
-	Uri              string   `json:"uri"`
-	WorkingDirectory string   `json:"working_directory"`
-	LocationID       string   `json:"location_id,omitempty"`
-	Remote           string   `json:"remote"`
-	Valid            bool     `json:"valid"`
-	Status           string   `json:"status"`
-	HasRemote        bool     `json:"has_remote"`
-	IsUnsynced       bool     `json:"is_unsynced"`
-	IsDownloaded     bool     `json:"is_downloaded"`
-	IsClosed         bool     `json:"is_closed"`
-	IsOutdated       bool     `json:"is_outdated"`
-	IsTracked        bool     `json:"is_tracked"`
-	IsOffline        bool     `json:"is_offline"`
-	IgnoreList       []string `json:"ignore_list"`
-	StorageMode      string   `json:"storage_mode"`
-	Role             string   `json:"role,omitempty"`
-	OwnerName        string   `json:"owner_name,omitempty"`
+	LocalSchema      string                  `json:"local_schema,omitempty"`
+	Compatibility    *compatibility.Contract `json:"compatibility,omitempty"`
+	Id               string                  `json:"id"`
+	SyncToken        string                  `json:"sync_token"`
+	PreviewId        string                  `json:"preview_id"`
+	Name             string                  `json:"name"`
+	Icon             string                  `json:"icon"`
+	Version          string                  `json:"version"`
+	Uri              string                  `json:"uri"`
+	WorkingDirectory string                  `json:"working_directory"`
+	LocationID       string                  `json:"location_id,omitempty"`
+	Remote           string                  `json:"remote"`
+	Valid            bool                    `json:"valid"`
+	Status           string                  `json:"status"`
+	HasRemote        bool                    `json:"has_remote"`
+	IsUnsynced       bool                    `json:"is_unsynced"`
+	IsDownloaded     bool                    `json:"is_downloaded"`
+	IsClosed         bool                    `json:"is_closed"`
+	IsOutdated       bool                    `json:"is_outdated"`
+	IsTracked        bool                    `json:"is_tracked"`
+	IsOffline        bool                    `json:"is_offline"`
+	IgnoreList       []string                `json:"ignore_list"`
+	StorageMode      string                  `json:"storage_mode"`
+	Role             string                  `json:"role,omitempty"`
+	OwnerName        string                  `json:"owner_name,omitempty"`
 }
 
 type ProjectConfig struct {
@@ -984,6 +988,13 @@ func UpdateProject(projectPath string) error {
 	}
 	defer tx.Rollback()
 
+	remoteURL, err := utils.GetRemoteUrl(tx)
+	if err != nil && err != sql.ErrNoRows {
+		return err
+	}
+	if utils.IsValidURL(remoteURL) {
+		return nil
+	}
 	projectVersion, err := utils.GetProjectVersion(tx)
 	if err != nil {
 		tx.Rollback()
@@ -994,6 +1005,31 @@ func UpdateProject(projectPath string) error {
 		return err
 	}
 
+	return migrations.RunMigrations(db, projectVersion, ProjectSchema)
+}
+
+// UpdateReplicaProject migrates a replica after the authoritative host contract is confirmed.
+func UpdateReplicaProject(projectPath, hostSchema string) error {
+	if hostSchema != migrations.LatestVersion {
+		return compatibility.Reject(hostSchema, "server")
+	}
+	db, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	projectVersion, err := utils.GetProjectVersion(tx)
+	tx.Rollback()
+	if err != nil {
+		return err
+	}
+	if projectVersion == hostSchema {
+		return nil
+	}
 	return migrations.RunMigrations(db, projectVersion, ProjectSchema)
 }
 
@@ -1038,7 +1074,7 @@ func CreateProjectWithStorageMode(projectUri, studioName, workingDir, templateNa
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			fmt.Println("Response Error:", err)
 			return projectInfo, err
@@ -1136,7 +1172,7 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return ProjectInfo{}, err
 		}
@@ -1159,6 +1195,7 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		if err != nil {
 			return projectInfo, err
 		}
+		projecthttp.Remember(req, projectUri, projectInfo.Compatibility)
 		return projectInfo, nil
 	} else if utils.FileExists(projectUri) {
 		absProjectPath, err := utils.ExpandPath(projectUri)
@@ -1180,6 +1217,10 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		defer tx.Rollback()
 
 		projectName, err := utils.GetProjectName(tx)
+		if err != nil {
+			return ProjectInfo{}, err
+		}
+		projectSchema, err := compatibility.ReadSchema(tx)
 		if err != nil {
 			return ProjectInfo{}, err
 		}
@@ -1218,6 +1259,8 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		remoteUrl, _ := utils.GetRemoteUrl(tx)
 		hasRemote := remoteUrl != "" && utils.IsValidURL(remoteUrl)
 		return ProjectInfo{
+			Compatibility:    compatibility.Current(projectSchema),
+			LocalSchema:      projectSchema,
 			Id:               projectId,
 			SyncToken:        syncToken,
 			PreviewId:        projectPreview.Hash,
@@ -1254,7 +1297,7 @@ func GetSyncToken(projectUri string, user auth_service.User) (string, error) {
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return "", err
 		}
@@ -1363,7 +1406,7 @@ func RenameProject(projectUri, studioName, newName string, user auth_service.Use
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return err
 		}
@@ -1463,7 +1506,7 @@ func SetIcon(projectUri, studioName, icon string, user auth_service.User) error 
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return err
 		}
@@ -1548,7 +1591,7 @@ func ToggleCloseProject(projectUri, studioName string, user auth_service.User) e
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return err
 		}
@@ -1648,7 +1691,7 @@ func DeleteRemoteProject(projectUri, studioName string, user auth_service.User) 
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	response, err := client.Do(req)
+	response, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return err
 	}
@@ -1677,7 +1720,7 @@ func LeaveProject(remoteUrl string) error {
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	response, err := client.Do(req)
+	response, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return err
 	}
@@ -1828,7 +1871,7 @@ func SetIgnoreList(projectUri, studioName string, ignoreList []string, user auth
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return err
 		}
@@ -2210,4 +2253,24 @@ func collectChunkHashes(templates []models.Template) []string {
 		chunks = append(chunks, hash)
 	}
 	return chunks
+}
+
+func ValidateSyncCompatibility(projectPath, remoteURL string) error {
+	if !utils.IsValidURL(remoteURL) {
+		return nil
+	}
+	request, err := http.NewRequest(http.MethodGet, remoteURL, nil)
+	if err != nil {
+		return err
+	}
+	auth_service.AttachBearerToken(request)
+	contract, err := projecthttp.DiscoverRemote(http.DefaultClient, request, remoteURL)
+	if err != nil {
+		return projecthttp.Report(remoteURL, err)
+	}
+	if err := UpdateReplicaProject(projectPath, contract.ProjectSchema); err != nil {
+		return projecthttp.Report(remoteURL, err)
+	}
+	projecthttp.RememberReplica(remoteURL, contract.ProjectSchema)
+	return nil
 }

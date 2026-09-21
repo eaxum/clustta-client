@@ -2,6 +2,7 @@ package services
 
 import (
 	"clustta/internal/auth_service"
+	"clustta/internal/compatibility"
 	"clustta/internal/constants"
 	"clustta/internal/error_service"
 	"clustta/internal/ignore"
@@ -1034,6 +1035,21 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 	valid, err := repository.VerifyProjectIntegrity(sourceClstPath)
 	if err != nil || !valid {
 		return repository.ProjectInfo{}, errors.New("invalid project file")
+	}
+	if err := repository.UpdateProject(sourceClstPath); err != nil {
+		return repository.ProjectInfo{}, fmt.Errorf("update uploaded project schema: %w", err)
+	}
+	sourceDB, err := utils.OpenDb(sourceClstPath)
+	if err != nil {
+		return repository.ProjectInfo{}, err
+	}
+	sourceSchema, schemaErr := compatibility.ReadSchema(sourceDB)
+	sourceDB.Close()
+	if schemaErr != nil {
+		return repository.ProjectInfo{}, schemaErr
+	}
+	if sourceSchema != compatibility.Schema {
+		return repository.ProjectInfo{}, compatibility.Reject(sourceSchema, "replica")
 	}
 
 	isCloud := hostingMode == "cloud"

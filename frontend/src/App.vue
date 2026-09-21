@@ -313,6 +313,9 @@ if (platformStore.isWeb) {
     emitter.on('progress-update', handleProgressUpdate);
     emitter.on('sync-conflict', handleSyncConflict);
 } else {
+    Events.On('project-incompatible', (event) => {
+      projectStore.handleCompatibilityError(event.data.problem, event.data.remote);
+    });
     Events.On('progress-update', async (message) => {
         handleProgressUpdate(message.data);
     });
@@ -408,8 +411,15 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        ProjectService.GetSyncToken(projectStore.getActiveProjectUrl)
+        if (projectStore.activeCompatibilityProblem) {
+            setTimeout(run, 5000);
+            return;
+        }
+        const polledProject = projectStore.activeProject;
+        const polledRemote = projectStore.getActiveProjectUrl;
+        ProjectService.GetSyncToken(polledRemote)
             .then(async (token) => {
+                if (projectStore.activeProject?.uri !== polledProject.uri || projectStore.getActiveProjectUrl !== polledRemote) return;
                 studioStore.appOnline = true;
                 if (!token) return
                 let syncToken = projectStore.activeProject.sync_token
@@ -441,7 +451,8 @@ function startCheckSycnTokenInterval() {
                 } finally {
                     stageStore.operationActive = false;
                 }
-            }).catch(async () => {
+            }).catch(async (error) => {
+                if (projectStore.handleCompatibilityError(error, polledRemote)) return;
                 try {
                     const [isAuthenticated] = await AuthService.IsAuthenticated();
                     if (!isAuthenticated) {

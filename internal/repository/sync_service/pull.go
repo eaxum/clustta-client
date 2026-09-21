@@ -3,7 +3,9 @@ package sync_service
 import (
 	"clustta/internal/auth_service"
 	"clustta/internal/chunk_service"
+	"clustta/internal/compatibility"
 	"clustta/internal/constants"
+	"clustta/internal/projecthttp"
 	"clustta/internal/repository"
 	"clustta/internal/repository/migrations"
 	"clustta/internal/repository/models"
@@ -44,9 +46,20 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		return err
 	}
 
+	if utils.IsValidURL(remoteUrl) {
+		if err := projecthttp.ValidateReplica(tx, remoteUrl); err != nil {
+			return err
+		}
+	}
+
 	projectInfo, err := repository.GetProjectInfo(remoteUrl, user)
 	if err != nil {
 		return err
+	}
+	if utils.IsValidURL(remoteUrl) {
+		if err := compatibility.Check(projectInfo.Compatibility); err != nil {
+			return projecthttp.Report(remoteUrl, err)
+		}
 	}
 
 	err = utils.SetIsClosed(tx, projectInfo.IsClosed)
@@ -178,6 +191,9 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 }
 
 func PullLatestCheckpoints(ctx context.Context, projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
+	if err := repository.ValidateSyncCompatibility(projectPath, remoteUrl); err != nil {
+		return err
+	}
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -238,6 +254,14 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 		return ctx.Err()
 	}
 
+	projectInfo, err := repository.GetProjectInfo(remoteProjectUri, user)
+	if err != nil {
+		return err
+	}
+	if err := compatibility.Check(projectInfo.Compatibility); err != nil {
+		return err
+	}
+
 	db, err := utils.OpenDb(projectUri)
 	if err != nil {
 		return err
@@ -255,11 +279,6 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 		return err
 	}
 	defer tx.Rollback()
-
-	projectInfo, err := repository.GetProjectInfo(remoteProjectUri, user)
-	if err != nil {
-		return err
-	}
 
 	_, err = tx.Exec("INSERT INTO config (name, value, mtime) VALUES ('project_id', ?, ?)", projectInfo.Id, utils.GetEpochTime())
 	if err != nil {
@@ -383,6 +402,9 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 					}
 					projectInfo.IsDownloaded = true
 					projectInfo.IsTracked = true
+					if projectInfo.HasRemote {
+						projectInfo.IsOffline = true
+					}
 					studioProjects = append(studioProjects, projectInfo)
 
 					projectName := strings.TrimSuffix(entry.Name(), "."+extension)
@@ -419,7 +441,10 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 		if err != nil {
 			fmt.Printf("Warning: Failed to fetch server projects: %v\n", err)
 		} else {
-			studioProjects = mergeServerProjects(studioProjects, serverProjects, projectsDir)
+			studioProjects, err = mergeServerProjects(studioProjects, serverProjects, projectsDir)
+			if err != nil {
+				return studioProjects, err
+			}
 		}
 
 		return studioProjects, nil
@@ -434,7 +459,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			fmt.Printf("Server unreachable, loading local projects: %v\n", err)
 			return GetLocalStudioProjects(studioProjectsDir, constants.HOST+"/studio/"+studioId, user)
@@ -464,6 +489,17 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 
 		// Process each cloud studio project and check local status
 		for i, studioProject := range studioProjects {
+			projecthttp.Remember(req, constants.HOST+"/studio/"+studioId+"/"+studioProject.Name, studioProject.Compatibility)
+			if compatibility.Check(studioProject.Compatibility) != nil {
+				projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
+				studioProjects[i].Uri = projectPath
+				studioProjects[i].Remote = constants.HOST + "/studio/" + studioId + "/" + studioProject.Name
+				studioProjects[i].HasRemote = true
+				studioProjects[i].IsDownloaded = utils.FileExists(projectPath)
+				studioProjects[i].IsTracked = true
+				continue
+			}
+
 			workingDir := ""
 			projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
 			isDownloaded := utils.FileExists(projectPath)
@@ -471,6 +507,25 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			syncToken := ""
 
 			if isDownloaded {
+				localDB, err := utils.OpenDb(projectPath)
+				if err != nil {
+					return studioProjects, err
+				}
+				localSchema, schemaErr := compatibility.ReadSchema(localDB)
+				localDB.Close()
+				if schemaErr != nil {
+					return studioProjects, schemaErr
+				}
+				studioProjects[i].LocalSchema = localSchema
+				projecthttp.RememberReplica(projectUrl, localSchema)
+				if localSchema != compatibility.Schema {
+					if err := repository.UpdateReplicaProject(projectPath, studioProject.Compatibility.ProjectSchema); err != nil {
+						return studioProjects, err
+					}
+					studioProjects[i].LocalSchema = studioProject.Compatibility.ProjectSchema
+					projecthttp.RememberReplica(projectUrl, studioProject.Compatibility.ProjectSchema)
+				}
+
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
 					invalidPath := projectPath + ".invalid"
@@ -565,7 +620,7 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := client.Do(req)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			// Fallback to local projects when offline
 			fmt.Printf("Server unreachable, loading local projects: %v\n", err)
@@ -597,6 +652,17 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 
 		// Process each remote project and check local status
 		for i, studioProject := range studioProjects {
+			projecthttp.Remember(req, url+"/"+studioProject.Name, studioProject.Compatibility)
+			if compatibility.Check(studioProject.Compatibility) != nil {
+				projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
+				studioProjects[i].Uri = projectPath
+				studioProjects[i].Remote = url + "/" + studioProject.Name
+				studioProjects[i].HasRemote = true
+				studioProjects[i].IsDownloaded = utils.FileExists(projectPath)
+				studioProjects[i].IsTracked = true
+				continue
+			}
+
 			workingDir := ""
 			projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
 			isDownloaded := utils.FileExists(projectPath)
@@ -604,6 +670,25 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			syncToken := ""
 
 			if isDownloaded {
+				localDB, err := utils.OpenDb(projectPath)
+				if err != nil {
+					return studioProjects, err
+				}
+				localSchema, schemaErr := compatibility.ReadSchema(localDB)
+				localDB.Close()
+				if schemaErr != nil {
+					return studioProjects, schemaErr
+				}
+				studioProjects[i].LocalSchema = localSchema
+				projecthttp.RememberReplica(projectUrl, localSchema)
+				if localSchema != compatibility.Schema {
+					if err := repository.UpdateReplicaProject(projectPath, studioProject.Compatibility.ProjectSchema); err != nil {
+						return studioProjects, err
+					}
+					studioProjects[i].LocalSchema = studioProject.Compatibility.ProjectSchema
+					projecthttp.RememberReplica(projectUrl, studioProject.Compatibility.ProjectSchema)
+				}
+
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
 					invalidPath := projectPath + ".invalid"
@@ -690,11 +775,12 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 
 // serverProject represents a project returned by the server's /user/projects endpoint.
 type serverProject struct {
-	ProjectId   string `json:"project_id"`
-	ProjectName string `json:"project_name"`
-	OwnerId     string `json:"owner_id"`
-	OwnerName   string `json:"owner_name"`
-	Role        string `json:"role"`
+	Compatibility *compatibility.Contract `json:"compatibility"`
+	ProjectId     string                  `json:"project_id"`
+	ProjectName   string                  `json:"project_name"`
+	OwnerId       string                  `json:"owner_id"`
+	OwnerName     string                  `json:"owner_name"`
+	Role          string                  `json:"role"`
 }
 
 // fetchUserProjects calls the central server to get all projects where the user is owner or collaborator.
@@ -708,7 +794,7 @@ func fetchUserProjects(user auth_service.User) ([]serverProject, error) {
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -733,12 +819,15 @@ func fetchUserProjects(user auth_service.User) ([]serverProject, error) {
 	if err != nil {
 		return nil, err
 	}
+	for _, project := range projects {
+		projecthttp.Remember(req, constants.HOST+"/user/"+project.OwnerId+"/"+project.ProjectName, project.Compatibility)
+	}
 	return projects, nil
 }
 
 // mergeServerProjects merges server-discovered projects into the locally-scanned project list.
 // Local projects get enriched with role/owner info; server-only projects are added as not-downloaded.
-func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects []serverProject, projectsDir string) []repository.ProjectInfo {
+func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects []serverProject, projectsDir string) ([]repository.ProjectInfo, error) {
 	// Build index of local projects by remote URL for fast lookup
 	localByRemote := make(map[string]int)
 	for i, lp := range localProjects {
@@ -750,25 +839,37 @@ func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects 
 	for _, sp := range serverProjects {
 		remoteUrl := constants.HOST + "/user/" + sp.OwnerId + "/" + sp.ProjectName
 		if idx, exists := localByRemote[remoteUrl]; exists {
+			projecthttp.RememberReplica(remoteUrl, localProjects[idx].LocalSchema)
+			if compatibility.Check(sp.Compatibility) == nil && localProjects[idx].LocalSchema != sp.Compatibility.ProjectSchema {
+				if err := repository.UpdateReplicaProject(localProjects[idx].Uri, sp.Compatibility.ProjectSchema); err != nil {
+					return localProjects, err
+				}
+				localProjects[idx].LocalSchema = sp.Compatibility.ProjectSchema
+				localProjects[idx].Version = sp.Compatibility.ProjectSchema
+				projecthttp.RememberReplica(remoteUrl, sp.Compatibility.ProjectSchema)
+			}
 			// Enrich existing local project with role info; prefer "owner" over "collaborator"
 			if localProjects[idx].Role != "owner" {
 				localProjects[idx].Role = sp.Role
 			}
 			localProjects[idx].OwnerName = sp.OwnerName
+			localProjects[idx].Compatibility = sp.Compatibility
+			localProjects[idx].IsOffline = false
 		} else {
 			// Server-only project: add as not-downloaded
 			projectUri := filepath.Join(projectsDir, sp.ProjectName) + ".clst"
 			localProjects = append(localProjects, repository.ProjectInfo{
-				Id:           sp.ProjectId,
-				Name:         sp.ProjectName,
-				Uri:          projectUri,
-				Remote:       remoteUrl,
-				HasRemote:    true,
-				IsDownloaded: false,
-				IsTracked:    true,
-				Valid:        true,
-				Role:         sp.Role,
-				OwnerName:    sp.OwnerName,
+				Id:            sp.ProjectId,
+				Compatibility: sp.Compatibility,
+				Name:          sp.ProjectName,
+				Uri:           projectUri,
+				Remote:        remoteUrl,
+				HasRemote:     true,
+				IsDownloaded:  false,
+				IsTracked:     true,
+				Valid:         true,
+				Role:          sp.Role,
+				OwnerName:     sp.OwnerName,
 			})
 			// Update index so duplicate server entries merge instead of appending again
 			localByRemote[remoteUrl] = len(localProjects) - 1
@@ -782,7 +883,7 @@ func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects 
 		}
 	}
 
-	return localProjects
+	return localProjects, nil
 }
 
 func GetUntrackedProjects(projectsDir string, trackedProjectNames map[string]bool, locationID string) ([]repository.ProjectInfo, error) {

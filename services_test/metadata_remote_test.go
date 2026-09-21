@@ -1,6 +1,7 @@
 package services_test
 
 import (
+	"clustta/internal/compatibility"
 	"clustta/internal/repository"
 	repositorysync "clustta/internal/repository/sync_service"
 	"clustta/services"
@@ -20,7 +21,7 @@ func TestPatchMetadataRemoteUsesTypedPatchEndpoint(t *testing.T) {
 		StatusId string `json:"status_id"`
 	}
 	payload := map[string]any{"assets": []assetPatch{{Id: "asset-1", StatusId: "review"}}}
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := newCompatibleMetadataServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPatch || r.URL.Path != "/assets" {
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 		}
@@ -41,7 +42,7 @@ func TestPatchMetadataRemoteUsesTypedPatchEndpoint(t *testing.T) {
 		PreviousSyncToken string `json:"previous_sync_token"`
 		SyncToken         string `json:"sync_token"`
 	}
-	if err := services.PatchMetadataRemote(server.URL, "/assets", payload, &response); err != nil {
+	if err := services.PatchMetadataRemote(server.URL+"/project", "/assets", payload, &response); err != nil {
 		t.Fatal(err)
 	}
 	if response.PreviousSyncToken != "previous" || response.SyncToken != "token" {
@@ -50,12 +51,12 @@ func TestPatchMetadataRemoteUsesTypedPatchEndpoint(t *testing.T) {
 }
 
 func TestPatchMetadataRemoteReturnsServerError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := newCompatibleMetadataServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "forbidden", http.StatusForbidden)
 	}))
 	defer server.Close()
 	var result any
-	err := services.PatchMetadataRemote(server.URL, "/assets", map[string]any{"assets": []any{}}, &result)
+	err := services.PatchMetadataRemote(server.URL+"/project", "/assets", map[string]any{"assets": []any{}}, &result)
 	if err == nil || !strings.Contains(err.Error(), "403") {
 		t.Fatalf("expected typed HTTP failure, got %v", err)
 	}
@@ -65,8 +66,8 @@ func TestPatchMetadataRemoteReturnsServerError(t *testing.T) {
 }
 
 func TestPatchMetadataRemoteClassifiesTransportFailure(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
-	remoteURL := server.URL
+	server := newCompatibleMetadataServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) {}))
+	remoteURL := server.URL + "/project"
 	server.Close()
 
 	var result any
@@ -78,7 +79,7 @@ func TestPatchMetadataRemoteClassifiesTransportFailure(t *testing.T) {
 
 func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
 	var requests int
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := newCompatibleMetadataServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut || !strings.HasPrefix(r.URL.Path, "/asset-types/") {
 			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
 		}
@@ -108,10 +109,10 @@ func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
 	if _, err = db.Exec(repository.ProjectSchema); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1)", server.URL); err != nil {
+	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1)", server.URL+"/project"); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('sync_token','token-0',1)"); err != nil {
+	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('version','2.2',1), ('sync_token','token-0',1)"); err != nil {
 		t.Fatal(err)
 	}
 	db.Close()
@@ -169,4 +170,18 @@ func TestSyncedTombDoesNotDirtyProject(t *testing.T) {
 	if dirty {
 		t.Fatal("synced tomb incorrectly reported as a pending change")
 	}
+}
+
+func newCompatibleMetadataServer(next http.Handler) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && r.URL.Path == "/project" {
+			json.NewEncoder(w).Encode(map[string]*compatibility.Contract{"compatibility": compatibility.Current(compatibility.Schema)})
+			return
+		}
+		w.Header().Set(compatibility.ProtocolHeader, compatibility.Protocol)
+		w.Header().Set(compatibility.SchemaHeader, compatibility.Schema)
+		w.Header().Set(compatibility.ProjectSchemaHeader, compatibility.Schema)
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/project")
+		next.ServeHTTP(w, r)
+	}))
 }

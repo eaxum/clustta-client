@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
+	"clustta/internal/projecthttp"
 	"clustta/internal/server/models"
 	"context"
 	"encoding/json"
@@ -224,7 +225,7 @@ func StartStorageConversion(studioURL, projectName, targetMode string) (StorageC
 		return StorageConversionState{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	response, err := (&http.Client{Timeout: 15 * time.Second}).Do(req)
+	response, err := projecthttp.New(&http.Client{Timeout: 15 * time.Second}).Do(req)
 	if err != nil {
 		return StorageConversionState{}, err
 	}

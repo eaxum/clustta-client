@@ -3,7 +3,9 @@ package services
 import (
 	"bytes"
 	"clustta/internal/auth_service"
+	"clustta/internal/compatibility"
 	"clustta/internal/constants"
+	"clustta/internal/projecthttp"
 	"clustta/internal/repository/models"
 	repositorysync "clustta/internal/repository/sync_service"
 	"clustta/internal/utils"
@@ -13,6 +15,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -39,15 +42,22 @@ type metadataTransportError struct {
 func (e *metadataTransportError) Error() string { return e.err.Error() }
 func (e *metadataTransportError) Unwrap() error { return e.err }
 
-// IsMetadataTransportFailure reports whether no usable HTTP response was
-// received. Only these failures may safely fall back to a local mutation.
+// IsMetadataTransportFailure reports whether no usable HTTP response was received.
 func IsMetadataTransportFailure(err error) bool {
 	var transportErr *metadataTransportError
 	return errors.As(err, &transportErr)
 }
 
+func canDeferMetadataMutation(err error) bool {
+	if IsMetadataTransportFailure(err) {
+		return true
+	}
+	var rejection *compatibility.Rejection
+	return errors.As(err, &rejection)
+}
+
 func metadataMutationAllowsLocalFallback(projectPath, table string, ids []string, remoteErr error) (bool, error) {
-	if IsMetadataTransportFailure(remoteErr) {
+	if canDeferMetadataMutation(remoteErr) {
 		return true, nil
 	}
 	db, err := utils.OpenDb(projectPath)
@@ -128,9 +138,13 @@ func metadataRemoteRequest(method, remoteURL, path string, payload, result any) 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
-	resp, err := (&http.Client{Timeout: 30 * time.Second}).Do(req)
+	resp, err := projecthttp.New(&http.Client{Timeout: 30 * time.Second}).Do(req)
 	if err != nil {
-		return &metadataTransportError{err: err}
+		var transportError *url.Error
+		if errors.As(err, &transportError) {
+			return &metadataTransportError{err: err}
+		}
+		return err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {

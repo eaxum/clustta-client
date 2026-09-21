@@ -1768,6 +1768,7 @@
       "noChangesToRevert": "Nessuna modifica da ripristinare",
       "revertLocalChanges": "Ripristina modifiche locali",
       "serverUnreachableSync": "Server non raggiungibile",
+      "syncUnavailable": "Sincronizzazione non disponibile",
       "sync": "Sincronizza",
       "projects": "Progetti",
       "back": "Indietro",

@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"clustta/internal/compatibility"
 	"clustta/internal/utils"
 	"fmt"
 
@@ -8,11 +9,11 @@ import (
 )
 
 // LatestVersion is the current schema version after all migrations.
-const LatestVersion = 2.2
+const LatestVersion = "2.2"
 
 // Migration defines a single schema migration step.
 type Migration struct {
-	Version     float64
+	Version     string
 	Description string
 	Up          func(db *sqlx.DB, schema string) error
 }
@@ -20,24 +21,28 @@ type Migration struct {
 // All returns the ordered list of migrations.
 func All() []Migration {
 	return []Migration{
-		{Version: 1.2, Description: "Rename checkpoint column, add columns, remap icons", Up: MigrateV1_2},
-		{Version: 1.3, Description: "Set default working directory", Up: MigrateV1_3},
-		{Version: 1.4, Description: "Add checkpoint grouping", Up: MigrateV1_4},
-		{Version: 1.5, Description: "Add collection paths", Up: MigrateV1_5},
-		{Version: 1.6, Description: "Add collection path update trigger", Up: MigrateV1_6},
-		{Version: 1.7, Description: "Add integration tables", Up: MigrateV1_7},
-		{Version: 1.8, Description: "Rename task/entity to asset/collection", Up: MigrateV1_8},
-		{Version: 1.9, Description: "Add manage_share_links permission", Up: MigrateV1_9},
-		{Version: 2.0, Description: "Add project storage tables", Up: MigrateV2_0},
-		{Version: 2.1, Description: "Add pending local path updates", Up: MigrateV2_1},
-		{Version: 2.2, Description: "Add versioned dependencies, checkpoint tags, and sources", Up: MigrateV2_2},
+		{Version: "1.2", Description: "Rename checkpoint column, add columns, remap icons", Up: MigrateV1_2},
+		{Version: "1.3", Description: "Set default working directory", Up: MigrateV1_3},
+		{Version: "1.4", Description: "Add checkpoint grouping", Up: MigrateV1_4},
+		{Version: "1.5", Description: "Add collection paths", Up: MigrateV1_5},
+		{Version: "1.6", Description: "Add collection path update trigger", Up: MigrateV1_6},
+		{Version: "1.7", Description: "Add integration tables", Up: MigrateV1_7},
+		{Version: "1.8", Description: "Rename task/entity to asset/collection", Up: MigrateV1_8},
+		{Version: "1.9", Description: "Add manage_share_links permission", Up: MigrateV1_9},
+		{Version: "2.0", Description: "Add project storage tables", Up: MigrateV2_0},
+		{Version: "2.1", Description: "Add pending local path updates", Up: MigrateV2_1},
+		{Version: "2.2", Description: "Add versioned dependencies, checkpoint tags, and sources", Up: MigrateV2_2},
 	}
 }
 
 // RunMigrations applies all pending migrations to the database.
-func RunMigrations(db *sqlx.DB, currentVersion float64, schema string) error {
-	if currentVersion > LatestVersion {
-		return fmt.Errorf("project schema %.1f is newer than supported schema %.1f", currentVersion, LatestVersion)
+func RunMigrations(db *sqlx.DB, currentVersion string, schema string) error {
+	comparison, err := compatibility.CompareVersions(currentVersion, LatestVersion)
+	if err != nil {
+		return err
+	}
+	if comparison > 0 {
+		return fmt.Errorf("project schema %s is newer than supported schema %s", currentVersion, LatestVersion)
 	}
 	// Earlier migrations reapply the latest schema before the final migration runs.
 	for _, table := range []string{"asset_checkpoint", "task_checkpoint"} {
@@ -53,10 +58,14 @@ func RunMigrations(db *sqlx.DB, currentVersion float64, schema string) error {
 	}
 	for _, m := range All() {
 		shouldRun := false
-		if m.Version == 1.2 {
-			shouldRun = currentVersion == 1.2
+		if m.Version == "1.2" {
+			shouldRun = currentVersion == "1.2"
 		} else {
-			shouldRun = currentVersion < m.Version
+			comparison, err := compatibility.CompareVersions(currentVersion, m.Version)
+			if err != nil {
+				return err
+			}
+			shouldRun = comparison < 0
 		}
 
 		if shouldRun {
@@ -67,7 +76,7 @@ func RunMigrations(db *sqlx.DB, currentVersion float64, schema string) error {
 	}
 
 	// Re-apply schema to ensure views, triggers, and indexes are current.
-	err := utils.CreateSchema(db, schema)
+	err = utils.CreateSchema(db, schema)
 	if err != nil {
 		return err
 	}

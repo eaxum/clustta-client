@@ -405,14 +405,14 @@ func CreateWorkflowAsset(
 	}
 
 	params := map[string]any{
-		"id":           id,
-		"name":         name,
-		"workflow_id":  workflowId,
+		"id":            id,
+		"name":          name,
+		"workflow_id":   workflowId,
 		"asset_type_id": assetTypeId,
-		"is_resource":  isResource,
-		"template_id":  templateId,
-		"pointer":      pointer,
-		"is_link":      isLink,
+		"is_resource":   isResource,
+		"template_id":   templateId,
+		"pointer":       pointer,
+		"is_link":       isLink,
 	}
 	err := base_service.Create(tx, "workflow_asset", params)
 	if err != nil {
@@ -442,12 +442,12 @@ func UpdateWorkflowAsset(
 	}
 
 	params := map[string]any{
-		"name":         name,
+		"name":          name,
 		"asset_type_id": assetTypeId,
-		"is_resource":  isResource,
-		"template_id":  templateId,
-		"pointer":      pointer,
-		"is_link":      isLink,
+		"is_resource":   isResource,
+		"template_id":   templateId,
+		"pointer":       pointer,
+		"is_link":       isLink,
 	}
 	err := base_service.Update(tx, "workflow_asset", id, params)
 	if err != nil {
@@ -537,9 +537,9 @@ func CreateWorkflowCollection(
 	}
 
 	params := map[string]any{
-		"id":             id,
-		"name":           name,
-		"workflow_id":    workflow_id,
+		"id":                 id,
+		"name":               name,
+		"workflow_id":        workflow_id,
 		"collection_type_id": collection_type_id,
 	}
 	err = base_service.Create(tx, "workflow_collection", params)
@@ -568,7 +568,7 @@ func UpdateWorkflowCollection(
 	}
 
 	params := map[string]any{
-		"name":           name,
+		"name":               name,
 		"collection_type_id": collection_type_id,
 	}
 	err := base_service.Update(tx, "workflow_collection", id, params)
@@ -639,7 +639,7 @@ func GetWorkflowCollectionByName(tx *sqlx.Tx, name, workflowId string) (models.W
 func LinkWorkflow(tx *sqlx.Tx, name, collectionTypeId, workflow_id, linked_workflow_id string) error {
 	params := map[string]any{
 		"name":               name,
-		"collection_type_id":     collectionTypeId,
+		"collection_type_id": collectionTypeId,
 		"workflow_id":        workflow_id,
 		"linked_workflow_id": linked_workflow_id,
 	}
@@ -661,7 +661,7 @@ func AddLinkWorkflow(tx *sqlx.Tx, id, name, collectionTypeId, workflow_id, linke
 	params := map[string]any{
 		"id":                 id,
 		"name":               name,
-		"collection_type_id":     collectionTypeId,
+		"collection_type_id": collectionTypeId,
 		"workflow_id":        workflow_id,
 		"linked_workflow_id": linked_workflow_id,
 	}

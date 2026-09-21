@@ -1,9 +1,10 @@
-﻿package agent
+package agent
 
 import (
 	"bytes"
 	"clustta/internal/auth_service"
 	"clustta/internal/constants"
+	"clustta/internal/projecthttp"
 	"clustta/internal/settings"
 	"clustta/internal/studio_service"
 	"clustta/internal/utils"
@@ -151,7 +152,7 @@ func httpDoAuth(method, url string, body []byte) ([]byte, int, error) {
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
 
-	resp, err := agentHTTPClient.Do(req)
+	resp, err := projecthttp.New(agentHTTPClient).Do(req)
 	if err != nil {
 		return nil, 0, err
 	}

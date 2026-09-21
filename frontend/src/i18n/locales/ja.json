@@ -1769,6 +1769,7 @@
       "noChangesToRevert": "元に戻す変更がありません",
       "revertLocalChanges": "ローカルの変更を元に戻す",
       "serverUnreachableSync": "サーバーに到達できません",
+      "syncUnavailable": "同期を利用できません",
       "sync": "同期",
       "projects": "プロジェクト",
       "back": "戻る",

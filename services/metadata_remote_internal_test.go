@@ -1,9 +1,11 @@
 package services
 
 import (
+	"clustta/internal/compatibility"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -157,7 +159,14 @@ func TestCanonicalAssetDoesNotOverwritePreexistingDirtyRow(t *testing.T) {
 }
 
 func TestUnsyncedCollectionFallsBackAfterRemoteRejection(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodGet && r.URL.Path == "/project" {
+			json.NewEncoder(w).Encode(map[string]*compatibility.Contract{"compatibility": compatibility.Current(compatibility.Schema)})
+			return
+		}
+		w.Header().Set(compatibility.ProtocolHeader, compatibility.Protocol)
+		w.Header().Set(compatibility.SchemaHeader, compatibility.Schema)
+		w.Header().Set(compatibility.ProjectSchemaHeader, compatibility.Schema)
 		http.Error(w, "collection not found", http.StatusNotFound)
 	}))
 	defer server.Close()
@@ -170,7 +179,7 @@ func TestUnsyncedCollectionFallsBackAfterRemoteRejection(t *testing.T) {
 	if _, err = db.Exec(repository.ProjectSchema); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1)", server.URL); err != nil {
+	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1), ('version','2.2',1)", server.URL+"/project"); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = db.Exec(`INSERT INTO collection(id,created_at,mtime,name,collection_path,collection_type_id,parent_id,synced,is_shared)
@@ -197,5 +206,72 @@ func TestUnsyncedCollectionFallsBackAfterRemoteRejection(t *testing.T) {
 	}
 	if !isShared {
 		t.Fatal("remote rejection did not fall back to the local collection update")
+	}
+}
+
+func TestIncompatibleHostDefersSupportedMetadataMutationsLocally(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet || r.URL.Path != "/project" {
+			t.Fatalf("unexpected remote mutation request: %s %s", r.Method, r.URL.Path)
+		}
+		json.NewEncoder(w).Encode(map[string]*compatibility.Contract{
+			"compatibility": {
+				Protocol:      compatibility.Protocol,
+				Schema:        compatibility.LegacySchema,
+				ProjectSchema: compatibility.LegacySchema,
+			},
+		})
+	}))
+	defer server.Close()
+
+	projectPath := filepath.Join(t.TempDir(), "project.clst")
+	db, err := sqlx.Open("sqlite3", projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(repository.ProjectSchema); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1), ('version','2.2',1), ('sync_token','before',1)", server.URL+"/project"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`INSERT INTO collection(id,created_at,mtime,name,collection_path,collection_type_id,parent_id,synced,is_shared)
+		VALUES('collection-1','now',1,'Local collection','','type-1','',1,0)`); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+
+	result, err := (&CollectionService{}).ChangeIsShared(projectPath, "collection-1", true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.RemoteApplied || !result.RequiresSync {
+		t.Fatalf("unexpected mutation result: %#v", result)
+	}
+	assetType, err := (&AssetService{}).CreateAssetType(projectPath, "Animation", "animation")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if assetType.Synced {
+		t.Fatal("locally deferred asset type was marked synced")
+	}
+
+	db, err = sqlx.Open("sqlite3", projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	var collection struct {
+		IsShared bool `db:"is_shared"`
+		Synced   bool `db:"synced"`
+	}
+	if err = db.Get(&collection, "SELECT is_shared, synced FROM collection WHERE id='collection-1'"); err != nil {
+		t.Fatal(err)
+	}
+	if !collection.IsShared || collection.Synced {
+		t.Fatalf("local collection mutation was not retained as pending: %#v", collection)
+	}
+	if token := getTestSyncToken(t, db); token != "before" {
+		t.Fatalf("deferred mutation advanced the sync token to %q", token)
 	}
 }
