@@ -48,7 +48,7 @@
         </article>
         <PageState v-if="!filteredOperations.length" class="activity-empty"
           :message="$t(searchQuery ? 'activity.noMatches' : 'activity.noActivity')"
-          :illustration="`/page-states/${searchQuery ? 'no_results' : 'no_tasks'}.png`" />
+          :illustration="`/page-states/workflow.png`" />
       </div>
     </div>
     <div v-if="detailsOperation" class="activity-details-overlay" @click.self="detailsId = null">
@@ -238,10 +238,7 @@ const goToItem = async (operation, requestedItem, type = 'asset') => {
   color: var(--red);
   overflow-wrap: anywhere;
 }
-.activity-empty :deep(.page-state-illustration) {
-  width: 80px;
-  height: 80px;
-}
+
 .activity-content {
   display: flex;
   flex: 1;
