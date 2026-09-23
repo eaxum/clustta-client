@@ -9,7 +9,12 @@
       :data-tab-key="dataType.id || dataType.name"
       v-tooltip="((filterIndex !== index || iconsOnly)) ? (dataType.nameKey ? $t(dataType.nameKey) : utils.capitalizeStr(dataType.name)) : ''"
       @click="filterList(index, dataType.id || dataType.name)" class="tab-button"
-      :class="{ 'selected-tab-button': selectedTab === (dataType.id || dataType.name), 'fullwidth-tab-button': fullWidth }">
+      :class="{
+        'selected-tab-button': selectedTab === (dataType.id || dataType.name),
+        'first-selected-tab': index === 0 && selectedTab === (dataType.id || dataType.name),
+        'last-selected-tab': index === dataTypes.length - 1 && selectedTab === (dataType.id || dataType.name),
+        'fullwidth-tab-button': fullWidth,
+      }">
       <div class="tab-content">
         <img class="small-icons" :class="dataType.iconClass" :src="getAppIcon(dataType.icon)">
         <div v-if="!iconsOnly && (selectedTab === (dataType.id || dataType.name) || fullWidth)" class="selected-tab-button-text"> {{
@@ -74,6 +79,15 @@ const tabElements = ref([]);
 const tabRoot = ref(null);
 
 let resizeObserver = null;
+let observedTabElement = null;
+
+const observeSelectedTab = (selectedElement) => {
+  if (!resizeObserver || observedTabElement === selectedElement) return;
+
+  if (observedTabElement) resizeObserver.unobserve(observedTabElement);
+  if (selectedElement) resizeObserver.observe(selectedElement);
+  observedTabElement = selectedElement;
+};
 
 const updateSelectionIndicator = () => {
   if (!tabRoot.value) return;
@@ -81,6 +95,8 @@ const updateSelectionIndicator = () => {
   const selectedElement = tabElements.value.find((element) => {
     return element.dataset.tabKey === props.selectedTab;
   });
+
+  observeSelectedTab(selectedElement);
 
   if (!selectedElement) {
     indicatorStyle.value = { opacity: 0 };
@@ -124,18 +140,19 @@ watch(
 );
 
 onMounted(async () => {
+  resizeObserver = new ResizeObserver(updateSelectionIndicator);
+  resizeObserver.observe(tabRoot.value);
+
   await scheduleSelectionIndicatorUpdate();
 
   requestAnimationFrame(() => {
     isIndicatorReady.value = true;
   });
-
-  resizeObserver = new ResizeObserver(updateSelectionIndicator);
-  resizeObserver.observe(tabRoot.value);
 });
 
 onBeforeUnmount(() => {
   resizeObserver?.disconnect();
+  observedTabElement = null;
 });
 </script>
 
@@ -259,6 +276,14 @@ onBeforeUnmount(() => {
 .selected-tab-button:hover {
   background-color: var(--surface-4);
   border-radius: var(--normal-radius);
+}
+
+.selected-tab-button.first-selected-tab:hover {
+  border-top-left-radius: var(--large-radius);
+}
+
+.selected-tab-button.last-selected-tab:hover {
+  border-top-right-radius: var(--large-radius);
 }
 
 .tab-content {
