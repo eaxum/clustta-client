@@ -462,7 +462,7 @@ export const useIntegrationStore = defineStore('integrations', {
     async initializeForActiveProject() {
       const projectStore = useProjectStore();
       const projectUri = projectStore.activeProject?.uri || null;
-      if (!projectUri) {
+      if (!projectUri || !projectStore.activeProjectCanQuery) {
         this.activeProjectUri = null;
         this.linkedIntegration = null;
         this.syncPreview = null;

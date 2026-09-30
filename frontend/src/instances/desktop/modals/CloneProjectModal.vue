@@ -174,8 +174,7 @@ const cloneProject = async () => {
     isFinishing.value = true;
     isCancelling.value = false;
     notificationStore.canCancel = false;
-    projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
-    projectStore.activeProject.working_directory = workingDirectory.value;
+    await projectStore.refreshClonedProjectInfo(project);
     if (selectedLocation.value) {
       try {
         await SettingsService.AssignProjectToLocation(project.id, selectedLocation.value.id);

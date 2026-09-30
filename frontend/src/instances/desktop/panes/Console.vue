@@ -1424,15 +1424,19 @@ const invalidateEntityReferences = () => {
 };
 
 // watchers
-watch(() => projectStore.activeProject?.uri, async (projectPath, previousProjectPath) => {
+watch([
+  () => projectStore.activeProject?.uri,
+  () => projectStore.activeProjectCanQuery,
+], async ([projectPath], [previousProjectPath]) => {
   saveComposerDraft(previousProjectPath);
   messages.value = [];
   scriptReferences.value = [];
   scriptReferencesLoadedFor.value = '';
   scriptReferencesLoadingFor.value = '';
   entityReferenceItems.value = [];
-  agentReferences.setProject(projectPath);
+  agentReferences.setProject(projectStore.activeProjectCanQuery ? projectPath : null);
   restoreComposerDraft(projectPath);
+  if (!projectStore.activeProjectCanQuery) return;
   await checkApiKeyStatus();
   await loadChatHistory();
   await nextTick();
@@ -1444,11 +1448,13 @@ watch(currentMessage, () => saveComposerDraft());
 
 // lifecycle hooks
 onActivated(async () => {
+  if (!projectStore.activeProjectCanQuery) return;
   await checkApiKeyStatus();
 });
 
 onMounted(async () => {
   restoreComposerDraft(projectStore.activeProject?.uri);
+  if (!projectStore.activeProjectCanQuery) return;
   await checkApiKeyStatus();
   await loadChatHistory();
   await nextTick();

@@ -13,11 +13,13 @@ import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useMenu } from '@/stores/menu';
 import { useStageStore } from '@/stores/stages';
 import { usePlatformStore } from '@/stores/platform';
+import { useProjectStore } from '@/stores/projects';
 
 // states/stores
 const menu = useMenu();
 const stage = useStageStore();
 const platformStore = usePlatformStore();
+const projectStore = useProjectStore();
 const stageContainer = ref(null);
 
 // components
@@ -43,13 +45,18 @@ const pageComponents = {
 	studioSettings: StudioSettings,
 };
 
+const projectDatabaseStages = new Set(['browser', 'projectSettings', 'trash']);
+
 const visibleStages = computed(() => {
-	return Object.entries(stage.stages)
+	const stages = Object.entries(stage.stages)
 		.filter(([name, isVisible]) => isVisible)
 		.map(([name]) => ({
 			name,
 			component: pageComponents[name],
 		}));
+	if (projectStore.activeProjectCanQuery) return stages;
+	if (!stages.some(({ name }) => projectDatabaseStages.has(name))) return stages;
+	return [{ name: 'projects', component: Projects }];
 });
 
 

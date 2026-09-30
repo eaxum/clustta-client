@@ -35,6 +35,23 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	projectInfo, err := repository.GetProjectInfo(remoteUrl, user)
+	if err != nil {
+		return err
+	}
+	if utils.IsValidURL(remoteUrl) {
+		if err := compatibility.Check(projectInfo.Compatibility); err != nil {
+			return projecthttp.Report(remoteUrl, err)
+		}
+		if err := repository.UpdateReplicaProject(projectPath, projectInfo.Compatibility.ProjectSchema); err != nil {
+			return projecthttp.Report(remoteUrl, err)
+		}
+		projecthttp.RememberReplica(remoteUrl, projectInfo.Compatibility.ProjectSchema)
+	}
 
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -51,27 +68,6 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 	syncToken, err := utils.GetProjectSyncToken(tx)
 	if err != nil {
 		return err
-	}
-
-	user, err := auth_service.GetActiveUser()
-	if err != nil {
-		return err
-	}
-
-	if utils.IsValidURL(remoteUrl) {
-		if err := projecthttp.ValidateReplica(tx, remoteUrl); err != nil {
-			return err
-		}
-	}
-
-	projectInfo, err := repository.GetProjectInfo(remoteUrl, user)
-	if err != nil {
-		return err
-	}
-	if utils.IsValidURL(remoteUrl) {
-		if err := compatibility.Check(projectInfo.Compatibility); err != nil {
-			return projecthttp.Report(remoteUrl, err)
-		}
 	}
 
 	if err := applyProjectInfo(tx, projectInfo); err != nil {

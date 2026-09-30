@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { compatibilityProblem, compatibilityCacheKey, parseCompatibilityError, projectAccessProblem, projectCompatibilityProblem } from './compatibility.js';
+import { compatibilityProblem, compatibilityCacheKey, parseCompatibilityError, projectAccessProblem, projectCanQueryDatabase, projectCompatibilityProblem } from './compatibility.js';
 
 test('only the complete current contract is compatible', () => {
   assert.equal(compatibilityProblem({ protocol: '1', schema: '2.2', project_schema: '2.2' }), null);
@@ -49,15 +49,34 @@ test('a mismatched replica retains a sync blocker even when the client supports 
   assert.equal(projectCompatibilityProblem({ compatibility, is_downloaded: true, local_schema: '2.2' }), null);
 });
 
-test('a readable local replica can open when its host is outdated', () => {
+test('a readable local replica remains blocked when its host is outdated', () => {
   const compatibility = { protocol: '1', schema: '2.1', project_schema: '2.1' };
   const project = { compatibility, is_downloaded: true, local_schema: '2.2' };
   assert.equal(projectCompatibilityProblem(project).required_update, 'server');
-  assert.equal(projectAccessProblem(project), null);
+  assert.equal(projectAccessProblem(project).required_update, 'server');
 });
 
 test('local access still blocks unreadable and unverified offline replicas', () => {
-  const compatibility = { protocol: '1', schema: '2.1', project_schema: '2.1' };
+  const compatibility = { protocol: '1', schema: '2.2', project_schema: '2.2' };
   assert.equal(projectAccessProblem({ compatibility, is_downloaded: true, local_schema: '2.1' }).required_update, 'replica');
   assert.equal(projectAccessProblem({ is_offline: true, is_downloaded: true }, undefined).required_update, 'server');
+});
+
+test('downloaded projects require a confirmed current local schema', () => {
+  const compatibility = { protocol: '1', schema: '2.2', project_schema: '2.2' };
+  assert.equal(projectAccessProblem({ compatibility, is_downloaded: true }).required_update, 'replica');
+  assert.equal(projectAccessProblem({ compatibility, is_downloaded: true, local_schema: '2.1' }).required_update, 'replica');
+  assert.equal(projectAccessProblem({ compatibility, is_downloaded: true, local_schema: '2.2' }), null);
+});
+
+test('untracked folders do not require project database compatibility', () => {
+  assert.equal(projectAccessProblem({ is_tracked: false, is_downloaded: false }), null);
+});
+
+test('database queries require a downloaded accessible replica', () => {
+  const compatibility = { protocol: '1', schema: '2.2', project_schema: '2.2' };
+  assert.equal(projectCanQueryDatabase({ compatibility, is_downloaded: false }), false);
+  assert.equal(projectCanQueryDatabase({ is_tracked: false, is_downloaded: false }), false);
+  assert.equal(projectCanQueryDatabase({ compatibility, is_downloaded: true, local_schema: '2.1' }), false);
+  assert.equal(projectCanQueryDatabase({ compatibility, is_downloaded: true, local_schema: '2.2' }), true);
 });

@@ -1,4 +1,4 @@
-import { projectAccessProblem, projectCompatibilityProblem, compatibilityProblem, parseCompatibilityError, compatibilityCacheKey, COMPATIBILITY_CACHE_KEY, PROJECT_SCHEMA } from '@/lib/compatibility';
+import { projectAccessProblem, projectCanQueryDatabase, projectCompatibilityProblem, compatibilityProblem, parseCompatibilityError, compatibilityCacheKey, COMPATIBILITY_CACHE_KEY, PROJECT_SCHEMA } from '@/lib/compatibility';
 import { useDesktopModalStore } from './desktopModals';
 import { defineStore } from "pinia";
 import {
@@ -130,6 +130,12 @@ export const useProjectStore = defineStore("projects", {
     getActiveProject: (state) => {
       return state.activeProject;
     },
+    activeProjectCanQuery: (state) => {
+      const project = state.activeProject;
+      if (!project || project.compatibility_problem) return false;
+      const key = compatibilityCacheKey(useUserStore().user?.id, state.selectedStudio?.id, project);
+      return projectCanQueryDatabase(project, state.compatibilityCache[key]);
+    },
     getActiveProjectUrl: (state) => {
       if (state.activeProject?.has_remote && state.activeProject?.remote) {
         return state.activeProject.remote;
@@ -204,12 +210,16 @@ export const useProjectStore = defineStore("projects", {
       return false;
     },
     ensureProjectAccessible(project) {
-      if (project.compatibility_problem === undefined) this.cacheProjectCompatibility(project);
-      const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
-      const problem = projectAccessProblem(project, this.compatibilityCache[key]);
+      const problem = this.getProjectAccessProblem(project);
       if (!problem) return true;
       this.showCompatibilityProblem(problem);
       return false;
+    },
+    getProjectAccessProblem(project) {
+      if (project.compatibility_problem === undefined) this.cacheProjectCompatibility(project);
+      if (project.compatibility_problem) return project.compatibility_problem;
+      const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
+      return projectAccessProblem(project, this.compatibilityCache[key]);
     },
     showCompatibilityProblem(problem) {
       const tray = useTrayStates();
@@ -279,7 +289,6 @@ export const useProjectStore = defineStore("projects", {
     async setActiveProject(project) {
       const commonStore = useCommonStore();
       this.activeProject = project;
-      FSService.SetProjectContext(project.uri);
       commonStore.workspaces = await SettingsService.GetProjectWorkspaces(
         project.id
       );
@@ -432,6 +441,7 @@ export const useProjectStore = defineStore("projects", {
       }
     },
     async gotoProject(project) {
+      await this.setActiveProject(project);
       if (!this.ensureProjectAccessible(project)) return;
       const commonStore = useCommonStore();
       const collectionStore = useCollectionStore();
@@ -452,7 +462,7 @@ export const useProjectStore = defineStore("projects", {
         return;
       }
 
-      await this.setActiveProject(project);
+      await FSService.SetProjectContext(project.uri);
       commonStore.activeWorkspace = "Project";
       commonStore.resetFilters();
       commonStore.snapshotWorkspace();
@@ -556,7 +566,16 @@ export const useProjectStore = defineStore("projects", {
           this.projects = response;
           for (const project of this.projects) this.cacheProjectCompatibility(project);
           const refreshed = this.projects.find(project => project.id === this.activeProject?.id && project.remote === this.activeProject?.remote);
-          if (refreshed && this.activeProject) this.activeProject.compatibility_problem = refreshed.compatibility_problem;
+          if (refreshed && this.activeProject) {
+            const problem = this.getProjectAccessProblem(refreshed);
+            this.activeProject.compatibility = refreshed.compatibility;
+            this.activeProject.compatibility_problem = problem;
+            this.activeProject.local_schema = refreshed.local_schema;
+            if (problem) {
+              useStageStore().setStageVisibility('projects', true);
+              this.showCompatibilityProblem(problem);
+            }
+          }
         })
         .catch((error) => {
           console.error(error);
@@ -567,7 +586,7 @@ export const useProjectStore = defineStore("projects", {
       await this.refreshProjectsPreview();
     },
     async reloadActiveProject() {
-      if (this.activeProject) {
+      if (this.activeProject && !this.getProjectAccessProblem(this.activeProject)) {
         await ProjectService.ProjectInfo(this.activeProject.uri)
           .then((response) => {
             this.activeProject.sync_token = response.sync_token;
@@ -586,6 +605,31 @@ export const useProjectStore = defineStore("projects", {
           });
       }
     },
+    async refreshClonedProjectInfo(project) {
+      const projectInfo = await ProjectService.ProjectInfo(project.uri);
+      const trackedProject = this.projects.find(candidate => candidate.id === project.id) || project;
+
+      Object.assign(trackedProject, {
+        local_schema: projectInfo.local_schema,
+        sync_token: projectInfo.sync_token,
+        preview_id: projectInfo.preview_id,
+        name: projectInfo.name,
+        icon: projectInfo.icon,
+        version: projectInfo.version,
+        uri: projectInfo.uri,
+        working_directory: projectInfo.working_directory,
+        remote: projectInfo.remote,
+        has_remote: projectInfo.has_remote,
+        is_closed: projectInfo.is_closed,
+        ignore_list: projectInfo.ignore_list,
+        is_downloaded: true,
+        is_tracked: true,
+      });
+
+      this.cacheProjectCompatibility(trackedProject);
+      this.activeProject = trackedProject;
+      return trackedProject;
+    },
     async refreshProjects() {
       
       const stage = useStageStore();
@@ -597,6 +641,10 @@ export const useProjectStore = defineStore("projects", {
         //TODO check the importance if exist for projects
         if (await FSService.Exists(project.uri)) {
           this.projects[i].is_downloaded = true;
+          if (this.getProjectAccessProblem(this.projects[i])) {
+            this.projects[i].is_unsynced = false;
+            return;
+          }
           try {
             const isUnsynced = await SyncService.IsUnsynced(project.uri);
             this.projects[i].is_unsynced = isUnsynced;
@@ -619,7 +667,7 @@ export const useProjectStore = defineStore("projects", {
     async refreshProjectsPreview() {
       // Parallelize preview fetching
       await Promise.all(this.projects.map(async (project, i) => {
-        if (await FSService.Exists(project.uri)) {
+        if (await FSService.Exists(project.uri) && !this.getProjectAccessProblem(project)) {
           try {
             const preview = await ProjectService.GetPreview(project.uri);
             if (preview) {
@@ -637,7 +685,7 @@ export const useProjectStore = defineStore("projects", {
         return project.id === projectId;
       });
       let project = this.projects[projectIndex];
-      if (await FSService.Exists(project.uri)) {
+      if (await FSService.Exists(project.uri) && !this.getProjectAccessProblem(project)) {
         await ProjectService.GetPreview(project.uri)
           .then(async (preview) => {
             this.projects[projectIndex].preview =
@@ -651,21 +699,28 @@ export const useProjectStore = defineStore("projects", {
     },
     async refreshActiveProject() {
       let project = this.getActiveProject;
-      if (project) {
-        if (await FSService.Exists(project.uri)) {
-          project.is_downloaded = true;
-          await SyncService.IsUnsynced(project.uri)
-            .then(async (isUnsynced) => {
-              project.is_unsynced = isUnsynced;
-            })
-            .catch((error) => {
-              console.log(error);
-              // notificationStore.errorNotification("Error Loading Data", error)
-            });
-        } else {
-          project.is_downloaded = false;
-          project.is_unsynced = false;
-        }
+      if (!project) return;
+
+      const problem = this.getProjectAccessProblem(project);
+      if (problem) {
+        useStageStore().setStageVisibility('projects', true);
+        this.showCompatibilityProblem(problem);
+        return;
+      }
+
+      if (await FSService.Exists(project.uri)) {
+        project.is_downloaded = true;
+        await SyncService.IsUnsynced(project.uri)
+          .then(async (isUnsynced) => {
+            project.is_unsynced = isUnsynced;
+          })
+          .catch((error) => {
+            console.log(error);
+            // notificationStore.errorNotification("Error Loading Data", error)
+          });
+      } else {
+        project.is_downloaded = false;
+        project.is_unsynced = false;
       }
     },
     async loadStudios() {

@@ -429,15 +429,10 @@ const cloneProject = async () => {
   notificationStore.canCancel = true;
   try {
     await SyncService.CloneProject(projectUrl, studioDisplayName, workingDirectory.value, syncOptions);
-    projectStore.projects.find(p => p.name === projectName).working_directory = workingDirectory.value;
-    projectStore.activeProject.working_directory = workingDirectory.value;
+    const updatedProject = await projectStore.refreshClonedProjectInfo(project);
     await projectStore.refreshProjects();
-    const updatedProject = projectStore.projects.find(p => p.name === projectName);
-    if (updatedProject) {
-      projectStore.activeProject = updatedProject;
-    }
     if (selectedProjectTemplate.value && selectedProjectTemplate.value !== t('modals.noTemplate')) {
-      const localProjectPath = projectStore.activeProject.uri;
+      const localProjectPath = updatedProject.uri;
       try {
         await ProjectService.ApplyTemplate(localProjectPath, selectedProjectTemplate.value);
         const templateSyncOptions = {

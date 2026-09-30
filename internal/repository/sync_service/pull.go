@@ -24,6 +24,24 @@ import (
 )
 
 func PullData(ctx context.Context, projectPath, remoteUrl string, userId string, pullChunk bool, syncOptions SyncOptions, callback func(int, int, string, string)) error {
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return err
+	}
+	projectInfo, err := repository.GetProjectInfo(remoteUrl, user)
+	if err != nil {
+		return err
+	}
+	if utils.IsValidURL(remoteUrl) {
+		if err := compatibility.Check(projectInfo.Compatibility); err != nil {
+			return projecthttp.Report(remoteUrl, err)
+		}
+		if err := repository.UpdateReplicaProject(projectPath, projectInfo.Compatibility.ProjectSchema); err != nil {
+			return projecthttp.Report(remoteUrl, err)
+		}
+		projecthttp.RememberReplica(remoteUrl, projectInfo.Compatibility.ProjectSchema)
+	}
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -39,27 +57,6 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	syncToken, err := utils.GetProjectSyncToken(tx)
 	if err != nil {
 		return err
-	}
-
-	user, err := auth_service.GetActiveUser()
-	if err != nil {
-		return err
-	}
-
-	if utils.IsValidURL(remoteUrl) {
-		if err := projecthttp.ValidateReplica(tx, remoteUrl); err != nil {
-			return err
-		}
-	}
-
-	projectInfo, err := repository.GetProjectInfo(remoteUrl, user)
-	if err != nil {
-		return err
-	}
-	if utils.IsValidURL(remoteUrl) {
-		if err := compatibility.Check(projectInfo.Compatibility); err != nil {
-			return projecthttp.Report(remoteUrl, err)
-		}
 	}
 
 	err = utils.SetIsClosed(tx, projectInfo.IsClosed)
@@ -188,6 +185,27 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		}
 	}
 	return nil
+}
+
+func prepareLocalReplica(projectPath, projectURL, hostSchema string) (string, error) {
+	if err := repository.UpdateReplicaProject(projectPath, hostSchema); err != nil {
+		return "", err
+	}
+	localSchema, err := readLocalReplicaSchema(projectPath)
+	if err != nil {
+		return "", err
+	}
+	projecthttp.RememberReplica(projectURL, localSchema)
+	return localSchema, nil
+}
+
+func readLocalReplicaSchema(projectPath string) (string, error) {
+	localDB, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return "", err
+	}
+	defer localDB.Close()
+	return compatibility.ReadSchema(localDB)
 }
 
 func PullLatestCheckpoints(ctx context.Context, projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
@@ -492,11 +510,19 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			projecthttp.Remember(req, constants.HOST+"/studio/"+studioId+"/"+studioProject.Name, studioProject.Compatibility)
 			if compatibility.Check(studioProject.Compatibility) != nil {
 				projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
+				isDownloaded := utils.FileExists(projectPath)
 				studioProjects[i].Uri = projectPath
 				studioProjects[i].Remote = constants.HOST + "/studio/" + studioId + "/" + studioProject.Name
 				studioProjects[i].HasRemote = true
-				studioProjects[i].IsDownloaded = utils.FileExists(projectPath)
+				studioProjects[i].IsDownloaded = isDownloaded
 				studioProjects[i].IsTracked = true
+				if isDownloaded {
+					localSchema, err := readLocalReplicaSchema(projectPath)
+					if err != nil {
+						return studioProjects, err
+					}
+					studioProjects[i].LocalSchema = localSchema
+				}
 				continue
 			}
 
@@ -507,24 +533,11 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			syncToken := ""
 
 			if isDownloaded {
-				localDB, err := utils.OpenDb(projectPath)
+				localSchema, err := prepareLocalReplica(projectPath, projectUrl, studioProject.Compatibility.ProjectSchema)
 				if err != nil {
 					return studioProjects, err
 				}
-				localSchema, schemaErr := compatibility.ReadSchema(localDB)
-				localDB.Close()
-				if schemaErr != nil {
-					return studioProjects, schemaErr
-				}
 				studioProjects[i].LocalSchema = localSchema
-				projecthttp.RememberReplica(projectUrl, localSchema)
-				if localSchema != compatibility.Schema {
-					if err := repository.UpdateReplicaProject(projectPath, studioProject.Compatibility.ProjectSchema); err != nil {
-						return studioProjects, err
-					}
-					studioProjects[i].LocalSchema = studioProject.Compatibility.ProjectSchema
-					projecthttp.RememberReplica(projectUrl, studioProject.Compatibility.ProjectSchema)
-				}
 
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
@@ -655,11 +668,19 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			projecthttp.Remember(req, url+"/"+studioProject.Name, studioProject.Compatibility)
 			if compatibility.Check(studioProject.Compatibility) != nil {
 				projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
+				isDownloaded := utils.FileExists(projectPath)
 				studioProjects[i].Uri = projectPath
 				studioProjects[i].Remote = url + "/" + studioProject.Name
 				studioProjects[i].HasRemote = true
-				studioProjects[i].IsDownloaded = utils.FileExists(projectPath)
+				studioProjects[i].IsDownloaded = isDownloaded
 				studioProjects[i].IsTracked = true
+				if isDownloaded {
+					localSchema, err := readLocalReplicaSchema(projectPath)
+					if err != nil {
+						return studioProjects, err
+					}
+					studioProjects[i].LocalSchema = localSchema
+				}
 				continue
 			}
 
@@ -670,24 +691,11 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			syncToken := ""
 
 			if isDownloaded {
-				localDB, err := utils.OpenDb(projectPath)
+				localSchema, err := prepareLocalReplica(projectPath, projectUrl, studioProject.Compatibility.ProjectSchema)
 				if err != nil {
 					return studioProjects, err
 				}
-				localSchema, schemaErr := compatibility.ReadSchema(localDB)
-				localDB.Close()
-				if schemaErr != nil {
-					return studioProjects, schemaErr
-				}
 				studioProjects[i].LocalSchema = localSchema
-				projecthttp.RememberReplica(projectUrl, localSchema)
-				if localSchema != compatibility.Schema {
-					if err := repository.UpdateReplicaProject(projectPath, studioProject.Compatibility.ProjectSchema); err != nil {
-						return studioProjects, err
-					}
-					studioProjects[i].LocalSchema = studioProject.Compatibility.ProjectSchema
-					projecthttp.RememberReplica(projectUrl, studioProject.Compatibility.ProjectSchema)
-				}
 
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {

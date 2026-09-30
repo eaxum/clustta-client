@@ -107,7 +107,7 @@ const userStore = useUserStore();
 const platformStore = usePlatformStore();
 const accountStore = useAccountStore();
 const router = useRouter();
-const canOpenProjectSettings = computed(() => canAccessProjectSettings());
+const canOpenProjectSettings = computed(() => projectStore.activeProjectCanQuery && canAccessProjectSettings());
 
 const { t } = useI18n();
 
@@ -325,6 +325,11 @@ const emptyTrash = async () => {
 };
 
 const goToList = () => {
+  if (!projectStore.activeProjectCanQuery) {
+    if (projectStore.activeProject) projectStore.ensureProjectAccessible(projectStore.activeProject);
+    stage.setStageVisibility('projects', true);
+    return;
+  }
 	if (assetStore.selectedAsset) {
 		const assetId = assetStore.selectedAsset.id;
 		stage.markedAssets = [assetId];
@@ -345,6 +350,11 @@ const goToProjects = () => {
 
 
 const goToTrash = () => {
+	if (!projectStore.activeProjectCanQuery) {
+		if (projectStore.activeProject) projectStore.ensureProjectAccessible(projectStore.activeProject);
+		stage.setStageVisibility('projects', true);
+		return;
+	}
 	stage.setStageVisibility('trash', true);
 };
 

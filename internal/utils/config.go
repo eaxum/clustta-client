@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"clustta/internal/projecthttp"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -242,11 +241,6 @@ func ResolveProjectRemoteURL(projectPath string) (string, error) {
 	remoteURL, err := GetRemoteUrl(tx)
 	if err == sql.ErrNoRows {
 		return "", nil
-	}
-	if err == nil && IsValidURL(remoteURL) {
-		if err := projecthttp.ValidateReplica(tx, remoteURL); err != nil {
-			return "", err
-		}
 	}
 	return remoteURL, err
 }

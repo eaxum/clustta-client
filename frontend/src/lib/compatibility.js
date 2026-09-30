@@ -22,11 +22,16 @@ export function projectCompatibilityProblem(project, cached) {
 }
 
 export function projectAccessProblem(project, cached) {
+  if (project.is_tracked === false) return null;
   const remoteProblem = projectCompatibilityProblem(project, cached);
-  if (!project.is_downloaded) return remoteProblem;
-  if (project.local_schema && project.local_schema !== PROJECT_SCHEMA) return replicaProblem();
-  if (project.is_offline && !cached?.verified && !cached?.problem) return remoteProblem;
+  if (remoteProblem) return remoteProblem;
+  if (project.is_downloaded && project.local_schema !== PROJECT_SCHEMA) return replicaProblem();
   return null;
+}
+
+export function projectCanQueryDatabase(project, cached) {
+  if (!project?.is_downloaded || project.is_tracked === false) return false;
+  return projectAccessProblem(project, cached) === null;
 }
 
 export function compatibilityProblem(contract) {

@@ -54,7 +54,10 @@ const studioStore = useStudioStore();
 const userStore = useUserStore();
 
 watch(
-    () => projectStore.activeProject?.uri || null,
+    [
+        () => projectStore.activeProject?.uri || null,
+        () => projectStore.activeProjectCanQuery,
+    ],
     () => integrationStore.initializeForActiveProject(),
     { immediate: true }
 );
@@ -285,6 +288,7 @@ const handleDeepLink = async (rawUrl) => {
         if (projectStore.activeProject?.id !== projectId) {
             await projectStore.gotoProject(project);
         }
+        if (!projectStore.activeProjectCanQuery) return;
         stageStore.setStageVisibility('browser', true);
 
         const assetId = url.searchParams.get('asset');
@@ -411,7 +415,7 @@ function startCheckSycnTokenInterval() {
             setTimeout(run, 1000);
             return
         }
-        if (projectStore.activeCompatibilityProblem) {
+        if (!projectStore.activeProjectCanQuery) {
             setTimeout(run, 5000);
             return;
         }
