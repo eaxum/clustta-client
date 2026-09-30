@@ -303,7 +303,7 @@ onBeforeUnmount(() => {
 }
 
 :deep(.modal-container) {
-  animation: modal-bubble-up 90ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: modal-bubble-up 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
   transform-origin: center center;
   will-change: transform, opacity;
 }
