@@ -117,7 +117,7 @@ func TestProjectInfoSeedsRequestCompatibilityCache(t *testing.T) {
 	request.Header.Set("Clustta-Agent", "test")
 	request.Header.Set("UserId", "cache-test")
 	auth_service.AttachBearerToken(request)
-	response, err := projecthttp.New(server.Client()).Do(request)
+	response, err := projecthttp.New(server.Client()).DoProject(request, server.URL+"/project")
 	if err != nil {
 		t.Fatal(err)
 	}

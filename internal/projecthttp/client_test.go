@@ -124,6 +124,73 @@ func TestCachedContractAvoidsDiscovery(t *testing.T) {
 	}
 }
 
+func TestExplicitProjectURLSupportsPathPrefix(t *testing.T) {
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if r.URL.Path == "/clustta/CommandXHigh" {
+			json.NewEncoder(w).Encode(map[string]*Contract{"compatibility": Current(Schema)})
+			return
+		}
+		if r.URL.Path != "/clustta/CommandXHigh/data" {
+			t.Errorf("unexpected request path: %s", r.URL.Path)
+		}
+		if r.Header.Get(ProtocolHeader) != Protocol || r.Header.Get(SchemaHeader) != Schema || r.Header.Get(ProjectSchemaHeader) != Schema {
+			t.Errorf("missing compatibility declaration: %v", r.Header)
+		}
+		respond(w, Schema)
+	}))
+	defer server.Close()
+
+	projectURL := server.URL + "/clustta/CommandXHigh"
+	request, _ := http.NewRequest(http.MethodGet, projectURL+"/data", nil)
+	request.Header.Set("Clustta-Agent", "test")
+	response, err := New(server.Client()).DoProject(request, projectURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response.Body.Close()
+	if requests != 2 {
+		t.Fatalf("discovery and data made %d requests", requests)
+	}
+}
+
+func TestExplicitProjectURLReusesPrefixedHostListingForCreation(t *testing.T) {
+	requests := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		respond(w, Schema)
+		if r.URL.Path == "/clustta/projects" {
+			w.Write([]byte("[]"))
+			return
+		}
+		if r.Method != http.MethodPost || r.URL.Path != "/clustta/new-project" {
+			t.Errorf("unexpected request: %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	listing, _ := http.NewRequest(http.MethodGet, server.URL+"/clustta/projects", nil)
+	listing.Header.Set("Clustta-Agent", "test")
+	response, err := New(server.Client()).Do(listing)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response.Body.Close()
+
+	projectURL := server.URL + "/clustta/new-project"
+	request, _ := http.NewRequest(http.MethodPost, projectURL, nil)
+	request.Header.Set("Clustta-Agent", "test")
+	response, err = New(server.Client()).DoProject(request, projectURL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response.Body.Close()
+	if requests != 2 {
+		t.Fatalf("listing and creation made %d requests", requests)
+	}
+}
+
 func TestProjectClientDeclaresActualReplicaSchema(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if got := r.Header.Get(ProjectSchemaHeader); got != LegacySchema {

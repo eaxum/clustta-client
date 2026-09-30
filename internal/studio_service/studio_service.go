@@ -216,7 +216,8 @@ func StartStorageConversion(studioURL, projectName, targetMode string) (StorageC
 	if err != nil {
 		return StorageConversionState{}, err
 	}
-	endpoint := studioURL + "/" + url.PathEscape(projectName) + "/storage-conversion"
+	projectURL := studioURL + "/" + url.PathEscape(projectName)
+	endpoint := projectURL + "/storage-conversion"
 	req, err := http.NewRequest(http.MethodPost, endpoint, bytes.NewReader(payload))
 	if err != nil {
 		return StorageConversionState{}, err
@@ -225,7 +226,7 @@ func StartStorageConversion(studioURL, projectName, targetMode string) (StorageC
 		return StorageConversionState{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	response, err := projecthttp.New(&http.Client{Timeout: 15 * time.Second}).Do(req)
+	response, err := projecthttp.New(&http.Client{Timeout: 15 * time.Second}).DoProject(req, projectURL)
 	if err != nil {
 		return StorageConversionState{}, err
 	}

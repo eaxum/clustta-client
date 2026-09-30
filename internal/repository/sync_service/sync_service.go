@@ -1076,7 +1076,7 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 		if err != nil {
 			return userData, err
 		}
@@ -1491,7 +1491,7 @@ func FetchChunksInfo(remoteUrl string, userId string, chunks []string) ([]chunk_
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 		if err != nil {
 			return []chunk_service.ChunkInfo{}, err
 		}
@@ -1557,7 +1557,7 @@ func FetchMissingChunks(ctx context.Context, remoteUrl string, userId string, ch
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 		if err != nil {
 			return []string{}, err
 		}
@@ -1627,7 +1627,7 @@ func FetchMissingPreviews(ctx context.Context, remoteUrl string, userId string, 
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 		if err != nil {
 			return []string{}, err
 		}

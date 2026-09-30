@@ -1074,7 +1074,7 @@ func CreateProjectWithStorageMode(projectUri, studioName, workingDir, templateNa
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, projectUri)
 		if err != nil {
 			fmt.Println("Response Error:", err)
 			return projectInfo, err
@@ -1172,7 +1172,7 @@ func GetProjectInfo(projectUri string, user auth_service.User) (ProjectInfo, err
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, projectUri)
 		if err != nil {
 			return ProjectInfo{}, err
 		}
@@ -1297,7 +1297,7 @@ func GetSyncToken(projectUri string, user auth_service.User) (string, error) {
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, projectUri)
 		if err != nil {
 			return "", err
 		}
@@ -1406,7 +1406,7 @@ func RenameProject(projectUri, studioName, newName string, user auth_service.Use
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, projectUri)
 		if err != nil {
 			return err
 		}
@@ -1506,7 +1506,7 @@ func SetIcon(projectUri, studioName, icon string, user auth_service.User) error 
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, projectUri)
 		if err != nil {
 			return err
 		}
@@ -1591,7 +1591,7 @@ func ToggleCloseProject(projectUri, studioName string, user auth_service.User) e
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, projectUri)
 		if err != nil {
 			return err
 		}
@@ -1691,7 +1691,7 @@ func DeleteRemoteProject(projectUri, studioName string, user auth_service.User) 
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	response, err := projecthttp.New(client).Do(req)
+	response, err := projecthttp.New(client).DoProject(req, projectUri)
 	if err != nil {
 		return err
 	}
@@ -1720,7 +1720,7 @@ func LeaveProject(remoteUrl string) error {
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	response, err := projecthttp.New(client).Do(req)
+	response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 	if err != nil {
 		return err
 	}
@@ -1871,7 +1871,7 @@ func SetIgnoreList(projectUri, studioName string, ignoreList []string, user auth
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, projectUri)
 		if err != nil {
 			return err
 		}

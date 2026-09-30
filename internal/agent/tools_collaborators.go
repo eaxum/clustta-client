@@ -134,7 +134,7 @@ var agentHTTPClient = &http.Client{
 
 // httpDoAuth performs an authenticated request to the Clustta server.
 // On non-2xx, returns an error containing the response body.
-func httpDoAuth(method, url string, body []byte) ([]byte, int, error) {
+func httpDoAuth(method, url, projectURL string, body []byte) ([]byte, int, error) {
 	if err := validateOutboundURL(url); err != nil {
 		return nil, 0, err
 	}
@@ -152,7 +152,7 @@ func httpDoAuth(method, url string, body []byte) ([]byte, int, error) {
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
 
-	resp, err := projecthttp.New(agentHTTPClient).Do(req)
+	resp, err := projecthttp.New(agentHTTPClient).DoProject(req, projectURL)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -170,7 +170,7 @@ func execListProjectCollaborators(projectPath string) ToolResult {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	body, status, err := httpDoAuth("GET", remoteUrl+"/collaborators", nil)
+	body, status, err := httpDoAuth("GET", remoteUrl+"/collaborators", remoteUrl, nil)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -217,7 +217,7 @@ func execAddProjectCollaborator(projectPath string, args map[string]interface{})
 	}{UserIds: []string{userID}, Role: role}
 	jsonData, _ := json.Marshal(payload)
 
-	body, status, err := httpDoAuth("POST", remoteUrl+"/collaborators", jsonData)
+	body, status, err := httpDoAuth("POST", remoteUrl+"/collaborators", remoteUrl, jsonData)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}
@@ -244,7 +244,7 @@ func execRemoveProjectCollaborator(projectPath string, args map[string]interface
 		return ToolResult{Success: false, Error: err.Error()}
 	}
 
-	body, status, err := httpDoAuth("DELETE", remoteUrl+"/collaborators/"+userID, nil)
+	body, status, err := httpDoAuth("DELETE", remoteUrl+"/collaborators/"+userID, remoteUrl, nil)
 	if err != nil {
 		return ToolResult{Success: false, Error: err.Error()}
 	}

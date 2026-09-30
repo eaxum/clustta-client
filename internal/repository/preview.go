@@ -195,7 +195,7 @@ func PullPreviews(tx *sqlx.Tx, remoteUrl string, previewHashes []string, callbac
 			}
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 			auth_service.AttachBearerToken(req)
-			response, err := projecthttp.New(client).Do(req)
+			response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 			if err != nil {
 				return err
 			}
@@ -317,7 +317,7 @@ func PushPreviews(tx *sqlx.Tx, remoteUrl string, userId string, previewHashes []
 			req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 			auth_service.AttachBearerToken(req)
 
-			response, err := projecthttp.New(client).Do(req)
+			response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 			if err != nil {
 				return err
 			}

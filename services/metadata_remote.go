@@ -138,7 +138,7 @@ func metadataRemoteRequest(method, remoteURL, path string, payload, result any) 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
-	resp, err := projecthttp.New(&http.Client{Timeout: 30 * time.Second}).Do(req)
+	resp, err := projecthttp.New(&http.Client{Timeout: 30 * time.Second}).DoProject(req, remoteURL)
 	if err != nil {
 		var transportError *url.Error
 		if errors.As(err, &transportError) {

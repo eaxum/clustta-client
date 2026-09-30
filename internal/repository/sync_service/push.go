@@ -222,7 +222,7 @@ func PushData(ctx context.Context, projectPath, remoteUrl string, userId string,
 		client := &http.Client{
 			Timeout: 10 * time.Minute,
 		}
-		response, err := projecthttp.New(client).Do(req)
+		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 		if err != nil {
 			return err
 		}
@@ -447,7 +447,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{Timeout: 5 * time.Minute}
-	response, err := projecthttp.New(client).Do(req)
+	response, err := projecthttp.New(client).DoProject(req, remoteUrl)
 	if err != nil {
 		return err
 	}

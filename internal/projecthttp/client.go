@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -41,18 +42,35 @@ func Report(projectURL string, err error) error {
 
 // Do validates the remote contract before a project data request, then validates its response.
 func (c *Client) Do(request *http.Request) (*http.Response, error) {
-	client := c.client
 	projectURL, discovery := requestProject(request)
 	if projectURL == "" {
-		response, err := client.Do(request)
+		response, err := c.client.Do(request)
 		if err == nil && response.StatusCode == http.StatusOK && strings.HasSuffix(request.URL.Path, "/projects") {
 			Remember(request, request.URL.String(), contractFromHeaders(response.Header))
 		}
 		return response, err
 	}
+	return c.doProject(request, projectURL, discovery)
+}
+
+// DoProject sends a request using the authoritative project URL.
+func (c *Client) DoProject(request *http.Request, projectURL string) (*http.Response, error) {
+	projectURL = strings.TrimSuffix(projectURL, "/")
+	if projectURL == "" {
+		return nil, fmt.Errorf("project URL is required")
+	}
+	if !requestMatchesProject(request, projectURL) {
+		return nil, fmt.Errorf("request URL %q is outside project %q", request.URL.String(), projectURL)
+	}
+	discovery := strings.TrimSuffix(request.URL.String(), "/") == projectURL
+	return c.doProject(request, projectURL, discovery)
+}
+
+func (c *Client) doProject(request *http.Request, projectURL string, discovery bool) (*http.Response, error) {
+	client := c.client
 	declare(request.Header, ReplicaSchema(projectURL))
 	if discovery && request.Method == http.MethodPost {
-		if err := verifyCreation(client, request); err != nil {
+		if err := verifyCreation(client, request, projectURL); err != nil {
 			return nil, Report(projectURL, err)
 		}
 	}
@@ -87,6 +105,19 @@ func (c *Client) Do(request *http.Request) (*http.Response, error) {
 		return nil, Report(projectURL, err)
 	}
 	return response, nil
+}
+
+func requestMatchesProject(request *http.Request, projectURL string) bool {
+	project, err := http.NewRequest(http.MethodGet, projectURL, nil)
+	if err != nil {
+		return false
+	}
+	if request.URL.Scheme != project.URL.Scheme || request.URL.Host != project.URL.Host {
+		return false
+	}
+	projectPath := strings.TrimSuffix(project.URL.Path, "/")
+	requestPath := strings.TrimSuffix(request.URL.Path, "/")
+	return requestPath == projectPath || strings.HasPrefix(requestPath, projectPath+"/")
 }
 
 // Remember reuses contracts returned by ordinary project discovery and listings.
@@ -163,17 +194,12 @@ func requestProject(request *http.Request) (string, bool) {
 	return projectURL, discovery
 }
 
-func verifyCreation(client *http.Client, request *http.Request) error {
-	target := *request.URL
-	parts := strings.Split(strings.Trim(target.Path, "/"), "/")
-	switch parts[0] {
-	case "user":
-		target.Path = "/user/projects"
-	case "studio":
-		target.Path = "/studio/" + parts[1] + "/projects"
-	default:
-		target.Path = "/projects"
+func verifyCreation(client *http.Client, request *http.Request, projectURL string) error {
+	projectRequest, err := http.NewRequestWithContext(request.Context(), http.MethodGet, projectURL, nil)
+	if err != nil {
+		return err
 	}
+	target := projectListingURL(projectRequest.URL)
 	if entry, ok := verifiedHosts.Load(verificationKey(request, target.String())); ok {
 		cached := entry.(cachedContract)
 		return compatibility.Check(cached.contract)
@@ -194,6 +220,29 @@ func verifyCreation(client *http.Client, request *http.Request) error {
 	contract := contractFromHeaders(response.Header)
 	Remember(request, target.String(), contract)
 	return compatibility.Check(contract)
+}
+
+func projectListingURL(projectURL *url.URL) url.URL {
+	target := *projectURL
+	parts := strings.Split(strings.Trim(target.Path, "/"), "/")
+	listingParts := append([]string{}, parts[:len(parts)-1]...)
+	listingParts = append(listingParts, "projects")
+	for index := len(parts) - 3; index >= 0; index-- {
+		switch parts[index] {
+		case "user":
+			listingParts = append(append([]string{}, parts[:index]...), "user", "projects")
+		case "studio":
+			listingParts = append(append([]string{}, parts[:index]...), "studio", parts[index+1], "projects")
+		}
+		if parts[index] == "user" || parts[index] == "studio" {
+			break
+		}
+	}
+	target.Path = "/" + strings.Join(listingParts, "/")
+	target.RawPath = ""
+	target.RawQuery = ""
+	target.Fragment = ""
+	return target
 }
 
 func contractFromHeaders(headers http.Header) *compatibility.Contract {
