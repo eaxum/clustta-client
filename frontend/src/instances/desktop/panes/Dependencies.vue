@@ -42,14 +42,8 @@
             <template #actions>
               <ActionButton
                 v-if="canManageDependencies && dependency.dependencyEdge"
-                :icon="getAppIcon(dependency.dependencyEdge.resolution_mode === 'pinned' ? 'unpin' : 'pin')"
-                v-tooltip="dependency.dependencyEdge.resolution_mode === 'pinned' ? 'Follow latest checkpoint' : 'Pin current checkpoint'"
-                :buttonFunction="() => toggleDependencyPin(dependency)"
-              />
-              <ActionButton
-                v-if="canManageDependencies && dependency.dependencyEdge"
-                :icon="getAppIcon('edit')"
-                v-tooltip="'Edit dependency version'"
+                :icon="getAppIcon('pin')"
+                v-tooltip="'Pin dependency'"
                 :buttonFunction="event => openDependencySelector(event, dependency.id)"
               />
               <ActionButton
@@ -174,8 +168,10 @@ const goToDependency = async (dependency) => {
     stage.markedItems = [dependency.id];
     emitter.emit('view-details');
     emitter.emit('refresh-browser');
+    return true;
   } catch (error) {
     notificationStore.errorNotification(t('notifications.failedToNavigate'), error);
+    return false;
   }
 };
 
@@ -414,34 +410,6 @@ const getAssetDependencies = async() => {
 const handleSelectorUpdated = (updatedEdge) => {
   const dependency = assetDependencies.value.find(item => item.id === updatedEdge.dependency_id);
   if (dependency) dependency.dependencyEdge = updatedEdge;
-};
-
-const toggleDependencyPin = async (dependency) => {
-  if (!canManageDependencies.value || !dependency.dependencyEdge) return;
-  const edge = dependency.dependencyEdge;
-  const shouldUnpin = edge.resolution_mode === 'pinned';
-  const checkpointId = shouldUnpin ? '' : edge.resolved_checkpoint_id;
-  if (!shouldUnpin && !checkpointId) {
-    notificationStore.errorNotification('Unable to pin dependency', 'The dependency has no resolved checkpoint');
-    return;
-  }
-
-  try {
-    const updatedEdge = await AssetService.UpdateAssetDependencySelector(
-      projectStore.activeProject.uri,
-      selectedAsset.value.id,
-      edge.id,
-      shouldUnpin ? 'floating' : 'pinned',
-      checkpointId,
-      '',
-    );
-    handleSelectorUpdated(updatedEdge);
-  } catch (error) {
-    notificationStore.errorNotification(
-      shouldUnpin ? 'Unable to unpin dependency' : 'Unable to pin dependency',
-      error,
-    );
-  }
 };
 
 const setDependencySelectorRef = (dependencyId, element) => {

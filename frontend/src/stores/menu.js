@@ -31,7 +31,8 @@ export const useMenu = defineStore("useMenu", {
       moveToCollectionSubMenu: false,
       sortMenu: false,
       viewMenu: false,
-      compactEditMenu: false,
+      checkpointSelectionMenu: false,
+      roleSelectionMenu: false,
     },
 
     // Sub-menu navigation state
@@ -60,13 +61,22 @@ export const useMenu = defineStore("useMenu", {
       'accountMenu',
       'sortMenu',
       'viewMenu',
-      'compactEditMenu'
+      'checkpointSelectionMenu',
+      'roleSelectionMenu'
     ],
 
-    compactEditMenuData: {
+    checkpointSelectionMenuData: {
       key: '',
-      title: '',
       loading: false,
+      searchLoading: false,
+      searchPlaceholder: 'Start typing...',
+      options: [],
+      selectedId: '',
+      onSelect: null,
+    },
+
+    roleSelectionMenuData: {
+      title: '',
       options: [],
       selectedId: '',
       onSelect: null,
@@ -182,21 +192,32 @@ export const useMenu = defineStore("useMenu", {
       }
     },
 
-    async showCompactEditMenu(event, data) {
-      this.compactEditMenuData = {
+    async showCheckpointSelectionMenu(event, data) {
+      this.checkpointSelectionMenuData = {
         key: data.key || '',
-        title: data.title || '',
         loading: data.loading || false,
+        searchLoading: data.searchLoading || false,
+        searchPlaceholder: data.searchPlaceholder || 'Start typing...',
         options: data.options || [],
         selectedId: data.selectedId || '',
         onSelect: data.onSelect || null,
       };
-      await this.showContextMenu(event, 'compactEditMenu', true, { anchor: true, position: 'bottom' });
+      await this.showContextMenu(event, 'checkpointSelectionMenu', true, { anchor: true, position: 'bottom' });
     },
 
-    updateCompactEditMenu(key, updates) {
-      if (this.compactEditMenuData.key !== key) return;
-      this.compactEditMenuData = { ...this.compactEditMenuData, ...updates };
+    updateCheckpointSelectionMenu(key, updates) {
+      if (this.checkpointSelectionMenuData.key !== key) return;
+      this.checkpointSelectionMenuData = { ...this.checkpointSelectionMenuData, ...updates };
+    },
+
+    async showRoleSelectionMenu(event, data) {
+      this.roleSelectionMenuData = {
+        title: data.title || '',
+        options: data.options || [],
+        selectedId: data.selectedId || '',
+        onSelect: data.onSelect || null,
+      };
+      await this.showContextMenu(event, 'roleSelectionMenu', true, { anchor: true, position: 'bottom' });
     },
 
     hideContextMenu(event) {
@@ -224,10 +245,17 @@ export const useMenu = defineStore("useMenu", {
       for (const menuName in this.menuStates) {
         this.menuStates[menuName] = false;
       }
-      this.compactEditMenuData = {
+      this.checkpointSelectionMenuData = {
         key: '',
-        title: '',
         loading: false,
+        searchLoading: false,
+        searchPlaceholder: 'Start typing...',
+        options: [],
+        selectedId: '',
+        onSelect: null,
+      };
+      this.roleSelectionMenuData = {
+        title: '',
         options: [],
         selectedId: '',
         onSelect: null,

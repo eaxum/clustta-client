@@ -11,7 +11,7 @@
 
 <script setup>
 // imports
-import { computed, onMounted, onUnmounted, reactive, ref } from 'vue';
+import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 
 // components
 import AccountMenu from '@/instances/desktop/menus/AccountMenu.vue';
@@ -19,9 +19,9 @@ import AssetMenu from '@/instances/desktop/menus/AssetMenu.vue';
 import AssetTypeFilterMenu from '@/instances/desktop/menus/AssetTypeFilterMenu.vue';
 import AssigneeFilterMenu from '@/instances/desktop/menus/AssigneeFilterMenu.vue';
 import AssignMenu from '@/instances/desktop/menus/AssignMenu.vue';
+import CheckpointSelectionMenu from '@/instances/desktop/menus/CheckpointSelectionMenu.vue';
 import CollectionMenu from '@/instances/desktop/menus/CollectionMenu.vue';
 import CollectionTypeFilterMenu from '@/instances/desktop/menus/CollectionTypeFilterMenu.vue';
-import CompactEditMenu from '@/instances/desktop/menus/CompactEditMenu.vue';
 import CheckpointTagMenu from '@/instances/desktop/menus/CheckpointTagMenu.vue';
 import CopyToProjectSubMenu from '@/instances/desktop/menus/CopyToProjectSubMenu.vue';
 import DependencySearchFilterMenu from '@/instances/desktop/menus/DependencySearchFilterMenu.vue';
@@ -31,6 +31,7 @@ import ManageTagsMenu from '@/instances/desktop/menus/ManageTagsMenu.vue';
 import MoveToCollectionSubMenu from '@/instances/desktop/menus/MoveToCollectionSubMenu.vue';
 import ProjectItemMenu from '@/instances/desktop/menus/ProjectItemMenu.vue';
 import ProjectMenu from '@/instances/desktop/menus/ProjectMenu.vue';
+import RoleSelectionMenu from '@/instances/desktop/menus/RoleSelectionMenu.vue';
 import SelectionMenu from '@/instances/desktop/menus/SelectionMenu.vue';
 import StateFilterMenu from '@/instances/desktop/menus/StateFilterMenu.vue';
 import StatusFilterMenu from '@/instances/desktop/menus/StatusFilterMenu.vue';
@@ -48,6 +49,8 @@ const menu = useMenu();
 // refs
 const menuDimensions = reactive({ height: 0, width: 0 });
 const menuEl = ref(null);
+const viewportSize = reactive({ height: window.innerHeight, width: window.innerWidth });
+let menuResizeObserver = null;
 
 // menu components mapping
 const menuComponents = {
@@ -56,9 +59,9 @@ const menuComponents = {
   assetTypeFilterMenu: AssetTypeFilterMenu,
   assigneeFilterMenu: AssigneeFilterMenu,
   assignMenu: AssignMenu,
+  checkpointSelectionMenu: CheckpointSelectionMenu,
   collectionMenu: CollectionMenu,
   collectionTypeFilterMenu: CollectionTypeFilterMenu,
-  compactEditMenu: CompactEditMenu,
   checkpointTagMenu: CheckpointTagMenu,
   copyToProjectSubMenu: CopyToProjectSubMenu,
   dependencySearchFilterMenu: DependencySearchFilterMenu,
@@ -68,6 +71,7 @@ const menuComponents = {
   moveToCollectionSubMenu: MoveToCollectionSubMenu,
   projectItemMenu: ProjectItemMenu,
   projectMenu: ProjectMenu,
+  roleSelectionMenu: RoleSelectionMenu,
   selectionMenu: SelectionMenu,
   sortMenu: SortMenu,
   stateFilterMenu: StateFilterMenu,
@@ -83,35 +87,32 @@ const menuComponents = {
 const menuStyle = computed(() => {
   if (!menuEl.value) return {};
   
-  const viewport = { width: window.innerWidth, height: window.innerHeight };
   const menuRect = menuEl.value.getBoundingClientRect();
-  const activeMenuWidth = menuRect.width;
+  const activeMenuWidth = menuDimensions.width || menuRect.width;
   const activeMenuHeight = menuDimensions.height || menuRect.height;
   const margin = 15;
+  const style = {};
 
   let left = menu.position.x;
   let top = menu.position.y;
 
-  if (left + activeMenuWidth > viewport.width - margin) {
-    left = viewport.width - activeMenuWidth - margin;
+  if (left + activeMenuWidth > viewportSize.width - margin) {
+    left = viewportSize.width - activeMenuWidth - margin;
   }
   if (left < margin) {
     left = margin;
   }
 
-  if (top + activeMenuHeight > viewport.height - margin) {
+  if (top + activeMenuHeight > viewportSize.height - margin) {
     const spaceAbove = menu.position.y - margin;
     if (spaceAbove >= activeMenuHeight) {
       top = menu.position.y - activeMenuHeight;
     } else {
-      top = viewport.height - activeMenuHeight - margin;
+      top = viewportSize.height - activeMenuHeight - margin;
       if (top < margin) {
         top = margin;
-        const maxHeight = viewport.height - (2 * margin);
-        if (menuEl.value) {
-          menuEl.value.style.maxHeight = maxHeight + 'px';
-          menuEl.value.style.overflowY = 'auto';
-        }
+        style.maxHeight = `${viewportSize.height - (2 * margin)}px`;
+        style.overflowY = 'auto';
       }
     }
   }
@@ -119,7 +120,7 @@ const menuStyle = computed(() => {
     top = margin;
   }
 
-  return { left: `${left}px`, top: `${top}px` };
+  return { ...style, left: `${left}px`, top: `${top}px` };
 });
 
 // Returns list of currently visible menu components.
@@ -162,14 +163,38 @@ const startLeaveAnimation = (el) => {
   el.style.opacity = '0';
 };
 
+const updateViewportSize = () => {
+  viewportSize.height = window.innerHeight;
+  viewportSize.width = window.innerWidth;
+};
+
+watch(menuEl, (element, previousElement) => {
+  menu.menuEl = element;
+  if (!menuResizeObserver) return;
+  if (previousElement) menuResizeObserver.unobserve(previousElement);
+  if (element) menuResizeObserver.observe(element);
+}, { flush: 'post' });
+
 // lifecycle hooks
 onMounted(() => {
   menu.menuEl = menuEl.value;
+  if (typeof ResizeObserver !== 'undefined') {
+    menuResizeObserver = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (!entry) return;
+      menuDimensions.height = entry.borderBoxSize?.[0]?.blockSize || entry.contentRect.height;
+      menuDimensions.width = entry.borderBoxSize?.[0]?.inlineSize || entry.contentRect.width;
+    });
+    if (menuEl.value) menuResizeObserver.observe(menuEl.value);
+  }
   document.addEventListener('pointerdown', hideContextMenu, true);
+  window.addEventListener('resize', updateViewportSize);
 });
 
 onUnmounted(() => {
+  menuResizeObserver?.disconnect();
   document.removeEventListener('pointerdown', hideContextMenu, true);
+  window.removeEventListener('resize', updateViewportSize);
 });
 
 </script>

@@ -11,10 +11,12 @@
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AssetService } from '@/services';
+import utils from '@/services/utils';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useUserStore } from '@/stores/users';
 
 const props = defineProps({
   edge: { type: Object, required: true },
@@ -24,11 +26,12 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['updated']);
-const { t } = useI18n();
+const { locale, t } = useI18n();
 const iconStore = useIconStore();
 const menu = useMenu();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
+const userStore = useUserStore();
 const options = ref({ checkpoints: [], tags: [] });
 const optionsLoaded = ref(false);
 
@@ -52,21 +55,6 @@ const selectedOptionId = computed(() => {
   return 'floating';
 });
 
-const formatPinnedDate = (checkpoint) => {
-  if (!checkpoint?.created_at) return 'Pinned checkpoint';
-  const date = new Date(checkpoint.created_at);
-  if (Number.isNaN(date.getTime())) return 'Pinned checkpoint';
-  return `Pinned at ${new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-  }).format(date)}`;
-};
-
-const currentPinnedCheckpoint = computed(() => (
-  options.value.checkpoints.find(checkpoint => checkpoint.id === props.edge.checkpoint_id)
-));
-
 const compactMenuOptions = computed(() => [
   {
     id: 'floating',
@@ -74,21 +62,33 @@ const compactMenuOptions = computed(() => [
     icon: iconStore.getAppIcon('clock'),
     mode: 'floating',
     selectorId: '',
+    group: 'general',
   },
-  ...(props.edge.resolution_mode === 'pinned' && props.edge.checkpoint_id ? [{
-    id: `pinned-${props.edge.checkpoint_id}`,
-    label: formatPinnedDate(currentPinnedCheckpoint.value),
-    icon: iconStore.getAppIcon('pin'),
-    mode: 'pinned',
-    selectorId: props.edge.checkpoint_id,
-  }] : []),
   ...options.value.tags.map(tag => ({
     id: `tagged-${tag.id}`,
     label: tag.name,
     icon: iconStore.getAppIcon('tag'),
     mode: 'tagged',
     selectorId: tag.id,
+    group: 'tags',
   })),
+  ...options.value.checkpoints.map((checkpoint) => {
+    const author = userStore.getUserData(checkpoint.author_id);
+    const authorName = author
+      ? `${author.first_name} ${author.last_name}`
+      : t('notifications.removedUser');
+    const formattedDate = utils.formatDate(checkpoint.created_at, locale.value);
+    return {
+      id: `pinned-${checkpoint.id}`,
+      label: checkpoint.comment || 'No message',
+      description: formattedDate,
+      mode: 'pinned',
+      selectorId: checkpoint.id,
+      searchText: `${formattedDate} ${authorName}`,
+      searchTerms: [checkpoint.author_id],
+      group: 'checkpoints',
+    };
+  }),
 ]);
 
 const updateSelector = async (option) => {
@@ -111,10 +111,11 @@ const updateSelector = async (option) => {
 
 const openEditor = async (event) => {
   if (!props.editable) return;
-  await menu.showCompactEditMenu(event, {
+  await menu.showCheckpointSelectionMenu(event, {
     key: menuKey.value,
-    title: 'Dependency version',
     loading: !optionsLoaded.value,
+    searchLoading: !optionsLoaded.value,
+    searchPlaceholder: 'Start typing...',
     options: optionsLoaded.value ? compactMenuOptions.value : [],
     selectedId: selectedOptionId.value,
     onSelect: updateSelector,
@@ -127,8 +128,9 @@ const openEditor = async (event) => {
       props.edge.dependency_id,
     );
     optionsLoaded.value = true;
-    menu.updateCompactEditMenu(menuKey.value, {
+    menu.updateCheckpointSelectionMenu(menuKey.value, {
       loading: false,
+      searchLoading: false,
       options: compactMenuOptions.value,
     });
   } catch (error) {

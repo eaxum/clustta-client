@@ -172,8 +172,7 @@ const selectRole = async (role) => {
 
 const openRoleMenu = (event) => {
   const currentRole = props.collaborator.role_name || props.collaborator.role?.name || '';
-  menu.showCompactEditMenu(event, {
-    key: `collaborator-role-${props.collaborator.id}`,
+  menu.showRoleSelectionMenu(event, {
     title: 'Collaborator role',
     selectedId: currentRole,
     options: collaboratorRoles.value.map(role => ({
