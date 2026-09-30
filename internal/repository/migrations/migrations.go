@@ -4,6 +4,8 @@ import (
 	"clustta/internal/compatibility"
 	"clustta/internal/utils"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -37,6 +39,7 @@ func All() []Migration {
 
 // RunMigrations applies all pending migrations to the database.
 func RunMigrations(db *sqlx.DB, currentVersion string, schema string) error {
+	currentVersion = normalizeLegacyVersion(currentVersion)
 	comparison, err := compatibility.CompareVersions(currentVersion, LatestVersion)
 	if err != nil {
 		return err
@@ -93,4 +96,15 @@ func RunMigrations(db *sqlx.DB, currentVersion string, schema string) error {
 	}
 
 	return tx.Commit()
+}
+
+func normalizeLegacyVersion(version string) string {
+	if strings.Contains(version, ".") {
+		return version
+	}
+	number, err := strconv.Atoi(version)
+	if err != nil || number < 0 || strconv.Itoa(number) != version {
+		return version
+	}
+	return version + ".0"
 }
