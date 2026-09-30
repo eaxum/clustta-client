@@ -1012,6 +1012,9 @@ const viewDetails = () => filterList('Details');
 // Switches to the checkpoints tab.
 const viewCheckpoints = () => filterList('Checkpoints');
 
+// Switches to the dependencies tab.
+const viewDependencies = () => filterList('Dependencies');
+
 // Switches to the changes tab.
 const viewChanges = () => filterList('Changes');
 
@@ -1035,6 +1038,7 @@ onMounted(() => {
   panes.setPaneVisibility('projectDetails', true);
   emitter.on('view-details', viewDetails);
   emitter.on('view-checkpoints', viewCheckpoints);
+  emitter.on('view-dependencies', viewDependencies);
   emitter.on('view-changelog', viewChanges);
 });
 
@@ -1042,6 +1046,7 @@ onUnmounted(() => {
   panes.setPaneVisibility('projectDetails', true);
   emitter.off('view-details', viewDetails);
   emitter.off('view-checkpoints', viewCheckpoints);
+  emitter.off('view-dependencies', viewDependencies);
   emitter.off('view-changelog', viewChanges);
 });
 </script>

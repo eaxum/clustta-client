@@ -110,6 +110,11 @@
               <div v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint')" class="asset-item-grid-checkpoints-button">
                 <ActionButton :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
               </div>
+
+              <div v-if="canViewDependencies" class="asset-item-grid-checkpoints-button">
+                <ActionButton :icon="getAppIcon('dependency')" v-tooltip="$t('panes.dependenciesTab')"
+                  @click="viewDependencies(index, asset, $event)" />
+              </div>
               
               <!-- Assign Asset button -->
               <div v-if="!isUntracked && canAssignAsset" class="asset-item-grid-assign-asset-button">
@@ -255,6 +260,10 @@
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
               :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
 
+            <ActionButton class="asset-item-assignee-button" v-if="canViewDependencies && !statusMenuDisplayed"
+              :icon="getAppIcon('dependency')" v-tooltip="$t('panes.dependenciesTab')"
+              @click="viewDependencies(index, asset, $event)" />
+
             <ActionButton class="asset-item-assignee-button" v-if="canAssignAsset && !statusMenuDisplayed && !asset.assignee_id"
               :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
 
@@ -273,6 +282,10 @@
           <div v-else-if="!isEditing" class="asset-item-assignee-container">
             <ActionButton class="asset-item-assignee-button" v-if="!asset.is_link && !isUntracked && userStore.canDo('view_checkpoint') && !statusMenuDisplayed"
               :icon="getAppIcon('checkpoint-stone')" v-tooltip="$t('blocks.viewCheckpoints')" @click="viewCheckpoints(index, asset, $event)" />
+
+            <ActionButton class="asset-item-assignee-button" v-if="canViewDependencies && !statusMenuDisplayed"
+              :icon="getAppIcon('dependency')" v-tooltip="$t('panes.dependenciesTab')"
+              @click="viewDependencies(index, asset, $event)" />
 
             <ActionButton class="asset-item-assignee-button" v-if="canAssignAsset && !statusMenuDisplayed && !asset.assignee_id && !isUntracked"
               :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')" @click="prepAssignAsset(index, asset, $event)" />
@@ -334,6 +347,11 @@
         </template>
 
         <div v-if="asset.is_link" class="asset-item-actions link-item-actions" >
+          <ActionButton v-if="canViewDependencies" class="link-hover-action" :icon="getAppIcon('dependency')"
+            v-tooltip="$t('panes.dependenciesTab')" @click="viewDependencies(index, asset, $event)" />
+          <ActionButton v-if="canAssignAsset && !asset.assignee_id" class="link-hover-action"
+            :icon="getAppIcon('person-plus')" v-tooltip="$t('blocks.assignAsset')"
+            @click="prepAssignAsset(index, asset, $event)" />
           <ActionButton :icon="getAppIcon('square-arrow-right-up')" v-tooltip="$t('blocks.visitLink')" v-stop-propagation @click="openLink()" />
         </div>
 
@@ -470,6 +488,7 @@ const canUnassignAsset = computed(() => canActOnAsset('unassign_asset', props.as
 const canManageAssetAssignment = computed(() => canAssignAsset.value || canUnassignAsset.value);
 const canChangeAssetStatus = computed(() => canActOnAsset('change_status', props.asset));
 const canCreateFromUntracked = computed(() => canCreateCheckpoint.value);
+const canViewDependencies = computed(() => !props.isUntracked && projectStore.activeProject?.has_remote);
 
 // Checks if assignment locking allows the current user to checkpoint this asset.
 const canModify = computed(() => {
@@ -1160,6 +1179,14 @@ const viewCheckpoints = (index, asset, event) => {
   panes.showDetailsPane = true;
 };
 
+// Opens the dependencies view panel.
+const viewDependencies = (index, asset, event) => {
+  stage.markedItems = [asset.id];
+  assetStore.selectAsset(asset);
+  emitter.emit('view-dependencies');
+  panes.showDetailsPane = true;
+};
+
 // watchers
 watch(() => isAssetInFocus.value, (newItems, oldItems) => {
   if (isEditing.value) {
@@ -1804,6 +1831,14 @@ onBeforeUnmount(() => {
 
 .link-item-actions{
   min-width: max-content;
+}
+
+.link-hover-action {
+  display: none;
+}
+
+.asset-item-main:hover .link-hover-action {
+  display: flex;
 }
 
 .untracked-item-action {
