@@ -3,7 +3,7 @@
     <RenameInput v-if="isCreatingTag" v-model="newTagName" originalValue="" placeholder="Tag name"
       @confirm="confirmNewTag" @cancel="cancelNewTag" />
     <DropDownBox v-else :items="tagOptions" :selectedItem="selectedItem" :onSelect="selectTag"
-      :useFilter="false" placeHolder="No tag" :disabled="disabled">
+      :useFilter="false" :placeHolder="emptyLabel" :disabled="disabled">
       <template #footer="{ close }">
         <div class="checkpoint-tag-dropdown-divider"></div>
         <button class="checkpoint-tag-create-action" type="button" @click="startNewTag(close)">
@@ -30,6 +30,8 @@ const props = defineProps({
   disabled: { type: Boolean, default: false },
   assetIds: { type: Array, default: () => [] },
   modelValue: { type: String, default: '' },
+  excludedTags: { type: Array, default: () => [] },
+  emptyLabel: { type: String, default: 'No tag' },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -42,14 +44,19 @@ const newTagName = ref('');
 
 const normalizedTagName = (name) => name.trim().toLowerCase();
 const tagOptionId = (name) => `${TAG_PREFIX}${normalizedTagName(name)}`;
+const excludedTagNames = computed(() => new Set(props.excludedTags.map(normalizedTagName)));
 
 const tagOptions = computed(() => {
-  const tags = [...availableTags.value];
-  if (props.modelValue && !tags.some(tag => normalizedTagName(tag.name) === normalizedTagName(props.modelValue))) {
+  const tags = availableTags.value.filter(tag => !excludedTagNames.value.has(normalizedTagName(tag.name)));
+  const selectedTagName = normalizedTagName(props.modelValue);
+  const shouldIncludeSelectedTag = props.modelValue
+    && !excludedTagNames.value.has(selectedTagName)
+    && !tags.some(tag => normalizedTagName(tag.name) === selectedTagName);
+  if (shouldIncludeSelectedTag) {
     tags.push({ id: tagOptionId(props.modelValue), name: props.modelValue });
   }
   return [
-    { id: NO_TAG, name: 'No tag', selectionValue: NO_TAG, icon: getAppIcon('tag') },
+    { id: NO_TAG, name: props.emptyLabel, selectionValue: NO_TAG, icon: getAppIcon('tag') },
     ...tags.map(tag => ({
       ...tag,
       id: tagOptionId(tag.name),

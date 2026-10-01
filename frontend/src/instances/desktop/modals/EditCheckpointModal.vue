@@ -5,13 +5,12 @@
       <textarea v-model="comment" class="desktop-input-long" placeholder="Checkpoint comment"
         :disabled="saving" />
       <div class="checkpoint-edit-tags">
-        <div v-for="name in tagNames" :key="name" class="checkpoint-edit-tag">
-          <span>{{ name }}</span>
-          <ActionButton v-if="canManageTags" :icon="iconStore.getAppIcon('close')"
-            :isDisabled="saving" :buttonFunction="() => removeTag(name)" />
+        <div v-if="tagNames.length" class="checkpoint-edit-tag-list">
+          <Chip v-for="name in tagNames" :key="name" :label="name"
+            :readonly="!canManageTags || saving" :onRemove="() => removeTag(name)" />
         </div>
         <CheckpointTagSelector v-if="canManageTags" v-model="selectedTag" :assetIds="[assetId]"
-          :disabled="loading || saving" />
+          :excludedTags="tagNames" emptyLabel="Add Tag" :disabled="loading || saving" />
       </div>
       <CheckpointSourceSelector v-if="checkpoint" ref="sourceSelector"
         :checkpointId="checkpoint.id" :sourceCheckpointId="checkpoint.source_checkpoint_id || ''"
@@ -33,19 +32,17 @@ import emitter from '@/lib/mitt';
 import { canActOnAsset } from '@/lib/permissions';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import Chip from '@/instances/common/components/Chip.vue';
 import CheckpointSourceSelector from '@/instances/desktop/components/CheckpointSourceSelector.vue';
 import CheckpointTagSelector from '@/instances/desktop/components/CheckpointTagSelector.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useAssetStore } from '@/stores/assets';
 import { useProjectStore } from '@/stores/projects';
-import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 
 const modals = useDesktopModalStore();
 const assetStore = useAssetStore();
 const projectStore = useProjectStore();
-const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const projectPath = projectStore.activeProject.uri;
 const selectedCheckpoint = modals.editCheckpoint;
@@ -119,20 +116,13 @@ onMounted(async () => {
   gap: .5rem;
   width: 100%;
 }
-.checkpoint-edit-tag {
+.checkpoint-edit-tag-list {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: .4rem;
   box-sizing: border-box;
   width: 100%;
-  padding: .35rem .6rem;
-  border-radius: var(--normal-radius);
-  background-color: var(--surface-2);
-}
-.checkpoint-edit-tag span {
+  padding: .2rem;
   overflow: hidden;
-  color: var(--text);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>
