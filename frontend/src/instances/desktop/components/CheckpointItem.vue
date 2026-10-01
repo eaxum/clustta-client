@@ -52,7 +52,12 @@
                 <img class="checkpoint-pin-icon" :src="getAppIcon('dependency')">
                 {{ checkpoint.pin_count }}
             </span>
-            <span v-for="tag in checkpoint.tags" :key="tag.id" class="checkpoint-tag">{{ tag.name }}</span>
+            <span v-for="tag in visibleCheckpointTags" :key="tag.id" class="checkpoint-tag"
+                v-tooltip="tag.name">{{ tag.name }}</span>
+            <span v-if="overflowCheckpointTags.length" class="checkpoint-tag checkpoint-tag-overflow"
+                v-tooltip="overflowCheckpointTags.map(tag => tag.name).join(', ')">
+                +{{ overflowCheckpointTags.length }}
+            </span>
         </div>
 
         <div v-if="isItemExpanded" class="menu-divider"></div>
@@ -91,7 +96,12 @@
                 <img class="checkpoint-pin-icon" :src="getAppIcon('dependency')">
                 {{ checkpoint.pin_count }}
             </span>
-            <span v-for="tag in checkpoint.tags" :key="tag.id" class="checkpoint-tag">{{ tag.name }}</span>
+            <span v-for="tag in visibleCheckpointTags" :key="tag.id" class="checkpoint-tag"
+                v-tooltip="tag.name">{{ tag.name }}</span>
+            <span v-if="overflowCheckpointTags.length" class="checkpoint-tag checkpoint-tag-overflow"
+                v-tooltip="overflowCheckpointTags.map(tag => tag.name).join(', ')">
+                +{{ overflowCheckpointTags.length }}
+            </span>
         </div>
 
     </div>
@@ -170,9 +180,13 @@ const menu = useMenu();
 const itemVersionId = ref(null);
 const elements = ref([]);
 const justViewed = ref('');
+const MAX_VISIBLE_TAGS = 3;
 
 // computed properties
 const isItemExpanded = computed(() => props.expandedId === props.checkpoint.checkpoint_id);
+const checkpointTags = computed(() => Array.isArray(props.checkpoint.tags) ? props.checkpoint.tags : []);
+const visibleCheckpointTags = computed(() => checkpointTags.value.slice(0, MAX_VISIBLE_TAGS));
+const overflowCheckpointTags = computed(() => checkpointTags.value.slice(MAX_VISIBLE_TAGS));
 const canEditCheckpoint = computed(() => canCreateCheckpointForItem(assetStore.selectedAsset));
 const openEditCheckpoint = () => {
     if (!canEditCheckpoint.value) return;
@@ -351,6 +365,7 @@ onBeforeUnmount(() => {
 .menu-divider{
 	height: 5px;
 	margin-top: 10px;
+    border-bottom: 1px solid var(--border-strong);
 }
 
 .checkpoint-item-recent {
@@ -571,7 +586,20 @@ onBeforeUnmount(() => {
 }
 
 .checkpoint-active .checkpoint-item-label-text {
-    color: var(--white);
+    color: var(--accent-fg);
+}
+
+.checkpoint-active .checkpoint-tag,
+.checkpoint-active .checkpoint-pin {
+    color: var(--accent-fg);
+}
+
+.checkpoint-active .checkpoint-tag {
+    border-color: color-mix(in oklch, var(--accent-fg) 65%, transparent);
+}
+
+.checkpoint-active .menu-divider {
+    border-bottom-color: color-mix(in oklch, var(--accent-fg) 55%, transparent);
 }
 
 .profile-picture {
@@ -593,20 +621,31 @@ onBeforeUnmount(() => {
 .checkpoint-selector-indicators {
     display: flex;
     flex: 0 0 100%;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: .25rem;
     width: 100%;
     padding: .15rem .4rem .25rem 2.3rem;
     box-sizing: border-box;
     background-color: transparent;
+    overflow: hidden;
 }
 
 .checkpoint-tag {
+    display: inline-flex;
+    max-width: 108px;
     padding: .1rem .3rem;
     border: 1px solid var(--border-strong);
     border-radius: 999px;
-    color: var(--text-muted);
+    color: var(--text);
     font-size: .72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.checkpoint-tag-overflow {
+    flex-shrink: 0;
 }
 
 .checkpoint-pin {

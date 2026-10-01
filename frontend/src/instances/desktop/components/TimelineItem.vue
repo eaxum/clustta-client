@@ -22,7 +22,12 @@
                     </div>
                 </div>
                 <div v-if="timelineItem.tags?.length" class="timeline-tags">
-                    <span v-for="tag in timelineItem.tags" :key="tag.id" class="timeline-tag">{{ tag.name }}</span>
+                    <span v-for="tag in visibleTimelineTags" :key="tag.id" class="timeline-tag"
+                        v-tooltip="tag.name">{{ tag.name }}</span>
+                    <span v-if="overflowTimelineTags.length" class="timeline-tag timeline-tag-overflow"
+                        v-tooltip="overflowTimelineTags.map(tag => tag.name).join(', ')">
+                        +{{ overflowTimelineTags.length }}
+                    </span>
                     <span v-if="timelineItem.follower_count" class="timeline-followers">
                         {{ timelineItem.follower_count }} followers
                     </span>
@@ -116,6 +121,11 @@ const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 
 const { t, locale } = useI18n();
+const MAX_VISIBLE_TAGS = 3;
+
+const timelineTags = computed(() => Array.isArray(props.timelineItem.tags) ? props.timelineItem.tags : []);
+const visibleTimelineTags = computed(() => timelineTags.value.slice(0, MAX_VISIBLE_TAGS));
+const overflowTimelineTags = computed(() => timelineTags.value.slice(MAX_VISIBLE_TAGS));
 
 const getAppIcon = (iconName) => {
     const icon = iconStore.getAppIcon(iconName);
@@ -411,12 +421,14 @@ onMounted(() => {
 .meta {
     flex-direction: column;
     align-items: flex-start;
+    flex: 1;
+    min-width: 0;
     min-height: min-content;
     padding: .5rem 0;
     justify-content: center;
     gap: .2rem;
     overflow: hidden;
-    width: 100%;
+    width: auto;
     display: flex;
     display: none;
     white-space: nowrap;
@@ -486,16 +498,29 @@ onMounted(() => {
 .timeline-tags,
 .checkpoint-selector-indicators {
     display: flex;
-    flex-wrap: wrap;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+    align-items: center;
     gap: .25rem;
+    overflow: hidden;
 }
 
 .timeline-tag,
 .timeline-followers {
+    display: inline-flex;
+    flex-shrink: 0;
+    max-width: 108px;
     padding: .1rem .3rem;
-    border: 1px solid var(--selected);
+    border: 1px solid var(--border-strong);
     border-radius: .3rem;
-    color: var(--text-muted);
+    color: var(--text);
     font-size: .62rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline-tag-overflow {
+    flex-shrink: 0;
 }
 </style>
