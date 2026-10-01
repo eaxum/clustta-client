@@ -176,14 +176,29 @@ func authorize(projectPath, name string, plan planning.Plan) error {
 	}
 	for _, change := range plan.Changes {
 		switch name {
-		case "batch_create_collections", "apply_workflow", "setup_animation_production":
+		case "batch_create_collections", "apply_workflow":
 			if !role.CreateCollection {
 				return fmt.Errorf("permission denied: role %q cannot create collections", role.Name)
 			}
-		case "batch_create_assets", "batch_create_asset_types", "batch_create_collection_types",
-			"batch_update_asset_types", "batch_update_collection_types", "setup_project_types":
+		case "batch_create_assets":
 			if !role.CreateAsset {
-				return fmt.Errorf("permission denied: role %q cannot create assets or maintain types", role.Name)
+				return fmt.Errorf("permission denied: role %q cannot create assets", role.Name)
+			}
+		case "batch_create_asset_types", "batch_update_asset_types":
+			if !role.ManageAssetTypes {
+				return fmt.Errorf("permission denied: role %q cannot manage asset types", role.Name)
+			}
+		case "batch_create_collection_types", "batch_update_collection_types":
+			if !role.ManageCollectionTypes {
+				return fmt.Errorf("permission denied: role %q cannot manage collection types", role.Name)
+			}
+		case "setup_project_types":
+			if !role.ManageAssetTypes || !role.ManageCollectionTypes {
+				return fmt.Errorf("permission denied: role %q cannot manage project types", role.Name)
+			}
+		case "setup_animation_production":
+			if !role.CreateCollection || !role.CreateAsset || !role.ManageAssetTypes || !role.ManageCollectionTypes {
+				return fmt.Errorf("permission denied: role %q cannot set up animation production", role.Name)
 			}
 		case "batch_change_status":
 			if !role.ChangeStatus {

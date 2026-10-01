@@ -44,26 +44,26 @@ func registerPlannedBatchDefinitions() {
 	})
 	registerPlannedBatch(plannedBatchDefinition{
 		name: "batch_create_asset_types", description: "Create multiple asset types through one reviewed local plan and transaction.",
-		permission: "create_asset", itemKey: "items", entityType: scope.TypeAsset, nameKey: "name", required: []string{"name", "icon"},
+		permission: "manage_asset_types", itemKey: "items", entityType: scope.TypeAsset, nameKey: "name", required: []string{"name", "icon"},
 		parameters: typeBatchSchema(iconEnum, false), execute: execBatchCreateAssetTypes,
 	})
 	registerPlannedBatch(plannedBatchDefinition{
 		name: "batch_create_collection_types", description: "Create multiple collection types through one reviewed local plan and transaction.",
-		permission: "create_asset", itemKey: "items", entityType: scope.TypeCollection, nameKey: "name", required: []string{"name", "icon"},
+		permission: "manage_collection_types", itemKey: "items", entityType: scope.TypeCollection, nameKey: "name", required: []string{"name", "icon"},
 		parameters: typeBatchSchema(iconEnum, false), execute: execBatchCreateCollectionTypes,
 	})
 	registerPlannedBatch(plannedBatchDefinition{
 		name: "batch_update_asset_types", description: "Update multiple asset type names and icons through one reviewed local plan and transaction.",
-		permission: "create_asset", itemKey: "items", entityType: scope.TypeAsset, nameKey: "name", required: []string{"id", "name", "icon"},
+		permission: "manage_asset_types", itemKey: "items", entityType: scope.TypeAsset, nameKey: "name", required: []string{"id", "name", "icon"},
 		parameters: typeBatchSchema(iconEnum, true), execute: execBatchUpdateAssetTypes,
 	})
 	registerPlannedBatch(plannedBatchDefinition{
 		name: "batch_update_collection_types", description: "Update multiple collection type names and icons through one reviewed local plan and transaction.",
-		permission: "create_asset", itemKey: "items", entityType: scope.TypeCollection, nameKey: "name", required: []string{"id", "name", "icon"},
+		permission: "manage_collection_types", itemKey: "items", entityType: scope.TypeCollection, nameKey: "name", required: []string{"id", "name", "icon"},
 		parameters: typeBatchSchema(iconEnum, true), execute: execBatchUpdateCollectionTypes,
 	})
 
-	registerAggregateBatch("setup_project_types", "Create a standard set of project types through one reviewed local plan.", "create_asset", setupProjectTypesSchema(), scope.TypeCollection, "Set Up Project Types", execSetupProjectTypes)
+	registerAggregateBatch("setup_project_types", "Create a standard set of project types through one reviewed local plan.", "manage_asset_types", setupProjectTypesSchema(), scope.TypeCollection, "Set Up Project Types", execSetupProjectTypes)
 	animationDefinition := animationSetupToolDef()
 	registerAggregateBatch(animationDefinition.Name, animationDefinition.Description, "create_collection", animationDefinition.Parameters, scope.TypeCollection, "Set Up Animation Production", execSetupAnimationProduction)
 	registerAggregateBatch("apply_workflow", "Apply a workflow tree through one reviewed local plan.", "create_collection", applyWorkflowSchema(), scope.TypeCollection, "Apply Workflow", execApplyWorkflow)

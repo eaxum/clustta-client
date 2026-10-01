@@ -1714,40 +1714,49 @@ func (x *Checkpoint) GetSourceCheckpointId() string {
 }
 
 type Role struct {
-	state              protoimpl.MessageState `protogen:"open.v1"`
-	Id                 string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Mtime              int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
-	Name               string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	Synced             bool                   `protobuf:"varint,4,opt,name=synced,proto3" json:"synced,omitempty"`
-	ViewCollection     bool                   `protobuf:"varint,5,opt,name=view_collection,json=viewCollection,proto3" json:"view_collection,omitempty"`
-	CreateCollection   bool                   `protobuf:"varint,6,opt,name=create_collection,json=createCollection,proto3" json:"create_collection,omitempty"`
-	UpdateCollection   bool                   `protobuf:"varint,7,opt,name=update_collection,json=updateCollection,proto3" json:"update_collection,omitempty"`
-	DeleteCollection   bool                   `protobuf:"varint,8,opt,name=delete_collection,json=deleteCollection,proto3" json:"delete_collection,omitempty"`
-	ViewAsset          bool                   `protobuf:"varint,9,opt,name=view_asset,json=viewAsset,proto3" json:"view_asset,omitempty"`
-	CreateAsset        bool                   `protobuf:"varint,10,opt,name=create_asset,json=createAsset,proto3" json:"create_asset,omitempty"`
-	UpdateAsset        bool                   `protobuf:"varint,11,opt,name=update_asset,json=updateAsset,proto3" json:"update_asset,omitempty"`
-	DeleteAsset        bool                   `protobuf:"varint,12,opt,name=delete_asset,json=deleteAsset,proto3" json:"delete_asset,omitempty"`
-	ViewTemplate       bool                   `protobuf:"varint,13,opt,name=view_template,json=viewTemplate,proto3" json:"view_template,omitempty"`
-	CreateTemplate     bool                   `protobuf:"varint,14,opt,name=create_template,json=createTemplate,proto3" json:"create_template,omitempty"`
-	UpdateTemplate     bool                   `protobuf:"varint,15,opt,name=update_template,json=updateTemplate,proto3" json:"update_template,omitempty"`
-	DeleteTemplate     bool                   `protobuf:"varint,16,opt,name=delete_template,json=deleteTemplate,proto3" json:"delete_template,omitempty"`
-	ViewCheckpoint     bool                   `protobuf:"varint,17,opt,name=view_checkpoint,json=viewCheckpoint,proto3" json:"view_checkpoint,omitempty"`
-	CreateCheckpoint   bool                   `protobuf:"varint,18,opt,name=create_checkpoint,json=createCheckpoint,proto3" json:"create_checkpoint,omitempty"`
-	DeleteCheckpoint   bool                   `protobuf:"varint,19,opt,name=delete_checkpoint,json=deleteCheckpoint,proto3" json:"delete_checkpoint,omitempty"`
-	PullChunk          bool                   `protobuf:"varint,20,opt,name=pull_chunk,json=pullChunk,proto3" json:"pull_chunk,omitempty"`
-	AssignAsset        bool                   `protobuf:"varint,21,opt,name=assign_asset,json=assignAsset,proto3" json:"assign_asset,omitempty"`
-	UnassignAsset      bool                   `protobuf:"varint,22,opt,name=unassign_asset,json=unassignAsset,proto3" json:"unassign_asset,omitempty"`
-	AddUser            bool                   `protobuf:"varint,23,opt,name=add_user,json=addUser,proto3" json:"add_user,omitempty"`
-	RemoveUser         bool                   `protobuf:"varint,24,opt,name=remove_user,json=removeUser,proto3" json:"remove_user,omitempty"`
-	ChangeRole         bool                   `protobuf:"varint,25,opt,name=change_role,json=changeRole,proto3" json:"change_role,omitempty"`
-	ChangeStatus       bool                   `protobuf:"varint,26,opt,name=change_status,json=changeStatus,proto3" json:"change_status,omitempty"`
-	SetDoneAsset       bool                   `protobuf:"varint,27,opt,name=set_done_asset,json=setDoneAsset,proto3" json:"set_done_asset,omitempty"`
-	SetRetakeAsset     bool                   `protobuf:"varint,28,opt,name=set_retake_asset,json=setRetakeAsset,proto3" json:"set_retake_asset,omitempty"`
-	ViewDoneAsset      bool                   `protobuf:"varint,29,opt,name=view_done_asset,json=viewDoneAsset,proto3" json:"view_done_asset,omitempty"`
-	ManageDependencies bool                   `protobuf:"varint,30,opt,name=manage_dependencies,json=manageDependencies,proto3" json:"manage_dependencies,omitempty"`
-	ManageShareLinks   bool                   `protobuf:"varint,31,opt,name=manage_share_links,json=manageShareLinks,proto3" json:"manage_share_links,omitempty"`
-	unknownFields      protoimpl.UnknownFields
-	sizeCache          protoimpl.SizeCache
+	state                 protoimpl.MessageState `protogen:"open.v1"`
+	Id                    string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Mtime                 int64                  `protobuf:"varint,2,opt,name=mtime,proto3" json:"mtime,omitempty"`
+	Name                  string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	Synced                bool                   `protobuf:"varint,4,opt,name=synced,proto3" json:"synced,omitempty"`
+	ViewCollection        bool                   `protobuf:"varint,5,opt,name=view_collection,json=viewCollection,proto3" json:"view_collection,omitempty"`
+	CreateCollection      bool                   `protobuf:"varint,6,opt,name=create_collection,json=createCollection,proto3" json:"create_collection,omitempty"`
+	UpdateCollection      bool                   `protobuf:"varint,7,opt,name=update_collection,json=updateCollection,proto3" json:"update_collection,omitempty"`
+	DeleteCollection      bool                   `protobuf:"varint,8,opt,name=delete_collection,json=deleteCollection,proto3" json:"delete_collection,omitempty"`
+	ViewAsset             bool                   `protobuf:"varint,9,opt,name=view_asset,json=viewAsset,proto3" json:"view_asset,omitempty"`
+	CreateAsset           bool                   `protobuf:"varint,10,opt,name=create_asset,json=createAsset,proto3" json:"create_asset,omitempty"`
+	UpdateAsset           bool                   `protobuf:"varint,11,opt,name=update_asset,json=updateAsset,proto3" json:"update_asset,omitempty"`
+	DeleteAsset           bool                   `protobuf:"varint,12,opt,name=delete_asset,json=deleteAsset,proto3" json:"delete_asset,omitempty"`
+	ViewTemplate          bool                   `protobuf:"varint,13,opt,name=view_template,json=viewTemplate,proto3" json:"view_template,omitempty"`
+	CreateTemplate        bool                   `protobuf:"varint,14,opt,name=create_template,json=createTemplate,proto3" json:"create_template,omitempty"`
+	UpdateTemplate        bool                   `protobuf:"varint,15,opt,name=update_template,json=updateTemplate,proto3" json:"update_template,omitempty"`
+	DeleteTemplate        bool                   `protobuf:"varint,16,opt,name=delete_template,json=deleteTemplate,proto3" json:"delete_template,omitempty"`
+	ViewCheckpoint        bool                   `protobuf:"varint,17,opt,name=view_checkpoint,json=viewCheckpoint,proto3" json:"view_checkpoint,omitempty"`
+	CreateCheckpoint      bool                   `protobuf:"varint,18,opt,name=create_checkpoint,json=createCheckpoint,proto3" json:"create_checkpoint,omitempty"`
+	DeleteCheckpoint      bool                   `protobuf:"varint,19,opt,name=delete_checkpoint,json=deleteCheckpoint,proto3" json:"delete_checkpoint,omitempty"`
+	PullChunk             bool                   `protobuf:"varint,20,opt,name=pull_chunk,json=pullChunk,proto3" json:"pull_chunk,omitempty"`
+	AssignAsset           bool                   `protobuf:"varint,21,opt,name=assign_asset,json=assignAsset,proto3" json:"assign_asset,omitempty"`
+	UnassignAsset         bool                   `protobuf:"varint,22,opt,name=unassign_asset,json=unassignAsset,proto3" json:"unassign_asset,omitempty"`
+	AddUser               bool                   `protobuf:"varint,23,opt,name=add_user,json=addUser,proto3" json:"add_user,omitempty"`
+	RemoveUser            bool                   `protobuf:"varint,24,opt,name=remove_user,json=removeUser,proto3" json:"remove_user,omitempty"`
+	ChangeRole            bool                   `protobuf:"varint,25,opt,name=change_role,json=changeRole,proto3" json:"change_role,omitempty"`
+	ChangeStatus          bool                   `protobuf:"varint,26,opt,name=change_status,json=changeStatus,proto3" json:"change_status,omitempty"`
+	SetDoneAsset          bool                   `protobuf:"varint,27,opt,name=set_done_asset,json=setDoneAsset,proto3" json:"set_done_asset,omitempty"`
+	SetRetakeAsset        bool                   `protobuf:"varint,28,opt,name=set_retake_asset,json=setRetakeAsset,proto3" json:"set_retake_asset,omitempty"`
+	ViewDoneAsset         bool                   `protobuf:"varint,29,opt,name=view_done_asset,json=viewDoneAsset,proto3" json:"view_done_asset,omitempty"`
+	ManageDependencies    bool                   `protobuf:"varint,30,opt,name=manage_dependencies,json=manageDependencies,proto3" json:"manage_dependencies,omitempty"`
+	ManageShareLinks      bool                   `protobuf:"varint,31,opt,name=manage_share_links,json=manageShareLinks,proto3" json:"manage_share_links,omitempty"`
+	ManageCollectionTypes bool                   `protobuf:"varint,32,opt,name=manage_collection_types,json=manageCollectionTypes,proto3" json:"manage_collection_types,omitempty"`
+	ManageAssetTypes      bool                   `protobuf:"varint,33,opt,name=manage_asset_types,json=manageAssetTypes,proto3" json:"manage_asset_types,omitempty"`
+	ManageDependencyTypes bool                   `protobuf:"varint,34,opt,name=manage_dependency_types,json=manageDependencyTypes,proto3" json:"manage_dependency_types,omitempty"`
+	ManageStatuses        bool                   `protobuf:"varint,35,opt,name=manage_statuses,json=manageStatuses,proto3" json:"manage_statuses,omitempty"`
+	ManageTags            bool                   `protobuf:"varint,36,opt,name=manage_tags,json=manageTags,proto3" json:"manage_tags,omitempty"`
+	ManageWorkflows       bool                   `protobuf:"varint,37,opt,name=manage_workflows,json=manageWorkflows,proto3" json:"manage_workflows,omitempty"`
+	ManageIntegrations    bool                   `protobuf:"varint,38,opt,name=manage_integrations,json=manageIntegrations,proto3" json:"manage_integrations,omitempty"`
+	ManageProjectSettings bool                   `protobuf:"varint,39,opt,name=manage_project_settings,json=manageProjectSettings,proto3" json:"manage_project_settings,omitempty"`
+	ManageRoles           bool                   `protobuf:"varint,40,opt,name=manage_roles,json=manageRoles,proto3" json:"manage_roles,omitempty"`
+	unknownFields         protoimpl.UnknownFields
+	sizeCache             protoimpl.SizeCache
 }
 
 func (x *Role) Reset() {
@@ -1993,6 +2002,69 @@ func (x *Role) GetManageDependencies() bool {
 func (x *Role) GetManageShareLinks() bool {
 	if x != nil {
 		return x.ManageShareLinks
+	}
+	return false
+}
+
+func (x *Role) GetManageCollectionTypes() bool {
+	if x != nil {
+		return x.ManageCollectionTypes
+	}
+	return false
+}
+
+func (x *Role) GetManageAssetTypes() bool {
+	if x != nil {
+		return x.ManageAssetTypes
+	}
+	return false
+}
+
+func (x *Role) GetManageDependencyTypes() bool {
+	if x != nil {
+		return x.ManageDependencyTypes
+	}
+	return false
+}
+
+func (x *Role) GetManageStatuses() bool {
+	if x != nil {
+		return x.ManageStatuses
+	}
+	return false
+}
+
+func (x *Role) GetManageTags() bool {
+	if x != nil {
+		return x.ManageTags
+	}
+	return false
+}
+
+func (x *Role) GetManageWorkflows() bool {
+	if x != nil {
+		return x.ManageWorkflows
+	}
+	return false
+}
+
+func (x *Role) GetManageIntegrations() bool {
+	if x != nil {
+		return x.ManageIntegrations
+	}
+	return false
+}
+
+func (x *Role) GetManageProjectSettings() bool {
+	if x != nil {
+		return x.ManageProjectSettings
+	}
+	return false
+}
+
+func (x *Role) GetManageRoles() bool {
+	if x != nil {
+		return x.ManageRoles
 	}
 	return false
 }
@@ -3885,7 +3957,7 @@ const file_schema_proto_rawDesc = "" +
 	"\x06synced\x18\r \x01(\bR\x06synced\x12\x19\n" +
 	"\bgroup_id\x18\x0e \x01(\tR\agroupId\x125\n" +
 	"\x14source_checkpoint_id\x18\x0f \x01(\tH\x00R\x12sourceCheckpointId\x88\x01\x01B\x17\n" +
-	"\x15_source_checkpoint_id\"\xf5\b\n" +
+	"\x15_source_checkpoint_id\"\x94\f\n" +
 	"\x04Role\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x12\n" +
@@ -3922,7 +3994,17 @@ const file_schema_proto_rawDesc = "" +
 	"\x10set_retake_asset\x18\x1c \x01(\bR\x0esetRetakeAsset\x12&\n" +
 	"\x0fview_done_asset\x18\x1d \x01(\bR\rviewDoneAsset\x12/\n" +
 	"\x13manage_dependencies\x18\x1e \x01(\bR\x12manageDependencies\x12,\n" +
-	"\x12manage_share_links\x18\x1f \x01(\bR\x10manageShareLinks\"z\n" +
+	"\x12manage_share_links\x18\x1f \x01(\bR\x10manageShareLinks\x126\n" +
+	"\x17manage_collection_types\x18  \x01(\bR\x15manageCollectionTypes\x12,\n" +
+	"\x12manage_asset_types\x18! \x01(\bR\x10manageAssetTypes\x126\n" +
+	"\x17manage_dependency_types\x18\" \x01(\bR\x15manageDependencyTypes\x12'\n" +
+	"\x0fmanage_statuses\x18# \x01(\bR\x0emanageStatuses\x12\x1f\n" +
+	"\vmanage_tags\x18$ \x01(\bR\n" +
+	"manageTags\x12)\n" +
+	"\x10manage_workflows\x18% \x01(\bR\x0fmanageWorkflows\x12/\n" +
+	"\x13manage_integrations\x18& \x01(\bR\x12manageIntegrations\x126\n" +
+	"\x17manage_project_settings\x18' \x01(\bR\x15manageProjectSettings\x12!\n" +
+	"\fmanage_roles\x18( \x01(\bR\vmanageRoles\"z\n" +
 	"\bUserRole\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05mtime\x18\x02 \x01(\x03R\x05mtime\x12\x17\n" +

@@ -127,6 +127,9 @@ func (s *IntegrationService) GetAssetIntegrationDetails(projectPath, assetID str
 
 // UnlinkAsset removes the mapping matching the asset's current type.
 func (s *IntegrationService) UnlinkAsset(projectPath, assetID string) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
+		return err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -187,6 +190,9 @@ func (s *IntegrationService) GetExternalProjects(integrationId, token, apiUrl st
 // LinkProject links a Clustta project to an external project.
 // Returns error if project already has an integration.
 func (s *IntegrationService) LinkProject(projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId string) (models.IntegrationProject, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
+		return models.IntegrationProject{}, err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.IntegrationProject{}, err
@@ -224,6 +230,9 @@ func (s *IntegrationService) LinkProject(projectPath, integrationId, externalPro
 // UnlinkProject removes the integration link and its project mappings.
 // User-scoped credentials remain available to other linked projects.
 func (s *IntegrationService) UnlinkProject(projectPath string) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
+		return err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1257,6 +1266,9 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	if err != nil {
 		return err
 	}
+	if !role.ManageIntegrations {
+		return errors.New("user does not have manage_integrations permission")
+	}
 
 	// Emit initial progress
 	app.Event.Emit("progress-update", output.ProgressReport{
@@ -1315,12 +1327,9 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 		Message: "Validating types...",
 	})
 
-	syncOptionsModified, err := s.ensureTypesExist(tx, preview, &syncOptions)
+	syncOptionsModified, err := s.ensureTypesExist(tx, preview, &syncOptions, role)
 	if err != nil {
 		return err
-	}
-	if syncOptionsModified && !role.ChangeRole {
-		return errors.New("user does not have change_role permission to create or map integration types")
 	}
 
 	// Phase 1: Create collections (sorted by path depth - parents first)
@@ -1464,7 +1473,7 @@ var assetTypeIcons = constants.AssetTypeIcons
 
 // ensureTypesExist validates that all required types exist, auto-creating if needed.
 // Returns true if syncOptions was modified.
-func (s *IntegrationService) ensureTypesExist(tx *sqlx.Tx, preview integrations.SyncPreview, syncOptions *integrations.SyncOptions) (bool, error) {
+func (s *IntegrationService) ensureTypesExist(tx *sqlx.Tx, preview integrations.SyncPreview, syncOptions *integrations.SyncOptions, role models.Role) (bool, error) {
 	modified := false
 
 	// Ensure collection type mappings map exists
@@ -1552,6 +1561,9 @@ func (s *IntegrationService) ensureTypesExist(tx *sqlx.Tx, preview integrations.
 			}
 
 			// Need to create new type - get unique icon
+			if !role.ManageCollectionTypes {
+				return false, errors.New("user does not have manage_collection_types permission")
+			}
 			icon := getNextAvailableIcon(collectionTypeIcons, usedCollectionIcons)
 			usedCollectionIcons[icon] = true
 
@@ -1605,6 +1617,9 @@ func (s *IntegrationService) ensureTypesExist(tx *sqlx.Tx, preview integrations.
 			}
 
 			// Need to create new type - get unique icon
+			if !role.ManageAssetTypes {
+				return false, errors.New("user does not have manage_asset_types permission")
+			}
 			icon := getNextAvailableIcon(assetTypeIcons, usedAssetIcons)
 			usedAssetIcons[icon] = true
 
@@ -1995,6 +2010,9 @@ func (s *IntegrationService) GetTypeMappings(projectPath string) (integrations.S
 
 // SaveTypeMappings saves type mappings to sync_options for a project.
 func (s *IntegrationService) SaveTypeMappings(projectPath string, syncOptions integrations.SyncOptions) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
+		return err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -2066,6 +2084,9 @@ func (s *IntegrationService) GetExternalTypes(projectPath, token string) ([]inte
 // GetMissingTypes compares external types with local Clustta types.
 // Returns types that don't have a mapping in sync_options and don't exist in Clustta.
 func (s *IntegrationService) GetMissingTypes(projectPath, token string) ([]integrations.MissingType, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
+		return nil, err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return nil, err
@@ -2223,6 +2244,21 @@ func (s *IntegrationService) CreateMissingTypes(projectPath string, missingTypes
 		return err
 	}
 	defer tx.Rollback()
+	_, role, err := activeAssetRole(tx)
+	if err != nil {
+		return err
+	}
+	if !role.ManageIntegrations {
+		return errors.New("user does not have manage_integrations permission")
+	}
+	for _, missingType := range missingTypes {
+		if missingType.TypeCategory == "collection" && !role.ManageCollectionTypes {
+			return errors.New("user does not have manage_collection_types permission")
+		}
+		if missingType.TypeCategory == "asset" && !role.ManageAssetTypes {
+			return errors.New("user does not have manage_asset_types permission")
+		}
+	}
 
 	integrationProject, err := repository.GetIntegrationProject(tx)
 	if err != nil {
@@ -2348,6 +2384,9 @@ func (s *IntegrationService) GetExternalStatuses(projectPath, token string) ([]i
 
 // SaveStatusMappings saves status mappings to sync_options (Clustta status ID → external status ID).
 func (s *IntegrationService) SaveStatusMappings(projectPath string, statusMappings map[string]string) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
+		return err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err

@@ -3,7 +3,7 @@
     <div class="settings-component-scroll">
     <div class="settings-component-container">
 
-      <div class="settings-section-card">
+      <div v-if="userStore.canDo('manage_project_settings')" class="settings-section-card">
         <div class="settings-section-card-header">
           <h2 class="settings-section-card-title">{{ $t('settings.scripts') }}</h2>
         </div>
@@ -25,7 +25,7 @@
         </div>
       </div>
 
-      <div class="settings-section-card">
+      <div v-if="userStore.canDo('manage_project_settings')" class="settings-section-card">
         <div class="settings-section-card-header environment-card-header">
           <div class="environment-card-title-group">
             <h2 class="settings-section-card-title">{{ $t('settings.environmentVariables') }}</h2>
@@ -56,7 +56,7 @@
       </div>
 
       <!-- External Integrations Card -->
-      <div v-if="entitlementStore.hasIntegrations" class="settings-section-card">
+      <div v-if="entitlementStore.hasIntegrations && userStore.canDo('manage_integrations')" class="settings-section-card">
         <div class="settings-section-card-header integration-card-header">
           <div class="integration-card-title-group">
             <h2 class="settings-section-card-title">{{ $t('settings.externalIntegrations') }}</h2>
@@ -137,6 +137,7 @@ import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
+import { useUserStore } from '@/stores/users';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
 
@@ -155,6 +156,7 @@ const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const settingsStore = useSettingsStore();
+const userStore = useUserStore();
 const { t } = useI18n();
 const scriptDirectory = ref('Scripts');
 const scriptExtensions = ref(['.py']);

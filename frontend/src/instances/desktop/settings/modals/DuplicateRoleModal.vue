@@ -57,7 +57,7 @@ const roleNameInUse = computed(() => {
 
 const canDuplicate = computed(() => {
   return !!sourceRole
-    && userStore.canDo('change_role')
+    && userStore.canDo('manage_roles')
     && normalizedRoleName.value !== ''
     && !roleNameInUse.value
     && !isAwaitingResponse.value;

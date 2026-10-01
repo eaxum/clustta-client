@@ -272,6 +272,9 @@ func (p *ProjectService) GetIgnoreList(projectPath string) ([]string, error) {
 }
 
 func (p *ProjectService) SetIgnoreList(projectUri, studioName string, ignoreList []string) error {
+	if err := requireProjectPermissionForPath(projectUri, permissionManageProjectSettings); err != nil {
+		return err
+	}
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return err
@@ -664,6 +667,9 @@ func (p *ProjectService) UserInProject(projectPath, userId string) (bool, error)
 func (p *ProjectService) UpdatePreview(projectPath, previewPath string) error {
 	if !utils.FileExists(projectPath) {
 		return error_service.ErrProjectNotFound
+	}
+	if err := requireProjectPermissionForPath(projectPath, permissionManageProjectSettings); err != nil {
+		return err
 	}
 
 	dbConn, err := utils.OpenDb(projectPath)

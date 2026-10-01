@@ -2507,6 +2507,9 @@ export const repository = $root.repository = (() => {
          * @property {string|null} [dependency_id] AssetDependency dependency_id
          * @property {string|null} [dependency_type_id] AssetDependency dependency_type_id
          * @property {boolean|null} [synced] AssetDependency synced
+         * @property {string|null} [resolution_mode] AssetDependency resolution_mode
+         * @property {string|null} [checkpoint_id] AssetDependency checkpoint_id
+         * @property {string|null} [asset_checkpoint_tag_id] AssetDependency asset_checkpoint_tag_id
          */
 
         /**
@@ -2573,6 +2576,30 @@ export const repository = $root.repository = (() => {
         AssetDependency.prototype.synced = false;
 
         /**
+         * AssetDependency resolution_mode.
+         * @member {string} resolution_mode
+         * @memberof repository.AssetDependency
+         * @instance
+         */
+        AssetDependency.prototype.resolution_mode = "";
+
+        /**
+         * AssetDependency checkpoint_id.
+         * @member {string} checkpoint_id
+         * @memberof repository.AssetDependency
+         * @instance
+         */
+        AssetDependency.prototype.checkpoint_id = "";
+
+        /**
+         * AssetDependency asset_checkpoint_tag_id.
+         * @member {string} asset_checkpoint_tag_id
+         * @memberof repository.AssetDependency
+         * @instance
+         */
+        AssetDependency.prototype.asset_checkpoint_tag_id = "";
+
+        /**
          * Creates a new AssetDependency instance using the specified properties.
          * @function create
          * @memberof repository.AssetDependency
@@ -2608,6 +2635,12 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 5, wireType 2 =*/42).string(message.dependency_type_id);
             if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
                 writer.uint32(/* id 6, wireType 0 =*/48).bool(message.synced);
+            if (message.resolution_mode != null && Object.hasOwnProperty.call(message, "resolution_mode"))
+                writer.uint32(/* id 7, wireType 2 =*/58).string(message.resolution_mode);
+            if (message.checkpoint_id != null && Object.hasOwnProperty.call(message, "checkpoint_id"))
+                writer.uint32(/* id 8, wireType 2 =*/66).string(message.checkpoint_id);
+            if (message.asset_checkpoint_tag_id != null && Object.hasOwnProperty.call(message, "asset_checkpoint_tag_id"))
+                writer.uint32(/* id 9, wireType 2 =*/74).string(message.asset_checkpoint_tag_id);
             return writer;
         };
 
@@ -2668,6 +2701,18 @@ export const repository = $root.repository = (() => {
                         message.synced = reader.bool();
                         break;
                     }
+                case 7: {
+                        message.resolution_mode = reader.string();
+                        break;
+                    }
+                case 8: {
+                        message.checkpoint_id = reader.string();
+                        break;
+                    }
+                case 9: {
+                        message.asset_checkpoint_tag_id = reader.string();
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -2721,6 +2766,15 @@ export const repository = $root.repository = (() => {
             if (message.synced != null && message.hasOwnProperty("synced"))
                 if (typeof message.synced !== "boolean")
                     return "synced: boolean expected";
+            if (message.resolution_mode != null && message.hasOwnProperty("resolution_mode"))
+                if (!$util.isString(message.resolution_mode))
+                    return "resolution_mode: string expected";
+            if (message.checkpoint_id != null && message.hasOwnProperty("checkpoint_id"))
+                if (!$util.isString(message.checkpoint_id))
+                    return "checkpoint_id: string expected";
+            if (message.asset_checkpoint_tag_id != null && message.hasOwnProperty("asset_checkpoint_tag_id"))
+                if (!$util.isString(message.asset_checkpoint_tag_id))
+                    return "asset_checkpoint_tag_id: string expected";
             return null;
         };
 
@@ -2755,6 +2809,12 @@ export const repository = $root.repository = (() => {
                 message.dependency_type_id = String(object.dependency_type_id);
             if (object.synced != null)
                 message.synced = Boolean(object.synced);
+            if (object.resolution_mode != null)
+                message.resolution_mode = String(object.resolution_mode);
+            if (object.checkpoint_id != null)
+                message.checkpoint_id = String(object.checkpoint_id);
+            if (object.asset_checkpoint_tag_id != null)
+                message.asset_checkpoint_tag_id = String(object.asset_checkpoint_tag_id);
             return message;
         };
 
@@ -2782,6 +2842,9 @@ export const repository = $root.repository = (() => {
                 object.dependency_id = "";
                 object.dependency_type_id = "";
                 object.synced = false;
+                object.resolution_mode = "";
+                object.checkpoint_id = "";
+                object.asset_checkpoint_tag_id = "";
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -2798,6 +2861,12 @@ export const repository = $root.repository = (() => {
                 object.dependency_type_id = message.dependency_type_id;
             if (message.synced != null && message.hasOwnProperty("synced"))
                 object.synced = message.synced;
+            if (message.resolution_mode != null && message.hasOwnProperty("resolution_mode"))
+                object.resolution_mode = message.resolution_mode;
+            if (message.checkpoint_id != null && message.hasOwnProperty("checkpoint_id"))
+                object.checkpoint_id = message.checkpoint_id;
+            if (message.asset_checkpoint_tag_id != null && message.hasOwnProperty("asset_checkpoint_tag_id"))
+                object.asset_checkpoint_tag_id = message.asset_checkpoint_tag_id;
             return object;
         };
 
@@ -6494,6 +6563,15 @@ export const repository = $root.repository = (() => {
          * @property {boolean|null} [view_done_asset] Role view_done_asset
          * @property {boolean|null} [manage_dependencies] Role manage_dependencies
          * @property {boolean|null} [manage_share_links] Role manage_share_links
+         * @property {boolean|null} [manage_collection_types] Role manage_collection_types
+         * @property {boolean|null} [manage_asset_types] Role manage_asset_types
+         * @property {boolean|null} [manage_dependency_types] Role manage_dependency_types
+         * @property {boolean|null} [manage_statuses] Role manage_statuses
+         * @property {boolean|null} [manage_tags] Role manage_tags
+         * @property {boolean|null} [manage_workflows] Role manage_workflows
+         * @property {boolean|null} [manage_integrations] Role manage_integrations
+         * @property {boolean|null} [manage_project_settings] Role manage_project_settings
+         * @property {boolean|null} [manage_roles] Role manage_roles
          */
 
         /**
@@ -6760,6 +6838,78 @@ export const repository = $root.repository = (() => {
         Role.prototype.manage_share_links = false;
 
         /**
+         * Role manage_collection_types.
+         * @member {boolean} manage_collection_types
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_collection_types = false;
+
+        /**
+         * Role manage_asset_types.
+         * @member {boolean} manage_asset_types
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_asset_types = false;
+
+        /**
+         * Role manage_dependency_types.
+         * @member {boolean} manage_dependency_types
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_dependency_types = false;
+
+        /**
+         * Role manage_statuses.
+         * @member {boolean} manage_statuses
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_statuses = false;
+
+        /**
+         * Role manage_tags.
+         * @member {boolean} manage_tags
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_tags = false;
+
+        /**
+         * Role manage_workflows.
+         * @member {boolean} manage_workflows
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_workflows = false;
+
+        /**
+         * Role manage_integrations.
+         * @member {boolean} manage_integrations
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_integrations = false;
+
+        /**
+         * Role manage_project_settings.
+         * @member {boolean} manage_project_settings
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_project_settings = false;
+
+        /**
+         * Role manage_roles.
+         * @member {boolean} manage_roles
+         * @memberof repository.Role
+         * @instance
+         */
+        Role.prototype.manage_roles = false;
+
+        /**
          * Creates a new Role instance using the specified properties.
          * @function create
          * @memberof repository.Role
@@ -6845,6 +6995,24 @@ export const repository = $root.repository = (() => {
                 writer.uint32(/* id 30, wireType 0 =*/240).bool(message.manage_dependencies);
             if (message.manage_share_links != null && Object.hasOwnProperty.call(message, "manage_share_links"))
                 writer.uint32(/* id 31, wireType 0 =*/248).bool(message.manage_share_links);
+            if (message.manage_collection_types != null && Object.hasOwnProperty.call(message, "manage_collection_types"))
+                writer.uint32(/* id 32, wireType 0 =*/256).bool(message.manage_collection_types);
+            if (message.manage_asset_types != null && Object.hasOwnProperty.call(message, "manage_asset_types"))
+                writer.uint32(/* id 33, wireType 0 =*/264).bool(message.manage_asset_types);
+            if (message.manage_dependency_types != null && Object.hasOwnProperty.call(message, "manage_dependency_types"))
+                writer.uint32(/* id 34, wireType 0 =*/272).bool(message.manage_dependency_types);
+            if (message.manage_statuses != null && Object.hasOwnProperty.call(message, "manage_statuses"))
+                writer.uint32(/* id 35, wireType 0 =*/280).bool(message.manage_statuses);
+            if (message.manage_tags != null && Object.hasOwnProperty.call(message, "manage_tags"))
+                writer.uint32(/* id 36, wireType 0 =*/288).bool(message.manage_tags);
+            if (message.manage_workflows != null && Object.hasOwnProperty.call(message, "manage_workflows"))
+                writer.uint32(/* id 37, wireType 0 =*/296).bool(message.manage_workflows);
+            if (message.manage_integrations != null && Object.hasOwnProperty.call(message, "manage_integrations"))
+                writer.uint32(/* id 38, wireType 0 =*/304).bool(message.manage_integrations);
+            if (message.manage_project_settings != null && Object.hasOwnProperty.call(message, "manage_project_settings"))
+                writer.uint32(/* id 39, wireType 0 =*/312).bool(message.manage_project_settings);
+            if (message.manage_roles != null && Object.hasOwnProperty.call(message, "manage_roles"))
+                writer.uint32(/* id 40, wireType 0 =*/320).bool(message.manage_roles);
             return writer;
         };
 
@@ -7005,6 +7173,42 @@ export const repository = $root.repository = (() => {
                         message.manage_share_links = reader.bool();
                         break;
                     }
+                case 32: {
+                        message.manage_collection_types = reader.bool();
+                        break;
+                    }
+                case 33: {
+                        message.manage_asset_types = reader.bool();
+                        break;
+                    }
+                case 34: {
+                        message.manage_dependency_types = reader.bool();
+                        break;
+                    }
+                case 35: {
+                        message.manage_statuses = reader.bool();
+                        break;
+                    }
+                case 36: {
+                        message.manage_tags = reader.bool();
+                        break;
+                    }
+                case 37: {
+                        message.manage_workflows = reader.bool();
+                        break;
+                    }
+                case 38: {
+                        message.manage_integrations = reader.bool();
+                        break;
+                    }
+                case 39: {
+                        message.manage_project_settings = reader.bool();
+                        break;
+                    }
+                case 40: {
+                        message.manage_roles = reader.bool();
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -7133,6 +7337,33 @@ export const repository = $root.repository = (() => {
             if (message.manage_share_links != null && message.hasOwnProperty("manage_share_links"))
                 if (typeof message.manage_share_links !== "boolean")
                     return "manage_share_links: boolean expected";
+            if (message.manage_collection_types != null && message.hasOwnProperty("manage_collection_types"))
+                if (typeof message.manage_collection_types !== "boolean")
+                    return "manage_collection_types: boolean expected";
+            if (message.manage_asset_types != null && message.hasOwnProperty("manage_asset_types"))
+                if (typeof message.manage_asset_types !== "boolean")
+                    return "manage_asset_types: boolean expected";
+            if (message.manage_dependency_types != null && message.hasOwnProperty("manage_dependency_types"))
+                if (typeof message.manage_dependency_types !== "boolean")
+                    return "manage_dependency_types: boolean expected";
+            if (message.manage_statuses != null && message.hasOwnProperty("manage_statuses"))
+                if (typeof message.manage_statuses !== "boolean")
+                    return "manage_statuses: boolean expected";
+            if (message.manage_tags != null && message.hasOwnProperty("manage_tags"))
+                if (typeof message.manage_tags !== "boolean")
+                    return "manage_tags: boolean expected";
+            if (message.manage_workflows != null && message.hasOwnProperty("manage_workflows"))
+                if (typeof message.manage_workflows !== "boolean")
+                    return "manage_workflows: boolean expected";
+            if (message.manage_integrations != null && message.hasOwnProperty("manage_integrations"))
+                if (typeof message.manage_integrations !== "boolean")
+                    return "manage_integrations: boolean expected";
+            if (message.manage_project_settings != null && message.hasOwnProperty("manage_project_settings"))
+                if (typeof message.manage_project_settings !== "boolean")
+                    return "manage_project_settings: boolean expected";
+            if (message.manage_roles != null && message.hasOwnProperty("manage_roles"))
+                if (typeof message.manage_roles !== "boolean")
+                    return "manage_roles: boolean expected";
             return null;
         };
 
@@ -7217,6 +7448,24 @@ export const repository = $root.repository = (() => {
                 message.manage_dependencies = Boolean(object.manage_dependencies);
             if (object.manage_share_links != null)
                 message.manage_share_links = Boolean(object.manage_share_links);
+            if (object.manage_collection_types != null)
+                message.manage_collection_types = Boolean(object.manage_collection_types);
+            if (object.manage_asset_types != null)
+                message.manage_asset_types = Boolean(object.manage_asset_types);
+            if (object.manage_dependency_types != null)
+                message.manage_dependency_types = Boolean(object.manage_dependency_types);
+            if (object.manage_statuses != null)
+                message.manage_statuses = Boolean(object.manage_statuses);
+            if (object.manage_tags != null)
+                message.manage_tags = Boolean(object.manage_tags);
+            if (object.manage_workflows != null)
+                message.manage_workflows = Boolean(object.manage_workflows);
+            if (object.manage_integrations != null)
+                message.manage_integrations = Boolean(object.manage_integrations);
+            if (object.manage_project_settings != null)
+                message.manage_project_settings = Boolean(object.manage_project_settings);
+            if (object.manage_roles != null)
+                message.manage_roles = Boolean(object.manage_roles);
             return message;
         };
 
@@ -7269,6 +7518,15 @@ export const repository = $root.repository = (() => {
                 object.view_done_asset = false;
                 object.manage_dependencies = false;
                 object.manage_share_links = false;
+                object.manage_collection_types = false;
+                object.manage_asset_types = false;
+                object.manage_dependency_types = false;
+                object.manage_statuses = false;
+                object.manage_tags = false;
+                object.manage_workflows = false;
+                object.manage_integrations = false;
+                object.manage_project_settings = false;
+                object.manage_roles = false;
             }
             if (message.id != null && message.hasOwnProperty("id"))
                 object.id = message.id;
@@ -7335,6 +7593,24 @@ export const repository = $root.repository = (() => {
                 object.manage_dependencies = message.manage_dependencies;
             if (message.manage_share_links != null && message.hasOwnProperty("manage_share_links"))
                 object.manage_share_links = message.manage_share_links;
+            if (message.manage_collection_types != null && message.hasOwnProperty("manage_collection_types"))
+                object.manage_collection_types = message.manage_collection_types;
+            if (message.manage_asset_types != null && message.hasOwnProperty("manage_asset_types"))
+                object.manage_asset_types = message.manage_asset_types;
+            if (message.manage_dependency_types != null && message.hasOwnProperty("manage_dependency_types"))
+                object.manage_dependency_types = message.manage_dependency_types;
+            if (message.manage_statuses != null && message.hasOwnProperty("manage_statuses"))
+                object.manage_statuses = message.manage_statuses;
+            if (message.manage_tags != null && message.hasOwnProperty("manage_tags"))
+                object.manage_tags = message.manage_tags;
+            if (message.manage_workflows != null && message.hasOwnProperty("manage_workflows"))
+                object.manage_workflows = message.manage_workflows;
+            if (message.manage_integrations != null && message.hasOwnProperty("manage_integrations"))
+                object.manage_integrations = message.manage_integrations;
+            if (message.manage_project_settings != null && message.hasOwnProperty("manage_project_settings"))
+                object.manage_project_settings = message.manage_project_settings;
+            if (message.manage_roles != null && message.hasOwnProperty("manage_roles"))
+                object.manage_roles = message.manage_roles;
             return object;
         };
 
@@ -10089,12 +10365,614 @@ export const repository = $root.repository = (() => {
         return Tomb;
     })();
 
+    repository.ProjectConfig = (function() {
+
+        /**
+         * Properties of a ProjectConfig.
+         * @memberof repository
+         * @interface IProjectConfig
+         * @property {string|null} [name] ProjectConfig name
+         * @property {string|null} [value] ProjectConfig value
+         * @property {number|Long|null} [mtime] ProjectConfig mtime
+         */
+
+        /**
+         * Constructs a new ProjectConfig.
+         * @memberof repository
+         * @classdesc Represents a ProjectConfig.
+         * @implements IProjectConfig
+         * @constructor
+         * @param {repository.IProjectConfig=} [properties] Properties to set
+         */
+        function ProjectConfig(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * ProjectConfig name.
+         * @member {string} name
+         * @memberof repository.ProjectConfig
+         * @instance
+         */
+        ProjectConfig.prototype.name = "";
+
+        /**
+         * ProjectConfig value.
+         * @member {string} value
+         * @memberof repository.ProjectConfig
+         * @instance
+         */
+        ProjectConfig.prototype.value = "";
+
+        /**
+         * ProjectConfig mtime.
+         * @member {number|Long} mtime
+         * @memberof repository.ProjectConfig
+         * @instance
+         */
+        ProjectConfig.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * Creates a new ProjectConfig instance using the specified properties.
+         * @function create
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {repository.IProjectConfig=} [properties] Properties to set
+         * @returns {repository.ProjectConfig} ProjectConfig instance
+         */
+        ProjectConfig.create = function create(properties) {
+            return new ProjectConfig(properties);
+        };
+
+        /**
+         * Encodes the specified ProjectConfig message. Does not implicitly {@link repository.ProjectConfig.verify|verify} messages.
+         * @function encode
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {repository.IProjectConfig} message ProjectConfig message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ProjectConfig.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.name);
+            if (message.value != null && Object.hasOwnProperty.call(message, "value"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.value);
+            if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
+                writer.uint32(/* id 3, wireType 0 =*/24).int64(message.mtime);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified ProjectConfig message, length delimited. Does not implicitly {@link repository.ProjectConfig.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {repository.IProjectConfig} message ProjectConfig message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ProjectConfig.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes a ProjectConfig message from the specified reader or buffer.
+         * @function decode
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {repository.ProjectConfig} ProjectConfig
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ProjectConfig.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.ProjectConfig();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.name = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.value = reader.string();
+                        break;
+                    }
+                case 3: {
+                        message.mtime = reader.int64();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes a ProjectConfig message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {repository.ProjectConfig} ProjectConfig
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ProjectConfig.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies a ProjectConfig message.
+         * @function verify
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        ProjectConfig.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.name != null && message.hasOwnProperty("name"))
+                if (!$util.isString(message.name))
+                    return "name: string expected";
+            if (message.value != null && message.hasOwnProperty("value"))
+                if (!$util.isString(message.value))
+                    return "value: string expected";
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
+                    return "mtime: integer|Long expected";
+            return null;
+        };
+
+        /**
+         * Creates a ProjectConfig message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {repository.ProjectConfig} ProjectConfig
+         */
+        ProjectConfig.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.ProjectConfig)
+                return object;
+            let message = new $root.repository.ProjectConfig();
+            if (object.name != null)
+                message.name = String(object.name);
+            if (object.value != null)
+                message.value = String(object.value);
+            if (object.mtime != null)
+                if ($util.Long)
+                    (message.mtime = $util.Long.fromValue(object.mtime)).unsigned = false;
+                else if (typeof object.mtime === "string")
+                    message.mtime = parseInt(object.mtime, 10);
+                else if (typeof object.mtime === "number")
+                    message.mtime = object.mtime;
+                else if (typeof object.mtime === "object")
+                    message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
+            return message;
+        };
+
+        /**
+         * Creates a plain object from a ProjectConfig message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {repository.ProjectConfig} message ProjectConfig
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        ProjectConfig.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            let object = {};
+            if (options.defaults) {
+                object.name = "";
+                object.value = "";
+                if ($util.Long) {
+                    let long = new $util.Long(0, 0, false);
+                    object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                } else
+                    object.mtime = options.longs === String ? "0" : 0;
+            }
+            if (message.name != null && message.hasOwnProperty("name"))
+                object.name = message.name;
+            if (message.value != null && message.hasOwnProperty("value"))
+                object.value = message.value;
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (typeof message.mtime === "number")
+                    object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
+                else
+                    object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
+            return object;
+        };
+
+        /**
+         * Converts this ProjectConfig to JSON.
+         * @function toJSON
+         * @memberof repository.ProjectConfig
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        ProjectConfig.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for ProjectConfig
+         * @function getTypeUrl
+         * @memberof repository.ProjectConfig
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        ProjectConfig.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/repository.ProjectConfig";
+        };
+
+        return ProjectConfig;
+    })();
+
+    repository.AssetCheckpointTag = (function() {
+
+        /**
+         * Properties of an AssetCheckpointTag.
+         * @memberof repository
+         * @interface IAssetCheckpointTag
+         * @property {string|null} [id] AssetCheckpointTag id
+         * @property {number|Long|null} [mtime] AssetCheckpointTag mtime
+         * @property {string|null} [asset_id] AssetCheckpointTag asset_id
+         * @property {string|null} [tag_id] AssetCheckpointTag tag_id
+         * @property {string|null} [checkpoint_id] AssetCheckpointTag checkpoint_id
+         * @property {boolean|null} [synced] AssetCheckpointTag synced
+         */
+
+        /**
+         * Constructs a new AssetCheckpointTag.
+         * @memberof repository
+         * @classdesc Represents an AssetCheckpointTag.
+         * @implements IAssetCheckpointTag
+         * @constructor
+         * @param {repository.IAssetCheckpointTag=} [properties] Properties to set
+         */
+        function AssetCheckpointTag(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * AssetCheckpointTag id.
+         * @member {string} id
+         * @memberof repository.AssetCheckpointTag
+         * @instance
+         */
+        AssetCheckpointTag.prototype.id = "";
+
+        /**
+         * AssetCheckpointTag mtime.
+         * @member {number|Long} mtime
+         * @memberof repository.AssetCheckpointTag
+         * @instance
+         */
+        AssetCheckpointTag.prototype.mtime = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * AssetCheckpointTag asset_id.
+         * @member {string} asset_id
+         * @memberof repository.AssetCheckpointTag
+         * @instance
+         */
+        AssetCheckpointTag.prototype.asset_id = "";
+
+        /**
+         * AssetCheckpointTag tag_id.
+         * @member {string} tag_id
+         * @memberof repository.AssetCheckpointTag
+         * @instance
+         */
+        AssetCheckpointTag.prototype.tag_id = "";
+
+        /**
+         * AssetCheckpointTag checkpoint_id.
+         * @member {string} checkpoint_id
+         * @memberof repository.AssetCheckpointTag
+         * @instance
+         */
+        AssetCheckpointTag.prototype.checkpoint_id = "";
+
+        /**
+         * AssetCheckpointTag synced.
+         * @member {boolean} synced
+         * @memberof repository.AssetCheckpointTag
+         * @instance
+         */
+        AssetCheckpointTag.prototype.synced = false;
+
+        /**
+         * Creates a new AssetCheckpointTag instance using the specified properties.
+         * @function create
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {repository.IAssetCheckpointTag=} [properties] Properties to set
+         * @returns {repository.AssetCheckpointTag} AssetCheckpointTag instance
+         */
+        AssetCheckpointTag.create = function create(properties) {
+            return new AssetCheckpointTag(properties);
+        };
+
+        /**
+         * Encodes the specified AssetCheckpointTag message. Does not implicitly {@link repository.AssetCheckpointTag.verify|verify} messages.
+         * @function encode
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {repository.IAssetCheckpointTag} message AssetCheckpointTag message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        AssetCheckpointTag.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.id != null && Object.hasOwnProperty.call(message, "id"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.id);
+            if (message.mtime != null && Object.hasOwnProperty.call(message, "mtime"))
+                writer.uint32(/* id 2, wireType 0 =*/16).int64(message.mtime);
+            if (message.asset_id != null && Object.hasOwnProperty.call(message, "asset_id"))
+                writer.uint32(/* id 3, wireType 2 =*/26).string(message.asset_id);
+            if (message.tag_id != null && Object.hasOwnProperty.call(message, "tag_id"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.tag_id);
+            if (message.checkpoint_id != null && Object.hasOwnProperty.call(message, "checkpoint_id"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.checkpoint_id);
+            if (message.synced != null && Object.hasOwnProperty.call(message, "synced"))
+                writer.uint32(/* id 6, wireType 0 =*/48).bool(message.synced);
+            return writer;
+        };
+
+        /**
+         * Encodes the specified AssetCheckpointTag message, length delimited. Does not implicitly {@link repository.AssetCheckpointTag.verify|verify} messages.
+         * @function encodeDelimited
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {repository.IAssetCheckpointTag} message AssetCheckpointTag message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        AssetCheckpointTag.encodeDelimited = function encodeDelimited(message, writer) {
+            return this.encode(message, writer).ldelim();
+        };
+
+        /**
+         * Decodes an AssetCheckpointTag message from the specified reader or buffer.
+         * @function decode
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {repository.AssetCheckpointTag} AssetCheckpointTag
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        AssetCheckpointTag.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.repository.AssetCheckpointTag();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.id = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.mtime = reader.int64();
+                        break;
+                    }
+                case 3: {
+                        message.asset_id = reader.string();
+                        break;
+                    }
+                case 4: {
+                        message.tag_id = reader.string();
+                        break;
+                    }
+                case 5: {
+                        message.checkpoint_id = reader.string();
+                        break;
+                    }
+                case 6: {
+                        message.synced = reader.bool();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * Decodes an AssetCheckpointTag message from the specified reader or buffer, length delimited.
+         * @function decodeDelimited
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @returns {repository.AssetCheckpointTag} AssetCheckpointTag
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        AssetCheckpointTag.decodeDelimited = function decodeDelimited(reader) {
+            if (!(reader instanceof $Reader))
+                reader = new $Reader(reader);
+            return this.decode(reader, reader.uint32());
+        };
+
+        /**
+         * Verifies an AssetCheckpointTag message.
+         * @function verify
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {Object.<string,*>} message Plain object to verify
+         * @returns {string|null} `null` if valid, otherwise the reason why it is not
+         */
+        AssetCheckpointTag.verify = function verify(message) {
+            if (typeof message !== "object" || message === null)
+                return "object expected";
+            if (message.id != null && message.hasOwnProperty("id"))
+                if (!$util.isString(message.id))
+                    return "id: string expected";
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (!$util.isInteger(message.mtime) && !(message.mtime && $util.isInteger(message.mtime.low) && $util.isInteger(message.mtime.high)))
+                    return "mtime: integer|Long expected";
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                if (!$util.isString(message.asset_id))
+                    return "asset_id: string expected";
+            if (message.tag_id != null && message.hasOwnProperty("tag_id"))
+                if (!$util.isString(message.tag_id))
+                    return "tag_id: string expected";
+            if (message.checkpoint_id != null && message.hasOwnProperty("checkpoint_id"))
+                if (!$util.isString(message.checkpoint_id))
+                    return "checkpoint_id: string expected";
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                if (typeof message.synced !== "boolean")
+                    return "synced: boolean expected";
+            return null;
+        };
+
+        /**
+         * Creates an AssetCheckpointTag message from a plain object. Also converts values to their respective internal types.
+         * @function fromObject
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {Object.<string,*>} object Plain object
+         * @returns {repository.AssetCheckpointTag} AssetCheckpointTag
+         */
+        AssetCheckpointTag.fromObject = function fromObject(object) {
+            if (object instanceof $root.repository.AssetCheckpointTag)
+                return object;
+            let message = new $root.repository.AssetCheckpointTag();
+            if (object.id != null)
+                message.id = String(object.id);
+            if (object.mtime != null)
+                if ($util.Long)
+                    (message.mtime = $util.Long.fromValue(object.mtime)).unsigned = false;
+                else if (typeof object.mtime === "string")
+                    message.mtime = parseInt(object.mtime, 10);
+                else if (typeof object.mtime === "number")
+                    message.mtime = object.mtime;
+                else if (typeof object.mtime === "object")
+                    message.mtime = new $util.LongBits(object.mtime.low >>> 0, object.mtime.high >>> 0).toNumber();
+            if (object.asset_id != null)
+                message.asset_id = String(object.asset_id);
+            if (object.tag_id != null)
+                message.tag_id = String(object.tag_id);
+            if (object.checkpoint_id != null)
+                message.checkpoint_id = String(object.checkpoint_id);
+            if (object.synced != null)
+                message.synced = Boolean(object.synced);
+            return message;
+        };
+
+        /**
+         * Creates a plain object from an AssetCheckpointTag message. Also converts values to other types if specified.
+         * @function toObject
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {repository.AssetCheckpointTag} message AssetCheckpointTag
+         * @param {$protobuf.IConversionOptions} [options] Conversion options
+         * @returns {Object.<string,*>} Plain object
+         */
+        AssetCheckpointTag.toObject = function toObject(message, options) {
+            if (!options)
+                options = {};
+            let object = {};
+            if (options.defaults) {
+                object.id = "";
+                if ($util.Long) {
+                    let long = new $util.Long(0, 0, false);
+                    object.mtime = options.longs === String ? long.toString() : options.longs === Number ? long.toNumber() : long;
+                } else
+                    object.mtime = options.longs === String ? "0" : 0;
+                object.asset_id = "";
+                object.tag_id = "";
+                object.checkpoint_id = "";
+                object.synced = false;
+            }
+            if (message.id != null && message.hasOwnProperty("id"))
+                object.id = message.id;
+            if (message.mtime != null && message.hasOwnProperty("mtime"))
+                if (typeof message.mtime === "number")
+                    object.mtime = options.longs === String ? String(message.mtime) : message.mtime;
+                else
+                    object.mtime = options.longs === String ? $util.Long.prototype.toString.call(message.mtime) : options.longs === Number ? new $util.LongBits(message.mtime.low >>> 0, message.mtime.high >>> 0).toNumber() : message.mtime;
+            if (message.asset_id != null && message.hasOwnProperty("asset_id"))
+                object.asset_id = message.asset_id;
+            if (message.tag_id != null && message.hasOwnProperty("tag_id"))
+                object.tag_id = message.tag_id;
+            if (message.checkpoint_id != null && message.hasOwnProperty("checkpoint_id"))
+                object.checkpoint_id = message.checkpoint_id;
+            if (message.synced != null && message.hasOwnProperty("synced"))
+                object.synced = message.synced;
+            return object;
+        };
+
+        /**
+         * Converts this AssetCheckpointTag to JSON.
+         * @function toJSON
+         * @memberof repository.AssetCheckpointTag
+         * @instance
+         * @returns {Object.<string,*>} JSON object
+         */
+        AssetCheckpointTag.prototype.toJSON = function toJSON() {
+            return this.constructor.toObject(this, $protobuf.util.toJSONOptions);
+        };
+
+        /**
+         * Gets the default type url for AssetCheckpointTag
+         * @function getTypeUrl
+         * @memberof repository.AssetCheckpointTag
+         * @static
+         * @param {string} [typeUrlPrefix] your custom typeUrlPrefix(default "type.googleapis.com")
+         * @returns {string} The default type url
+         */
+        AssetCheckpointTag.getTypeUrl = function getTypeUrl(typeUrlPrefix) {
+            if (typeUrlPrefix === undefined) {
+                typeUrlPrefix = "type.googleapis.com";
+            }
+            return typeUrlPrefix + "/repository.AssetCheckpointTag";
+        };
+
+        return AssetCheckpointTag;
+    })();
+
     repository.ProjectData = (function() {
 
         /**
          * Properties of a ProjectData.
          * @memberof repository
          * @interface IProjectData
+         * @property {Array.<repository.IAssetCheckpointTag>|null} [asset_checkpoint_tags] ProjectData asset_checkpoint_tags
          * @property {string|null} [project_preview] ProjectData project_preview
          * @property {Array.<repository.IAsset>|null} [assets] ProjectData assets
          * @property {Array.<repository.IAssetType>|null} [asset_types] ProjectData asset_types
@@ -10119,6 +10997,7 @@ export const repository = $root.repository = (() => {
          * @property {Array.<repository.IIntegrationProject>|null} [integration_projects] ProjectData integration_projects
          * @property {Array.<repository.IIntegrationCollectionMapping>|null} [integration_collection_mappings] ProjectData integration_collection_mappings
          * @property {Array.<repository.IIntegrationAssetMapping>|null} [integration_asset_mappings] ProjectData integration_asset_mappings
+         * @property {Array.<repository.IProjectConfig>|null} [project_configs] ProjectData project_configs
          */
 
         /**
@@ -10130,6 +11009,7 @@ export const repository = $root.repository = (() => {
          * @param {repository.IProjectData=} [properties] Properties to set
          */
         function ProjectData(properties) {
+            this.asset_checkpoint_tags = [];
             this.assets = [];
             this.asset_types = [];
             this.asset_checkpoints = [];
@@ -10153,11 +11033,20 @@ export const repository = $root.repository = (() => {
             this.integration_projects = [];
             this.integration_collection_mappings = [];
             this.integration_asset_mappings = [];
+            this.project_configs = [];
             if (properties)
                 for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                     if (properties[keys[i]] != null)
                         this[keys[i]] = properties[keys[i]];
         }
+
+        /**
+         * ProjectData asset_checkpoint_tags.
+         * @member {Array.<repository.IAssetCheckpointTag>} asset_checkpoint_tags
+         * @memberof repository.ProjectData
+         * @instance
+         */
+        ProjectData.prototype.asset_checkpoint_tags = $util.emptyArray;
 
         /**
          * ProjectData project_preview.
@@ -10352,6 +11241,14 @@ export const repository = $root.repository = (() => {
         ProjectData.prototype.integration_asset_mappings = $util.emptyArray;
 
         /**
+         * ProjectData project_configs.
+         * @member {Array.<repository.IProjectConfig>} project_configs
+         * @memberof repository.ProjectData
+         * @instance
+         */
+        ProjectData.prototype.project_configs = $util.emptyArray;
+
+        /**
          * Creates a new ProjectData instance using the specified properties.
          * @function create
          * @memberof repository.ProjectData
@@ -10446,6 +11343,12 @@ export const repository = $root.repository = (() => {
             if (message.integration_asset_mappings != null && message.integration_asset_mappings.length)
                 for (let i = 0; i < message.integration_asset_mappings.length; ++i)
                     $root.repository.IntegrationAssetMapping.encode(message.integration_asset_mappings[i], writer.uint32(/* id 24, wireType 2 =*/194).fork()).ldelim();
+            if (message.project_configs != null && message.project_configs.length)
+                for (let i = 0; i < message.project_configs.length; ++i)
+                    $root.repository.ProjectConfig.encode(message.project_configs[i], writer.uint32(/* id 25, wireType 2 =*/202).fork()).ldelim();
+            if (message.asset_checkpoint_tags != null && message.asset_checkpoint_tags.length)
+                for (let i = 0; i < message.asset_checkpoint_tags.length; ++i)
+                    $root.repository.AssetCheckpointTag.encode(message.asset_checkpoint_tags[i], writer.uint32(/* id 26, wireType 2 =*/210).fork()).ldelim();
             return writer;
         };
 
@@ -10482,6 +11385,12 @@ export const repository = $root.repository = (() => {
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
+                case 26: {
+                        if (!(message.asset_checkpoint_tags && message.asset_checkpoint_tags.length))
+                            message.asset_checkpoint_tags = [];
+                        message.asset_checkpoint_tags.push($root.repository.AssetCheckpointTag.decode(reader, reader.uint32()));
+                        break;
+                    }
                 case 1: {
                         message.project_preview = reader.string();
                         break;
@@ -10624,6 +11533,12 @@ export const repository = $root.repository = (() => {
                         message.integration_asset_mappings.push($root.repository.IntegrationAssetMapping.decode(reader, reader.uint32()));
                         break;
                     }
+                case 25: {
+                        if (!(message.project_configs && message.project_configs.length))
+                            message.project_configs = [];
+                        message.project_configs.push($root.repository.ProjectConfig.decode(reader, reader.uint32()));
+                        break;
+                    }
                 default:
                     reader.skipType(tag & 7);
                     break;
@@ -10659,6 +11574,15 @@ export const repository = $root.repository = (() => {
         ProjectData.verify = function verify(message) {
             if (typeof message !== "object" || message === null)
                 return "object expected";
+            if (message.asset_checkpoint_tags != null && message.hasOwnProperty("asset_checkpoint_tags")) {
+                if (!Array.isArray(message.asset_checkpoint_tags))
+                    return "asset_checkpoint_tags: array expected";
+                for (let i = 0; i < message.asset_checkpoint_tags.length; ++i) {
+                    let error = $root.repository.AssetCheckpointTag.verify(message.asset_checkpoint_tags[i]);
+                    if (error)
+                        return "asset_checkpoint_tags." + error;
+                }
+            }
             if (message.project_preview != null && message.hasOwnProperty("project_preview"))
                 if (!$util.isString(message.project_preview))
                     return "project_preview: string expected";
@@ -10869,6 +11793,15 @@ export const repository = $root.repository = (() => {
                         return "integration_asset_mappings." + error;
                 }
             }
+            if (message.project_configs != null && message.hasOwnProperty("project_configs")) {
+                if (!Array.isArray(message.project_configs))
+                    return "project_configs: array expected";
+                for (let i = 0; i < message.project_configs.length; ++i) {
+                    let error = $root.repository.ProjectConfig.verify(message.project_configs[i]);
+                    if (error)
+                        return "project_configs." + error;
+                }
+            }
             return null;
         };
 
@@ -10884,6 +11817,16 @@ export const repository = $root.repository = (() => {
             if (object instanceof $root.repository.ProjectData)
                 return object;
             let message = new $root.repository.ProjectData();
+            if (object.asset_checkpoint_tags) {
+                if (!Array.isArray(object.asset_checkpoint_tags))
+                    throw TypeError(".repository.ProjectData.asset_checkpoint_tags: array expected");
+                message.asset_checkpoint_tags = [];
+                for (let i = 0; i < object.asset_checkpoint_tags.length; ++i) {
+                    if (typeof object.asset_checkpoint_tags[i] !== "object")
+                        throw TypeError(".repository.ProjectData.asset_checkpoint_tags: object expected");
+                    message.asset_checkpoint_tags[i] = $root.repository.AssetCheckpointTag.fromObject(object.asset_checkpoint_tags[i]);
+                }
+            }
             if (object.project_preview != null)
                 message.project_preview = String(object.project_preview);
             if (object.assets) {
@@ -11116,6 +12059,16 @@ export const repository = $root.repository = (() => {
                     message.integration_asset_mappings[i] = $root.repository.IntegrationAssetMapping.fromObject(object.integration_asset_mappings[i]);
                 }
             }
+            if (object.project_configs) {
+                if (!Array.isArray(object.project_configs))
+                    throw TypeError(".repository.ProjectData.project_configs: array expected");
+                message.project_configs = [];
+                for (let i = 0; i < object.project_configs.length; ++i) {
+                    if (typeof object.project_configs[i] !== "object")
+                        throw TypeError(".repository.ProjectData.project_configs: object expected");
+                    message.project_configs[i] = $root.repository.ProjectConfig.fromObject(object.project_configs[i]);
+                }
+            }
             return message;
         };
 
@@ -11156,6 +12109,8 @@ export const repository = $root.repository = (() => {
                 object.integration_projects = [];
                 object.integration_collection_mappings = [];
                 object.integration_asset_mappings = [];
+                object.project_configs = [];
+                object.asset_checkpoint_tags = [];
             }
             if (options.defaults)
                 object.project_preview = "";
@@ -11275,6 +12230,16 @@ export const repository = $root.repository = (() => {
                 object.integration_asset_mappings = [];
                 for (let j = 0; j < message.integration_asset_mappings.length; ++j)
                     object.integration_asset_mappings[j] = $root.repository.IntegrationAssetMapping.toObject(message.integration_asset_mappings[j], options);
+            }
+            if (message.project_configs && message.project_configs.length) {
+                object.project_configs = [];
+                for (let j = 0; j < message.project_configs.length; ++j)
+                    object.project_configs[j] = $root.repository.ProjectConfig.toObject(message.project_configs[j], options);
+            }
+            if (message.asset_checkpoint_tags && message.asset_checkpoint_tags.length) {
+                object.asset_checkpoint_tags = [];
+                for (let j = 0; j < message.asset_checkpoint_tags.length; ++j)
+                    object.asset_checkpoint_tags[j] = $root.repository.AssetCheckpointTag.toObject(message.asset_checkpoint_tags[j], options);
             }
             return object;
         };

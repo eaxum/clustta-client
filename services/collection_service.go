@@ -2941,6 +2941,9 @@ func (e *CollectionService) UnassignCollections(projectPath string, collectionId
 // CreateCollectionType creates a new collection type in the project.
 // Returns an error if a type with the same name already exists.
 func (e *CollectionService) CreateCollectionType(projectPath, collectionTypeName, collectionTypeIcon string) (models.CollectionType, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageCollectionTypes); err != nil {
+		return models.CollectionType{}, err
+	}
 	id := uuid.New().String()
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
@@ -3006,6 +3009,9 @@ func (e *CollectionService) CreateCollectionType(projectPath, collectionTypeName
 // UpdateCollectionType updates an existing collection type.
 // Returns an error if a type with the new name already exists.
 func (e *CollectionService) UpdateCollectionType(projectPath, id, collectionTypeName, collectionTypeIcon string) (models.CollectionType, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageCollectionTypes); err != nil {
+		return models.CollectionType{}, err
+	}
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
 		return models.CollectionType{}, fmt.Errorf("failed to resolve project remote: %w", err)
@@ -3073,6 +3079,9 @@ func (e *CollectionService) UpdateCollectionType(projectPath, id, collectionType
 // DeleteCollectionType removes a collection type from the project.
 // Returns an error if the operation fails.
 func (e *CollectionService) DeleteCollectionType(projectPath, id string) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageCollectionTypes); err != nil {
+		return err
+	}
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return err

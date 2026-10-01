@@ -1316,6 +1316,69 @@ export class Role {
              */
             this["manage_share_links"] = false;
         }
+        if (!("manage_collection_types" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_collection_types"] = false;
+        }
+        if (!("manage_asset_types" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_asset_types"] = false;
+        }
+        if (!("manage_dependency_types" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_dependency_types"] = false;
+        }
+        if (!("manage_statuses" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_statuses"] = false;
+        }
+        if (!("manage_tags" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_tags"] = false;
+        }
+        if (!("manage_workflows" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_workflows"] = false;
+        }
+        if (!("manage_integrations" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_integrations"] = false;
+        }
+        if (!("manage_project_settings" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_project_settings"] = false;
+        }
+        if (!("manage_roles" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_roles"] = false;
+        }
 
         Object.assign(this, $$source);
     }
@@ -1525,6 +1588,69 @@ export class RoleAttributes {
              * @type {boolean}
              */
             this["manage_share_links"] = false;
+        }
+        if (!("manage_collection_types" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_collection_types"] = false;
+        }
+        if (!("manage_asset_types" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_asset_types"] = false;
+        }
+        if (!("manage_dependency_types" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_dependency_types"] = false;
+        }
+        if (!("manage_statuses" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_statuses"] = false;
+        }
+        if (!("manage_tags" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_tags"] = false;
+        }
+        if (!("manage_workflows" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_workflows"] = false;
+        }
+        if (!("manage_integrations" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_integrations"] = false;
+        }
+        if (!("manage_project_settings" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_project_settings"] = false;
+        }
+        if (!("manage_roles" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["manage_roles"] = false;
         }
 
         Object.assign(this, $$source);

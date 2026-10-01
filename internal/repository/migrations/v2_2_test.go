@@ -10,6 +10,7 @@ import (
 
 const checkpointTagMigrationSchema = `
 CREATE TABLE IF NOT EXISTS config (name TEXT PRIMARY KEY, value TEXT NOT NULL, mtime INTEGER NOT NULL);
+CREATE TABLE IF NOT EXISTS role (id TEXT PRIMARY KEY, name TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS tag (
     id TEXT PRIMARY KEY, mtime INTEGER NOT NULL, name TEXT UNIQUE NOT NULL COLLATE NOCASE,
     synced BOOLEAN DEFAULT 0 NOT NULL
@@ -54,6 +55,7 @@ func TestMigrateV2_2AddsVersionedDependencyAndCheckpointTagSchema(t *testing.T) 
 	defer db.Close()
 	if _, err = db.Exec(`
 		CREATE TABLE config (name TEXT PRIMARY KEY, value TEXT NOT NULL, mtime INTEGER NOT NULL);
+		CREATE TABLE role (id TEXT PRIMARY KEY, name TEXT NOT NULL);
 		CREATE TABLE asset_dependency (
 			id TEXT PRIMARY KEY, mtime INTEGER NOT NULL, asset_id TEXT NOT NULL,
 			dependency_id TEXT NOT NULL, dependency_type_id TEXT NOT NULL,

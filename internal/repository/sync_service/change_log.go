@@ -745,8 +745,30 @@ func writeOtherServerData(tx *sqlx.Tx, data ProjectData) error {
 		}
 	}
 	for _, role := range data.Roles {
-		_, err := tx.Exec(`INSERT OR IGNORE INTO role (id, name, mtime, view_collection, create_collection, update_collection, delete_collection, view_asset, create_asset, update_asset, delete_asset, view_template, create_template, update_template, delete_template, view_checkpoint, create_checkpoint, delete_checkpoint, pull_chunk, assign_asset, unassign_asset, add_user, remove_user, change_role, change_status, set_done_asset, set_retake_asset, view_done_asset, manage_dependencies, synced) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)`,
-			role.Id, role.Name, role.MTime, role.ViewCollection, role.CreateCollection, role.UpdateCollection, role.DeleteCollection, role.ViewAsset, role.CreateAsset, role.UpdateAsset, role.DeleteAsset, role.ViewTemplate, role.CreateTemplate, role.UpdateTemplate, role.DeleteTemplate, role.ViewCheckpoint, role.CreateCheckpoint, role.DeleteCheckpoint, role.PullChunk, role.AssignAsset, role.UnassignAsset, role.AddUser, role.RemoveUser, role.ChangeRole, role.ChangeStatus, role.SetDoneAsset, role.SetRetakeAsset, role.ViewDoneAsset, role.ManageDependencies)
+		_, err := tx.NamedExec(`
+			INSERT OR IGNORE INTO role (
+				id, name, mtime, view_collection, create_collection, update_collection,
+				delete_collection, view_asset, create_asset, update_asset, delete_asset,
+				view_template, create_template, update_template, delete_template,
+				view_checkpoint, create_checkpoint, delete_checkpoint, pull_chunk,
+				assign_asset, unassign_asset, add_user, remove_user, change_role,
+				change_status, set_done_asset, set_retake_asset, view_done_asset,
+				manage_dependencies, manage_share_links, manage_collection_types,
+				manage_asset_types, manage_dependency_types, manage_statuses,
+				manage_tags, manage_workflows, manage_integrations,
+				manage_project_settings, manage_roles, synced
+			) VALUES (
+				:id, :name, :mtime, :view_collection, :create_collection, :update_collection,
+				:delete_collection, :view_asset, :create_asset, :update_asset, :delete_asset,
+				:view_template, :create_template, :update_template, :delete_template,
+				:view_checkpoint, :create_checkpoint, :delete_checkpoint, :pull_chunk,
+				:assign_asset, :unassign_asset, :add_user, :remove_user, :change_role,
+				:change_status, :set_done_asset, :set_retake_asset, :view_done_asset,
+				:manage_dependencies, :manage_share_links, :manage_collection_types,
+				:manage_asset_types, :manage_dependency_types, :manage_statuses,
+				:manage_tags, :manage_workflows, :manage_integrations,
+				:manage_project_settings, :manage_roles, 1
+			)`, role)
 		if err != nil {
 			return err
 		}

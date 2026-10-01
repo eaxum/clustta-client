@@ -51,7 +51,7 @@ func TestProjectScanDoesNotUpgradeRemoteReplica(t *testing.T) {
 	if err := db.Get(&token, "SELECT value FROM config WHERE name='sync_token'"); err != nil {
 		t.Fatal(err)
 	}
-	if version != compatibility.LegacySchema || token != "pending" {
+	if version != "2.1" || token != "pending" {
 		t.Fatalf("replica changed: %s %s", version, token)
 	}
 	var synced bool

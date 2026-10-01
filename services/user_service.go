@@ -7,7 +7,6 @@ import (
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -15,17 +14,8 @@ import (
 
 type UserService struct{}
 
-const roleManagementPermission = "change_role"
-
 func authorizeRoleManagementTx(tx *sqlx.Tx) error {
-	_, role, err := activeAssetRole(tx)
-	if err != nil {
-		return err
-	}
-	if !role.ChangeRole {
-		return fmt.Errorf("user does not have %s permission", roleManagementPermission)
-	}
-	return nil
+	return requireProjectPermission(tx, permissionManageRoles)
 }
 
 func normalizeRoleName(name string) (string, error) {
@@ -170,6 +160,9 @@ func (u *UserService) UpdateRole(projectPath, id, name string, attributes models
 		return models.Role{}, err
 	}
 	defer tx.Rollback()
+	if err = authorizeRoleManagementTx(tx); err != nil {
+		return models.Role{}, err
+	}
 	role, err := repository.UpdateRole(tx, id, name, attributes)
 	if err != nil {
 		return models.Role{}, err
@@ -198,6 +191,9 @@ func (u *UserService) DeleteRole(projectPath, id string) error {
 		return err
 	}
 	defer tx.Rollback()
+	if err = authorizeRoleManagementTx(tx); err != nil {
+		return err
+	}
 
 	err = repository.DeleteRole(tx, id)
 	if err != nil {

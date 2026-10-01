@@ -1,6 +1,7 @@
 package services
 
 import (
+	"clustta/internal/auth_service"
 	"clustta/internal/compatibility"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
@@ -12,6 +13,7 @@ import (
 	"testing"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zalando/go-keyring"
 )
 
 func openMetadataTestDB(t *testing.T) *sqlx.DB {
@@ -210,6 +212,12 @@ func TestUnsyncedCollectionFallsBackAfterRemoteRejection(t *testing.T) {
 }
 
 func TestIncompatibleHostDefersSupportedMetadataMutationsLocally(t *testing.T) {
+	keyring.MockInit()
+	if err := auth_service.AddAccountToken(auth_service.NewOfflineAccountToken()); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(keyring.MockInit)
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet || r.URL.Path != "/project" {
 			t.Fatalf("unexpected remote mutation request: %s %s", r.Method, r.URL.Path)
@@ -233,6 +241,13 @@ func TestIncompatibleHostDefersSupportedMetadataMutationsLocally(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1), ('version','2.2',1), ('sync_token','before',1)", server.URL+"/project"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`
+		INSERT INTO role (id, mtime, name, manage_asset_types) VALUES ('admin-role', 1, 'admin', 1);
+		INSERT INTO user (id, mtime, added_at, first_name, last_name, username, email, role_id)
+		VALUES ('offline-user', 1, 1, 'Offline', 'User', 'offline', 'offline@local', 'admin-role');
+	`); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = db.Exec(`INSERT INTO collection(id,created_at,mtime,name,collection_path,collection_type_id,parent_id,synced,is_shared)

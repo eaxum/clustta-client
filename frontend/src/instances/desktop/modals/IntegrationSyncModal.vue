@@ -205,16 +205,20 @@ const itemNeedsMissingType = (item) => {
 
 const canSelectItem = (item) => {
   if (!isActionable(item)) return false;
+  if (!userStore.canDo('manage_integrations')) return false;
   if (item.action === 'create' && item.type === 'asset' && !userStore.canDo('create_asset')) return false;
   if (item.action === 'create' && item.type === 'collection' && !userStore.canDo('create_collection')) return false;
-  if (item.action === 'create' && itemNeedsMissingType(item) && !userStore.canDo('change_role')) return false;
+  if (item.action === 'create' && itemNeedsMissingType(item)) {
+    const permission = item.type === 'asset' ? 'manage_asset_types' : 'manage_collection_types';
+    if (!userStore.canDo(permission)) return false;
+  }
 
   let parentPath = item.parent_path;
   while (parentPath && parentPath !== '/') {
     const parent = allTreeItems.value.find(candidate => candidate.collection_path === parentPath);
     if (!parent) break;
     if (parent.action === 'create' && !userStore.canDo('create_collection')) return false;
-    if (parent.action === 'create' && itemNeedsMissingType(parent) && !userStore.canDo('change_role')) return false;
+    if (parent.action === 'create' && itemNeedsMissingType(parent) && !userStore.canDo('manage_collection_types')) return false;
     parentPath = parent.parent_path;
   }
   return true;

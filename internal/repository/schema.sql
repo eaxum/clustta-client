@@ -807,6 +807,16 @@ CREATE TABLE IF NOT EXISTS "role" (
 
     manage_dependencies BOOLEAN DEFAULT FALSE NOT NULL,
     manage_share_links BOOLEAN DEFAULT FALSE NOT NULL,
+
+    manage_collection_types BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_asset_types BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_dependency_types BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_statuses BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_tags BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_workflows BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_integrations BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_project_settings BOOLEAN DEFAULT FALSE NOT NULL,
+    manage_roles BOOLEAN DEFAULT FALSE NOT NULL,
     
     CHECK( typeof(name)='text' AND length(name)>=1)
 );

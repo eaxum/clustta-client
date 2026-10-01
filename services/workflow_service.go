@@ -33,6 +33,9 @@ func (t *WorkflowService) GetWorkflows(projectPath string) ([]models.Workflow, e
 
 // Creates a new workflow with assets, collections, and links
 func (t *WorkflowService) CreateWorkflow(projectPath, name string, workflowAssets []models.WorkflowAsset, workflowCollections []models.WorkflowCollection, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageWorkflows); err != nil {
+		return models.Workflow{}, err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Workflow{}, err
@@ -84,6 +87,9 @@ func (t *WorkflowService) AddWorkflow(projectPath, workflow_id, name, collection
 
 // Updates an existing workflow including assets, collections, and links
 func (t *WorkflowService) UpdateWorkflow(projectPath, workflowId, name string, workflowAssets []models.WorkflowAsset, workflowCollections []models.WorkflowCollection, workflowLinks []models.WorkflowLink) (models.Workflow, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageWorkflows); err != nil {
+		return models.Workflow{}, err
+	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.Workflow{}, err

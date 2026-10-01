@@ -110,6 +110,15 @@ const defaultRole = {
   "view_done_asset": false,
   "manage_dependencies": false,
   "manage_share_links": false,
+  "manage_collection_types": false,
+  "manage_asset_types": false,
+  "manage_dependency_types": false,
+  "manage_statuses": false,
+  "manage_tags": false,
+  "manage_workflows": false,
+  "manage_integrations": false,
+  "manage_project_settings": false,
+  "manage_roles": false,
 };
 
 const initialSettings = ref({ ...defaultRole });

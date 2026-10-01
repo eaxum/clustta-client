@@ -341,6 +341,16 @@ func ToPbRoles(roles []models.Role) []*repositorypb.Role {
 			ManageDependencies: r.ManageDependencies,
 
 			ManageShareLinks: r.ManageShareLinks,
+
+			ManageCollectionTypes: r.ManageCollectionTypes,
+			ManageAssetTypes:      r.ManageAssetTypes,
+			ManageDependencyTypes: r.ManageDependencyTypes,
+			ManageStatuses:        r.ManageStatuses,
+			ManageTags:            r.ManageTags,
+			ManageWorkflows:       r.ManageWorkflows,
+			ManageIntegrations:    r.ManageIntegrations,
+			ManageProjectSettings: r.ManageProjectSettings,
+			ManageRoles:           r.ManageRoles,
 		}
 	}
 	return pb
@@ -877,6 +887,16 @@ func FromPbRole(pb *repositorypb.Role) models.Role {
 		ManageDependencies: pb.ManageDependencies,
 
 		ManageShareLinks: pb.ManageShareLinks,
+
+		ManageCollectionTypes: pb.ManageCollectionTypes,
+		ManageAssetTypes:      pb.ManageAssetTypes,
+		ManageDependencyTypes: pb.ManageDependencyTypes,
+		ManageStatuses:        pb.ManageStatuses,
+		ManageTags:            pb.ManageTags,
+		ManageWorkflows:       pb.ManageWorkflows,
+		ManageIntegrations:    pb.ManageIntegrations,
+		ManageProjectSettings: pb.ManageProjectSettings,
+		ManageRoles:           pb.ManageRoles,
 	}
 }
 

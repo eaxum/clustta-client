@@ -6,7 +6,6 @@ import (
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -14,17 +13,8 @@ import (
 
 type TagService struct{}
 
-const tagManagementPermission = "change_role"
-
 func authorizeTagManagementTx(tx *sqlx.Tx) error {
-	_, role, err := activeAssetRole(tx)
-	if err != nil {
-		return err
-	}
-	if !role.ChangeRole {
-		return fmt.Errorf("user does not have %s permission", tagManagementPermission)
-	}
-	return nil
+	return requireProjectPermission(tx, permissionManageTags)
 }
 
 func normalizeTagName(name string) (string, error) {

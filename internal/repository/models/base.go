@@ -464,6 +464,16 @@ type Role struct {
 
 	ManageDependencies bool `db:"manage_dependencies" json:"manage_dependencies"`
 	ManageShareLinks   bool `db:"manage_share_links" json:"manage_share_links"`
+
+	ManageCollectionTypes bool `db:"manage_collection_types" json:"manage_collection_types"`
+	ManageAssetTypes      bool `db:"manage_asset_types" json:"manage_asset_types"`
+	ManageDependencyTypes bool `db:"manage_dependency_types" json:"manage_dependency_types"`
+	ManageStatuses        bool `db:"manage_statuses" json:"manage_statuses"`
+	ManageTags            bool `db:"manage_tags" json:"manage_tags"`
+	ManageWorkflows       bool `db:"manage_workflows" json:"manage_workflows"`
+	ManageIntegrations    bool `db:"manage_integrations" json:"manage_integrations"`
+	ManageProjectSettings bool `db:"manage_project_settings" json:"manage_project_settings"`
+	ManageRoles           bool `db:"manage_roles" json:"manage_roles"`
 }
 
 type RoleAttributes struct {
@@ -503,6 +513,16 @@ type RoleAttributes struct {
 
 	ManageDependencies bool `db:"manage_dependencies" json:"manage_dependencies"`
 	ManageShareLinks   bool `db:"manage_share_links" json:"manage_share_links"`
+
+	ManageCollectionTypes bool `db:"manage_collection_types" json:"manage_collection_types"`
+	ManageAssetTypes      bool `db:"manage_asset_types" json:"manage_asset_types"`
+	ManageDependencyTypes bool `db:"manage_dependency_types" json:"manage_dependency_types"`
+	ManageStatuses        bool `db:"manage_statuses" json:"manage_statuses"`
+	ManageTags            bool `db:"manage_tags" json:"manage_tags"`
+	ManageWorkflows       bool `db:"manage_workflows" json:"manage_workflows"`
+	ManageIntegrations    bool `db:"manage_integrations" json:"manage_integrations"`
+	ManageProjectSettings bool `db:"manage_project_settings" json:"manage_project_settings"`
+	ManageRoles           bool `db:"manage_roles" json:"manage_roles"`
 }
 type ServerRole struct {
 	Id    string `db:"id" json:"id"`

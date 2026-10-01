@@ -68,7 +68,7 @@
             </div>
             <div v-else class="pane-parameter-actions">
               <ActionButton v-if="assetIntegrationDetails.external_url" :icon="getAppIcon('website')" v-tooltip="$t('kitsu.openInBrowser')" :buttonFunction="openIntegrationLink" />
-              <ActionButton v-if="userStore.canDo('update_asset')" :icon="getAppIcon('plug-cancel')" v-tooltip="$t('kitsu.unlinkAssetTooltip', { integration: assetIntegrationDetails.integration_name })" :buttonFunction="confirmUnlinkIntegration" />
+              <ActionButton v-if="userStore.canDo('manage_integrations')" :icon="getAppIcon('plug-cancel')" v-tooltip="$t('kitsu.unlinkAssetTooltip', { integration: assetIntegrationDetails.integration_name })" :buttonFunction="confirmUnlinkIntegration" />
             </div>
           </div>
 

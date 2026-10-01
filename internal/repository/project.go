@@ -334,6 +334,16 @@ func initData(tx *sqlx.Tx) error {
 
 		ManageDependencies: true,
 		ManageShareLinks:   true,
+
+		ManageCollectionTypes: true,
+		ManageAssetTypes:      true,
+		ManageDependencyTypes: true,
+		ManageStatuses:        true,
+		ManageTags:            true,
+		ManageWorkflows:       true,
+		ManageIntegrations:    true,
+		ManageProjectSettings: true,
+		ManageRoles:           true,
 	}
 	productionManagerRoleAttributes := models.RoleAttributes{
 		ViewCollection:   true,

@@ -217,6 +217,16 @@ func WriteProjectData(tx *sqlx.Tx, data ProjectData, strict bool) error {
 
 			ManageDependencies: role.ManageDependencies,
 			ManageShareLinks:   role.ManageShareLinks,
+
+			ManageCollectionTypes: role.ManageCollectionTypes,
+			ManageAssetTypes:      role.ManageAssetTypes,
+			ManageDependencyTypes: role.ManageDependencyTypes,
+			ManageStatuses:        role.ManageStatuses,
+			ManageTags:            role.ManageTags,
+			ManageWorkflows:       role.ManageWorkflows,
+			ManageIntegrations:    role.ManageIntegrations,
+			ManageProjectSettings: role.ManageProjectSettings,
+			ManageRoles:           role.ManageRoles,
 		}
 		localRole, err := repository.GetRole(tx, role.Id)
 		if err != nil {
@@ -845,6 +855,16 @@ func OverWriteProjectData(tx *sqlx.Tx, data ProjectData) error {
 
 			ManageDependencies: role.ManageDependencies,
 			ManageShareLinks:   role.ManageShareLinks,
+
+			ManageCollectionTypes: role.ManageCollectionTypes,
+			ManageAssetTypes:      role.ManageAssetTypes,
+			ManageDependencyTypes: role.ManageDependencyTypes,
+			ManageStatuses:        role.ManageStatuses,
+			ManageTags:            role.ManageTags,
+			ManageWorkflows:       role.ManageWorkflows,
+			ManageIntegrations:    role.ManageIntegrations,
+			ManageProjectSettings: role.ManageProjectSettings,
+			ManageRoles:           role.ManageRoles,
 		}
 		_, err := repository.CreateRole(tx, role.Id, role.Name, roleAttributes)
 		if err != nil {

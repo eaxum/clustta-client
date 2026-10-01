@@ -2,7 +2,7 @@
   <div class="settings-component-root">
     <div class="settings-component-container">
 
-      <ActionBar :itemType="$t('settings.addRole')" :addFunction="addRole" />
+      <ActionBar v-if="userStore.canDo('manage_roles')" :itemType="$t('settings.addRole')" :addFunction="addRole" />
 
       <div v-if="projectRoles.length" class="roles-list-wrapper">
         <div class="roles-list">
@@ -62,20 +62,24 @@ const projectRoles = computed(() => {
   return projectRoles.map(role => ({
     ...role,
     name: utils.capitalizeStr(role.name),
-    can_delete: !usedProjectRoleIds.includes(role.id),
-    can_duplicate: userStore.canDo('change_role') && role.name.toLowerCase() !== ADMIN_ROLE_NAME,
-    can_edit: role.name.toLowerCase() !== ADMIN_ROLE_NAME,
+    can_delete: userStore.canDo('manage_roles')
+      && role.name.toLowerCase() !== ADMIN_ROLE_NAME
+      && !usedProjectRoleIds.includes(role.id),
+    can_duplicate: userStore.canDo('manage_roles') && role.name.toLowerCase() !== ADMIN_ROLE_NAME,
+    can_edit: userStore.canDo('manage_roles') && role.name.toLowerCase() !== ADMIN_ROLE_NAME,
   }));
 });
 
 // methods
 // Opens the add role modal.
 const addRole = () => {
+	if (!userStore.canDo('manage_roles')) return;
   modals.setModalVisibility('addRoleModal', true);
 };
 
 // Deletes a role from the project.
 const deleteRole = async (roleId) => {
+	if (!userStore.canDo('manage_roles')) return;
   UserService.DeleteRole(projectStore.activeProject.uri, roleId)
     .then(() => {
       notificationStore.addNotification(t('notifications.roleDeleted'), "", "success");
@@ -104,6 +108,7 @@ const message = () => {
 
 // Opens the edit role modal for the given role.
 const prepEditRole = (roleId) => {
+	if (!userStore.canDo('manage_roles')) return;
   const allRoles = userStore.getProjectRoles;
   const selectedRole = allRoles.find((item) => item.id === roleId);
   userStore.selectedRole = selectedRole;
@@ -112,7 +117,7 @@ const prepEditRole = (roleId) => {
 
 // Opens the duplicate role modal for the given role.
 const prepDuplicateRole = (roleId) => {
-  if (!userStore.canDo('change_role')) return;
+	if (!userStore.canDo('manage_roles')) return;
 
   const selectedRole = userStore.getProjectRoles.find(role => role.id === roleId);
   if (!selectedRole || selectedRole.name.toLowerCase() === ADMIN_ROLE_NAME) return;

@@ -1,5 +1,5 @@
 export const PROJECT_PROTOCOL = '1';
-export const PROJECT_SCHEMA = '2.2';
+export const PROJECT_SCHEMA = '2.3';
 export const COMPATIBILITY_ERROR = 'project_schema_unsupported';
 export const COMPATIBILITY_CACHE_KEY = 'clustta.projectCompatibility';
 

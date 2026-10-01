@@ -2581,6 +2581,9 @@ func (t *AssetService) GetAssetTypes(projectPath string) ([]models.AssetType, er
 }
 
 func (t *AssetService) DeleteAssetType(projectPath, id string) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageAssetTypes); err != nil {
+		return err
+	}
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return err
@@ -2604,6 +2607,9 @@ func (t *AssetService) DeleteAssetType(projectPath, id string) error {
 }
 
 func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.AssetType, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageAssetTypes); err != nil {
+		return models.AssetType{}, err
+	}
 	id := uuid.New().String()
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
@@ -2666,6 +2672,9 @@ func (t *AssetService) CreateAssetType(projectPath, name, icon string) (models.A
 }
 
 func (t *AssetService) UpdateAssetType(projectPath, id, name, icon string) (models.AssetType, error) {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageAssetTypes); err != nil {
+		return models.AssetType{}, err
+	}
 	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
 	if err != nil {
 		return models.AssetType{}, fmt.Errorf("failed to resolve project remote: %w", err)

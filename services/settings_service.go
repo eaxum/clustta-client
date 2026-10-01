@@ -16,15 +16,8 @@ import (
 
 type SettingsService struct{}
 
-func requireChangeRolePermission(tx *sqlx.Tx) error {
-	_, role, err := activeAssetRole(tx)
-	if err != nil {
-		return err
-	}
-	if !role.ChangeRole {
-		return fmt.Errorf("user does not have change_role permission")
-	}
-	return nil
+func requireProjectSettingsPermission(tx *sqlx.Tx) error {
+	return requireProjectPermission(tx, permissionManageProjectSettings)
 }
 
 func (s *SettingsService) GetProjectScriptSettings(projectPath string) (repository.ProjectScriptSettings, error) {
@@ -52,7 +45,7 @@ func (s *SettingsService) SetProjectScriptSettings(projectPath, directory string
 		return err
 	}
 	defer tx.Rollback()
-	if err := requireChangeRolePermission(tx); err != nil {
+	if err := requireProjectSettingsPermission(tx); err != nil {
 		return err
 	}
 	if err := repository.SetProjectScriptSettings(tx, repository.ProjectScriptSettings{
@@ -92,7 +85,7 @@ func (s *SettingsService) SetPreLaunchHookSettings(projectPath string, settings 
 		return repository.PreLaunchHookSettings{}, err
 	}
 	defer tx.Rollback()
-	if err := requireChangeRolePermission(tx); err != nil {
+	if err := requireProjectSettingsPermission(tx); err != nil {
 		return repository.PreLaunchHookSettings{}, err
 	}
 	for _, hook := range normalized.Hooks {
@@ -137,7 +130,7 @@ func (s *SettingsService) SetProjectEnvironmentVariables(projectPath string, req
 		return repository.PreLaunchHookSettings{}, err
 	}
 	defer tx.Rollback()
-	if err := requireChangeRolePermission(tx); err != nil {
+	if err := requireProjectSettingsPermission(tx); err != nil {
 		return repository.PreLaunchHookSettings{}, err
 	}
 	settings, err := repository.GetPreLaunchHookSettings(tx)

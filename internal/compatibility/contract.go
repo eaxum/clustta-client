@@ -12,8 +12,8 @@ import (
 
 const (
 	Protocol            = "1"
-	Schema              = "2.2"
-	LegacySchema        = "2.1"
+	Schema              = "2.3"
+	LegacySchema        = "2.2"
 	ProtocolHeader      = "Protocol"
 	SchemaHeader        = "Schema"
 	ProjectSchemaHeader = "Project-Schema"

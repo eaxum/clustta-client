@@ -232,6 +232,16 @@ message Role {
   bool manage_dependencies = 30;
 
   bool manage_share_links = 31;
+
+  bool manage_collection_types = 32;
+  bool manage_asset_types = 33;
+  bool manage_dependency_types = 34;
+  bool manage_statuses = 35;
+  bool manage_tags = 36;
+  bool manage_workflows = 37;
+  bool manage_integrations = 38;
+  bool manage_project_settings = 39;
+  bool manage_roles = 40;
 }
 
 message UserRole {

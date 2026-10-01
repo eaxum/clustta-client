@@ -149,30 +149,35 @@ const projectSettingsAccessPermissions = [
   'add_user',
   'remove_user',
   'change_role',
+  'manage_collection_types',
+  'manage_asset_types',
+  'manage_dependency_types',
+  'manage_statuses',
+  'manage_tags',
+  'manage_workflows',
+  'manage_integrations',
+  'manage_project_settings',
+  'manage_roles',
 ];
 
 const projectSettingsTabPermissions = {
   templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
   collaborators: ['add_user', 'remove_user', 'change_role'],
-  tags: ['change_role'],
-  roles: ['change_role'],
-  assettypes: ['change_role'],
-  collectiontypes: ['change_role'],
-  workflows: ['change_role'],
-  ignorelist: ['change_role'],
-  advanced: ['change_role'],
-  hooks: ['change_role'],
+  tags: ['manage_tags'],
+  roles: ['manage_roles'],
+  assettypes: ['manage_asset_types'],
+  collectiontypes: ['manage_collection_types'],
+  workflows: ['manage_workflows'],
+  ignorelist: ['manage_project_settings'],
+  advanced: ['manage_project_settings', 'manage_integrations'],
+  hooks: ['manage_project_settings'],
 };
 
-// Project settings remain available to roles with an existing project-management
-// permission. Type/workflow-specific permissions should wait for a schema change.
 export const canAccessProjectSettings = () => {
   const userStore = useUserStore();
   return projectSettingsAccessPermissions.some(permission => userStore.canDo(permission));
 };
 
-// Uses change_role as the temporary gate for settings areas that do not yet
-// have explicit permissions in the project schema.
 export const canAccessProjectSettingsTab = (tabId) => {
   if (tabId === 'general') return canAccessProjectSettings();
   const permissions = projectSettingsTabPermissions[tabId];
@@ -186,11 +191,21 @@ export const permissionGroups = {
   assets: ['view_asset', 'create_asset', 'update_asset', 'delete_asset', 'manage_dependencies'],
   assignation: ['assign_asset', 'unassign_asset'],
   collections: ['view_collection', 'create_collection', 'update_collection', 'delete_collection'],
-  users: ['add_user', 'remove_user', 'change_role'],
+  users: ['add_user', 'remove_user', 'change_role', 'manage_roles'],
   status: ['view_done_asset', 'change_status', 'set_done_asset', 'set_retake_asset'],
   templates: ['view_template', 'create_template', 'update_template', 'delete_template'],
   checkpoints: ['view_checkpoint', 'create_checkpoint', 'delete_checkpoint', 'pull_chunk'],
   sharing: ['manage_share_links'],
+  projectConfiguration: [
+    'manage_collection_types',
+    'manage_asset_types',
+    'manage_dependency_types',
+    'manage_statuses',
+    'manage_tags',
+    'manage_workflows',
+    'manage_project_settings',
+  ],
+  integrations: ['manage_integrations'],
 };
 
 const permissionLabels = {
