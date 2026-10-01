@@ -11,8 +11,6 @@ package update
 
 import (
 	"clustta/internal/auth_service"
-	"clustta/internal/compatibility"
-	"clustta/internal/projecthttp"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/repository/sync_service"
@@ -43,16 +41,6 @@ func UpdateProject(ctx context.Context, projectPath, remoteUrl, userId string) e
 	if err != nil {
 		return err
 	}
-	if utils.IsValidURL(remoteUrl) {
-		if err := compatibility.Check(projectInfo.Compatibility); err != nil {
-			return projecthttp.Report(remoteUrl, err)
-		}
-		if err := repository.UpdateReplicaProject(projectPath, projectInfo.Compatibility.ProjectSchema); err != nil {
-			return projecthttp.Report(remoteUrl, err)
-		}
-		projecthttp.RememberReplica(remoteUrl, projectInfo.Compatibility.ProjectSchema)
-	}
-
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err

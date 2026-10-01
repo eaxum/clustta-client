@@ -317,9 +317,6 @@ if (platformStore.isWeb) {
     emitter.on('progress-update', handleProgressUpdate);
     emitter.on('sync-conflict', handleSyncConflict);
 } else {
-    Events.On('project-incompatible', (event) => {
-      projectStore.handleCompatibilityError(event.data.problem, event.data.remote);
-    });
     Events.On('progress-update', async (message) => {
         handleProgressUpdate(message.data);
     });
@@ -455,8 +452,7 @@ function startCheckSycnTokenInterval() {
                 } finally {
                     stageStore.operationActive = false;
                 }
-            }).catch(async (error) => {
-                if (projectStore.handleCompatibilityError(error, polledRemote)) return;
+            }).catch(async () => {
                 try {
                     const [isAuthenticated] = await AuthService.IsAuthenticated();
                     if (!isAuthenticated) {

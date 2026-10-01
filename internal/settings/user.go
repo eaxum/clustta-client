@@ -2,6 +2,7 @@ package settings
 
 import (
 	"clustta/internal/auth_service"
+	"clustta/internal/compatibility"
 	"clustta/internal/server/models"
 	"clustta/internal/studio_service"
 	"encoding/json"
@@ -95,15 +96,17 @@ func (b flexBool) MarshalJSON() ([]byte, error) {
 }
 
 type Studio struct {
-	Id           string                            `json:"id"`
-	Name         string                            `json:"name"`
-	Active       flexBool                          `json:"active"`
-	AltUrl       string                            `json:"alt_url"`
-	Url          string                            `json:"url"`
-	Usage        string                            `json:"usage"`
-	HostingMode  string                            `json:"hosting_mode"`
-	Capabilities studio_service.StudioCapabilities `json:"capabilities"`
-	Users        []models.StudioUserInfo
+	Id            string                            `json:"id"`
+	Name          string                            `json:"name"`
+	Active        flexBool                          `json:"active"`
+	AltUrl        string                            `json:"alt_url"`
+	Url           string                            `json:"url"`
+	Usage         string                            `json:"usage"`
+	HostingMode   string                            `json:"hosting_mode"`
+	ProjectSchema string                            `json:"project_schema"`
+	API           compatibility.APIInfo             `json:"api"`
+	Capabilities  studio_service.StudioCapabilities `json:"capabilities"`
+	Users         []models.StudioUserInfo
 }
 
 type ProjectLocation struct {
@@ -1186,13 +1189,15 @@ func GetStudios() ([]Studio, error) {
 			settings.Studios = []Studio{privateStudio}
 		} else {
 			privateStudio := Studio{
-				Id:           studioInfo.Id,
-				Name:         studioInfo.Name,
-				Url:          studioInfo.Url,
-				AltUrl:       studioInfo.AltUrl,
-				Active:       true,
-				HostingMode:  "private",
-				Capabilities: studioInfo.Capabilities,
+				Id:            studioInfo.Id,
+				Name:          studioInfo.Name,
+				Url:           studioInfo.Url,
+				AltUrl:        studioInfo.AltUrl,
+				Active:        true,
+				HostingMode:   "private",
+				ProjectSchema: studioInfo.ProjectSchema,
+				API:           studioInfo.API,
+				Capabilities:  studioInfo.Capabilities,
 			}
 			// If name is empty, use a default
 			if privateStudio.Name == "" {

@@ -5,8 +5,13 @@ import (
 	"testing"
 )
 
-func TestCompatibilityRejectionDefersToLocalMutation(t *testing.T) {
-	problem := compatibility.Reject("2.3", "client")
+func TestUnsupportedAPIDefersToLocalMutation(t *testing.T) {
+	problem := &compatibility.UnsupportedAPIError{
+		Code:              compatibility.UnsupportedCode,
+		Message:           "unsupported API",
+		RequestedVersion:  "3",
+		SupportedVersions: []string{"1", "2"},
+	}
 	if IsMetadataTransportFailure(problem) {
 		t.Fatal("compatibility rejection treated as a transport failure")
 	}

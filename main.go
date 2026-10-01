@@ -2,8 +2,6 @@ package main
 
 import (
 	"clustta/internal/bridge"
-	"clustta/internal/compatibility"
-	"clustta/internal/projecthttp"
 	"clustta/internal/repository"
 	"clustta/internal/settings"
 	"clustta/services"
@@ -212,13 +210,6 @@ func main() {
 			ApplicationShouldTerminateAfterLastWindowClosed: true,
 		},
 	})
-
-	projecthttp.OnRejection = func(remote string, problem *compatibility.Rejection) {
-		app.Event.Emit("project-incompatible", struct {
-			Remote  string                   `json:"remote"`
-			Problem *compatibility.Rejection `json:"problem"`
-		}{remote, problem})
-	}
 
 	// Listen for file open events (when user double-clicks a .clst file)
 	// Buffer the path for the frontend to retrieve after initialization.

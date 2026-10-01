@@ -924,7 +924,7 @@ func postStatusChangeRemote(remoteURL string, assetIds []string, statusId string
 	auth_service.AttachBearerToken(req)
 
 	client := &http.Client{}
-	resp, err := projecthttp.New(client).DoProject(req, remoteURL)
+	resp, err := projecthttp.New(client).Do(req)
 	if err != nil {
 		return err
 	}

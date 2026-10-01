@@ -1768,7 +1768,6 @@
       "noChangesToRevert": "Нет изменений для отката",
       "revertLocalChanges": "Откатить локальные изменения",
       "serverUnreachableSync": "Сервер недоступен",
-      "syncUnavailable": "Синхронизация недоступна",
       "sync": "Синхронизация",
       "projects": "Проекты",
       "back": "Назад",

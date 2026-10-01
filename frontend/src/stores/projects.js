@@ -1,5 +1,8 @@
-import { projectAccessProblem, projectCanQueryDatabase, projectCompatibilityProblem, compatibilityProblem, parseCompatibilityError, compatibilityCacheKey, COMPATIBILITY_CACHE_KEY, PROJECT_SCHEMA } from '@/lib/compatibility';
-import { useDesktopModalStore } from './desktopModals';
+import {
+  CURRENT_PROJECT_SCHEMA,
+  currentAPIInfo,
+  negotiateStudioAPI,
+} from '@/lib/apiCapabilities';
 import { defineStore } from "pinia";
 import {
   SettingsService,
@@ -70,7 +73,6 @@ const validateStudioCapabilities = (capabilities) => {
 export const useProjectStore = defineStore("projects", {
   state: () => ({
     activeProject: null,
-    compatibilityCache: {},
     projectSearchQuery: "",
     activeProjectCover: "",
     pinnedProjects: [],
@@ -97,14 +99,6 @@ export const useProjectStore = defineStore("projects", {
     lastSelectedProjectId: "",
   }),
   getters: {
-    activeCompatibilityProblem: (state) => {
-      if (state.activeProject) return state.activeProject.compatibility_problem || null;
-      const remoteProject = state.projects.find(project => project.has_remote && !project.is_offline);
-      if (!remoteProject) return null;
-      const contract = remoteProject.compatibility;
-      return compatibilityProblem(contract ? { ...contract, project_schema: contract.schema } : null);
-    },
-
     getActiveProjectName: (state) => {
       if (state.projects.length && state.activeProject) {
         let project = state.activeProject;
@@ -132,10 +126,13 @@ export const useProjectStore = defineStore("projects", {
     },
     activeProjectCanQuery: (state) => {
       const project = state.activeProject;
-      if (!project || project.compatibility_problem) return false;
-      const key = compatibilityCacheKey(useUserStore().user?.id, state.selectedStudio?.id, project);
-      return projectCanQueryDatabase(project, state.compatibilityCache[key]);
+      return !!project?.is_downloaded && project.is_tracked !== false;
     },
+    activeAPIVersion: state => state.selectedStudio?.api_version || '1',
+    activeCapabilities: state => state.selectedStudio?.api_capabilities || [],
+    supportsCapability: state => capability => (
+      state.selectedStudio?.api_capabilities || []
+    ).includes(capability),
     getActiveProjectUrl: (state) => {
       if (state.activeProject?.has_remote && state.activeProject?.remote) {
         return state.activeProject.remote;
@@ -163,74 +160,12 @@ export const useProjectStore = defineStore("projects", {
 
   },
   actions: {
-    cacheProjectCompatibility(project) {
-      if (!project.has_remote) return;
-      const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
-      if (!Object.keys(this.compatibilityCache).length) {
-        try {
-          const cached = JSON.parse(localStorage.getItem(COMPATIBILITY_CACHE_KEY) || '{}');
-          if (!cached || typeof cached !== 'object' || Array.isArray(cached)) throw new Error('Invalid compatibility cache');
-          this.compatibilityCache = cached;
-        } catch (error) {
-          console.error('Unable to read compatibility cache:', error);
-        }
-      }
-      project.compatibility_problem = projectCompatibilityProblem(project, this.compatibilityCache[key]);
-      if (project.is_offline) return;
-      this.compatibilityCache[key] = { verified: !project.compatibility_problem, problem: project.compatibility_problem, contract: project.compatibility };
-      this.saveCompatibilityCache();
-    },
-    saveCompatibilityCache() {
-      try {
-        localStorage.setItem(COMPATIBILITY_CACHE_KEY, JSON.stringify(this.compatibilityCache));
-      } catch (error) {
-        console.error('Unable to save compatibility cache:', error);
-      }
-    },
-    handleCompatibilityError(error, remote = this.activeProject?.remote) {
-      const problem = parseCompatibilityError(error);
-      if (!problem) return false;
-      const matchingProjects = [...this.projects, this.activeProject].filter(project => project?.remote === remote);
-      for (const project of matchingProjects) {
-        project.compatibility_problem = problem;
-        const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
-        this.compatibilityCache[key] = { verified: false, problem };
-      }
-      this.saveCompatibilityCache();
-      return true;
-    },
-    ensureProjectCompatible(project) {
-      if (!project.has_remote) {
-        if (!project.local_schema || project.local_schema === PROJECT_SCHEMA) return true;
-        project.compatibility_problem = compatibilityProblem(project.compatibility);
-      }
-      if (project.compatibility_problem === undefined) this.cacheProjectCompatibility(project);
-      if (!project.compatibility_problem) return true;
-      this.showCompatibilityProblem(project.compatibility_problem);
-      return false;
-    },
-    ensureProjectAccessible(project) {
-      const problem = this.getProjectAccessProblem(project);
-      if (!problem) return true;
-      this.showCompatibilityProblem(problem);
-      return false;
-    },
-    getProjectAccessProblem(project) {
-      if (project.compatibility_problem === undefined) this.cacheProjectCompatibility(project);
-      if (project.compatibility_problem) return project.compatibility_problem;
-      const key = compatibilityCacheKey(useUserStore().user?.id, this.selectedStudio?.id, project);
-      return projectAccessProblem(project, this.compatibilityCache[key]);
-    },
-    showCompatibilityProblem(problem) {
-      const tray = useTrayStates();
-      const modals = useDesktopModalStore();
-      tray.resetPopUpModal();
-      tray.popUpModalTitle = 'Project update required';
-      tray.popUpModalMessage = problem.message;
-      tray.popUpModalIcon = 'alert';
-      tray.popUpModalButtons = ['Close', 'OK'];
-      tray.popUpModalFunction = () => modals.setModalVisibility('popUpModal', false);
-      modals.setModalVisibility('popUpModal', true);
+    applyStudioAPI(studio, apiInfo) {
+      if (!studio) return;
+      const negotiated = negotiateStudioAPI(apiInfo);
+      studio.api = negotiated.info;
+      studio.api_version = negotiated.version;
+      studio.api_capabilities = negotiated.capabilities;
     },
 
     async resolveStudioUrl(studio = this.selectedStudio, { force = false } = {}) {
@@ -259,11 +194,17 @@ export const useProjectStore = defineStore("projects", {
     },
     async ensureStudioCapabilities(studio = this.selectedStudio, { force = false } = {}) {
       if (!studio || studio.name === "Personal" || studio.hosting_mode === "cloud") {
+        if (studio && !studio.api_version) this.applyStudioAPI(studio, currentAPIInfo());
         return studio?.capabilities || null;
       }
 
       const key = studioCacheKey(studio);
-      if (!force && hasValidStudioCapabilities(studio.capabilities)) {
+      if (
+        !force &&
+        hasValidStudioCapabilities(studio.capabilities) &&
+        studio.project_schema &&
+        studio.api_version
+      ) {
         return studio.capabilities;
       }
       if (!force && studioCapabilityRequests.has(key)) {
@@ -275,9 +216,15 @@ export const useProjectStore = defineStore("projects", {
         .then((info) => {
           const capabilities = validateStudioCapabilities(info.capabilities);
           const matchingStudio = this.studios.find((item) => studioCacheKey(item) === key);
-          if (matchingStudio) matchingStudio.capabilities = capabilities;
+          if (matchingStudio) {
+            matchingStudio.capabilities = capabilities;
+            matchingStudio.project_schema = info.project_schema || '';
+            this.applyStudioAPI(matchingStudio, info.api);
+          }
           if (studioCacheKey(this.selectedStudio) === key) {
             this.selectedStudio.capabilities = capabilities;
+            this.selectedStudio.project_schema = info.project_schema || '';
+            this.applyStudioAPI(this.selectedStudio, info.api);
           }
           return capabilities;
         })
@@ -442,7 +389,6 @@ export const useProjectStore = defineStore("projects", {
     },
     async gotoProject(project) {
       await this.setActiveProject(project);
-      if (!this.ensureProjectAccessible(project)) return;
       const commonStore = useCommonStore();
       const collectionStore = useCollectionStore();
       const assetStore = useAssetStore();
@@ -564,17 +510,9 @@ export const useProjectStore = defineStore("projects", {
       await ProjectService.GetStudioProjects(studioUrl, studio.name, studio.hosting_mode || '', studio.id || '')
         .then(async (response) => {
           this.projects = response;
-          for (const project of this.projects) this.cacheProjectCompatibility(project);
           const refreshed = this.projects.find(project => project.id === this.activeProject?.id && project.remote === this.activeProject?.remote);
           if (refreshed && this.activeProject) {
-            const problem = this.getProjectAccessProblem(refreshed);
-            this.activeProject.compatibility = refreshed.compatibility;
-            this.activeProject.compatibility_problem = problem;
-            this.activeProject.local_schema = refreshed.local_schema;
-            if (problem) {
-              useStageStore().setStageVisibility('projects', true);
-              this.showCompatibilityProblem(problem);
-            }
+            Object.assign(this.activeProject, refreshed);
           }
         })
         .catch((error) => {
@@ -586,7 +524,7 @@ export const useProjectStore = defineStore("projects", {
       await this.refreshProjectsPreview();
     },
     async reloadActiveProject() {
-      if (this.activeProject && !this.getProjectAccessProblem(this.activeProject)) {
+      if (this.activeProject) {
         await ProjectService.ProjectInfo(this.activeProject.uri)
           .then((response) => {
             this.activeProject.sync_token = response.sync_token;
@@ -610,7 +548,6 @@ export const useProjectStore = defineStore("projects", {
       const trackedProject = this.projects.find(candidate => candidate.id === project.id) || project;
 
       Object.assign(trackedProject, {
-        local_schema: projectInfo.local_schema,
         sync_token: projectInfo.sync_token,
         preview_id: projectInfo.preview_id,
         name: projectInfo.name,
@@ -626,7 +563,6 @@ export const useProjectStore = defineStore("projects", {
         is_tracked: true,
       });
 
-      this.cacheProjectCompatibility(trackedProject);
       this.activeProject = trackedProject;
       return trackedProject;
     },
@@ -641,10 +577,6 @@ export const useProjectStore = defineStore("projects", {
         //TODO check the importance if exist for projects
         if (await FSService.Exists(project.uri)) {
           this.projects[i].is_downloaded = true;
-          if (this.getProjectAccessProblem(this.projects[i])) {
-            this.projects[i].is_unsynced = false;
-            return;
-          }
           try {
             const isUnsynced = await SyncService.IsUnsynced(project.uri);
             this.projects[i].is_unsynced = isUnsynced;
@@ -667,7 +599,7 @@ export const useProjectStore = defineStore("projects", {
     async refreshProjectsPreview() {
       // Parallelize preview fetching
       await Promise.all(this.projects.map(async (project, i) => {
-        if (await FSService.Exists(project.uri) && !this.getProjectAccessProblem(project)) {
+        if (await FSService.Exists(project.uri)) {
           try {
             const preview = await ProjectService.GetPreview(project.uri);
             if (preview) {
@@ -685,7 +617,7 @@ export const useProjectStore = defineStore("projects", {
         return project.id === projectId;
       });
       let project = this.projects[projectIndex];
-      if (await FSService.Exists(project.uri) && !this.getProjectAccessProblem(project)) {
+      if (await FSService.Exists(project.uri)) {
         await ProjectService.GetPreview(project.uri)
           .then(async (preview) => {
             this.projects[projectIndex].preview =
@@ -700,13 +632,6 @@ export const useProjectStore = defineStore("projects", {
     async refreshActiveProject() {
       let project = this.getActiveProject;
       if (!project) return;
-
-      const problem = this.getProjectAccessProblem(project);
-      if (problem) {
-        useStageStore().setStageVisibility('projects', true);
-        this.showCompatibilityProblem(problem);
-        return;
-      }
 
       if (await FSService.Exists(project.uri)) {
         project.is_downloaded = true;
@@ -735,6 +660,13 @@ export const useProjectStore = defineStore("projects", {
             if (hasValidStudioCapabilities(previous?.capabilities)) {
               studio.capabilities = previous.capabilities;
             }
+            const managedAPI = studio.name === 'Personal' || studio.hosting_mode === 'cloud'
+              ? currentAPIInfo()
+              : undefined;
+            if (managedAPI && !studio.project_schema) {
+              studio.project_schema = CURRENT_PROJECT_SCHEMA;
+            }
+            this.applyStudioAPI(studio, previous?.api || studio.api || managedAPI);
             return studio;
           });
           let lastSelectedStudio = this.studios.find((item) => item.name === lastStudio)

@@ -8,6 +8,9 @@ import { Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
+import * as compatibility$0 from "../compatibility/models.js";
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
 import * as models$0 from "../server/models/models.js";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
@@ -294,6 +297,20 @@ export class Studio {
              */
             this["hosting_mode"] = "";
         }
+        if (!("project_schema" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["project_schema"] = "";
+        }
+        if (!("api" in $$source)) {
+            /**
+             * @member
+             * @type {compatibility$0.APIInfo}
+             */
+            this["api"] = (new compatibility$0.APIInfo());
+        }
         if (!("capabilities" in $$source)) {
             /**
              * @member
@@ -318,14 +335,18 @@ export class Studio {
      * @returns {Studio}
      */
     static createFrom($$source = {}) {
-        const $$createField7_0 = $$createType1;
-        const $$createField8_0 = $$createType3;
+        const $$createField8_0 = $$createType1;
+        const $$createField9_0 = $$createType2;
+        const $$createField10_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("api" in $$parsedSource) {
+            $$parsedSource["api"] = $$createField8_0($$parsedSource["api"]);
+        }
         if ("capabilities" in $$parsedSource) {
-            $$parsedSource["capabilities"] = $$createField7_0($$parsedSource["capabilities"]);
+            $$parsedSource["capabilities"] = $$createField9_0($$parsedSource["capabilities"]);
         }
         if ("Users" in $$parsedSource) {
-            $$parsedSource["Users"] = $$createField8_0($$parsedSource["Users"]);
+            $$parsedSource["Users"] = $$createField10_0($$parsedSource["Users"]);
         }
         return new Studio(/** @type {Partial<Studio>} */($$parsedSource));
     }
@@ -377,6 +398,7 @@ export class SystemBookmarksHealth {
 
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
-const $$createType1 = studio_service$0.StudioCapabilities.createFrom;
-const $$createType2 = models$0.StudioUserInfo.createFrom;
-const $$createType3 = $Create.Array($$createType2);
+const $$createType1 = compatibility$0.APIInfo.createFrom;
+const $$createType2 = studio_service$0.StudioCapabilities.createFrom;
+const $$createType3 = models$0.StudioUserInfo.createFrom;
+const $$createType4 = $Create.Array($$createType3);

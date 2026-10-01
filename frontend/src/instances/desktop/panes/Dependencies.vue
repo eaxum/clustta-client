@@ -41,7 +41,7 @@
             </template>
             <template #actions>
               <ActionButton
-                v-if="canManageDependencies && dependency.dependencyEdge"
+                v-if="supportsVersionedDependencies && canManageDependencies && dependency.dependencyEdge"
                 :icon="getAppIcon('pin')"
                 v-tooltip="'Pin dependency'"
                 :buttonFunction="event => openDependencySelector(event, dependency.id)"
@@ -75,6 +75,7 @@ import { useI18n } from 'vue-i18n';
 import { useDebounce } from '@/lib/debounce';
 import emitter from '@/lib/mitt';
 import { canActOnAsset } from '@/lib/permissions';
+import { VERSIONED_DEPENDENCIES } from '@/lib/apiCapabilities';
 import utils from '@/services/utils';
 import { isValidWeblink } from '@/lib/pointer';
 
@@ -134,6 +135,10 @@ const selectedAsset = computed(() => {
 const canManageDependencies = computed(() => {
   return canActOnAsset('manage_dependencies', selectedAsset.value);
 });
+
+const supportsVersionedDependencies = computed(
+  () => projectStore.supportsCapability(VERSIONED_DEPENDENCIES),
+);
 
 const isSearching = computed(() => {
   return searchQuery.value;

@@ -1096,7 +1096,7 @@ func FetchData(remoteUrl string, userId string) (ProjectData, error) {
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return userData, err
 		}
@@ -1377,9 +1377,6 @@ func CalculateCheckpointsMissingChunks(tx *sqlx.Tx, checkpoints []models.Checkpo
 }
 
 func DownloadCheckpoint(ctx context.Context, projectPath, remoteUrl string, checkpointId string, userId string, callback func(int, int, string, string)) error {
-	if err := repository.ValidateSyncCompatibility(projectPath, remoteUrl); err != nil {
-		return err
-	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1411,9 +1408,6 @@ func DownloadCheckpoint(ctx context.Context, projectPath, remoteUrl string, chec
 }
 
 func DownloadCheckpoints(ctx context.Context, projectPath, remoteUrl string, checkpointIds []string, userId string, callback func(int, int, string, string)) error {
-	if err := repository.ValidateSyncCompatibility(projectPath, remoteUrl); err != nil {
-		return err
-	}
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -1511,7 +1505,7 @@ func FetchChunksInfo(remoteUrl string, userId string, chunks []string) ([]chunk_
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return []chunk_service.ChunkInfo{}, err
 		}
@@ -1577,7 +1571,7 @@ func FetchMissingChunks(ctx context.Context, remoteUrl string, userId string, ch
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return []string{}, err
 		}
@@ -1647,7 +1641,7 @@ func FetchMissingPreviews(ctx context.Context, remoteUrl string, userId string, 
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
-		response, err := projecthttp.New(client).DoProject(req, remoteUrl)
+		response, err := projecthttp.New(client).Do(req)
 		if err != nil {
 			return []string{}, err
 		}

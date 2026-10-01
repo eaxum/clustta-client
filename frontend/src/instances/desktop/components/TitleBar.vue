@@ -1,6 +1,6 @@
 <template>
   <div style="--wails-draggable:drag" @dblclick="toggleMaximize" class="titlebar"
-    :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || paymentNeedsAttention || locationsStale || authenticationRequired || projectStore.activeCompatibilityProblem }"
+    :class="{ 'title-only': titleOnly, 'titlebar-darwin': os === 'darwin', 'titlebar-unsynced': showUnsyncedBar, 'titlebar-inactive': studioInactive || paymentNeedsAttention || locationsStale || authenticationRequired }"
     v-stop-propagation>
 
     <div v-if="!titleOnly" class="titlebar-left" :class="{ 'titlebar-left-inactive': modalsActive }">
@@ -232,17 +232,6 @@ const getAppIcon = (iconName) => {
 
 const titleBarStatuses = computed(() => {
   const statuses = [];
-  if (projectStore.activeCompatibilityProblem) {
-    statuses.push({
-      id: 'compatibility',
-      icon: getAppIcon('alert'),
-      label: projectStore.activeCompatibilityProblem.message,
-      tooltip: projectStore.activeCompatibilityProblem.message,
-      action: displayAppInfo,
-    });
-  }
-
-
   if (authenticationRequired.value) {
     statuses.push({
       id: 'authentication',

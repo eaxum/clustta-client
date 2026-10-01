@@ -1,296 +1,56 @@
-// Package projecthttp provides compatibility-aware HTTP transport for project APIs.
+// Package projecthttp applies the negotiated API version to project requests.
 package projecthttp
 
 import (
 	"clustta/internal/compatibility"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 	"sync"
-
-	"github.com/jmoiron/sqlx"
 )
 
-var verifiedHosts sync.Map
-var replicaSchemas sync.Map
+var negotiatedAPIs sync.Map
 
-type cachedContract struct {
-	contract *compatibility.Contract
-	err      error
-}
-
-// Client applies the compatibility contract to Clustta project requests.
+// Client sends project requests using a versioned API contract.
 type Client struct {
 	client *http.Client
 }
 
 func New(client *http.Client) *Client {
+	if client == nil {
+		client = http.DefaultClient
+	}
 	return &Client{client: client}
 }
 
-// OnRejection is installed once at application startup before requests begin.
-var OnRejection func(string, *compatibility.Rejection)
-
-func Report(projectURL string, err error) error {
-	if rejection, ok := err.(*compatibility.Rejection); ok && OnRejection != nil {
-		OnRejection(projectURL, rejection)
-	}
-	return err
-}
-
-// Do validates the remote contract before a project data request, then validates its response.
+// Do sends a request through the current API unless the caller selected another version.
 func (c *Client) Do(request *http.Request) (*http.Response, error) {
-	projectURL, discovery := requestProject(request)
-	if projectURL == "" {
-		response, err := c.client.Do(request)
-		if err == nil && response.StatusCode == http.StatusOK && strings.HasSuffix(request.URL.Path, "/projects") {
-			Remember(request, request.URL.String(), contractFromHeaders(response.Header))
-		}
-		return response, err
+	if request == nil {
+		return nil, fmt.Errorf("request is required")
 	}
-	return c.doProject(request, projectURL, discovery)
+	if request.Header.Get(compatibility.APIVersionHeader) == "" {
+		request.Header.Set(compatibility.APIVersionHeader, apiVersionForURL(request.URL))
+	}
+	return c.client.Do(request)
 }
 
-// DoProject sends a request using the authoritative project URL.
-func (c *Client) DoProject(request *http.Request, projectURL string) (*http.Response, error) {
-	projectURL = strings.TrimSuffix(projectURL, "/")
-	if projectURL == "" {
-		return nil, fmt.Errorf("project URL is required")
+// RegisterAPI stores the negotiated API for a Studio origin.
+func RegisterAPI(studioURL string, info compatibility.APIInfo) {
+	parsed, err := url.Parse(studioURL)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return
 	}
-	if !requestMatchesProject(request, projectURL) {
-		return nil, fmt.Errorf("request URL %q is outside project %q", request.URL.String(), projectURL)
-	}
-	discovery := strings.TrimSuffix(request.URL.String(), "/") == projectURL
-	return c.doProject(request, projectURL, discovery)
+	api := compatibility.SelectHighestMutual(info)
+	negotiatedAPIs.Store(parsed.Scheme+"://"+parsed.Host, api.Version)
 }
 
-func (c *Client) doProject(request *http.Request, projectURL string, discovery bool) (*http.Response, error) {
-	client := c.client
-	declare(request.Header, ReplicaSchema(projectURL))
-	if discovery && request.Method == http.MethodPost {
-		if err := verifyCreation(client, request, projectURL); err != nil {
-			return nil, Report(projectURL, err)
+func apiVersionForURL(requestURL *url.URL) string {
+	if requestURL != nil {
+		origin := requestURL.Scheme + "://" + requestURL.Host
+		if version, ok := negotiatedAPIs.Load(strings.TrimSuffix(origin, "/")); ok {
+			return version.(string)
 		}
 	}
-	if !discovery {
-		if err := ValidateRemote(client, request, projectURL); err != nil {
-			return nil, Report(projectURL, err)
-		}
-	}
-	response, err := client.Do(request)
-	if err != nil {
-		return nil, err
-	}
-	if response.StatusCode == http.StatusUpgradeRequired {
-		defer response.Body.Close()
-		var rejection compatibility.Rejection
-		if err := json.NewDecoder(response.Body).Decode(&rejection); err != nil {
-			return nil, err
-		}
-		verifiedHosts.Store(verificationKey(request, projectURL), cachedContract{err: &rejection})
-		return nil, Report(projectURL, &rejection)
-	}
-	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return response, nil
-	}
-	if discovery {
-		return response, nil
-	}
-	contract := contractFromHeaders(response.Header)
-	if err := compatibility.Check(contract); err != nil {
-		response.Body.Close()
-		Remember(request, projectURL, contract)
-		return nil, Report(projectURL, err)
-	}
-	return response, nil
-}
-
-func requestMatchesProject(request *http.Request, projectURL string) bool {
-	project, err := http.NewRequest(http.MethodGet, projectURL, nil)
-	if err != nil {
-		return false
-	}
-	if request.URL.Scheme != project.URL.Scheme || request.URL.Host != project.URL.Host {
-		return false
-	}
-	projectPath := strings.TrimSuffix(project.URL.Path, "/")
-	requestPath := strings.TrimSuffix(request.URL.Path, "/")
-	return requestPath == projectPath || strings.HasPrefix(requestPath, projectPath+"/")
-}
-
-// Remember reuses contracts returned by ordinary project discovery and listings.
-func Remember(request *http.Request, projectURL string, contract *compatibility.Contract) {
-	verifiedHosts.Store(verificationKey(request, projectURL), cachedContract{contract: contract})
-}
-
-// ValidateRemote discovers only projects absent from the current account's cache.
-func ValidateRemote(client *http.Client, request *http.Request, projectURL string) error {
-	if entry, ok := verifiedHosts.Load(verificationKey(request, projectURL)); ok {
-		cached := entry.(cachedContract)
-		if cached.err != nil {
-			return cached.err
-		}
-		return compatibility.Check(cached.contract)
-	}
-	_, err := DiscoverRemote(client, request, projectURL)
-	return err
-}
-
-// DiscoverRemote refreshes and validates the authoritative project contract.
-func DiscoverRemote(client *http.Client, request *http.Request, projectURL string) (*compatibility.Contract, error) {
-	probe, err := http.NewRequestWithContext(request.Context(), http.MethodGet, projectURL, nil)
-	if err != nil {
-		return nil, err
-	}
-	probe.Header = request.Header.Clone()
-	response, err := client.Do(probe)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("project discovery failed: HTTP %d", response.StatusCode)
-	}
-	var info struct {
-		Compatibility *compatibility.Contract `json:"compatibility"`
-	}
-	if err := json.NewDecoder(response.Body).Decode(&info); err != nil {
-		return nil, err
-	}
-	Remember(request, projectURL, info.Compatibility)
-	if err := compatibility.Check(info.Compatibility); err != nil {
-		return info.Compatibility, err
-	}
-	return info.Compatibility, nil
-}
-
-func requestProject(request *http.Request) (string, bool) {
-	if request.Header.Get("Clustta-Agent") == "" {
-		return "", false
-	}
-	parts := strings.Split(strings.Trim(request.URL.Path, "/"), "/")
-	rootLength := 1
-	if parts[0] == "user" || parts[0] == "studio" {
-		rootLength = 3
-	}
-	if len(parts) < rootLength {
-		return "", false
-	}
-	switch parts[rootLength-1] {
-	case "projects", "quota", "persons", "studio-info", "ping", "version":
-		return "", false
-	}
-	if len(parts) > rootLength {
-		switch parts[rootLength] {
-		case "data", "sync-token", "chunks", "stream-chunks", "chunks-info", "chunks-missing", "chunk-urls", "chunk-upload-urls", "chunk-upload-confirm", "previews", "preview", "previews-exist", "icon", "ignore-list", "toggle-close", "status", "assets", "collections", "asset-types", "collection-types", "collaborators", "leave", "storage-conversion":
-		default:
-			return "", false
-		}
-	}
-	projectURL := request.URL.Scheme + "://" + request.URL.Host + "/" + strings.Join(parts[:rootLength], "/")
-	discovery := len(parts) == rootLength && (request.Method == http.MethodGet || request.Method == http.MethodPost)
-	return projectURL, discovery
-}
-
-func verifyCreation(client *http.Client, request *http.Request, projectURL string) error {
-	projectRequest, err := http.NewRequestWithContext(request.Context(), http.MethodGet, projectURL, nil)
-	if err != nil {
-		return err
-	}
-	target := projectListingURL(projectRequest.URL)
-	if entry, ok := verifiedHosts.Load(verificationKey(request, target.String())); ok {
-		cached := entry.(cachedContract)
-		return compatibility.Check(cached.contract)
-	}
-	probe, err := http.NewRequestWithContext(request.Context(), http.MethodGet, target.String(), nil)
-	if err != nil {
-		return err
-	}
-	probe.Header = request.Header.Clone()
-	response, err := client.Do(probe)
-	if err != nil {
-		return err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		return fmt.Errorf("host discovery failed: HTTP %d", response.StatusCode)
-	}
-	contract := contractFromHeaders(response.Header)
-	Remember(request, target.String(), contract)
-	return compatibility.Check(contract)
-}
-
-func projectListingURL(projectURL *url.URL) url.URL {
-	target := *projectURL
-	parts := strings.Split(strings.Trim(target.Path, "/"), "/")
-	listingParts := append([]string{}, parts[:len(parts)-1]...)
-	listingParts = append(listingParts, "projects")
-	for index := len(parts) - 3; index >= 0; index-- {
-		switch parts[index] {
-		case "user":
-			listingParts = append(append([]string{}, parts[:index]...), "user", "projects")
-		case "studio":
-			listingParts = append(append([]string{}, parts[:index]...), "studio", parts[index+1], "projects")
-		}
-		if parts[index] == "user" || parts[index] == "studio" {
-			break
-		}
-	}
-	target.Path = "/" + strings.Join(listingParts, "/")
-	target.RawPath = ""
-	target.RawQuery = ""
-	target.Fragment = ""
-	return target
-}
-
-func contractFromHeaders(headers http.Header) *compatibility.Contract {
-	return &compatibility.Contract{
-		Protocol:      headers.Get(compatibility.ProtocolHeader),
-		Schema:        headers.Get(compatibility.SchemaHeader),
-		ProjectSchema: headers.Get(compatibility.ProjectSchemaHeader),
-	}
-}
-
-func declare(headers http.Header, projectSchema string) {
-	headers.Set(compatibility.ProtocolHeader, compatibility.Protocol)
-	headers.Set(compatibility.SchemaHeader, compatibility.Schema)
-	if projectSchema == "" {
-		projectSchema = compatibility.Schema
-	}
-	headers.Set(compatibility.ProjectSchemaHeader, projectSchema)
-}
-
-func verificationKey(request *http.Request, projectURL string) string {
-	identity := request.Header.Get("Authorization")
-	if identity == "" {
-		identity = request.Header.Get("UserId")
-	}
-	return projectURL + "|" + identity
-}
-
-func ValidateReplica(database sqlx.Queryer, remoteURL string) error {
-	schema, err := compatibility.ReadSchema(database)
-	if err != nil {
-		return err
-	}
-	RememberReplica(remoteURL, schema)
-	if schema != compatibility.Schema {
-		return Report(remoteURL, compatibility.Reject(schema, "replica"))
-	}
-	return nil
-}
-
-func RememberReplica(projectURL, schema string) {
-	if projectURL != "" && schema != "" {
-		replicaSchemas.Store(strings.TrimSuffix(projectURL, "/"), schema)
-	}
-}
-
-func ReplicaSchema(projectURL string) string {
-	if schema, ok := replicaSchemas.Load(strings.TrimSuffix(projectURL, "/")); ok {
-		return schema.(string)
-	}
-	return compatibility.Schema
+	return compatibility.CurrentAPIVersion
 }

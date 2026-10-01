@@ -3,7 +3,6 @@ package sync_service
 import (
 	"clustta/internal/auth_service"
 	"clustta/internal/chunk_service"
-	"clustta/internal/compatibility"
 	"clustta/internal/constants"
 	"clustta/internal/projecthttp"
 	"clustta/internal/repository"
@@ -32,16 +31,6 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	if err != nil {
 		return err
 	}
-	if utils.IsValidURL(remoteUrl) {
-		if err := compatibility.Check(projectInfo.Compatibility); err != nil {
-			return projecthttp.Report(remoteUrl, err)
-		}
-		if err := repository.UpdateReplicaProject(projectPath, projectInfo.Compatibility.ProjectSchema); err != nil {
-			return projecthttp.Report(remoteUrl, err)
-		}
-		projecthttp.RememberReplica(remoteUrl, projectInfo.Compatibility.ProjectSchema)
-	}
-
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
@@ -187,31 +176,7 @@ func PullData(ctx context.Context, projectPath, remoteUrl string, userId string,
 	return nil
 }
 
-func prepareLocalReplica(projectPath, projectURL, hostSchema string) (string, error) {
-	if err := repository.UpdateReplicaProject(projectPath, hostSchema); err != nil {
-		return "", err
-	}
-	localSchema, err := readLocalReplicaSchema(projectPath)
-	if err != nil {
-		return "", err
-	}
-	projecthttp.RememberReplica(projectURL, localSchema)
-	return localSchema, nil
-}
-
-func readLocalReplicaSchema(projectPath string) (string, error) {
-	localDB, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return "", err
-	}
-	defer localDB.Close()
-	return compatibility.ReadSchema(localDB)
-}
-
 func PullLatestCheckpoints(ctx context.Context, projectPath, remoteUrl string, userId string, callback func(int, int, string, string)) error {
-	if err := repository.ValidateSyncCompatibility(projectPath, remoteUrl); err != nil {
-		return err
-	}
 	if ctx.Err() != nil {
 		return ctx.Err()
 	}
@@ -276,10 +241,6 @@ func CloneProject(ctx context.Context, remoteProjectUri string, projectUri strin
 	if err != nil {
 		return err
 	}
-	if err := compatibility.Check(projectInfo.Compatibility); err != nil {
-		return err
-	}
-
 	db, err := utils.OpenDb(projectUri)
 	if err != nil {
 		return err
@@ -507,25 +468,6 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 
 		// Process each cloud studio project and check local status
 		for i, studioProject := range studioProjects {
-			projecthttp.Remember(req, constants.HOST+"/studio/"+studioId+"/"+studioProject.Name, studioProject.Compatibility)
-			if compatibility.Check(studioProject.Compatibility) != nil {
-				projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
-				isDownloaded := utils.FileExists(projectPath)
-				studioProjects[i].Uri = projectPath
-				studioProjects[i].Remote = constants.HOST + "/studio/" + studioId + "/" + studioProject.Name
-				studioProjects[i].HasRemote = true
-				studioProjects[i].IsDownloaded = isDownloaded
-				studioProjects[i].IsTracked = true
-				if isDownloaded {
-					localSchema, err := readLocalReplicaSchema(projectPath)
-					if err != nil {
-						return studioProjects, err
-					}
-					studioProjects[i].LocalSchema = localSchema
-				}
-				continue
-			}
-
 			workingDir := ""
 			projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
 			isDownloaded := utils.FileExists(projectPath)
@@ -533,12 +475,6 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			syncToken := ""
 
 			if isDownloaded {
-				localSchema, err := prepareLocalReplica(projectPath, projectUrl, studioProject.Compatibility.ProjectSchema)
-				if err != nil {
-					return studioProjects, err
-				}
-				studioProjects[i].LocalSchema = localSchema
-
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
 					invalidPath := projectPath + ".invalid"
@@ -665,25 +601,6 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 
 		// Process each remote project and check local status
 		for i, studioProject := range studioProjects {
-			projecthttp.Remember(req, url+"/"+studioProject.Name, studioProject.Compatibility)
-			if compatibility.Check(studioProject.Compatibility) != nil {
-				projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
-				isDownloaded := utils.FileExists(projectPath)
-				studioProjects[i].Uri = projectPath
-				studioProjects[i].Remote = url + "/" + studioProject.Name
-				studioProjects[i].HasRemote = true
-				studioProjects[i].IsDownloaded = isDownloaded
-				studioProjects[i].IsTracked = true
-				if isDownloaded {
-					localSchema, err := readLocalReplicaSchema(projectPath)
-					if err != nil {
-						return studioProjects, err
-					}
-					studioProjects[i].LocalSchema = localSchema
-				}
-				continue
-			}
-
 			workingDir := ""
 			projectPath := filepath.Join(studioProjectsDir, studioProject.Name) + ".clst"
 			isDownloaded := utils.FileExists(projectPath)
@@ -691,12 +608,6 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			syncToken := ""
 
 			if isDownloaded {
-				localSchema, err := prepareLocalReplica(projectPath, projectUrl, studioProject.Compatibility.ProjectSchema)
-				if err != nil {
-					return studioProjects, err
-				}
-				studioProjects[i].LocalSchema = localSchema
-
 				valid, err := repository.VerifyProjectIntegrity(projectPath)
 				if !valid || err != nil {
 					invalidPath := projectPath + ".invalid"
@@ -783,12 +694,11 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 
 // serverProject represents a project returned by the server's /user/projects endpoint.
 type serverProject struct {
-	Compatibility *compatibility.Contract `json:"compatibility"`
-	ProjectId     string                  `json:"project_id"`
-	ProjectName   string                  `json:"project_name"`
-	OwnerId       string                  `json:"owner_id"`
-	OwnerName     string                  `json:"owner_name"`
-	Role          string                  `json:"role"`
+	ProjectId   string `json:"project_id"`
+	ProjectName string `json:"project_name"`
+	OwnerId     string `json:"owner_id"`
+	OwnerName   string `json:"owner_name"`
+	Role        string `json:"role"`
 }
 
 // fetchUserProjects calls the central server to get all projects where the user is owner or collaborator.
@@ -827,9 +737,6 @@ func fetchUserProjects(user auth_service.User) ([]serverProject, error) {
 	if err != nil {
 		return nil, err
 	}
-	for _, project := range projects {
-		projecthttp.Remember(req, constants.HOST+"/user/"+project.OwnerId+"/"+project.ProjectName, project.Compatibility)
-	}
 	return projects, nil
 }
 
@@ -847,37 +754,26 @@ func mergeServerProjects(localProjects []repository.ProjectInfo, serverProjects 
 	for _, sp := range serverProjects {
 		remoteUrl := constants.HOST + "/user/" + sp.OwnerId + "/" + sp.ProjectName
 		if idx, exists := localByRemote[remoteUrl]; exists {
-			projecthttp.RememberReplica(remoteUrl, localProjects[idx].LocalSchema)
-			if compatibility.Check(sp.Compatibility) == nil && localProjects[idx].LocalSchema != sp.Compatibility.ProjectSchema {
-				if err := repository.UpdateReplicaProject(localProjects[idx].Uri, sp.Compatibility.ProjectSchema); err != nil {
-					return localProjects, err
-				}
-				localProjects[idx].LocalSchema = sp.Compatibility.ProjectSchema
-				localProjects[idx].Version = sp.Compatibility.ProjectSchema
-				projecthttp.RememberReplica(remoteUrl, sp.Compatibility.ProjectSchema)
-			}
 			// Enrich existing local project with role info; prefer "owner" over "collaborator"
 			if localProjects[idx].Role != "owner" {
 				localProjects[idx].Role = sp.Role
 			}
 			localProjects[idx].OwnerName = sp.OwnerName
-			localProjects[idx].Compatibility = sp.Compatibility
 			localProjects[idx].IsOffline = false
 		} else {
 			// Server-only project: add as not-downloaded
 			projectUri := filepath.Join(projectsDir, sp.ProjectName) + ".clst"
 			localProjects = append(localProjects, repository.ProjectInfo{
-				Id:            sp.ProjectId,
-				Compatibility: sp.Compatibility,
-				Name:          sp.ProjectName,
-				Uri:           projectUri,
-				Remote:        remoteUrl,
-				HasRemote:     true,
-				IsDownloaded:  false,
-				IsTracked:     true,
-				Valid:         true,
-				Role:          sp.Role,
-				OwnerName:     sp.OwnerName,
+				Id:           sp.ProjectId,
+				Name:         sp.ProjectName,
+				Uri:          projectUri,
+				Remote:       remoteUrl,
+				HasRemote:    true,
+				IsDownloaded: false,
+				IsTracked:    true,
+				Valid:        true,
+				Role:         sp.Role,
+				OwnerName:    sp.OwnerName,
 			})
 			// Update index so duplicate server entries merge instead of appending again
 			localByRemote[remoteUrl] = len(localProjects) - 1

@@ -6,6 +6,10 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore: Unused imports
+import * as compatibility$0 from "../compatibility/models.js";
+
 export class ProjectStorageCapabilities {
     /**
      * Creates a new ProjectStorageCapabilities instance.
@@ -237,6 +241,20 @@ export class StudioInfo {
              */
             this["hosting_mode"] = "";
         }
+        if (!("project_schema" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["project_schema"] = "";
+        }
+        if (!("api" in $$source)) {
+            /**
+             * @member
+             * @type {compatibility$0.APIInfo}
+             */
+            this["api"] = (new compatibility$0.APIInfo());
+        }
         if (!("capabilities" in $$source)) {
             /**
              * @member
@@ -254,10 +272,14 @@ export class StudioInfo {
      * @returns {StudioInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField5_0 = $$createType2;
+        const $$createField6_0 = $$createType2;
+        const $$createField7_0 = $$createType3;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("api" in $$parsedSource) {
+            $$parsedSource["api"] = $$createField6_0($$parsedSource["api"]);
+        }
         if ("capabilities" in $$parsedSource) {
-            $$parsedSource["capabilities"] = $$createField5_0($$parsedSource["capabilities"]);
+            $$parsedSource["capabilities"] = $$createField7_0($$parsedSource["capabilities"]);
         }
         return new StudioInfo(/** @type {Partial<StudioInfo>} */($$parsedSource));
     }
@@ -318,4 +340,5 @@ export class StudioUsage {
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
 const $$createType1 = ProjectStorageCapabilities.createFrom;
-const $$createType2 = StudioCapabilities.createFrom;
+const $$createType2 = compatibility$0.APIInfo.createFrom;
+const $$createType3 = StudioCapabilities.createFrom;

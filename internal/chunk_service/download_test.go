@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	"clustta/internal/compatibility"
 	"clustta/internal/utils"
 	"github.com/jmoiron/sqlx"
 	"github.com/klauspost/compress/zstd"
@@ -28,7 +27,7 @@ func TestCancelledCloudDownloadReleasesSlotsBeforeReturning(t *testing.T) {
 	hash, _ := encodedChunk(t, "cancel me")
 	started := make(chan struct{})
 	var server *httptest.Server
-	server = newCompatibleChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server = newProjectChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/chunk-urls" {
 			if err := json.NewEncoder(w).Encode(map[string]any{"urls": map[string]string{hash: server.URL + "/chunk"}}); err != nil {
 				t.Error(err)
@@ -87,7 +86,7 @@ func testByteProgress(t *testing.T, cloud bool) {
 	stream := &bytes.Buffer{}
 	appendStreamChunk(t, stream, hash, data)
 	var server *httptest.Server
-	server = newCompatibleChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server = newProjectChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/chunk" {
 			if _, err := w.Write(data); err != nil {
 				t.Error(err)
@@ -230,7 +229,7 @@ func TestCloudDownloadsIndividualChunksAndPublishesAfterCommit(t *testing.T) {
 	path, db := chunkDatabase(t)
 	hash, data := encodedChunk(t, "cloud chunk")
 	var server *httptest.Server
-	server = newCompatibleChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server = newProjectChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/chunk-urls":
 			var body struct {
@@ -281,7 +280,7 @@ func TestCloudConcurrencyLimitIsSharedAcrossActions(t *testing.T) {
 	started := make(chan struct{}, len(hashes)*2)
 	release := make(chan struct{})
 	var server *httptest.Server
-	server = newCompatibleChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server = newProjectChunkServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/chunk-urls" {
 			urls := map[string]string{}
 			for _, hash := range hashes {
@@ -333,17 +332,10 @@ func TestCloudConcurrencyLimitIsSharedAcrossActions(t *testing.T) {
 	}
 }
 
-func newCompatibleChunkServer(next http.Handler) *httptest.Server {
+func newProjectChunkServer(next http.Handler) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		for _, prefix := range []string{"/studio/test/project", "/project"} {
-			if r.URL.Path == prefix {
-				json.NewEncoder(w).Encode(map[string]*compatibility.Contract{"compatibility": compatibility.Current(compatibility.Schema)})
-				return
-			}
 			if strings.HasPrefix(r.URL.Path, prefix+"/") {
-				w.Header().Set(compatibility.ProtocolHeader, compatibility.Protocol)
-				w.Header().Set(compatibility.SchemaHeader, compatibility.Schema)
-				w.Header().Set(compatibility.ProjectSchemaHeader, compatibility.Schema)
 				r.URL.Path = strings.TrimPrefix(r.URL.Path, prefix)
 				break
 			}

@@ -36,6 +36,16 @@
                 <img class="info-icon small-icons" :src="getAppIcon('clustta')">
                 <span>{{ serverVersion || $t('common.loading') + '...' }}</span>
               </div>
+
+              <div v-if="negotiatedAPIVersion" class="info-item">
+                <img class="info-icon small-icons" :src="getAppIcon('code-bracket')">
+                <span>API {{ negotiatedAPIVersion }} [Supports {{ supportedAPIVersions }}]</span>
+              </div>
+
+              <div v-if="studioInfo?.project_schema" class="info-item">
+                <img class="info-icon small-icons" :src="getAppIcon('database-sync')">
+                <span>Project schema {{ studioInfo.project_schema }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -248,6 +258,15 @@ const studioInfo = computed(() => {
   return projectStore.selectedStudio;
 });
 
+const negotiatedAPIVersion = computed(() => {
+  return studioInfo.value?.api_version || '';
+});
+
+const supportedAPIVersions = computed(() => {
+  const versions = studioInfo.value?.api?.supported_versions;
+  return Array.isArray(versions) && versions.length ? versions.join(', ') : negotiatedAPIVersion.value;
+});
+
 // methods
 
 // Copies the studio ID to the clipboard.
@@ -346,6 +365,11 @@ const openSettingsTab = (tab) => {
 // lifecycle hooks
 onMounted(async () => {
   if (!isCloudHosted.value) {
+    try {
+      await projectStore.ensureStudioCapabilities();
+    } catch (error) {
+      console.warn('Unable to refresh Studio API metadata:', error);
+    }
     await fetchServerVersion();
   }
   const studioId = studioInfo.value?.id;

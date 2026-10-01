@@ -1054,8 +1054,8 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 	if schemaErr != nil {
 		return repository.ProjectInfo{}, schemaErr
 	}
-	if sourceSchema != compatibility.Schema {
-		return repository.ProjectInfo{}, compatibility.Reject(sourceSchema, "replica")
+	if sourceSchema != compatibility.CurrentProjectSchema {
+		return repository.ProjectInfo{}, fmt.Errorf("uploaded project schema %s was not migrated to %s", sourceSchema, compatibility.CurrentProjectSchema)
 	}
 
 	isCloud := hostingMode == "cloud"

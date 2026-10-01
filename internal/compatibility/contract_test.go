@@ -1,66 +1,59 @@
 package compatibility
 
 import (
-	"encoding/json"
-	"errors"
 	"net/http"
 	"testing"
 )
 
-func TestMissingHostContractRequiresServerUpdate(t *testing.T) {
-	var rejection *Rejection
-	if !errors.As(Check(nil), &rejection) || rejection.RequiredUpdate != "server" {
-		t.Fatal("missing contract approved")
-	}
-}
-
-func Respond(w http.ResponseWriter, schema string) {
-	w.Header().Set(ProtocolHeader, Protocol)
-	w.Header().Set(SchemaHeader, Schema)
-	w.Header().Set(ProjectSchemaHeader, schema)
-	w.Header().Set("Cache-Control", "no-store")
-}
-
-func WriteError(w http.ResponseWriter, err error) {
-	w.Header().Set("Content-Type", "application/json")
-	if rejection, ok := err.(*Rejection); ok {
-		w.WriteHeader(http.StatusUpgradeRequired)
-		json.NewEncoder(w).Encode(rejection)
-		return
-	}
-	w.WriteHeader(http.StatusBadRequest)
-	json.NewEncoder(w).Encode(map[string]string{"code": "invalid_compatibility_declaration", "message": err.Error()})
-}
-
-func TestContractUpdateDirection(t *testing.T) {
-	for _, test := range []struct{ schema, update string }{{Schema, ""}, {"2.1", "server"}, {"2.10", "server"}} {
-		err := Check(Current(test.schema))
-		if test.update == "" {
-			if err != nil {
-				t.Fatal(err)
-			}
-			continue
-		}
-		var rejection *Rejection
-		if !errors.As(err, &rejection) || rejection.RequiredUpdate != test.update {
-			t.Fatalf("schema %s: %v", test.schema, err)
-		}
-	}
-}
-
-func TestExactSchemaOrdering(t *testing.T) {
-	comparison, err := CompareVersions("2.10", "2.2")
-	if err != nil || comparison <= 0 {
-		t.Fatalf("unexpected comparison: %d %v", comparison, err)
-	}
-	if _, err := CompareVersions("2.10", "2.1"); err != nil {
+func TestNegotiateDefaultsLegacyClientsToAPI1(t *testing.T) {
+	api, err := Negotiate(http.Header{})
+	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := CompareVersions("2.01", "2.1"); err == nil {
-		t.Fatal("accepted a non-canonical schema identifier")
+	if api.Version != LegacyAPIVersion {
+		t.Fatalf("expected API %s, got %s", LegacyAPIVersion, api.Version)
 	}
-	var rejection *Rejection
-	if !errors.As(Check(Current("2.01")), &rejection) || rejection.RequiredUpdate != "server" {
-		t.Fatal("malformed host schema did not require a host update")
+	if len(api.Capabilities) != 0 {
+		t.Fatalf("legacy API exposed capabilities: %v", api.Capabilities)
+	}
+}
+
+func TestNegotiateCurrentAPI(t *testing.T) {
+	headers := http.Header{}
+	headers.Set(APIVersionHeader, CurrentAPIVersion)
+
+	api, err := Negotiate(headers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if api.Version != CurrentAPIVersion {
+		t.Fatalf("expected API %s, got %s", CurrentAPIVersion, api.Version)
+	}
+	if len(api.Capabilities) != 2 {
+		t.Fatalf("expected current capabilities, got %v", api.Capabilities)
+	}
+}
+
+func TestNegotiateRejectsUnsupportedAPI(t *testing.T) {
+	headers := http.Header{}
+	headers.Set(APIVersionHeader, "3")
+
+	_, err := Negotiate(headers)
+	unsupported, ok := err.(*UnsupportedAPIError)
+	if !ok {
+		t.Fatalf("expected UnsupportedAPIError, got %T", err)
+	}
+	if len(unsupported.SupportedVersions) != 2 {
+		t.Fatalf("unexpected supported versions: %v", unsupported.SupportedVersions)
+	}
+}
+
+func TestInfoAdvertisesLegacyDefault(t *testing.T) {
+	info := Info()
+	if info.DefaultVersion != LegacyAPIVersion {
+		t.Fatalf("expected legacy default, got %s", info.DefaultVersion)
+	}
+	if len(info.SupportedVersions) != 2 {
+		t.Fatalf("unexpected supported versions: %v", info.SupportedVersions)
 	}
 }

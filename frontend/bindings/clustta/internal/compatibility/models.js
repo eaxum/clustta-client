@@ -6,44 +6,56 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
-export class Contract {
+export class APIInfo {
     /**
-     * Creates a new Contract instance.
-     * @param {Partial<Contract>} [$$source = {}] - The source object to create the Contract.
+     * Creates a new APIInfo instance.
+     * @param {Partial<APIInfo>} [$$source = {}] - The source object to create the APIInfo.
      */
     constructor($$source = {}) {
-        if (!("protocol" in $$source)) {
+        if (!("default_version" in $$source)) {
             /**
              * @member
              * @type {string}
              */
-            this["protocol"] = "";
+            this["default_version"] = "";
         }
-        if (!("schema" in $$source)) {
+        if (!("supported_versions" in $$source)) {
             /**
              * @member
-             * @type {string}
+             * @type {string[]}
              */
-            this["schema"] = "";
+            this["supported_versions"] = [];
         }
-        if (!("project_schema" in $$source)) {
+        if (!("capabilities_by_version" in $$source)) {
             /**
              * @member
-             * @type {string}
+             * @type {{ [_: string]: string[] }}
              */
-            this["project_schema"] = "";
+            this["capabilities_by_version"] = {};
         }
 
         Object.assign(this, $$source);
     }
 
     /**
-     * Creates a new Contract instance from a string or object.
+     * Creates a new APIInfo instance from a string or object.
      * @param {any} [$$source = {}]
-     * @returns {Contract}
+     * @returns {APIInfo}
      */
     static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType0;
+        const $$createField2_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new Contract(/** @type {Partial<Contract>} */($$parsedSource));
+        if ("supported_versions" in $$parsedSource) {
+            $$parsedSource["supported_versions"] = $$createField1_0($$parsedSource["supported_versions"]);
+        }
+        if ("capabilities_by_version" in $$parsedSource) {
+            $$parsedSource["capabilities_by_version"] = $$createField2_0($$parsedSource["capabilities_by_version"]);
+        }
+        return new APIInfo(/** @type {Partial<APIInfo>} */($$parsedSource));
     }
 }
+
+// Private type creation functions
+const $$createType0 = $Create.Array($Create.Any);
+const $$createType1 = $Create.Map($Create.Any, $$createType0);

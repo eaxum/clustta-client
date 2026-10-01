@@ -1,5 +1,5 @@
 <template>
-  <div class="dependency-selector" @click.stop>
+  <div v-if="supportsVersionedDependencies" class="dependency-selector" @click.stop>
     <button class="selector-badge" :class="[`selector-${edge.resolution_mode}`, { 'selector-broken': isBroken }]"
       :disabled="!editable || !triggerOnBadge" type="button" @click="openEditor">
       {{ selectorLabel }}
@@ -17,6 +17,7 @@ import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useUserStore } from '@/stores/users';
+import { VERSIONED_DEPENDENCIES } from '@/lib/apiCapabilities';
 
 const props = defineProps({
   edge: { type: Object, required: true },
@@ -32,6 +33,9 @@ const menu = useMenu();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const userStore = useUserStore();
+const supportsVersionedDependencies = computed(
+  () => projectStore.supportsCapability(VERSIONED_DEPENDENCIES),
+);
 const options = ref({ checkpoints: [], tags: [] });
 const optionsLoaded = ref(false);
 

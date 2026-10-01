@@ -152,7 +152,7 @@ func httpDoAuth(method, url, projectURL string, body []byte) ([]byte, int, error
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
 
-	resp, err := projecthttp.New(agentHTTPClient).DoProject(req, projectURL)
+	resp, err := projecthttp.New(agentHTTPClient).Do(req)
 	if err != nil {
 		return nil, 0, err
 	}

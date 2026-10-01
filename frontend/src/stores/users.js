@@ -1,6 +1,19 @@
 import { defineStore } from "pinia";
 import { UserService, AuthService } from "@/services";
 import { useProjectStore } from "./projects";
+import { PROJECT_PERMISSIONS } from "@/lib/apiCapabilities";
+
+const projectManagementPermissions = new Set([
+  "manage_collection_types",
+  "manage_asset_types",
+  "manage_dependency_types",
+  "manage_statuses",
+  "manage_tags",
+  "manage_workflows",
+  "manage_integrations",
+  "manage_project_settings",
+  "manage_roles",
+]);
 
 export const useUserStore = defineStore("users", {
   state: () => ({
@@ -73,6 +86,12 @@ export const useUserStore = defineStore("users", {
     },
     canDo(action) {
       if (!this.user) {
+        return false;
+      }
+      if (
+        projectManagementPermissions.has(action) &&
+        !useProjectStore().supportsCapability(PROJECT_PERMISSIONS)
+      ) {
         return false;
       }
       if (this.user.role) {

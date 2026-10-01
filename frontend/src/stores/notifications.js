@@ -40,7 +40,7 @@ export const useNotificationStore = defineStore("notifications", {
         const message = successMessage || "Updated successfully";
         this.addNotification(
           `${message}: Saved locally, sync required`,
-          "The remote update was deferred. Sync when the project server is available and compatible.",
+          "The remote update was deferred. Sync when the project server is available.",
           "warning"
         );
       } else if (successMessage && notifyOnSuccess) {

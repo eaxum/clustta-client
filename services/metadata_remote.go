@@ -52,8 +52,8 @@ func canDeferMetadataMutation(err error) bool {
 	if IsMetadataTransportFailure(err) {
 		return true
 	}
-	var rejection *compatibility.Rejection
-	return errors.As(err, &rejection)
+	var unsupportedAPI *compatibility.UnsupportedAPIError
+	return errors.As(err, &unsupportedAPI)
 }
 
 func metadataMutationAllowsLocalFallback(projectPath, table string, ids []string, remoteErr error) (bool, error) {
@@ -138,7 +138,7 @@ func metadataRemoteRequest(method, remoteURL, path string, payload, result any) 
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	auth_service.AttachBearerToken(req)
-	resp, err := projecthttp.New(&http.Client{Timeout: 30 * time.Second}).DoProject(req, remoteURL)
+	resp, err := projecthttp.New(&http.Client{Timeout: 30 * time.Second}).Do(req)
 	if err != nil {
 		var transportError *url.Error
 		if errors.As(err, &transportError) {

@@ -3,6 +3,7 @@ package studio_service
 import (
 	"bytes"
 	"clustta/internal/auth_service"
+	"clustta/internal/compatibility"
 	"clustta/internal/constants"
 	"clustta/internal/projecthttp"
 	"clustta/internal/server/models"
@@ -17,12 +18,14 @@ import (
 
 // StudioInfo represents metadata returned by a studio server's /studio-info endpoint
 type StudioInfo struct {
-	Id           string             `json:"id"`
-	Name         string             `json:"name"`
-	Url          string             `json:"url"`
-	AltUrl       string             `json:"alt_url"`
-	HostingMode  string             `json:"hosting_mode"`
-	Capabilities StudioCapabilities `json:"capabilities"`
+	Id            string                `json:"id"`
+	Name          string                `json:"name"`
+	Url           string                `json:"url"`
+	AltUrl        string                `json:"alt_url"`
+	HostingMode   string                `json:"hosting_mode"`
+	ProjectSchema string                `json:"project_schema"`
+	API           compatibility.APIInfo `json:"api"`
+	Capabilities  StudioCapabilities    `json:"capabilities"`
 }
 
 type StudioCapabilities struct {
@@ -97,6 +100,7 @@ func GetStudioInfo(studioUrl string) (StudioInfo, error) {
 		if info.Url == "" {
 			info.Url = studioUrl
 		}
+		projecthttp.RegisterAPI(studioUrl, info.API)
 
 		return info, nil
 	}
@@ -226,7 +230,7 @@ func StartStorageConversion(studioURL, projectName, targetMode string) (StorageC
 		return StorageConversionState{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	response, err := projecthttp.New(&http.Client{Timeout: 15 * time.Second}).DoProject(req, projectURL)
+	response, err := projecthttp.New(&http.Client{Timeout: 15 * time.Second}).Do(req)
 	if err != nil {
 		return StorageConversionState{}, err
 	}

@@ -1,4 +1,3 @@
-import { parseCompatibilityError } from "@/lib/compatibility";
 import { SyncService } from "@/services";
 import { useNotificationStore } from "@/stores/notifications";
 import { useProjectStore } from "@/stores/projects";
@@ -22,8 +21,6 @@ export function refreshEntitlements() {
 
 // Guard function to check if remote features are available
 function checkRemoteAccess() {
-  const projectStore = useProjectStore();
-  if (projectStore.activeCompatibilityProblem) return false;
   const accountStore = useAccountStore();
   const entitlementStore = useEntitlementStore();
   const notificationStore = useNotificationStore();
@@ -82,7 +79,6 @@ export async function syncData() {
       });
     })
     .catch((error) => {
-      if (parseCompatibilityError(error)) return;
       console.error(error);
       notificationStore.errorNotification("Error Syncing Data", error);
     });
@@ -118,7 +114,6 @@ export async function pullData() {
       });
     })
     .catch((error) => {
-      if (parseCompatibilityError(error)) return;
       console.error(error);
       notificationStore.errorNotification("Error Syncing Data", error);
     });
@@ -146,7 +141,6 @@ export async function updateProject() {
       });
     })
     .catch((error) => {
-      if (parseCompatibilityError(error)) return;
       console.log(error);
     });
 }
@@ -179,7 +173,6 @@ export async function syncFullData() {
       });
     })
     .catch((error) => {
-      if (parseCompatibilityError(error)) return;
       console.error(error);
       notificationStore.errorNotification("Error Syncing Data", error);
     });

@@ -1,13 +1,14 @@
 package services_test
 
 import (
-	"clustta/internal/compatibility"
+	"clustta/internal/auth_service"
 	"clustta/internal/repository"
 	repositorysync "clustta/internal/repository/sync_service"
 	"clustta/services"
 	"encoding/json"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"github.com/zalando/go-keyring"
 	"net/http"
 	"net/http/httptest"
 	"path/filepath"
@@ -78,6 +79,12 @@ func TestPatchMetadataRemoteClassifiesTransportFailure(t *testing.T) {
 }
 
 func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
+	keyring.MockInit()
+	if err := auth_service.AddAccountToken(auth_service.NewOfflineAccountToken()); err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(keyring.MockInit)
+
 	var requests int
 	server := newCompatibleMetadataServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPut || !strings.HasPrefix(r.URL.Path, "/asset-types/") {
@@ -107,6 +114,13 @@ func TestAssetTypeCreateAndUpdateAreRemoteFirst(t *testing.T) {
 		t.Fatal(err)
 	}
 	if _, err = db.Exec(repository.ProjectSchema); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`
+		INSERT INTO role (id, mtime, name, manage_asset_types, synced) VALUES ('admin-role', 1, 'admin', 1, 1);
+		INSERT INTO user (id, mtime, added_at, first_name, last_name, username, email, role_id, synced)
+		VALUES ('offline-user', 1, 1, 'Offline', 'User', 'offline', 'offline@local', 'admin-role', 1);
+	`); err != nil {
 		t.Fatal(err)
 	}
 	if _, err = db.Exec("INSERT INTO config(name,value,mtime) VALUES('remote',?,1)", server.URL+"/project"); err != nil {
@@ -174,13 +188,6 @@ func TestSyncedTombDoesNotDirtyProject(t *testing.T) {
 
 func newCompatibleMetadataServer(next http.Handler) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodGet && r.URL.Path == "/project" {
-			json.NewEncoder(w).Encode(map[string]*compatibility.Contract{"compatibility": compatibility.Current(compatibility.Schema)})
-			return
-		}
-		w.Header().Set(compatibility.ProtocolHeader, compatibility.Protocol)
-		w.Header().Set(compatibility.SchemaHeader, compatibility.Schema)
-		w.Header().Set(compatibility.ProjectSchemaHeader, compatibility.Schema)
 		r.URL.Path = strings.TrimPrefix(r.URL.Path, "/project")
 		next.ServeHTTP(w, r)
 	}))

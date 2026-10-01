@@ -8,9 +8,6 @@ import { Create as $Create } from "@wailsio/runtime";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
-import * as compatibility$0 from "../compatibility/models.js";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
 import * as models$0 from "./models/models.js";
 
 export class CompatTimeline {
@@ -300,20 +297,6 @@ export class ProjectInfo {
      * @param {Partial<ProjectInfo>} [$$source = {}] - The source object to create the ProjectInfo.
      */
     constructor($$source = {}) {
-        if (/** @type {any} */(false)) {
-            /**
-             * @member
-             * @type {string | undefined}
-             */
-            this["local_schema"] = undefined;
-        }
-        if (/** @type {any} */(false)) {
-            /**
-             * @member
-             * @type {compatibility$0.Contract | null | undefined}
-             */
-            this["compatibility"] = undefined;
-        }
         if (!("id" in $$source)) {
             /**
              * @member
@@ -485,14 +468,10 @@ export class ProjectInfo {
      * @returns {ProjectInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField1_0 = $$createType8;
-        const $$createField21_0 = $$createType0;
+        const $$createField19_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        if ("compatibility" in $$parsedSource) {
-            $$parsedSource["compatibility"] = $$createField1_0($$parsedSource["compatibility"]);
-        }
         if ("ignore_list" in $$parsedSource) {
-            $$parsedSource["ignore_list"] = $$createField21_0($$parsedSource["ignore_list"]);
+            $$parsedSource["ignore_list"] = $$createField19_0($$parsedSource["ignore_list"]);
         }
         return new ProjectInfo(/** @type {Partial<ProjectInfo>} */($$parsedSource));
     }
@@ -552,5 +531,3 @@ const $$createType3 = PreLaunchEnvironmentVariable.createFrom;
 const $$createType4 = $Create.Array($$createType3);
 const $$createType5 = PreLaunchHook.createFrom;
 const $$createType6 = $Create.Array($$createType5);
-const $$createType7 = compatibility$0.Contract.createFrom;
-const $$createType8 = $Create.Nullable($$createType7);
