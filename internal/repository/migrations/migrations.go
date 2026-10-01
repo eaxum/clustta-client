@@ -11,7 +11,7 @@ import (
 )
 
 // LatestVersion is the current schema version after all migrations.
-const LatestVersion = "2.3"
+const LatestVersion = "2.2"
 
 // Migration defines a single schema migration step.
 type Migration struct {
@@ -33,8 +33,7 @@ func All() []Migration {
 		{Version: "1.9", Description: "Add manage_share_links permission", Up: MigrateV1_9},
 		{Version: "2.0", Description: "Add project storage tables", Up: MigrateV2_0},
 		{Version: "2.1", Description: "Add pending local path updates", Up: MigrateV2_1},
-		{Version: "2.2", Description: "Add versioned dependencies, checkpoint tags, and sources", Up: MigrateV2_2},
-		{Version: "2.3", Description: "Add project management permissions", Up: MigrateV2_3},
+		{Version: "2.2", Description: "Add versioned dependencies and project management permissions", Up: MigrateV2_2},
 	}
 }
 
@@ -47,6 +46,9 @@ func RunMigrations(db *sqlx.DB, currentVersion string, schema string) error {
 	}
 	if comparison > 0 {
 		return fmt.Errorf("project schema %s is newer than supported schema %s", currentVersion, LatestVersion)
+	}
+	if err := prepareProjectManagementPermissions(db); err != nil {
+		return err
 	}
 	// Earlier migrations reapply the latest schema before the final migration runs.
 	for _, table := range []string{"asset_checkpoint", "task_checkpoint"} {
