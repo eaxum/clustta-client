@@ -30,7 +30,11 @@
 						:isFilteredView="isFilteredView" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
 				</div>
-				<DetailsPane v-if="projectStore.getProjects.length && isWideScreen" :isVisible="panes.showDetailsPane" />
+				<template v-if="projectStore.getProjects.length && isWideScreen">
+					<Transition name="details-pane">
+						<DetailsPane v-show="panes.showDetailsPane" />
+					</Transition>
+				</template>
 			</div>
 		</div>
 		<div v-else ref="assetListContainer" class="browser-root-container kanban-container">
@@ -1661,6 +1665,17 @@ onBeforeUnmount(() => {
 	width: 100%;
 	min-width: 550px;
 	box-sizing: border-box;
+}
+
+.details-pane-enter-active,
+.details-pane-leave-active {
+	transition: opacity .2s ease-out, transform .2s ease-out;
+}
+
+.details-pane-enter-from,
+.details-pane-leave-to {
+	opacity: 0;
+	transform: translateX(2rem);
 }
 
 .dash-board-header {

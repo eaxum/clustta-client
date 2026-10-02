@@ -32,7 +32,7 @@
       :fullWidth="true" :label="$t('common.move')" :buttonFunction="moveToCollection" />
 
     <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && (asset.dependencies.length || asset.collection_dependencies.length)" :icon="getAppIcon('fetch')" :showLabel="true"
-      :fullWidth="true" :label="$t('menus.buildWithDependencies')" shortcut="buildWithDependencies" :buttonFunction="buildWithDependencies" />
+      :fullWidth="true" :label="$t('menus.buildWithDependencies')" :buttonFunction="buildWithDependencies" />
 
     <ActionButton v-if="isRemoteProject && canManageDependencies && !isWebLinkAsset" :icon="getAppIcon('dependency')" :showLabel="true"
       :fullWidth="true" :label="$t('menus.dependencyGraph')" :buttonFunction="goToDependencyGraph" />

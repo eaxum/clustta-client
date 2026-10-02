@@ -1,6 +1,5 @@
 <template>
-  <div ref="detailsPaneRoot" class="details-pane-root" v-stop-propagation
-    :class="{ 'details-pane-collapsed': !isVisible }">
+  <div ref="detailsPaneRoot" class="details-pane-root" v-stop-propagation>
 
 
     <div class="details-pane-inner">
@@ -186,11 +185,6 @@ const statusStore = useStatusStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const { t } = useI18n();
-
-// props
-const props = defineProps({
-  isVisible: Boolean
-});
 
 // constants
 const collectionMode = ['not shared', 'shared'];
@@ -1122,13 +1116,6 @@ onUnmounted(() => {
   overflow: hidden;
   flex: 1 1 50%;
   border-radius: var(--very-large-radius);
-}
-
-.details-pane-collapsed {
-  padding: 0px;
-  min-width: 0px;
-  width: 0px;
-  flex: 0 0 0%;
 }
 
 .pane-header-tabs {
