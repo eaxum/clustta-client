@@ -1,5 +1,5 @@
 <template>
-  <div ref="modalContainer" class="modal-container">
+  <div ref="modalContainer" class="modal-container" v-stop-propagation >
 
     <HeaderArea :title="title" :icon="getAppIcon('stall')" :showSearch="false" />
 
