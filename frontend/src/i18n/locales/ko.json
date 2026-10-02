@@ -1825,7 +1825,19 @@
       "errorAddingDependencies": "의존성 추가 오류",
       "dependencyRemoved": "의존성 제거됨",
       "errorRemovingDependencies": "의존성 제거 오류",
-      "errorBuildingGraph": "의존성 그래프 빌드 오류"
+      "errorBuildingGraph": "의존성 그래프 빌드 오류",
+      "noMoreDependenciesToAdd": "더 이상 추가할 종속성이 없습니다.",
+      "conflicts": "충돌 {count}개 | 충돌 {count}개",
+      "conflict": "충돌",
+      "needsAttention": "확인 필요",
+      "fixSelector": "선택기 수정",
+      "pinnedVersion": "고정됨: {version}",
+      "checkpoint": "체크포인트",
+      "tag": "태그",
+      "latest": "최신",
+      "noMessage": "메시지 없음",
+      "unableToUpdateDependencyVersion": "종속성 버전을 업데이트할 수 없습니다",
+      "searchVersionsPlaceholder": "입력을 시작하세요..."
     },
     "detailsPane": {
       "collections": "컬렉션",

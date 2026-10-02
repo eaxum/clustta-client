@@ -1801,7 +1801,19 @@
       "errorAddingDependencies": "添加依赖项时出错",
       "dependencyRemoved": "依赖项已移除",
       "errorRemovingDependencies": "移除依赖项时出错",
-      "errorBuildingGraph": "构建依赖关系图时出错"
+      "errorBuildingGraph": "构建依赖关系图时出错",
+      "noMoreDependenciesToAdd": "没有更多可添加的依赖项。",
+      "conflicts": "{count} 个冲突 | {count} 个冲突",
+      "conflict": "冲突",
+      "needsAttention": "需要注意",
+      "fixSelector": "修复选择器",
+      "pinnedVersion": "已固定：{version}",
+      "checkpoint": "检查点",
+      "tag": "标签",
+      "latest": "最新",
+      "noMessage": "无消息",
+      "unableToUpdateDependencyVersion": "无法更新依赖项版本",
+      "searchVersionsPlaceholder": "开始输入..."
     },
     "detailsPane": {
       "collections": "集合",

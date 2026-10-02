@@ -1,6 +1,6 @@
 <template>
-  <header class="panel-header">
-    <div class="panel-title">
+  <header class="panel-header" :class="{ 'panel-header-actions-only': !showTitle }">
+    <div v-if="showTitle" class="panel-title">
       <img class="small-icons" :src="icons.getAppIcon(icon)" alt="" />
       <span>{{ title }}</span>
       <span v-if="count !== ''" class="panel-count">[{{ count }}]</span>
@@ -35,6 +35,7 @@ defineProps({
   filterPlaceholder: { type: String, default: '' },
   maximized: { type: Boolean, default: false },
   showMaximize: { type: Boolean, default: true },
+  showTitle: { type: Boolean, default: true },
 });
 defineEmits(['update:modelValue', 'toggle-maximize', 'close']);
 const icons = useIconStore();
@@ -70,6 +71,13 @@ const icons = useIconStore();
   display: flex;
   align-items: center;
   gap: .25rem;
+}
+.panel-header-actions-only .panel-actions {
+  width: 100%;
+}
+.panel-header-actions-only .panel-actions :deep(.searchbar-container) {
+  flex: 1;
+  width: auto;
 }
 .panel-actions :deep(.searchbar-container) {
   height: 28px;

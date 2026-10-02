@@ -2,8 +2,8 @@
   <div class="modal-container dependency-graph-modal-container" v-stop-propagation>
     <div class="dependency-graph-modal-header">
       <div class="dependency-graph-modal-title">
-        <img class="dependency-graph-modal-icon" :src="getAppIcon('dependency')">
-        <span>{{ t('menus.dependencyGraph') }}</span>
+        <img class="dependency-graph-modal-icon small-icons" :class="{ 'no-filter': hasResolvedAssetIcon }" :src="assetIcon">
+        <span>{{ selectedAsset?.name || t('menus.dependencyGraph') }}</span>
       </div>
       <ActionButton :icon="getAppIcon('close')" :showLabel="false" v-tooltip="$t('common.close')" :buttonFunction="closeModal" />
     </div>
@@ -18,6 +18,7 @@
 
 <script setup>
 // imports
+import { ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
@@ -26,11 +27,16 @@ import DependencyGraph from '@/instances/desktop/components/DependencyGraph.vue'
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useAssetStore } from '@/stores/assets';
 import { useIconStore } from '@/stores/icons';
 
 const iconStore = useIconStore();
 const modals = useDesktopModalStore();
+const assetStore = useAssetStore();
 const { t } = useI18n();
+const selectedAsset = ref(assetStore.selectedAsset);
+const assetIcon = ref(iconStore.getAppIcon('dependency'));
+const hasResolvedAssetIcon = ref(false);
 
 // methods
 
@@ -41,6 +47,20 @@ const closeModal = () => {
 
 // Returns the app icon path for the given icon name.
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+
+const loadAssetIcon = async () => {
+  const asset = selectedAsset.value;
+  hasResolvedAssetIcon.value = false;
+  assetIcon.value = getAppIcon(asset?.asset_type_icon || 'dependency');
+  const extension = String(asset?.extension || '').toLowerCase().replace(/^\./, '');
+  if (!extension) return;
+  const resolvedIcon = await iconStore.getIcon(extension);
+  if (!resolvedIcon) return;
+  assetIcon.value = resolvedIcon;
+  hasResolvedAssetIcon.value = true;
+};
+
+watch(() => `${selectedAsset.value?.id || ''}:${selectedAsset.value?.extension || ''}`, loadAssetIcon, { immediate: true });
 </script>
 
 <style scoped>

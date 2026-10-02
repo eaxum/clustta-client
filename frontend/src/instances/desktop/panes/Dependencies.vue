@@ -27,9 +27,8 @@
           <AssetItem :item="dependency" :hideExtension="commonStore.hideExtensions" :showNavigate="true"
             :navigateTooltip="dependency.type === 'collection' ? $t('menus.goToCollection') : $t('menus.goToAsset')"
             @navigate="goToDependency">
-            <template #persistent>
+            <template v-if="dependency.dependencyEdge" #persistent>
               <DependencySelector
-                v-if="dependency.dependencyEdge"
                 :ref="element => setDependencySelectorRef(dependency.id, element)"
                 :edge="dependency.dependencyEdge"
                 :ownerAssetId="selectedAsset.id"
@@ -37,7 +36,6 @@
                 :triggerOnBadge="false"
                 @updated="handleSelectorUpdated"
               />
-              <span v-else class="collection-selector">Latest collection</span>
             </template>
             <template #actions>
               <ActionButton
@@ -696,14 +694,6 @@ onUnmounted(() => {
   color: var(--subtle-text);
   text-transform: uppercase;
   padding: .25rem .5rem;
-}
-
-.collection-selector {
-  padding: .2rem .45rem;
-  border: 1px solid var(--border-color);
-  border-radius: .35rem;
-  color: var(--text-muted);
-  font-size: .68rem;
 }
 
 .dependency-row {

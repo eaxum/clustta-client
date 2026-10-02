@@ -1802,7 +1802,19 @@
       "errorAddingDependencies": "Erreur lors de l'ajout des dépendances",
       "dependencyRemoved": "Dépendance supprimée",
       "errorRemovingDependencies": "Erreur lors de la suppression des dépendances",
-      "errorBuildingGraph": "Erreur lors de la construction du graphe de dépendances"
+      "errorBuildingGraph": "Erreur lors de la construction du graphe de dépendances",
+      "noMoreDependenciesToAdd": "Il n’y a plus de dépendances à ajouter.",
+      "conflicts": "{count} conflit | {count} conflits",
+      "conflict": "Conflit",
+      "needsAttention": "Nécessite une attention",
+      "fixSelector": "Corriger le sélecteur",
+      "pinnedVersion": "Épinglé : {version}",
+      "checkpoint": "checkpoint",
+      "tag": "Étiquette",
+      "latest": "Dernière",
+      "noMessage": "Aucun message",
+      "unableToUpdateDependencyVersion": "Impossible de mettre à jour la version de la dépendance",
+      "searchVersionsPlaceholder": "Commencez à saisir..."
     },
     "detailsPane": {
       "collections": "collections",

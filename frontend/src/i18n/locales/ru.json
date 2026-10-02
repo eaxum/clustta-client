@@ -1801,7 +1801,19 @@
       "errorAddingDependencies": "Ошибка добавления зависимостей",
       "dependencyRemoved": "Зависимость удалена",
       "errorRemovingDependencies": "Ошибка удаления зависимостей",
-      "errorBuildingGraph": "Ошибка построения графа зависимостей"
+      "errorBuildingGraph": "Ошибка построения графа зависимостей",
+      "noMoreDependenciesToAdd": "Больше нет зависимостей для добавления.",
+      "conflicts": "{count} конфликт | {count} конфликта | {count} конфликтов",
+      "conflict": "Конфликт",
+      "needsAttention": "Требует внимания",
+      "fixSelector": "Исправить селектор",
+      "pinnedVersion": "Закреплено: {version}",
+      "checkpoint": "чекпоинт",
+      "tag": "Тег",
+      "latest": "Последняя",
+      "noMessage": "Нет сообщения",
+      "unableToUpdateDependencyVersion": "Не удалось обновить версию зависимости",
+      "searchVersionsPlaceholder": "Начните вводить..."
     },
     "detailsPane": {
       "collections": "коллекции",

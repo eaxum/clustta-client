@@ -1881,7 +1881,19 @@
       "errorAddingDependencies": "Error adding dependencies",
       "dependencyRemoved": "Dependency Removed",
       "errorRemovingDependencies": "Error removing dependencies",
-      "errorBuildingGraph": "Error building dependency graph"
+      "errorBuildingGraph": "Error building dependency graph",
+      "noMoreDependenciesToAdd": "There are no more dependencies to add.",
+      "conflicts": "{count} conflict | {count} conflicts",
+      "conflict": "Conflict",
+      "needsAttention": "Needs attention",
+      "fixSelector": "Fix selector",
+      "pinnedVersion": "Pinned {version}",
+      "checkpoint": "checkpoint",
+      "tag": "Tag",
+      "latest": "Latest",
+      "noMessage": "No message",
+      "unableToUpdateDependencyVersion": "Unable to update dependency version",
+      "searchVersionsPlaceholder": "Start typing..."
     },
     "detailsPane": {
       "collections": "collections",

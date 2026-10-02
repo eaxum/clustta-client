@@ -43,14 +43,17 @@ const menuKey = computed(() => `dependency-selector-${props.edge.id}`);
 const isBroken = computed(() => props.edge.resolution_status && props.edge.resolution_status !== 'ready');
 
 const selectorLabel = computed(() => {
-  if (isBroken.value) return 'Fix selector';
+  if (isBroken.value) return t('components.dependencyGraph.fixSelector');
   if (props.edge.resolution_mode === 'pinned') {
-    return `Pinned ${props.edge.resolved_checkpoint_label || 'checkpoint'}`;
+    const version = utils.capitalizeStr(
+      props.edge.resolved_checkpoint_label || t('components.dependencyGraph.checkpoint'),
+    );
+    return t('components.dependencyGraph.pinnedVersion', { version });
   }
   if (props.edge.resolution_mode === 'tagged') {
-    return props.edge.tag_name || 'Tag';
+    return utils.capitalizeStr(props.edge.tag_name || t('components.dependencyGraph.tag'));
   }
-  return 'Latest';
+  return t('components.dependencyGraph.latest');
 });
 
 const selectedOptionId = computed(() => {
@@ -62,7 +65,7 @@ const selectedOptionId = computed(() => {
 const compactMenuOptions = computed(() => [
   {
     id: 'floating',
-    label: 'Latest',
+    label: t('components.dependencyGraph.latest'),
     icon: iconStore.getAppIcon('clock'),
     mode: 'floating',
     selectorId: '',
@@ -84,7 +87,7 @@ const compactMenuOptions = computed(() => [
     const formattedDate = utils.formatDate(checkpoint.created_at, locale.value);
     return {
       id: `pinned-${checkpoint.id}`,
-      label: checkpoint.comment || 'No message',
+      label: checkpoint.comment || t('components.dependencyGraph.noMessage'),
       description: formattedDate,
       mode: 'pinned',
       selectorId: checkpoint.id,
@@ -108,7 +111,7 @@ const updateSelector = async (option) => {
     emit('updated', updatedEdge);
     return true;
   } catch (error) {
-    notificationStore.errorNotification('Unable to update dependency version', error);
+    notificationStore.errorNotification(t('components.dependencyGraph.unableToUpdateDependencyVersion'), error);
     return false;
   }
 };
@@ -119,7 +122,7 @@ const openEditor = async (event) => {
     key: menuKey.value,
     loading: !optionsLoaded.value,
     searchLoading: !optionsLoaded.value,
-    searchPlaceholder: 'Start typing...',
+    searchPlaceholder: t('components.dependencyGraph.searchVersionsPlaceholder'),
     options: optionsLoaded.value ? compactMenuOptions.value : [],
     selectedId: selectedOptionId.value,
     onSelect: updateSelector,

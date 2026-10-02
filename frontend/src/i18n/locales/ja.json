@@ -1802,7 +1802,19 @@
       "errorAddingDependencies": "依存関係の追加エラー",
       "dependencyRemoved": "依存関係を削除しました",
       "errorRemovingDependencies": "依存関係の削除エラー",
-      "errorBuildingGraph": "依存関係グラフの構築エラー"
+      "errorBuildingGraph": "依存関係グラフの構築エラー",
+      "noMoreDependenciesToAdd": "追加できる依存関係はもうありません。",
+      "conflicts": "{count} 件の競合 | {count} 件の競合",
+      "conflict": "競合",
+      "needsAttention": "確認が必要",
+      "fixSelector": "セレクターを修正",
+      "pinnedVersion": "固定: {version}",
+      "checkpoint": "チェックポイント",
+      "tag": "タグ",
+      "latest": "最新",
+      "noMessage": "メッセージなし",
+      "unableToUpdateDependencyVersion": "依存関係のバージョンを更新できません",
+      "searchVersionsPlaceholder": "入力して検索..."
     },
     "detailsPane": {
       "collections": "コレクション",

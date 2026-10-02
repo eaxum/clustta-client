@@ -37,6 +37,11 @@ function createHarness() {
     graphDisposed: false,
     projectStore: { activeProject: { uri: 'project' } },
     assetStore: { selectedAsset: { id: 'root', name: 'Root', type: 'asset' } },
+    graphRootAsset: ref({ id: 'root', name: 'Root', type: 'asset' }),
+    statusStore: { statuses: [] },
+    utils: { capitalizeStr: value => value },
+    getAppIcon: value => value,
+    canActOnAsset: () => true,
     maxDepth: ref(0),
     FULL_DEPENDENCY_DEPTH: 0,
     isLoadingGraph: ref(false),
@@ -107,9 +112,11 @@ test('draws once with selectors and conflicts after parallel requests finish', a
   assert.equal(harness.renders.length, 1);
   assert.equal(harness.context.getNodes.value.length, 2);
   assert.equal(harness.context.graphData.value.edges.length, 1);
-  assert.equal(harness.context.getNodes.value[1].class, 'dependency-conflict-node');
+  assert.equal(harness.context.getNodes.value[1].data.hasConflict, true);
   assert.equal(harness.context.graphConflictCount.value, 1);
   assert.equal(harness.context.getNodes.value[1].data.dependencyEdge.id, edge.id);
+  assert.equal(harness.context.getNodes.value[0].data.canAdd, true);
+  assert.equal(harness.context.getNodes.value[1].data.canAdd, false);
   assert.equal(harness.context.isLoadingGraph.value, false);
 });
 
@@ -136,6 +143,7 @@ test('late versions cannot overwrite a newer graph', async () => {
   await showRelationships(harness);
   await finishEdges(harness);
   harness.context.assetStore.selectedAsset = { id: 'new-root', name: 'New', type: 'asset' };
+  harness.context.graphRootAsset.value = harness.context.assetStore.selectedAsset;
   const newRequest = harness.context.load();
   harness.relationships.get('new-root').resolve([]);
   await setImmediate();
@@ -145,7 +153,7 @@ test('late versions cannot overwrite a newer graph', async () => {
   harness.versions.get('root').resolve({ ...plan, conflicts: [{ asset_id: 'new-root' }] });
   await oldRequest;
   assert.equal(harness.context.getNodes.value.length, 1);
-  assert.equal(harness.context.getNodes.value[0].data.id, 'new-root');
+  assert.equal(harness.context.getNodes.value[0].data.entityId, 'new-root');
   assert.equal(harness.context.graphConflictCount.value, 0);
   assert.equal(harness.notifications.length, 0);
 });
@@ -168,7 +176,12 @@ for (const fullGraph of [false, true]) {
     const pending = harness.context.load();
     const dependencyIds = ['animation', 'fx', 'fx2'];
     harness.relationships.get('root').resolve(dependencyIds.map(id => ({
-      asset: { id, name: id, type: 'asset' }, parentId: 'root', depth: 1,
+      asset: { id, name: id, type: 'asset' },
+      parentId: 'root',
+      parentIds: !fullGraph
+        ? ['root']
+        : id === 'animation' ? ['root', 'fx'] : id === 'fx2' ? ['root', 'animation'] : ['root'],
+      depth: 1,
     })));
     await setImmediate();
     const directEdges = dependencyIds.map(id => ({ id: `root-${id}`, asset_id: 'root', dependency_id: id, resolution_mode: 'floating' }));
@@ -185,9 +198,22 @@ for (const fullGraph of [false, true]) {
     await pending;
     await nextTick();
     const drawnEdges = harness.context.graphData.value.edges;
-    assert.equal(drawnEdges.filter(item => item.source === 'asset-root').length, 3);
-    assert.equal(drawnEdges.length, fullGraph ? 5 : 3);
+    assert.equal(drawnEdges.filter(item => item.source === 'root-root').length, 3);
+    assert.equal(drawnEdges.length, fullGraph ? 6 : 3);
+    assert.equal(
+      drawnEdges.every(item => item.sourceHandle === 'output' && item.targetHandle === 'input'),
+      true
+    );
     assert.equal(harness.context.graphConflictCount.value, 0);
+    if (fullGraph) {
+      const animationNodes = harness.context.graphData.value.nodes
+        .filter(item => item.data.entityId === 'animation');
+      assert.equal(animationNodes.length, 2);
+      assert.deepEqual(
+        Array.from(animationNodes, item => item.data.dependencyEdge.id).sort(),
+        ['fx-animation', 'root-animation'],
+      );
+    }
   });
 }
 
@@ -202,7 +228,11 @@ test('full graph preserves every owner of a shared collection', async () => {
   await finishEdges(harness);
   harness.versions.get('root').resolve(plan);
   await pending;
-  const collectionEdges = harness.context.graphData.value.edges.filter(item => item.target === 'collection-group');
+  const collectionNodes = harness.context.graphData.value.nodes.filter(item => item.data.entityId === 'group');
+  assert.equal(collectionNodes.length, 2);
+  assert.equal(collectionNodes.every(item => item.data.versionLabel === ''), true);
+  const collectionNodeIds = new Set(collectionNodes.map(item => item.id));
+  const collectionEdges = harness.context.graphData.value.edges.filter(item => collectionNodeIds.has(item.target));
   assert.equal(collectionEdges.length, 2);
-  assert.deepEqual(Array.from(collectionEdges, item => item.source).sort(), ['asset-child', 'asset-root']);
+  assert.equal(collectionNodes.every(item => item.data.hasIncoming && !item.data.hasOutgoing), true);
 });

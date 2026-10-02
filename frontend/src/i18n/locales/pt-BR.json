@@ -1801,7 +1801,19 @@
       "errorAddingDependencies": "Erro ao adicionar dependências",
       "dependencyRemoved": "Dependência Removida",
       "errorRemovingDependencies": "Erro ao remover dependências",
-      "errorBuildingGraph": "Erro ao construir gráfico de dependências"
+      "errorBuildingGraph": "Erro ao construir gráfico de dependências",
+      "noMoreDependenciesToAdd": "Não há mais dependências para adicionar.",
+      "conflicts": "{count} conflito | {count} conflitos",
+      "conflict": "Conflito",
+      "needsAttention": "Requer atenção",
+      "fixSelector": "Corrigir seletor",
+      "pinnedVersion": "Fixado: {version}",
+      "checkpoint": "checkpoint",
+      "tag": "Tag",
+      "latest": "Mais recente",
+      "noMessage": "Sem mensagem",
+      "unableToUpdateDependencyVersion": "Não foi possível atualizar a versão da dependência",
+      "searchVersionsPlaceholder": "Comece a digitar..."
     },
     "detailsPane": {
       "collections": "coleções",

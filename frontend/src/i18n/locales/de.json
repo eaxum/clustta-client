@@ -1802,7 +1802,19 @@
       "errorAddingDependencies": "Fehler beim Hinzufügen der Abhängigkeiten",
       "dependencyRemoved": "Abhängigkeit entfernt",
       "errorRemovingDependencies": "Fehler beim Entfernen der Abhängigkeiten",
-      "errorBuildingGraph": "Fehler beim Erstellen des Abhängigkeitsgraphen"
+      "errorBuildingGraph": "Fehler beim Erstellen des Abhängigkeitsgraphen",
+      "noMoreDependenciesToAdd": "Es gibt keine weiteren Abhängigkeiten hinzuzufügen.",
+      "conflicts": "{count} Konflikt | {count} Konflikte",
+      "conflict": "Konflikt",
+      "needsAttention": "Aufmerksamkeit erforderlich",
+      "fixSelector": "Selektor reparieren",
+      "pinnedVersion": "Fixiert: {version}",
+      "checkpoint": "Checkpoint",
+      "tag": "Tag",
+      "latest": "Neueste",
+      "noMessage": "Keine Nachricht",
+      "unableToUpdateDependencyVersion": "Abhängigkeitsversion konnte nicht aktualisiert werden",
+      "searchVersionsPlaceholder": "Tippen, um Versionen zu suchen..."
     },
     "detailsPane": {
       "collections": "Sammlungen",

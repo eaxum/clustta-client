@@ -1801,7 +1801,19 @@
       "errorAddingDependencies": "डिपेंडेंसी जोड़ने में त्रुटि",
       "dependencyRemoved": "डिपेंडेंसी हटाई गई",
       "errorRemovingDependencies": "डिपेंडेंसी हटाने में त्रुटि",
-      "errorBuildingGraph": "डिपेंडेंसी ग्राफ़ बनाने में त्रुटि"
+      "errorBuildingGraph": "डिपेंडेंसी ग्राफ़ बनाने में त्रुटि",
+      "noMoreDependenciesToAdd": "अब जोड़ने के लिए और कोई डिपेंडेंसी नहीं है।",
+      "conflicts": "{count} टकराव | {count} टकराव",
+      "conflict": "टकराव",
+      "needsAttention": "ध्यान आवश्यक",
+      "fixSelector": "चयनकर्ता ठीक करें",
+      "pinnedVersion": "पिन किया गया: {version}",
+      "checkpoint": "चेकपॉइंट",
+      "tag": "टैग",
+      "latest": "नवीनतम",
+      "noMessage": "कोई संदेश नहीं",
+      "unableToUpdateDependencyVersion": "डिपेंडेंसी वर्ज़न अपडेट नहीं किया जा सका",
+      "searchVersionsPlaceholder": "टाइप करना शुरू करें..."
     },
     "detailsPane": {
       "collections": "कलेक्शन",
