@@ -92,7 +92,7 @@ const handleChange = () => {
   width: var(--checkbox-size);
   height: var(--checkbox-size);
   box-sizing: border-box;
-  border-radius: 10px;
+  border-radius: 7px;
   background-color: var(--surface-1);
   transition: all 0.2s ease-in-out;
   border: 1.5px solid var(--border-strong);
