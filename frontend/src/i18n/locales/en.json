@@ -1860,6 +1860,8 @@
     },
     "dependencyGraph": {
       "fullGraph": "Full graph",
+      "collectionContents": "Collection contents",
+      "assetCount": "{count} Assets",
       "hideThumbnails": "Hide Thumbnails",
       "showThumbnails": "Show Thumbnails",
       "toggleAssetsDisplay": "Toggle Assets Display",

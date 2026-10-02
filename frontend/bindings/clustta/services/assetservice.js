@@ -424,14 +424,15 @@ export function GetDependencySelectorOptions(projectPath, dependencyId) {
 }
 
 /**
- * GetRecursiveDependencies returns visible dependencies; nonpositive depth expands the complete graph and collection contents.
+ * GetRecursiveDependencies returns visible dependencies and optional collection contents.
  * @param {string} projectPath
  * @param {string} assetId
  * @param {number} maxDepth
+ * @param {boolean} includeCollectionContents
  * @returns {$CancellablePromise<any[]>}
  */
-export function GetRecursiveDependencies(projectPath, assetId, maxDepth) {
-    return $Call.ByID(2219419678, projectPath, assetId, maxDepth).then(/** @type {($result: any) => any} */(($result) => {
+export function GetRecursiveDependencies(projectPath, assetId, maxDepth, includeCollectionContents) {
+    return $Call.ByID(2219419678, projectPath, assetId, maxDepth, includeCollectionContents).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType6($result);
     }));
 }

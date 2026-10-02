@@ -729,7 +729,8 @@
         "params": [
           "projectPath:string",
           "assetId:string",
-          "maxDepth:int"
+          "maxDepth:int",
+          "includeCollectionContents:bool"
         ],
         "returns": [
           "[]interface{}",

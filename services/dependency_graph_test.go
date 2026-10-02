@@ -26,12 +26,13 @@ func TestRecursiveDependenciesDirectAndFullGraph(t *testing.T) {
         INSERT INTO collection (id, created_at, mtime, name, collection_type_id, parent_id)
         VALUES ('group', 1, 1, 'Group', 'collection-type', ''), ('nested', 1, 1, 'Nested', 'collection-type', 'group');
     `)
-	for _, id := range []string{"root", "a", "b", "c", "d", "e", "member", "external", "trashed", "hidden"} {
+	for _, id := range []string{"root", "a", "b", "c", "d", "e", "member", "external", "direct-1", "direct-2", "direct-3", "direct-4", "trashed", "hidden"} {
 		db.MustExec(`INSERT INTO asset (id, created_at, mtime, name, extension, status_id, asset_type_id)
             VALUES (?, 1, 1, ?, '.blend', 'status', 'type')`, id, id)
 	}
 	db.MustExec("UPDATE collection SET description = ''")
 	db.MustExec("UPDATE asset SET collection_id = 'nested' WHERE id = 'member'")
+	db.MustExec("UPDATE asset SET collection_id = 'group' WHERE id LIKE 'direct-%'")
 	db.MustExec("UPDATE asset SET trashed = 1 WHERE id = 'trashed'")
 	for _, edge := range [][2]string{{"root", "a"}, {"a", "b"}, {"b", "c"}, {"c", "d"}, {"d", "e"}, {"e", "root"}, {"member", "external"}, {"root", "trashed"}, {"trashed", "hidden"}} {
 		db.MustExec(`INSERT INTO asset_dependency (id, mtime, asset_id, dependency_id, dependency_type_id)
@@ -42,15 +43,18 @@ func TestRecursiveDependenciesDirectAndFullGraph(t *testing.T) {
 
 	service := AssetService{}
 	for _, scenario := range []struct {
-		name     string
-		depth    int
-		expected []string
+		name                      string
+		depth                     int
+		includeCollectionContents bool
+		expected                  []string
 	}{
 		{name: "direct", depth: 1, expected: []string{"a", "group"}},
-		{name: "full", depth: 0, expected: []string{"a", "b", "c", "d", "e", "group", "nested", "member", "external"}},
+		{name: "direct with collection contents", depth: 1, includeCollectionContents: true, expected: []string{"a", "group", "nested", "member"}},
+		{name: "full", depth: 0, expected: []string{"a", "b", "c", "d", "e", "group"}},
+		{name: "full with collection contents", depth: 0, includeCollectionContents: true, expected: []string{"a", "b", "c", "d", "e", "group", "nested", "member", "external"}},
 	} {
 		t.Run(scenario.name, func(t *testing.T) {
-			items, err := service.GetRecursiveDependencies(projectPath, "root", scenario.depth)
+			items, err := service.GetRecursiveDependencies(projectPath, "root", scenario.depth, scenario.includeCollectionContents)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -76,19 +80,27 @@ func TestRecursiveDependenciesDirectAndFullGraph(t *testing.T) {
 					t.Fatalf("missing dependency %s", id)
 				}
 			}
-			if scenario.depth == 1 {
+			if scenario.depth == 1 && !scenario.includeCollectionContents {
 				for _, item := range byID {
 					if item["depth"] != 1 || item["parentId"] != "root" {
 						t.Fatalf("unexpected direct relationship: %+v", item)
 					}
 				}
-			} else {
+			} else if scenario.depth == 0 {
 				if byID["e"]["depth"] != 5 {
 					t.Fatalf("expected dependency beyond four levels: %+v", byID["e"])
 				}
 				parents := byID["group"]["parentIds"].([]string)
 				if !slices.Contains(parents, "root") || !slices.Contains(parents, "a") {
 					t.Fatalf("missing shared collection relationships: %v", parents)
+				}
+			}
+			if group := byID["group"]; group["directAssetCount"] != 4 {
+				t.Fatalf("unexpected direct asset count: %v", group["directAssetCount"])
+			}
+			if scenario.includeCollectionContents {
+				if group := byID["group"]; group["collapsedAssetCount"] != 4 {
+					t.Fatalf("unexpected collapsed asset count: %v", group["collapsedAssetCount"])
 				}
 			}
 		})

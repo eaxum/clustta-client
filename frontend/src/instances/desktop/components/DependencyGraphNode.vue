@@ -1,35 +1,40 @@
 <template>
   <div class="dependency-graph-node" :class="{
-    'dependency-graph-node-collection': isCollection,
+    'dependency-graph-node-collection': isSingleRow,
+    'dependency-graph-node-stack': data.isAssetStack,
     'dependency-graph-node-conflict': data.hasConflict,
   }">
     <Handle v-if="data.hasIncoming" class="dependency-node-handle dependency-node-handle-input"
       id="input" type="target" :position="Position.Left" />
     <Handle v-if="data.hasOutgoing" class="dependency-node-handle dependency-node-handle-output"
       id="output" type="source" :position="Position.Right" />
+    <div v-if="data.isAssetStack" class="dependency-node-stack-surface" aria-hidden="true"></div>
 
     <div class="dependency-node-primary">
       <img class="dependency-node-icon small-icons" :class="{ 'no-filter': hasResolvedIcon }" :src="displayIcon">
       <span class="dependency-node-name" v-tooltip="data.path || data.name">{{ data.name }}</span>
       <div class="dependency-node-version">
-        <DependencySelector v-if="data.dependencyEdge" :edge="data.dependencyEdge"
+        <DependencySelector v-if="data.dependencyEdge && !isCollectionTarget" :edge="data.dependencyEdge"
           :ownerAssetId="data.dependencyEdge.asset_id" :editable="data.canEditSelector"
           @updated="emit('selectorUpdated')" />
+        <span v-else-if="data.itemCountLabel" class="dependency-node-item-count">
+          {{ data.itemCountLabel }}
+        </span>
         <span v-else-if="data.versionLabel" class="dependency-node-version-label">
           {{ data.versionLabel }}
         </span>
       </div>
       <ActionButton v-if="data.canAdd" :icon="getAppIcon('plus-circle')"
         v-tooltip="$t('components.virtualNode.addDependency')" @click="emit('add', data)" />
-      <div v-if="isCollection || data.canRemove" class="dependency-node-actions">
-        <ActionButton v-if="isCollection" :icon="getAppIcon('file-search')"
+      <div v-if="isCollectionTarget || data.canRemove" class="dependency-node-actions">
+        <ActionButton v-if="isCollectionTarget" :icon="getAppIcon('file-search')"
           v-tooltip="navigationTooltip" @click="emit('navigate', data)" />
         <ActionButton v-if="data.canRemove" :icon="getAppIcon('minus-circle')"
           v-tooltip="$t('components.virtualNode.remove')" @click="emit('remove', data)" />
       </div>
     </div>
 
-    <div v-if="!isCollection" class="dependency-node-secondary">
+    <div v-if="!isSingleRow" class="dependency-node-secondary">
       <button v-if="primaryAssignee" class="dependency-node-assignee" type="button"
         :disabled="!data.canAssign" v-tooltip="primaryAssigneeName" @click="emit('assign', data, $event)">
         <img v-if="primaryAssignee.photo" class="dependency-node-avatar" :src="primaryAssignee.photo">
@@ -85,13 +90,15 @@ const primaryAssignee = computed(() => {
 });
 const primaryAssigneeName = computed(() => primaryAssignee.value ? getUserName(primaryAssignee.value) : '');
 const isCollection = computed(() => props.data.entityType === 'collection');
-const navigationTooltip = computed(() => t(props.data.entityType === 'collection' ? 'menus.goToCollection' : 'menus.goToAsset'));
+const isCollectionTarget = computed(() => isCollection.value || props.data.entityType === 'collection-assets');
+const isSingleRow = computed(() => isCollectionTarget.value);
+const navigationTooltip = computed(() => t(isCollectionTarget.value ? 'menus.goToCollection' : 'menus.goToAsset'));
 const displayIcon = computed(() => resolvedExtensionIcon.value || props.data.icon || getAppIcon('file'));
 const hasResolvedIcon = computed(() => !!resolvedExtensionIcon.value);
 
 const loadExtensionIcon = async () => {
   resolvedExtensionIcon.value = '';
-  if (props.data.entityType === 'collection' || !props.data.extension) return;
+  if (isCollectionTarget.value || !props.data.extension) return;
   const extension = String(props.data.extension).toLowerCase().replace(/^\./, '');
   resolvedExtensionIcon.value = await iconStore.getIcon(extension) || '';
 };
@@ -133,6 +140,78 @@ watch(() => `${props.data.entityId}:${props.data.extension}`, loadExtensionIcon,
   gap: 0;
   padding-top: .55rem;
   padding-bottom: .55rem;
+}
+
+.dependency-graph-node-stack {
+  --stack-card-offset: 10px;
+  --stack-card-inset: 4px;
+  background-color: transparent;
+  isolation: isolate;
+  margin-bottom: calc(var(--stack-card-offset) * 2);
+  outline: none;
+}
+
+.dependency-graph-node-stack:hover {
+  background-color: transparent;
+  outline: none;
+}
+
+.dependency-graph-node-stack::before,
+.dependency-graph-node-stack::after {
+  position: absolute;
+  height: 100%;
+  border-radius: var(--large-radius);
+  background-color: var(--surface-2);
+  content: '';
+  outline: 1px solid var(--surface-4);
+  transition: border-radius .2s ease-out, background-color .2s ease-out, outline-color .2s ease-out;
+}
+
+.dependency-graph-node-stack:hover::before,
+.dependency-graph-node-stack:hover::after {
+  border-radius: var(--small-radius);
+  background-color: var(--surface-3);
+  outline-color: var(--surface-4);
+}
+
+.dependency-graph-node-stack::before {
+  z-index: 1;
+  top: var(--stack-card-offset);
+  right: var(--stack-card-inset);
+  left: var(--stack-card-inset);
+}
+
+.dependency-graph-node-stack::after {
+  z-index: 0;
+  top: calc(var(--stack-card-offset) * 2);
+  right: calc(var(--stack-card-inset) * 2);
+  left: calc(var(--stack-card-inset) * 2);
+}
+
+.dependency-node-stack-surface {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  border-radius: var(--large-radius);
+  background-color: var(--surface-2);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+  transition: border-radius .2s ease-out, background-color .2s ease-out, outline-color .2s ease-out;
+}
+
+.dependency-graph-node-stack:hover .dependency-node-stack-surface {
+  border-radius: var(--small-radius);
+  background-color: var(--surface-3);
+  outline: 1px solid var(--surface-4);
+}
+
+.dependency-graph-node-stack .dependency-node-primary {
+  position: relative;
+  z-index: 3;
+}
+
+.dependency-graph-node-stack :deep(.dependency-node-handle) {
+  z-index: 3;
 }
 
 :deep(.dependency-node-handle) {
@@ -184,6 +263,7 @@ watch(() => `${props.data.entityId}:${props.data.extension}`, loadExtensionIcon,
 }
 
 .dependency-node-version-label,
+.dependency-node-item-count,
 .dependency-node-warning {
   padding: .18rem .4rem;
   border-radius: var(--small-radius);
@@ -192,6 +272,19 @@ watch(() => `${props.data.entityId}:${props.data.extension}`, loadExtensionIcon,
   font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.dependency-node-item-count {
+  max-width: 100px;
+  overflow: hidden;
+  transition: max-width .2s ease-in-out, opacity .2s ease-out;
+}
+
+.dependency-graph-node-collection:hover .dependency-node-item-count {
+  max-width: 0;
+  padding-right: 0;
+  padding-left: 0;
+  opacity: 0;
 }
 
 .dependency-node-status {

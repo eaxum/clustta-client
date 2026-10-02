@@ -2187,8 +2187,10 @@ func (t *AssetService) GetAssetDependencies(projectPath string, assetIds []strin
 	return result, nil
 }
 
-// GetRecursiveDependencies returns visible dependencies; nonpositive depth expands the complete graph and collection contents.
-func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId string, maxDepth int) ([]interface{}, error) {
+// GetRecursiveDependencies returns visible dependencies and optional collection contents.
+func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId string, maxDepth int, includeCollectionContents bool) ([]interface{}, error) {
+	const expandedCollectionAssetLimit = 3
+
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return []interface{}{}, err
@@ -2244,41 +2246,49 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 	dependenciesMap := make(map[string]DependencyInfo) // track dependency info
 
 	activeIds := make(map[string]bool)
-	children := make(map[string][]string)
+	collectionIds := make(map[string]bool)
+	dependencyChildren := make(map[string][]string)
+	collectionChildren := make(map[string][]string)
+	directAssetCounts := make(map[string]int)
 	for _, asset := range allAssetInfo {
 		activeIds[asset.Id] = true
-		if maxDepth <= 0 && asset.CollectionId != "" {
-			children[asset.CollectionId] = append(children[asset.CollectionId], asset.Id)
+		if asset.CollectionId != "" {
+			directAssetCounts[asset.CollectionId]++
+			if includeCollectionContents {
+				collectionChildren[asset.CollectionId] = append(collectionChildren[asset.CollectionId], asset.Id)
+			}
 		}
 	}
 	for _, collection := range allCollectionInfo {
 		activeIds[collection.Id] = true
-		if maxDepth <= 0 && collection.ParentId != "" {
-			children[collection.ParentId] = append(children[collection.ParentId], collection.Id)
+		collectionIds[collection.Id] = true
+		if includeCollectionContents && collection.ParentId != "" {
+			collectionChildren[collection.ParentId] = append(collectionChildren[collection.ParentId], collection.Id)
 		}
 	}
 	for _, dependency := range allAssetDependencies {
-		children[dependency.AssetId] = append(children[dependency.AssetId], dependency.DependencyId)
+		dependencyChildren[dependency.AssetId] = append(dependencyChildren[dependency.AssetId], dependency.DependencyId)
 	}
 	for _, dependency := range allCollectionDependencies {
-		children[dependency.AssetId] = append(children[dependency.AssetId], dependency.DependencyId)
+		dependencyChildren[dependency.AssetId] = append(dependencyChildren[dependency.AssetId], dependency.DependencyId)
 	}
 
 	parentIds := make(map[string][]string)
-	queue := []DependencyInfo{{ID: assetId}}
+	type queuedDependency struct {
+		DependencyInfo
+		DependencyDepth int
+	}
+	queue := []queuedDependency{{DependencyInfo: DependencyInfo{ID: assetId}}}
 	visited := map[string]bool{assetId: true}
 	for index := 0; index < len(queue); index++ {
 		current := queue[index]
-		if maxDepth > 0 && current.Depth >= maxDepth {
-			continue
-		}
-		for _, dependencyId := range children[current.ID] {
+		addChild := func(dependencyId string, dependencyDepth int) {
 			if !activeIds[dependencyId] || dependencyId == assetId {
-				continue
+				return
 			}
 			parentIds[dependencyId] = append(parentIds[dependencyId], current.ID)
 			if visited[dependencyId] {
-				continue
+				return
 			}
 			visited[dependencyId] = true
 			dependency := DependencyInfo{
@@ -2287,7 +2297,23 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 				ParentID: current.ID,
 			}
 			dependenciesMap[dependencyId] = dependency
-			queue = append(queue, dependency)
+			queue = append(queue, queuedDependency{
+				DependencyInfo:  dependency,
+				DependencyDepth: dependencyDepth,
+			})
+		}
+		if maxDepth <= 0 || current.DependencyDepth < maxDepth {
+			for _, dependencyId := range dependencyChildren[current.ID] {
+				addChild(dependencyId, current.DependencyDepth+1)
+			}
+		}
+		if includeCollectionContents && collectionIds[current.ID] {
+			for _, childId := range collectionChildren[current.ID] {
+				if directAssetCounts[current.ID] > expandedCollectionAssetLimit && !collectionIds[childId] {
+					continue
+				}
+				addChild(childId, current.DependencyDepth)
+			}
 		}
 	}
 
@@ -2371,12 +2397,22 @@ func (t *AssetService) GetRecursiveDependencies(projectPath string, assetId stri
 		// Add depth and parent information to collections
 		for _, collection := range collections {
 			depInfo := dependenciesMap[collection.Id]
+			collapsedAssetCount := 0
+			if includeCollectionContents && directAssetCounts[collection.Id] > expandedCollectionAssetLimit {
+				for _, childID := range collectionChildren[collection.Id] {
+					if !collectionIds[childID] && !visited[childID] {
+						collapsedAssetCount++
+					}
+				}
+			}
 			collectionWithDepth := map[string]interface{}{
-				"collection": collection,
-				"depth":      depInfo.Depth,
-				"parentId":   depInfo.ParentID,
-				"parentIds":  parentIds[collection.Id],
-				"type":       "collection",
+				"collapsedAssetCount": collapsedAssetCount,
+				"collection":          collection,
+				"depth":               depInfo.Depth,
+				"directAssetCount":    directAssetCounts[collection.Id],
+				"parentId":            depInfo.ParentID,
+				"parentIds":           parentIds[collection.Id],
+				"type":                "collection",
 			}
 			result = append(result, collectionWithDepth)
 		}

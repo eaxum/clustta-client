@@ -8,9 +8,15 @@
         <div v-if="graphConflictCount" class="dependency-conflict-count">
           {{ $t('components.dependencyGraph.conflicts', { count: graphConflictCount }) }}
         </div>
-        <div class="dependency-toggle-container">
-          <div class="input-label"> {{ $t('components.dependencyGraph.fullGraph') }}</div>
-          <ToggleSwitch :switchValueProp="useMaxDepth" @click="changeDepth()" />
+        <div class="dependency-toggles">
+          <div class="dependency-toggle-container">
+            <div class="input-label"> {{ $t('components.dependencyGraph.collectionContents') }}</div>
+            <ToggleSwitch :switchValueProp="showCollectionContents" @click="changeCollectionContents()" />
+          </div>
+          <div class="dependency-toggle-container">
+            <div class="input-label"> {{ $t('components.dependencyGraph.fullGraph') }}</div>
+            <ToggleSwitch :switchValueProp="useMaxDepth" @click="changeDepth()" />
+          </div>
         </div>
       </div>
       <div class="asset-graph-container">
@@ -55,7 +61,7 @@
 
 <script setup>
 // imports
-import { ref, computed, onMounted, watch, nextTick, markRaw, onUnmounted, reactive } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { useI18n } from 'vue-i18n';
 import dagre from '@dagrejs/dagre'
 import { AssetService, CollectionService } from "@/services";
@@ -66,9 +72,6 @@ import { canActOnAsset } from '@/lib/permissions';
 // vue flow
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background';
-import { MiniMap } from '@vue-flow/minimap';
-import { Controls } from '@vue-flow/controls';
-import { useNodesInitialized } from '@vue-flow/core'
 
 // styles
 import '@vue-flow/core/dist/style.css';
@@ -112,6 +115,7 @@ const { t } = useI18n();
 
 // refs
 const useMaxDepth = ref(false);
+const showCollectionContents = ref(true);
 const graphElements = ref([]);
 const noDragClassName = 'no-drag';
 const sidebarAssets = ref([]);
@@ -135,6 +139,7 @@ const nodeStyle = smoothNode ? 'smoothstep' : '';
 // computed props
 const DIRECT_DEPENDENCY_DEPTH = 1;
 const FULL_DEPENDENCY_DEPTH = 0;
+const COLLECTION_ASSET_COLLAPSE_THRESHOLD = 3;
 const maxDepth = computed(() => useMaxDepth.value ? FULL_DEPENDENCY_DEPTH : DIRECT_DEPENDENCY_DEPTH);
 const canManageDependencies = computed(() => canActOnAsset('manage_dependencies', graphRootAsset.value));
 
@@ -200,6 +205,14 @@ const changeDepth = async () => {
   })
 };
 
+const changeCollectionContents = async () => {
+  showCollectionContents.value = !showCollectionContents.value;
+  await buildGraphFromDependencies();
+  nextTick(() => {
+    fitViewToAllNodes(true);
+  });
+};
+
 const fitViewToAllNodes = (useDelay = false) => {
   const timeOut = useDelay ? 400 : 0;
   setTimeout(() => {
@@ -259,17 +272,28 @@ const buildGraphFromDependencies = async () => {
   const graphPlanPromise = fullGraph ? loadGraphPlan() : Promise.resolve({ plan: { entries: [], conflicts: [] } });
 
   try {
-    const dependencyItems = await AssetService.GetRecursiveDependencies(projectPath, selectedAsset.id, depth);
+    const dependencyItems = await AssetService.GetRecursiveDependencies(
+      projectPath,
+      selectedAsset.id,
+      depth,
+      showCollectionContents.value,
+    );
     if (!isCurrentRequest()) return;
 
     const entitiesById = new Map([[selectedAsset.id, selectedAsset]]);
     const entityTypesById = new Map([[selectedAsset.id, 'asset']]);
+    const directAssetCountsByCollectionId = new Map();
+    let collapsedAssetCount = 0;
     const relationshipsByParentId = new Map();
     dependencyItems.forEach(item => {
       const entity = item.asset || item.collection || item;
       const entityType = item.collection ? 'collection' : 'asset';
       entitiesById.set(entity.id, entity);
       entityTypesById.set(entity.id, entityType);
+      if (entityType === 'collection') {
+        directAssetCountsByCollectionId.set(entity.id, item.directAssetCount || 0);
+        collapsedAssetCount += item.collapsedAssetCount || 0;
+      }
       const parentIds = item.parentIds?.length ? item.parentIds : [item.parentId || selectedAsset.id];
       parentIds.forEach(parentId => {
         if (!relationshipsByParentId.has(parentId)) relationshipsByParentId.set(parentId, []);
@@ -327,6 +351,9 @@ const buildGraphFromDependencies = async () => {
         assigneeName: entity.assignee_name || '',
         dependencyEdge,
         versionLabel: '',
+        itemCountLabel: entityType === 'collection'
+          ? t('blocks.itemCount', directAssetCountsByCollectionId.get(entity.id) || 0)
+          : '',
         depth: occurrenceDepth,
         hasIncoming: occurrenceDepth > 0,
         hasOutgoing: false,
@@ -340,6 +367,58 @@ const buildGraphFromDependencies = async () => {
         canRemove: !!relationship && occurrenceDepth === 1 && canManageDependencies.value,
         ownerAssetId: relationship?.parentEntityId || '',
       };
+    };
+
+    const isDirectCollectionContent = (collectionId, relationship) => {
+      const child = entitiesById.get(relationship.childId);
+      if (!child) return false;
+      if (relationship.entityType === 'collection') return child.parent_id === collectionId;
+      return child.collection_id === collectionId;
+    };
+
+    const addCollectionAssetStack = (collection, collectionNodeId, occurrenceDepth, assetCount) => {
+      const nodeId = `collection-assets-${occurrenceIndex++}-${collection.id}`;
+      nodes.push({
+        id: nodeId,
+        label: t('components.dependencyGraph.assetCount', { count: assetCount }),
+        position: { x: 0, y: 0 },
+        type: 'custom',
+        data: {
+          rawEntity: collection,
+          entityId: collection.id,
+          entityType: 'collection-assets',
+          name: t('components.dependencyGraph.assetCount', { count: assetCount }),
+          path: collection.collection_path || collection.name,
+          extension: '',
+          icon: getAppIcon('file'),
+          statusLabel: '',
+          statusColor: '',
+          assigneeId: '',
+          assigneeName: '',
+          dependencyEdge: null,
+          versionLabel: '',
+          itemCountLabel: '',
+          depth: occurrenceDepth + 1,
+          hasIncoming: true,
+          hasOutgoing: false,
+          hasConflict: false,
+          warning: '',
+          canAssign: false,
+          canAdd: false,
+          canEditSelector: false,
+          canRemove: false,
+          ownerAssetId: collection.id,
+          isAssetStack: true,
+        },
+      });
+      edges.push({
+        id: `collection-assets-${collectionNodeId}-${nodeId}`,
+        source: collectionNodeId,
+        target: nodeId,
+        sourceHandle: 'output',
+        targetHandle: 'input',
+        type: nodeStyle,
+      });
     };
 
     const addOccurrence = (entityId, parentNodeId, relationship, pathIds, occurrenceDepth) => {
@@ -367,7 +446,20 @@ const buildGraphFromDependencies = async () => {
       }
 
       const childRelationships = relationshipsByParentId.get(entityId) || [];
+      const directAssetCount = entityType === 'collection'
+        ? directAssetCountsByCollectionId.get(entityId) || 0
+        : 0;
+      const shouldCollapseAssets = showCollectionContents.value
+        && directAssetCount > COLLECTION_ASSET_COLLAPSE_THRESHOLD;
+      if (shouldCollapseAssets) {
+        addCollectionAssetStack(entity, nodeId, occurrenceDepth, directAssetCount);
+      }
       for (const childRelationship of childRelationships) {
+        const isCollectionContent = entityType === 'collection'
+          && isDirectCollectionContent(entityId, childRelationship);
+        if (isCollectionContent && childRelationship.entityType === 'asset' && shouldCollapseAssets) {
+          continue;
+        }
         if (pathIds.has(childRelationship.childId)) continue;
         const dependencyEdge = selectorEdgesByPair.get(`${entityId}:${childRelationship.childId}`) || null;
         const nextPathIds = new Set(pathIds);
@@ -386,7 +478,7 @@ const buildGraphFromDependencies = async () => {
 
     addOccurrence(selectedAsset.id, '', null, new Set([selectedAsset.id]), 0);
     dependencies.value = dependencyItems.map(item => (item.asset || item.collection || item).id);
-    totalAssetDepsCount.value = dependencyItems.length;
+    totalAssetDepsCount.value = dependencyItems.length + collapsedAssetCount;
     graphConflictCount.value = graphPlan.conflicts.length;
     graphData.value = { nodes, edges };
   } catch (error) {
@@ -408,6 +500,7 @@ const handleGraphSelectorUpdated = async () => {
 const NODE_WIDTH = 310;
 const ASSET_NODE_HEIGHT = 86;
 const COLLECTION_NODE_HEIGHT = 52;
+const COLLECTION_ASSET_STACK_NODE_HEIGHT = 72;
 
 const applyDagreLayout = (nodes, edges) => {
   const g = new dagre.graphlib.Graph()
@@ -420,7 +513,9 @@ const applyDagreLayout = (nodes, edges) => {
   g.setDefaultEdgeLabel(() => ({}))
 
   nodes.forEach(node => {
-    const height = node.data.entityType === 'collection' ? COLLECTION_NODE_HEIGHT : ASSET_NODE_HEIGHT;
+    const height = node.data.isAssetStack
+      ? COLLECTION_ASSET_STACK_NODE_HEIGHT
+      : node.data.entityType === 'collection' ? COLLECTION_NODE_HEIGHT : ASSET_NODE_HEIGHT;
     g.setNode(node.id, { width: NODE_WIDTH, height })
   })
 
@@ -598,7 +693,7 @@ const openAssignmentMenu = (nodeData, event) => {
 const goToGraphItem = async (nodeData) => {
   try {
     const item = nodeData.rawEntity;
-    const isCollection = nodeData.entityType === 'collection';
+    const isCollection = nodeData.entityType === 'collection' || nodeData.entityType === 'collection-assets';
     const collection = isCollection ? item : item.collection_id
       ? await CollectionService.GetCollectionByID(projectStore.activeProject.uri, item.collection_id)
       : null;
@@ -812,6 +907,12 @@ onUnmounted(() => {
   box-sizing: border-box;
   align-items: center;
   /* background-color: green; */
+}
+
+.dependency-toggles {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .node-filters {

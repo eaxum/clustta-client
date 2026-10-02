@@ -44,6 +44,7 @@ function createHarness() {
     canActOnAsset: () => true,
     maxDepth: ref(0),
     FULL_DEPENDENCY_DEPTH: 0,
+    COLLECTION_ASSET_COLLAPSE_THRESHOLD: 3,
     isLoadingGraph: ref(false),
     graphLoadFailed: ref(false),
     graphConflictCount: ref(0),
@@ -52,6 +53,7 @@ function createHarness() {
     dependencies: ref([]),
     totalAssetDepsCount: ref(0),
     canManageDependencies: ref(true),
+    showCollectionContents: ref(true),
     Position: { Left: 'left', Right: 'right' },
     nodeStyle: '',
     nextTick,
@@ -235,4 +237,41 @@ test('full graph preserves every owner of a shared collection', async () => {
   const collectionEdges = harness.context.graphData.value.edges.filter(item => collectionNodeIds.has(item.target));
   assert.equal(collectionEdges.length, 2);
   assert.equal(collectionNodes.every(item => item.data.hasIncoming && !item.data.hasOutgoing), true);
+});
+
+test('collapses more than three direct collection assets into a navigable stack', async () => {
+  const harness = createHarness();
+  const pending = harness.context.load();
+  const collection = {
+    id: 'group',
+    name: 'Group',
+    type: 'collection',
+    collection_path: '/Group',
+  };
+  harness.relationships.get('root').resolve([
+    {
+      collection,
+      directAssetCount: 4,
+      collapsedAssetCount: 4,
+      parentId: 'root',
+      parentIds: ['root'],
+      depth: 1,
+    },
+  ]);
+  await setImmediate();
+  harness.edges.get('root').resolve([]);
+  harness.versions.get('root').resolve({ entries: [], conflicts: [] });
+  await pending;
+
+  const nodes = harness.context.graphData.value.nodes;
+  const collectionNode = nodes.find(node => node.data.entityType === 'collection');
+  const stackNode = nodes.find(node => node.data.isAssetStack);
+  assert.equal(collectionNode.data.itemCountLabel, 'blocks.itemCount');
+  assert.equal(stackNode.data.name, 'components.dependencyGraph.assetCount');
+  assert.equal(stackNode.data.rawEntity.id, 'group');
+  assert.equal(stackNode.data.canRemove, false);
+  assert.equal(harness.context.totalAssetDepsCount.value, 5);
+  assert.equal(harness.context.graphData.value.edges.some(edge => (
+    edge.source === collectionNode.id && edge.target === stackNode.id
+  )), true);
 });
