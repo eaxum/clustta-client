@@ -1,7 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { computed, reactive } from 'vue';
-import { canDisplayExportDrag, canExportFiles, getExportDragSelection } from './exportDrag.js';
+import {
+  canDisplayExportDrag,
+  canExportFiles,
+  clearExportDragHighlights,
+  getExportDragSelection,
+} from './exportDrag.js';
 
 const asset = { id: 'first', type: 'asset', file_path: 'C:/project/first.blend', file_status: 'normal' };
 const other = { ...asset, id: 'second' };
@@ -56,4 +61,22 @@ test('unavailable files display a disabled export handle', () => {
   assert.equal(canDisplayExportDrag([unavailableAsset]), true);
   assert.equal(canExportFiles([unavailableAsset]), false);
   assert.equal(canDisplayExportDrag([{ ...unavailableAsset, is_link: true }]), false);
+});
+
+test('completed export drags clear every native file-drop highlight', () => {
+  const removedClasses = [];
+  const highlightedElements = [
+    { classList: { remove: (className) => removedClasses.push(className) } },
+    { classList: { remove: (className) => removedClasses.push(className) } },
+  ];
+  const root = {
+    querySelectorAll(selector) {
+      assert.equal(selector, '[data-file-drop-target].file-drop-target-active');
+      return highlightedElements;
+    },
+  };
+
+  clearExportDragHighlights(root);
+
+  assert.deepEqual(removedClasses, ['file-drop-target-active', 'file-drop-target-active']);
 });

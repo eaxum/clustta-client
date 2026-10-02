@@ -4,6 +4,7 @@ import { usePlatformStore } from '@/stores/platform';
 import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useNotificationStore } from '@/stores/notifications';
+import { clearExportDragHighlights } from '@/lib/exportDrag';
 
 const available = ref(false);
 const dragging = ref(false);
@@ -55,6 +56,8 @@ export function useExportDrag(assets, exportable) {
     } catch (error) {
       notifications.errorNotification(t('blocks.exportDragFailed'), error);
     } finally {
+      // Wails can retain its drop-target class when a native drag is cancelled with Escape.
+      clearExportDragHighlights(document);
       dragging.value = false;
     }
   }

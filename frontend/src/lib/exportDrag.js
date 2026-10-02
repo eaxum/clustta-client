@@ -1,6 +1,13 @@
 import { getBrowserItemKey } from './browserTree.js';
 
 const LOCAL_FILE_STATES = new Set(['normal', 'modified', 'outdated']);
+const ACTIVE_FILE_DROP_TARGET_SELECTOR = '[data-file-drop-target].file-drop-target-active';
+
+export function clearExportDragHighlights(root) {
+  root.querySelectorAll(ACTIVE_FILE_DROP_TARGET_SELECTOR).forEach((element) => {
+    element.classList.remove('file-drop-target-active');
+  });
+}
 
 export function getExportDragSelection(asset, selectedItems, itemsByKey) {
   const selection = selectedItems.some((item) => item.id === asset.id) ? selectedItems : [asset];
