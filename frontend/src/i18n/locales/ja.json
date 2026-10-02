@@ -1034,7 +1034,7 @@
     "assets": "アセット",
     "accountSettings": "アカウント設定",
     "buildProject": "プロジェクトをビルド",
-    "buildWithDependencies": "依存関係付きでビルド",
+    "buildWithDependencies": "依存関係と一緒にダウンロード",
     "collapseAll": "すべて折りたたむ",
     "collection": "コレクション",
     "collections": "コレクション",

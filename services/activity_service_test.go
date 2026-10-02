@@ -7,8 +7,20 @@ import (
 	"context"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
+
+func TestDependencyBuildRequiresFingerprintBeforeQueue(t *testing.T) {
+	before := len(activities.List().Operations)
+	_, err := (&CheckpointService{}).ExecuteDependencyBuildPlan("missing", "", "asset", "", false)
+	if err == nil || !strings.Contains(err.Error(), "fingerprint is required") {
+		t.Fatalf("expected fingerprint error, got %v", err)
+	}
+	if after := len(activities.List().Operations); after != before {
+		t.Fatalf("invalid build created activity: %d before, %d after", before, after)
+	}
+}
 
 func TestActivityRetainsDownloadDetailsDuringRestoration(t *testing.T) {
 	id, ctx := activities.Start(context.Background(), activity.Operation{Title: "Fetching assets"})

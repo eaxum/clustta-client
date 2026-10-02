@@ -28,11 +28,7 @@
             <span v-if="entry.requires_overwrite" class="build-status build-warning" v-tooltip="'Locally modified - will be overwritten'" aria-label="Locally modified">
               <img class="small-icons" :src="getAppIcon('alert')" alt="" />
             </span>
-            <span v-if="entry.missing_chunks" class="build-status" v-tooltip="'Checkpoint will be downloaded'" aria-label="Download required">
-              <img class="small-icons" :src="getAppIcon('download')" alt="" />
-            </span>
             <span class="build-version" v-tooltip="entryRequirement(entry)">
-              <img class="small-icons" :src="getAppIcon(entryIcon(entry))" alt="" />
               <span>{{ entryRequirement(entry) }}</span>
             </span>
           </template>
@@ -56,7 +52,6 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import emitter from '@/lib/mitt';
 import { AssetService, CheckpointService } from '@/services';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
@@ -66,6 +61,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { isCancellationError } from '@/lib/errors';
 
 const { t } = useI18n();
 const modals = useDesktopModalStore();
@@ -89,7 +85,6 @@ const canBuild = computed(() => {
 const rootAsset = computed(() => assetItem(modals.dependencyBuildPlan.rootAssetId));
 const getAppIcon = iconName => iconStore.getAppIcon(iconName);
 const assetItem = assetId => assetsById.value.get(assetId) || { name: 'Loading asset…' };
-const entryIcon = entry => ({ pinned: 'pin', tagged: 'tag' }[entry.resolution_mode] || 'clock');
 const entryRequirement = (entry) => {
   const edge = dependencyEdges.value.get(entry.dependency_edge_id);
   if (entry.resolution_mode === 'tagged') return edge?.tag_name || 'Tagged';
@@ -107,16 +102,20 @@ const executeBuild = async () => {
   if (!canBuild.value) return;
   isBuilding.value = true;
   try {
-    await CheckpointService.ExecuteDependencyBuildPlan(
+    const buildRequest = CheckpointService.ExecuteDependencyBuildPlan(
       projectStore.activeProject.uri,
       projectStore.getActiveProjectUrl,
       modals.dependencyBuildPlan.rootAssetId,
       plan.value.fingerprint,
       allowModified.value,
     );
-    emitter.emit('refresh-browser');
     closeModal();
+    await buildRequest;
   } catch (error) {
+    if (isCancellationError(error)) {
+      notificationStore.addNotification('Download cancelled', '', 'warning');
+      return;
+    }
     notificationStore.errorNotification(t('notifications.errorRevertingAssets'), error);
   } finally {
     isBuilding.value = false;
@@ -212,15 +211,17 @@ onMounted(async () => {
   padding: .25rem .5rem;
   border: 1px solid var(--border);
   border-radius: 999px;
+  background-color: var(--surface-3);
   color: var(--text);
   font-size: .8rem;
+  font-weight: 500;
 }
 .build-version span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.build-version img, .build-status img {
+.build-status img {
   width: 16px;
   height: 16px;
   flex-shrink: 0;

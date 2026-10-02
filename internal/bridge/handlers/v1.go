@@ -717,8 +717,7 @@ func V1BuildAsset(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			return nil, err
 		}
-		checkpointService := &services.CheckpointService{}
-		buildResult, err := checkpointService.ExecuteDependencyBuildPlan(
+		buildResult, err := services.ExecuteDependencyBuildPlanDirect(
 			project.Uri,
 			remoteURL,
 			asset.Id,

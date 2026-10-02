@@ -1,6 +1,6 @@
 import { activityTransferProgress } from './activity.js';
 import { sentenceCase, activityTransferSizes, activitySavedSize } from './activity.js';
-import { formatError } from './errors.js';
+import { formatError, isCancellationError } from './errors.js';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { buildPendingTransfers, isTransferPending, activityDisplayName, applyActivitySnapshot, filterActivityOperations, sortActivityOperations } from './activity.js';
@@ -114,6 +114,12 @@ test('errors preserve actionable details and remove signed download URLs', () =>
  assert.equal(formatError('Get "https://server/chunk?signature=secret": checksum mismatch'), 'Get "[server]": checksum mismatch');
  assert.match(formatError('context deadline exceeded'), /timed out/);
  assert.equal(formatError({}), 'Something went wrong. Please try again.');
+});
+
+test('wrapped cancellation errors remain distinguishable from failures', () => {
+  assert.equal(isCancellationError('Download failed: error processing stream: context canceled'), true);
+  assert.equal(isCancellationError(new Error('operation cancelled')), true);
+  assert.equal(isCancellationError('connection reset'), false);
 });
 
 test('activity labels preserve names and compact byte summaries preserve values', () => {

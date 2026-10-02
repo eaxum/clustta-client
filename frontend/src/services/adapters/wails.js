@@ -22,6 +22,7 @@ export const SyncService = {
 export const CheckpointService = {
   ...bindings.CheckpointService,
   Revert: (projectPath, ...args) => finishInProject(projectPath, bindings.CheckpointService.Revert(projectPath, ...args)),
+  ExecuteDependencyBuildPlan: (projectPath, ...args) => finishInProject(projectPath, bindings.CheckpointService.ExecuteDependencyBuildPlan(projectPath, ...args)),
 };
 
 export const CollectionService = {

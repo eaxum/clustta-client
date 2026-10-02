@@ -65,6 +65,11 @@ export function friendlyErrorMessage(raw) {
   return null;
 }
 
+export function isCancellationError(error) {
+  const message = typeof error === 'string' ? error : error?.message || error?.error || '';
+  return /\b(?:context|operation|request)?\s*cancel(?:led|ed)\b/i.test(String(message));
+}
+
 export function formatError(error) {
   let message = typeof error === 'string' ? error : error?.message || error?.error || '';
   if (typeof message !== 'string') message = message?.message || '';

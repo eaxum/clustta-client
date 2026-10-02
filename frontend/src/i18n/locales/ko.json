@@ -1057,7 +1057,7 @@
     "assets": "에셋",
     "accountSettings": "계정 설정",
     "buildProject": "프로젝트 빌드",
-    "buildWithDependencies": "의존성과 함께 빌드",
+    "buildWithDependencies": "종속성과 함께 다운로드",
     "collapseAll": "모두 접기",
     "collection": "컬렉션",
     "collections": "컬렉션",

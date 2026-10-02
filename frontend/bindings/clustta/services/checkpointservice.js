@@ -123,7 +123,7 @@ export function DeleteCheckpointTag(projectPath, tagId) {
 }
 
 /**
- * ExecuteDependencyBuildPlan restores a freshly revalidated exact-checkpoint plan.
+ * ExecuteDependencyBuildPlan queues and restores a revalidated exact-checkpoint plan.
  * @param {string} projectPath
  * @param {string} remoteUrl
  * @param {string} rootAssetId
