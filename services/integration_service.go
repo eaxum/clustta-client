@@ -640,17 +640,18 @@ func hasFilenameSegment(template string) bool {
 // normalizeCollectionPath ensures the path has leading/trailing slashes.
 // Example: "Episodes/EP01/Sequences" -> "/Episodes/EP01/Sequences/"
 func normalizeCollectionPath(path string) string {
-	// Add leading slash if missing
-	if !strings.HasPrefix(path, "/") {
-		path = "/" + path
+	segments := strings.Split(strings.Trim(path, "/"), "/")
+	normalizedSegments := make([]string, 0, len(segments))
+	for _, segment := range segments {
+		segment = strings.TrimSpace(segment)
+		if segment != "" {
+			normalizedSegments = append(normalizedSegments, segment)
+		}
 	}
-
-	// Add trailing slash if missing
-	if !strings.HasSuffix(path, "/") {
-		path = path + "/"
+	if len(normalizedSegments) == 0 {
+		return "/"
 	}
-
-	return path
+	return "/" + strings.Join(normalizedSegments, "/") + "/"
 }
 
 // findMatchingTemplate finds a template that matches the given collection type.
@@ -1023,6 +1024,7 @@ func buildCollectionHierarchy(collection integrations.ExternalCollection, collec
 
 // applyNamingStyle applies the configured naming style to a string.
 func applyNamingStyle(name, style string) string {
+	name = strings.TrimSpace(name)
 	switch style {
 	case "lowercase":
 		return strings.ToLower(name)
@@ -1679,9 +1681,10 @@ func (s *IntegrationService) createCollectionsWithProgress(tx *sqlx.Tx, collecti
 		parentPath := getParentPath(path)
 		if parentPath != "" && parentPath != "/" {
 			parentCollection, err := repository.GetCollectionByPath(tx, parentPath)
-			if err == nil && parentCollection.Id != "" {
-				parentID = parentCollection.Id
+			if err != nil || parentCollection.Id == "" {
+				return nil, fmt.Errorf("cannot create collection %q: parent path %q was not resolved", path, parentPath)
 			}
+			parentID = parentCollection.Id
 		}
 
 		folderName := getPathSegmentName(path)
@@ -1739,9 +1742,10 @@ func (s *IntegrationService) createCollectionsWithProgress(tx *sqlx.Tx, collecti
 			parentPath := getParentPath(coll.CollectionPath)
 			if parentPath != "" && parentPath != "/" {
 				parentCollection, err := repository.GetCollectionByPath(tx, parentPath)
-				if err == nil && parentCollection.Id != "" {
-					parentID = parentCollection.Id
+				if err != nil || parentCollection.Id == "" {
+					return nil, fmt.Errorf("cannot create collection %q: parent path %q was not resolved", coll.CollectionPath, parentPath)
 				}
+				parentID = parentCollection.Id
 			}
 
 			collectionTypeID := ""
@@ -1824,9 +1828,10 @@ func ensureAssetParentCollections(tx *sqlx.Tx, assets []integrations.SyncAsset, 
 		parentPath := getParentPath(path)
 		if parentPath != "" && parentPath != "/" {
 			parentCollection, lookupErr := repository.GetCollectionByPath(tx, parentPath)
-			if lookupErr == nil && parentCollection.Id != "" {
-				parentID = parentCollection.Id
+			if lookupErr != nil || parentCollection.Id == "" {
+				return fmt.Errorf("cannot create asset parent %q: parent path %q was not resolved", path, parentPath)
 			}
+			parentID = parentCollection.Id
 		}
 
 		_, err = repository.CreateCollection(tx, uuid.New().String(), getPathSegmentName(path), "", genericType.Id, parentID, "", false)
@@ -1900,9 +1905,10 @@ func (s *IntegrationService) createAssetsWithProgress(tx *sqlx.Tx, assets []inte
 			parentID := ""
 			if asset.CollectionPath != "" {
 				parentCollection, err := repository.GetCollectionByPath(tx, asset.CollectionPath)
-				if err == nil && parentCollection.Id != "" {
-					parentID = parentCollection.Id
+				if err != nil || parentCollection.Id == "" {
+					return nil, fmt.Errorf("cannot create asset %q: collection path %q was not resolved", asset.ExternalName, asset.CollectionPath)
 				}
+				parentID = parentCollection.Id
 			}
 
 			assetTypeID := ""

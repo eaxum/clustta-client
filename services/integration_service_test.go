@@ -107,6 +107,77 @@ func TestResolveCollectionPathOmitsEmptyCategory(t *testing.T) {
 	}
 }
 
+func TestResolveCollectionPathTrimsHierarchyNames(t *testing.T) {
+	directoryStructure := integrations.DirectoryStructure{
+		Style: "lowercase",
+		Paths: map[string]interface{}{
+			"shot": map[string]interface{}{
+				"template": "Episodes/<Episode>/<Sequence>/<Shot>/<AssetType><TemplateExtension>",
+			},
+		},
+	}
+	episode := integrations.ExternalCollection{
+		ID:   "episode",
+		Name: "070-the chase ",
+		Type: "episode",
+	}
+	sequence := integrations.ExternalCollection{
+		ID:       "sequence",
+		ParentID: "episode",
+		Name:     "0010 ",
+		Type:     "sequence",
+	}
+	shot := integrations.ExternalCollection{
+		ID:       "shot",
+		ParentID: "sequence",
+		Name:     " 0020 ",
+		Type:     "shot",
+	}
+	collections := map[string]integrations.ExternalCollection{
+		episode.ID:  episode,
+		sequence.ID: sequence,
+		shot.ID:     shot,
+	}
+
+	episodePath := resolveCollectionPath(episode, collections, directoryStructure)
+	sequencePath := resolveCollectionPath(sequence, collections, directoryStructure)
+	shotPath := resolveCollectionPath(shot, collections, directoryStructure)
+
+	if episodePath != "/Episodes/070-the chase/" {
+		t.Fatalf("unexpected episode path %q", episodePath)
+	}
+	if sequencePath != "/Episodes/070-the chase/0010/" {
+		t.Fatalf("unexpected sequence path %q", sequencePath)
+	}
+	if shotPath != "/Episodes/070-the chase/0010/0020/" {
+		t.Fatalf("unexpected shot path %q", shotPath)
+	}
+}
+
+func TestResolveCollectionPathTrimsAssetAndCategoryNames(t *testing.T) {
+	directoryStructure := integrations.DirectoryStructure{
+		Style: "kebab-case",
+		Paths: map[string]interface{}{
+			"asset": map[string]interface{}{
+				"template": "Assets/<CollectionType>/<Category>/<Asset>/<OutputName><TemplateExtension>",
+			},
+		},
+	}
+	collection := integrations.ExternalCollection{
+		Name: " Chair ",
+		Type: " Props ",
+		Metadata: map[string]interface{}{
+			"Category": " Furniture ",
+		},
+	}
+
+	path := resolveCollectionPath(collection, nil, directoryStructure)
+
+	if path != "/Assets/props/furniture/chair/" {
+		t.Fatalf("unexpected asset collection path %q", path)
+	}
+}
+
 func TestResolveAssetParentPathUsesCategoryAfterAsset(t *testing.T) {
 	directoryStructure := integrations.DirectoryStructure{
 		Style: "kebab-case",
