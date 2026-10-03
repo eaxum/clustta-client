@@ -24,32 +24,38 @@ type TypeMappings struct {
 	StatusMappings         []TypeMapping
 	CollectionTypeMappings []TypeMapping
 	AssetTypeMappings      []TypeMapping
+	DependencyTypeMappings []TypeMapping
 	RoleMappings           []TypeMapping
 }
 
 // FetchLocalTypes retrieves all types from the local project database.
-func FetchLocalTypes(tx *sqlx.Tx) (statuses []models.Status, collectionTypes []models.CollectionType, assetTypes []models.AssetType, roles []models.Role, err error) {
+func FetchLocalTypes(tx *sqlx.Tx) (statuses []models.Status, collectionTypes []models.CollectionType, assetTypes []models.AssetType, dependencyTypes []models.DependencyType, roles []models.Role, err error) {
 	err = tx.Select(&statuses, "SELECT * FROM status")
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local statuses: %w", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to fetch local statuses: %w", err)
 	}
 
 	err = tx.Select(&collectionTypes, "SELECT * FROM collection_type")
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local collection types: %w", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to fetch local collection types: %w", err)
 	}
 
 	err = tx.Select(&assetTypes, "SELECT * FROM asset_type")
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local asset types: %w", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to fetch local asset types: %w", err)
+	}
+
+	err = tx.Select(&dependencyTypes, "SELECT * FROM dependency_type")
+	if err != nil {
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to fetch local dependency types: %w", err)
 	}
 
 	err = tx.Select(&roles, "SELECT * FROM role")
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to fetch local roles: %w", err)
+		return nil, nil, nil, nil, nil, fmt.Errorf("failed to fetch local roles: %w", err)
 	}
 
-	return statuses, collectionTypes, assetTypes, roles, nil
+	return statuses, collectionTypes, assetTypes, dependencyTypes, roles, nil
 }
 
 // BuildTypeMappings creates mappings between local and remote type IDs by matching names.
@@ -57,6 +63,7 @@ func BuildTypeMappings(
 	localStatuses []models.Status, remoteStatuses []models.Status,
 	localCollectionTypes []models.CollectionType, remoteCollectionTypes []models.CollectionType,
 	localAssetTypes []models.AssetType, remoteAssetTypes []models.AssetType,
+	localDependencyTypes []models.DependencyType, remoteDependencyTypes []models.DependencyType,
 	localRoles []models.Role, remoteRoles []models.Role,
 ) TypeMappings {
 	mappings := TypeMappings{}
@@ -94,6 +101,19 @@ func BuildTypeMappings(
 		for _, remote := range remoteAssetTypes {
 			if strings.EqualFold(local.Name, remote.Name) {
 				mappings.AssetTypeMappings = append(mappings.AssetTypeMappings, TypeMapping{
+					LocalID:  local.Id,
+					RemoteID: remote.Id,
+					Name:     local.Name,
+				})
+				break
+			}
+		}
+	}
+
+	for _, local := range localDependencyTypes {
+		for _, remote := range remoteDependencyTypes {
+			if strings.EqualFold(local.Name, remote.Name) {
+				mappings.DependencyTypeMappings = append(mappings.DependencyTypeMappings, TypeMapping{
 					LocalID:  local.Id,
 					RemoteID: remote.Id,
 					Name:     local.Name,
@@ -151,6 +171,15 @@ func RemapProjectIds(tx *sqlx.Tx, mappings TypeMappings) error {
 		_, err := tx.Exec("UPDATE asset SET asset_type_id = ? WHERE asset_type_id = ?", m.RemoteID, m.LocalID)
 		if err != nil {
 			return fmt.Errorf("failed to remap asset_type_id %s to %s: %w", m.LocalID, m.RemoteID, err)
+		}
+	}
+
+	for _, m := range mappings.DependencyTypeMappings {
+		for _, table := range []string{"asset_dependency", "collection_dependency"} {
+			_, err := tx.Exec("UPDATE "+table+" SET dependency_type_id = ? WHERE dependency_type_id = ?", m.RemoteID, m.LocalID)
+			if err != nil {
+				return fmt.Errorf("failed to remap %s dependency type: %w", table, err)
+			}
 		}
 	}
 
@@ -241,13 +270,54 @@ func MarkAllTablesUnsynced(tx *sqlx.Tx) error {
 }
 
 // FetchRemoteProjectTypes fetches the type configurations from a remote project.
-func FetchRemoteProjectTypes(remoteUrl string, userId string) ([]models.Status, []models.CollectionType, []models.AssetType, []models.Role, error) {
+func FetchRemoteProjectTypes(remoteUrl string, userId string) ([]models.Status, []models.CollectionType, []models.AssetType, []models.DependencyType, []models.Role, []models.User, error) {
 	data, err := FetchData(remoteUrl, userId)
 	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to fetch remote project data: %w", err)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("failed to fetch remote project data: %w", err)
 	}
 
-	return data.Statuses, data.CollectionTypes, data.AssetTypes, data.Roles, nil
+	return data.Statuses, data.CollectionTypes, data.AssetTypes, data.DependencyTypes, data.Roles, data.Users, nil
+}
+
+func reconcileUploadUser(tx *sqlx.Tx, remoteUsers []models.User, userId string) error {
+	var uploadUser models.User
+	for _, user := range remoteUsers {
+		if user.Id == userId {
+			uploadUser = user
+			break
+		}
+	}
+	if uploadUser.Id == "" {
+		return fmt.Errorf("active user %s is missing from the remote project", userId)
+	}
+
+	var roleCount int
+	if err := tx.Get(&roleCount, "SELECT count(*) FROM role WHERE id = ?", uploadUser.RoleId); err != nil {
+		return err
+	}
+	if roleCount == 0 {
+		return fmt.Errorf("remote role %s for active user is missing from the uploaded project", uploadUser.RoleId)
+	}
+
+	_, err := tx.Exec(`
+		INSERT INTO user (id, mtime, added_at, username, email, first_name, last_name, photo, role_id, synced)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+		ON CONFLICT (id) DO UPDATE SET
+			mtime = excluded.mtime,
+			added_at = excluded.added_at,
+			username = excluded.username,
+			email = excluded.email,
+			first_name = excluded.first_name,
+			last_name = excluded.last_name,
+			photo = excluded.photo,
+			role_id = excluded.role_id,
+			synced = 1
+	`, uploadUser.Id, uploadUser.MTime, uploadUser.AddedAt, uploadUser.Username, uploadUser.Email,
+		uploadUser.FirstName, uploadUser.LastName, uploadUser.Photo, uploadUser.RoleId)
+	if err != nil {
+		return fmt.Errorf("failed to add active user to uploaded project: %w", err)
+	}
+	return nil
 }
 
 // RemapTypeTableIds updates the primary key IDs in type tables to match the remote project.
@@ -271,6 +341,13 @@ func RemapTypeTableIds(tx *sqlx.Tx, mappings TypeMappings) error {
 		_, err := tx.Exec("UPDATE asset_type SET id = ? WHERE id = ?", m.RemoteID, m.LocalID)
 		if err != nil {
 			return fmt.Errorf("failed to remap asset_type id %s to %s: %w", m.LocalID, m.RemoteID, err)
+		}
+	}
+
+	for _, m := range mappings.DependencyTypeMappings {
+		_, err := tx.Exec("UPDATE dependency_type SET id = ? WHERE id = ?", m.RemoteID, m.LocalID)
+		if err != nil {
+			return fmt.Errorf("failed to remap dependency type id %s to %s: %w", m.LocalID, m.RemoteID, err)
 		}
 	}
 
@@ -303,12 +380,12 @@ func prepareProjectForRemoteUpload(projectPath, projectId, remoteUrl, workingDir
 	defer tx.Rollback()
 
 	// Fetch local and remote types
-	localStatuses, localCollectionTypes, localAssetTypes, localRoles, err := FetchLocalTypes(tx)
+	localStatuses, localCollectionTypes, localAssetTypes, localDependencyTypes, localRoles, err := FetchLocalTypes(tx)
 	if err != nil {
 		return err
 	}
 
-	remoteStatuses, remoteCollectionTypes, remoteAssetTypes, remoteRoles, err := FetchRemoteProjectTypes(remoteUrl, userId)
+	remoteStatuses, remoteCollectionTypes, remoteAssetTypes, remoteDependencyTypes, remoteRoles, remoteUsers, err := FetchRemoteProjectTypes(remoteUrl, userId)
 	if err != nil {
 		return err
 	}
@@ -328,6 +405,7 @@ func prepareProjectForRemoteUpload(projectPath, projectId, remoteUrl, workingDir
 		localStatuses, remoteStatuses,
 		localCollectionTypes, remoteCollectionTypes,
 		localAssetTypes, remoteAssetTypes,
+		localDependencyTypes, remoteDependencyTypes,
 		localRoles, remoteRoles,
 	)
 
@@ -355,6 +433,9 @@ func prepareProjectForRemoteUpload(projectPath, projectId, remoteUrl, workingDir
 	// Mark all tables as unsynced so the next sync pushes everything
 	err = MarkAllTablesUnsynced(tx)
 	if err != nil {
+		return err
+	}
+	if err := reconcileUploadUser(tx, remoteUsers, userId); err != nil {
 		return err
 	}
 
