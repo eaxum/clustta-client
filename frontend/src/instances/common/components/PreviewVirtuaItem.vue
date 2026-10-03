@@ -2,7 +2,8 @@
   <div ref="previewItemRef" class="preview-virtua-item" :style="{ '--depth': depth }">
     <div class="preview-item-header" :style="{ height: `${itemHeight}px` }">
       <PreviewCollection v-if="item.type === 'collection'" :collection="item" :isSelected="isItemSelected" 
-        :hasChildren="hasChildren" :isExpanded="isExpanded" :childCount="childCount" :isSelectable="isItemSelectable" @toggle="toggleExpand"
+        :hasChildren="hasChildren" :isExpanded="isExpanded" :childCount="childCount" :isSelectable="isItemSelectable"
+        :isIndeterminate="isItemIndeterminate" @toggle="toggleExpand"
         @toggle-selection="handleToggleSelection" />
       <PreviewAsset v-else :asset="item" :isSelected="isItemSelected" :isSelectable="isItemSelectable" @toggle-selection="handleToggleSelection" />
     </div>
@@ -62,13 +63,27 @@ const isExpanded = computed(() => {
   return props.expandedItems.has(props.item.id);
 });
 
+const selectableDescendantKeys = computed(() => getSelectableKeys(props.item));
+
 // Returns whether this item is selected.
 const isItemSelected = computed(() => {
+  if (props.item.action === 'virtual') {
+    return selectableDescendantKeys.value.length > 0
+      && selectableDescendantKeys.value.every(key => props.selectedItems.has(key));
+  }
   const keys = props.item.selection_keys || [];
   return keys.length > 0 && keys.every(key => props.selectedItems.has(key));
 });
 
-const isItemSelectable = computed(() => props.canSelectItem(props.item));
+const isItemIndeterminate = computed(() => {
+  if (props.item.action !== 'virtual' || isItemSelected.value) return false;
+  return selectableDescendantKeys.value.some(key => props.selectedItems.has(key));
+});
+
+const isItemSelectable = computed(() => {
+  if (props.item.action === 'virtual') return selectableDescendantKeys.value.length > 0;
+  return props.canSelectItem(props.item);
+});
 
 // Returns the children of this item.
 const itemChildren = computed(() => {
@@ -76,6 +91,14 @@ const itemChildren = computed(() => {
 });
 
 // methods
+const getSelectableKeys = (item) => {
+  const keys = props.canSelectItem(item) ? [...(item.selection_keys || [])] : [];
+  for (const child of item.children || []) {
+    keys.push(...getSelectableKeys(child));
+  }
+  return keys;
+};
+
 // Handles toggle selection.
 const handleToggleSelection = () => {
   emit('toggle-selection', props.item);

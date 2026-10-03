@@ -4,8 +4,9 @@
 
     <div class="general-container">
       <!-- Loading State -->
-      <div v-if="isLoading" class="loading-state">
-        <span>{{ loadingMessage }}</span>
+      <div v-if="isLoading" class="loading-state" role="status" :aria-label="loadingMessage"
+        :style="{ height: `${loadingSkeletonHeight}px` }">
+        <ListSkeleton :height="loadingSkeletonHeight" :itemHeight="previewItemHeight" />
       </div>
 
       <!-- Syncing Progress -->
@@ -28,6 +29,8 @@
             <button type="button" @click="selectAll">{{ $t('kitsu.selectAll') }}</button>
             <button type="button" @click="unselectAll">{{ $t('kitsu.clearSelection') }}</button>
           </div>
+          <ActionButton :icon="getAppIcon('collapse-up')" v-tooltip="$t('menus.collapseAll')"
+            :buttonFunction="collapseAll" :isDisabled="!hasExpandedItems" />
           <ActionButton :icon="getAppIcon('refresh')" v-tooltip="$t('kitsu.refresh')" :buttonFunction="loadSyncPreview" />
         </div>
 
@@ -41,7 +44,7 @@
           </div>
           <div v-else class="preview-tree-content">
             <PreviewVirtuaItem v-for="item in syncPreviewTree" :key="item.id" :item="item" 
-              :depth="0" :itemHeight="48" :expandedItems="expandedItems" 
+              :depth="0" :itemHeight="previewItemHeight" :expandedItems="expandedItems" 
               :selectedItems="selectedKeys" :canSelectItem="canSelectItem" @toggle-expand="toggleExpand"
               @toggle-selection="toggleSelection" />
           </div>
@@ -78,6 +81,7 @@ import emitter from '@/lib/mitt';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
+import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
 import PreviewVirtuaItem from '@/instances/common/components/PreviewVirtuaItem.vue';
 import ProgressSection from '@/instances/common/components/ProgressSection.vue';
 import MissingTypesAlert from '@/instances/desktop/components/MissingTypesAlert.vue';
@@ -109,6 +113,9 @@ const selectedKeys = ref(new Set());
 const executionError = ref(null);
 const showMissingTypes = ref(false);
 
+const loadingSkeletonHeight = 240;
+const previewItemHeight = 48;
+
 // computed
 // Returns the hierarchical tree for sync preview.
 const syncPreviewTree = computed(() => integrationStore.syncPreviewTree);
@@ -122,6 +129,8 @@ const selectedCount = computed(() => allTreeItems.value.filter(item => {
 }).length);
 
 const hasSelectedItems = computed(() => selectedCount.value > 0);
+
+const hasExpandedItems = computed(() => expandedItems.value.size > 0);
 
 const selectedCreateCount = computed(() => countSelectedActions('create'));
 
@@ -256,12 +265,19 @@ const selectRequiredParents = (item, nextSelection) => {
 };
 
 const toggleSelection = (item) => {
-  if (!canSelectItem(item)) return;
-  const keys = item.selection_keys || [];
+  const itemAndDescendants = flattenTree([item]);
+  const keys = itemAndDescendants
+    .filter(candidate => canSelectItem(candidate))
+    .flatMap(candidate => candidate.selection_keys || []);
+  if (!keys.length) return;
   const selected = !keys.every(key => selectedKeys.value.has(key));
   const nextSelection = new Set(selectedKeys.value);
   selectItem(item, selected, nextSelection);
-  if (selected) selectRequiredParents(item, nextSelection);
+  if (selected) {
+    for (const candidate of itemAndDescendants) {
+      if (canSelectItem(candidate)) selectRequiredParents(candidate, nextSelection);
+    }
+  }
   selectedKeys.value = nextSelection;
 };
 
@@ -282,6 +298,7 @@ const unselectAll = () => {
 const loadSyncPreview = async () => {
   isLoading.value = true;
   loadingMessage.value = t('kitsu.loadingImport');
+  expandedItems.value = new Set();
   error.value = null;
   executionError.value = null;
   readinessState.value = null;
@@ -308,11 +325,6 @@ const loadSyncPreview = async () => {
     // Load templates for extension display
     await templateStore.reloadTemplates();
     selectAll();
-    expandedItems.value = new Set(
-      allTreeItems.value
-        .filter(item => item.children?.length)
-        .map(item => item.id)
-    );
   } catch (err) {
     console.error('loadSyncPreview error:', err);
     if (err.code === 'INTEGRATION_CREDENTIAL_REQUIRED' || /unauthor|forbidden|token|session|401|403/i.test(err.message || '')) {
@@ -333,6 +345,10 @@ const resolveReadiness = () => {
     return;
   }
   modals.setModalVisibility('integrationLinkModal', true);
+};
+
+const collapseAll = () => {
+  expandedItems.value = new Set();
 };
 
 // Toggles item expand state.
@@ -471,6 +487,13 @@ onMounted(() => {
   padding: 48px;
   gap: 16px;
   color: var(--text-secondary);
+  width: 100%;
+}
+
+.loading-state {
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
 }
 
 .permission-message,

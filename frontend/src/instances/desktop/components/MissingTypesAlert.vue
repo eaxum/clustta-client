@@ -1,7 +1,7 @@
 <template>
   <div v-if="hasMissingTypes" class="missing-types-alert">
     <div class="alert-icon">
-      <img :src="getAppIcon('warning')" alt="warning" />
+      <img :src="getAppIcon('alert')" alt="" />
     </div>
 
     <div class="alert-content">
@@ -20,7 +20,8 @@
 
   <div v-if="expanded && hasMissingTypes" class="missing-types-list">
     <div v-for="typeItem in missingTypes" :key="typeItem.external_id" class="missing-type-item">
-      <img :src="getTypeIcon(typeItem.suggested_icon)" alt="" class="type-icon" />
+      <img :src="getTypeIcon(typeItem.suggested_icon)" alt="" class="type-icon"
+        @error="useFallbackTypeIcon($event, typeItem.type_category)" />
       <div class="type-info">
         <span class="type-name">{{ typeItem.external_name }}</span>
         <span class="type-category">{{ typeItem.type_category === 'collection' ? $t('kitsu.collectionType') : $t('kitsu.assetType') }}</span>
@@ -90,7 +91,13 @@ const getAppIcon = (iconName) => {
 
 // Returns the type icon path.
 const getTypeIcon = (iconName) => {
-  return '/types-icons/' + (iconName || 'other') + '.svg';
+  const normalizedIconName = (iconName || 'other').trim().toLowerCase();
+  return `/types-icons/${encodeURIComponent(normalizedIconName)}.svg`;
+};
+
+const useFallbackTypeIcon = (event, typeCategory) => {
+  event.target.onerror = null;
+  event.target.src = getAppIcon(typeCategory === 'collection' ? 'folder' : 'file');
 };
 </script>
 

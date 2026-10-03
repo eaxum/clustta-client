@@ -15,7 +15,8 @@
     </div>
 
     <span v-if="!isVirtual" class="action-badge" :class="`action-${collection.action}`">{{ actionLabel }}</span>
-    <CheckBox v-if="!isVirtual" :modelValue="isSelected" :disabled="!isActionable || !isSelectable"
+    <CheckBox :modelValue="isSelected" :indeterminate="isIndeterminate"
+      :disabled="!isSelectable || (!isVirtual && !isActionable)"
       :ariaLabel="`${isSelected ? 'Exclude' : 'Include'} ${collection.name}`"
       @update:modelValue="emit('toggle-selection')" />
 
@@ -44,6 +45,7 @@ const props = defineProps({
   collection: { type: Object, required: true },
   hasChildren: { type: Boolean, default: false },
   isExpanded: { type: Boolean, default: false },
+  isIndeterminate: { type: Boolean, default: false },
   isSelected: { type: Boolean, default: false },
   isSelectable: { type: Boolean, default: true },
 });
