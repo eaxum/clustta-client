@@ -492,6 +492,12 @@ export const useProjectStore = defineStore("projects", {
         this.studioUrl = studio.url;
         this.studioUrlKey = studioCacheKey(studio);
       }
+
+      try {
+        await this.ensureStudioCapabilities(studio);
+      } catch (error) {
+        console.warn("Unable to negotiate studio API capabilities:", error);
+      }
       const studioUrl = this.studioUrl;
 
       // Update studio reachability after URL resolution
