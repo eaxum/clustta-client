@@ -7,22 +7,16 @@ import (
 )
 
 // MigrateV1_5 adds entity_path column, creates an index, and backfills paths.
-func MigrateV1_5(db *sqlx.DB, _ string) error {
-	err := utils.AddColumnIfNotExist(db, "entity", "entity_path", "TEXT", "", false)
+func MigrateV1_5(tx *sqlx.Tx, _ string) error {
+	err := utils.AddColumnIfNotExist(tx, "entity", "entity_path", "TEXT", "", false)
 	if err != nil {
 		return err
 	}
 
-	_, err = db.Exec("CREATE INDEX IF NOT EXISTS idx_entity_path ON entity(entity_path);")
+	_, err = tx.Exec("CREATE INDEX IF NOT EXISTS idx_entity_path ON entity(entity_path);")
 	if err != nil {
 		return err
 	}
-
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 
 	type collectionPath struct {
 		Id   string `db:"id"`
@@ -46,5 +40,5 @@ func MigrateV1_5(db *sqlx.DB, _ string) error {
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }

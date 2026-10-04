@@ -8,23 +8,23 @@ import (
 
 // MigrateV1_2 renames the checkpoint entity_id column, adds new columns,
 // and remaps legacy icon names to new icon names.
-func MigrateV1_2(db *sqlx.DB, _ string) error {
-	err := utils.RenameColumn(db, "task_checkpoint", "entity_id", "task_id")
+func MigrateV1_2(tx *sqlx.Tx, _ string) error {
+	err := utils.RenameColumn(tx, "task_checkpoint", "entity_id", "task_id")
 	if err != nil {
 		return err
 	}
 
-	err = utils.AddColumnIfNotExist(db, "task", "is_resource", "BOOLEAN", "0", false)
+	err = utils.AddColumnIfNotExist(tx, "task", "is_resource", "BOOLEAN", "0", false)
 	if err != nil {
 		return err
 	}
 
-	err = utils.AddColumnIfNotExist(db, "config", "synced", "BOOLEAN", "0", false)
+	err = utils.AddColumnIfNotExist(tx, "config", "synced", "BOOLEAN", "0", false)
 	if err != nil {
 		return err
 	}
 
-	err = utils.AddColumnIfNotExist(db, "entity", "is_shared", "BOOLEAN", "0", false)
+	err = utils.AddColumnIfNotExist(tx, "entity", "is_library", "BOOLEAN", "0", false)
 	if err != nil {
 		return err
 	}
@@ -57,12 +57,6 @@ func MigrateV1_2(db *sqlx.DB, _ string) error {
 		"episode":              "film-reel",
 	}
 
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
 	type typeRow struct {
 		Id   string `db:"id"`
 		Name string `db:"name"`
@@ -89,5 +83,5 @@ func MigrateV1_2(db *sqlx.DB, _ string) error {
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }

@@ -15,12 +15,12 @@ import (
 var v1_8DropSQL string
 
 // MigrateV1_8 renames all task/entity tables and columns to asset/collection.
-func MigrateV1_8(db *sqlx.DB, schema string) error {
+func MigrateV1_8(tx *sqlx.Tx, _ string) error {
 	// Drop old views, triggers, and indexes FIRST so that SQLite's
 	// ALTER TABLE RENAME COLUMN doesn't try to update stale references.
 	stmts := utils.SplitStatements(v1_8DropSQL)
 	for _, stmt := range stmts {
-		_, err := db.Exec(stmt)
+		_, err := tx.Exec(stmt)
 		if err != nil {
 			return err
 		}
@@ -45,16 +45,16 @@ func MigrateV1_8(db *sqlx.DB, schema string) error {
 
 	for _, rename := range tableRenames {
 		oldName, newName := rename[0], rename[1]
-		oldExists, err := utils.TableExists(db, oldName)
+		oldExists, err := utils.TableExists(tx, oldName)
 		if err != nil {
 			return err
 		}
 		if oldExists {
-			_, err = db.Exec("DROP TABLE IF EXISTS " + newName)
+			_, err = tx.Exec("DROP TABLE IF EXISTS " + newName)
 			if err != nil {
 				return err
 			}
-			err = utils.RenameTable(db, oldName, newName)
+			err = utils.RenameTable(tx, oldName, newName)
 			if err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func MigrateV1_8(db *sqlx.DB, schema string) error {
 	}
 
 	for _, rename := range columnRenames {
-		err := utils.RenameColumn(db, rename[0], rename[1], rename[2])
+		err := utils.RenameColumn(tx, rename[0], rename[1], rename[2])
 		if err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func MigrateV1_8(db *sqlx.DB, schema string) error {
 	}
 
 	for _, rename := range roleRenames {
-		err := utils.RenameColumn(db, "role", rename[0], rename[1])
+		err := utils.RenameColumn(tx, "role", rename[0], rename[1])
 		if err != nil {
 			return err
 		}
@@ -124,29 +124,23 @@ func MigrateV1_8(db *sqlx.DB, schema string) error {
 	}
 
 	for _, rename := range tombRenames {
-		_, err := db.Exec("UPDATE tomb SET table_name = ? WHERE table_name = ?", rename[1], rename[0])
+		_, err := tx.Exec("UPDATE tomb SET table_name = ? WHERE table_name = ?", rename[1], rename[0])
 		if err != nil {
 			return err
 		}
 	}
 
-	// Re-apply schema to create views, triggers, and indexes with new names.
-	err := utils.CreateSchema(db, schema)
-	if err != nil {
-		return err
-	}
-
 	// Run icon migration on the now-renamed tables.
-	if err := remapIcons(db); err != nil {
+	if err := remapIcons(tx); err != nil {
 		return err
 	}
 
 	// Auto-group any ungrouped checkpoints on the now-renamed table.
-	return autoGroupCheckpointsNew(db)
+	return autoGroupCheckpointsNew(tx)
 }
 
 // remapIcons updates legacy icon names in asset_type and collection_type.
-func remapIcons(db *sqlx.DB) error {
+func remapIcons(tx *sqlx.Tx) error {
 	iconMap := map[string]string{
 		"hdri": "image", "character creation": "masks", "prop creation": "drum",
 		"environment creation": "stall", "concept art": "palette", "modeling": "cube",
@@ -157,12 +151,6 @@ func remapIcons(db *sqlx.DB) error {
 		"character": "masks", "prop": "drum", "environment": "stall",
 		"scene": "tree", "shot": "clapboard", "sequence": "film-strip", "episode": "film-reel",
 	}
-
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 
 	type typeRow struct {
 		Id   string `db:"id"`
@@ -187,20 +175,17 @@ func remapIcons(db *sqlx.DB) error {
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // autoGroupCheckpointsNew groups ungrouped checkpoints using the new table name (asset_checkpoint).
-func autoGroupCheckpointsNew(db *sqlx.DB) error {
-	tx, err := db.Beginx()
+func autoGroupCheckpointsNew(tx *sqlx.Tx) error {
+	var ungroupedCount int
+	err := tx.Get(&ungroupedCount, "SELECT COUNT(*) FROM asset_checkpoint WHERE group_id = '' OR group_id IS NULL")
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
-
-	var ungroupedCount int
-	err = tx.Get(&ungroupedCount, "SELECT COUNT(*) FROM asset_checkpoint WHERE group_id = '' OR group_id IS NULL")
-	if err != nil || ungroupedCount == 0 {
+	if ungroupedCount == 0 {
 		return nil
 	}
 
@@ -283,5 +268,5 @@ func autoGroupCheckpointsNew(db *sqlx.DB) error {
 		}
 	}
 
-	return tx.Commit()
+	return nil
 }

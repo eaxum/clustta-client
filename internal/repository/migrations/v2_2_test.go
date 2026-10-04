@@ -163,3 +163,87 @@ func TestMigrateV2_2AddsVersionedDependencyAndCheckpointTagSchema(t *testing.T) 
 		t.Fatalf("expected project version %s, got %s", LatestVersion, projectVersion)
 	}
 }
+
+func TestRunMigrationsFromV2_0(t *testing.T) {
+	for _, version := range []string{"2", "2.0"} {
+		t.Run(version, func(t *testing.T) {
+			db := openV2DependencyDatabase(t, version)
+			defer db.Close()
+
+			if err := RunMigrations(db, version, checkpointTagMigrationSchema); err != nil {
+				t.Fatal(err)
+			}
+
+			var resolutionMode string
+			if err := db.Get(&resolutionMode, "SELECT resolution_mode FROM asset_dependency WHERE id = 'dependency-edge'"); err != nil {
+				t.Fatal(err)
+			}
+			if resolutionMode != "floating" {
+				t.Fatalf("expected floating dependency, got %s", resolutionMode)
+			}
+
+			if err := RunMigrations(db, LatestVersion, checkpointTagMigrationSchema); err != nil {
+				t.Fatalf("second migration failed: %v", err)
+			}
+		})
+	}
+}
+
+func TestRunMigrationsRollsBackOnFinalSchemaFailure(t *testing.T) {
+	db := openV2DependencyDatabase(t, "2.0")
+	defer db.Close()
+
+	err := RunMigrations(db, "2.0", checkpointTagMigrationSchema+"\nCREATE INDEX broken ON asset_dependency(missing_column);")
+	if err == nil {
+		t.Fatal("expected migration failure")
+	}
+
+	var version string
+	if err := db.Get(&version, "SELECT value FROM config WHERE name = 'version'"); err != nil {
+		t.Fatal(err)
+	}
+	if version != "2.0" {
+		t.Fatalf("expected version 2.0 after rollback, got %s", version)
+	}
+
+	var columnCount int
+	if err := db.Get(&columnCount, "SELECT count(*) FROM pragma_table_info('asset_dependency') WHERE name = 'checkpoint_id'"); err != nil {
+		t.Fatal(err)
+	}
+	if columnCount != 0 {
+		t.Fatal("migration changes were not rolled back")
+	}
+}
+
+func openV2DependencyDatabase(t *testing.T, version string) *sqlx.DB {
+	t.Helper()
+	db, err := sqlx.Open("sqlite3", filepath.Join(t.TempDir(), "project.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec(`
+		CREATE TABLE config (name TEXT PRIMARY KEY, value TEXT NOT NULL, mtime INTEGER NOT NULL);
+		CREATE TABLE role (id TEXT PRIMARY KEY, name TEXT NOT NULL);
+		CREATE TABLE asset_dependency (
+			id TEXT PRIMARY KEY, mtime INTEGER NOT NULL, asset_id TEXT NOT NULL,
+			dependency_id TEXT NOT NULL, dependency_type_id TEXT NOT NULL,
+			synced BOOLEAN DEFAULT 0 NOT NULL
+		);
+		CREATE TABLE asset_checkpoint (
+			id TEXT PRIMARY KEY, created_at DATETIME NOT NULL, asset_id TEXT NOT NULL,
+			group_id TEXT DEFAULT '' NOT NULL, trashed BOOLEAN DEFAULT 0 NOT NULL
+		);
+		CREATE VIEW asset_dependencies AS SELECT asset_id FROM asset_dependency;
+		CREATE VIEW full_asset AS SELECT asset_id FROM asset_dependencies;
+		INSERT INTO config (name, value, mtime) VALUES ('version', ?, 1);
+		INSERT INTO role (id, name) VALUES ('admin-role', 'Admin');
+		INSERT INTO asset_dependency (id, mtime, asset_id, dependency_id, dependency_type_id)
+		VALUES ('dependency-edge', 1, 'asset-1', 'asset-2', 'dependency-type');
+		INSERT INTO asset_checkpoint (id, created_at, asset_id, group_id)
+		VALUES ('checkpoint', 1, 'asset-1', 'existing-group');
+	`, version); err != nil {
+		db.Close()
+		t.Fatal(err)
+	}
+	return db
+}

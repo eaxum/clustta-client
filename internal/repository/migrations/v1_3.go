@@ -11,13 +11,8 @@ import (
 )
 
 // MigrateV1_3 sets the default working directory for the project.
-func MigrateV1_3(db *sqlx.DB, _ string) error {
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
+func MigrateV1_3(tx *sqlx.Tx, _ string) error {
+	var err error
 	projectWorkingDir := ""
 	if !settings.IsServer() {
 		user, err := auth_service.GetActiveUser()
@@ -58,5 +53,5 @@ func MigrateV1_3(db *sqlx.DB, _ string) error {
 		return err
 	}
 
-	return tx.Commit()
+	return nil
 }

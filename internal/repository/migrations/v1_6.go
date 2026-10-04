@@ -10,7 +10,7 @@ import (
 var v1_6SQL string
 
 // MigrateV1_6 recreates the entity_path_update trigger.
-func MigrateV1_6(db *sqlx.DB, _ string) error {
-	_, err := db.Exec(v1_6SQL)
+func MigrateV1_6(tx *sqlx.Tx, _ string) error {
+	_, err := tx.Exec(v1_6SQL)
 	return err
 }

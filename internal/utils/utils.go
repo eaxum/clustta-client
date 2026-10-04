@@ -470,10 +470,10 @@ func CreateSchema(db *sqlx.DB, schema string) error {
 
 func CreateSchemaTx(tx *sqlx.Tx, schema string) error {
 	statements := SplitStatements(schema)
-	for _, statement := range statements {
+	for index, statement := range statements {
 		_, err := tx.Exec(statement)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to apply schema statement %d: %w", index+1, err)
 		}
 	}
 	return nil

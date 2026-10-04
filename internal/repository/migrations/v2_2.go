@@ -18,8 +18,8 @@ var projectManagementPermissions = []string{
 }
 
 // MigrateV2_2 adds versioned dependencies and project management permissions.
-func MigrateV2_2(db *sqlx.DB, schema string) error {
-	_, err := db.Exec(`
+func MigrateV2_2(tx *sqlx.Tx, _ string) error {
+	_, err := tx.Exec(`
 		DROP VIEW IF EXISTS full_asset;
 		DROP VIEW IF EXISTS asset_dependencies;
 		DROP TRIGGER IF EXISTS asset_dependency_selector_insert;
@@ -30,33 +30,33 @@ func MigrateV2_2(db *sqlx.DB, schema string) error {
 		return err
 	}
 
-	if err := utils.AddColumnIfNotExist(db, "asset_dependency", "resolution_mode", "TEXT", "'floating'", false); err != nil {
+	if err := utils.AddColumnIfNotExist(tx, "asset_dependency", "resolution_mode", "TEXT", "'floating'", false); err != nil {
 		return err
 	}
-	if err := utils.AddColumnIfNotExist(db, "asset_dependency", "checkpoint_id", "TEXT", "", true); err != nil {
+	if err := utils.AddColumnIfNotExist(tx, "asset_dependency", "checkpoint_id", "TEXT", "", true); err != nil {
 		return err
 	}
-	if err := utils.AddColumnIfNotExist(db, "asset_dependency", "asset_checkpoint_tag_id", "TEXT", "", true); err != nil {
+	if err := utils.AddColumnIfNotExist(tx, "asset_dependency", "asset_checkpoint_tag_id", "TEXT", "", true); err != nil {
 		return err
 	}
-	if err := utils.AddColumnIfNotExist(db, "asset_checkpoint", "source_checkpoint_id", "TEXT", "", true); err != nil {
+	if err := utils.AddColumnIfNotExist(tx, "asset_checkpoint", "source_checkpoint_id", "TEXT", "", true); err != nil {
 		return err
 	}
-	if err := utils.CreateSchema(db, schema); err != nil {
+	if err := prepareProjectManagementPermissions(tx); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func prepareProjectManagementPermissions(db *sqlx.DB) error {
+func prepareProjectManagementPermissions(tx *sqlx.Tx) error {
 	for _, permission := range projectManagementPermissions {
-		if err := utils.AddColumnIfNotExist(db, "role", permission, "BOOLEAN", "0", false); err != nil {
+		if err := utils.AddColumnIfNotExist(tx, "role", permission, "BOOLEAN", "0", false); err != nil {
 			return err
 		}
 	}
 
-	_, err := db.Exec(`
+	_, err := tx.Exec(`
 		UPDATE role SET
 			manage_collection_types = 1,
 			manage_asset_types = 1,

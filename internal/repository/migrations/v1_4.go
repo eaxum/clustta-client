@@ -12,24 +12,18 @@ import (
 )
 
 // MigrateV1_4 adds group_id column to task_checkpoint and auto-groups checkpoints.
-func MigrateV1_4(db *sqlx.DB, _ string) error {
-	err := utils.AddColumnIfNotExist(db, "task_checkpoint", "group_id", "TEXT", "", false)
+func MigrateV1_4(tx *sqlx.Tx, _ string) error {
+	err := utils.AddColumnIfNotExist(tx, "task_checkpoint", "group_id", "TEXT", "", false)
 	if err != nil {
 		return err
 	}
-
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
 
 	err = autoGroupCheckpointsLegacy(tx)
 	if err != nil {
 		return err
 	}
 
-	return tx.Commit()
+	return nil
 }
 
 // autoGroupCheckpointsLegacy groups checkpoints using the old table name (task_checkpoint).

@@ -94,29 +94,13 @@ type ColumnInfo struct {
 }
 
 // renameColumn renames a column in the SQLite database.
-func RenameColumn(db *sqlx.DB, tableName, oldColumnName, newColumnName string) error {
-	// Start a transaction
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	// Defer a rollback in case anything fails.
-	defer func() {
-		if err != nil {
-			tx.Rollback()
-		}
-	}()
-
-	// Check if the old column exists
+func RenameColumn(db sqlx.Ext, tableName, oldColumnName, newColumnName string) error {
 	exists, err := IsColumnExist(db, tableName, oldColumnName)
 	if err != nil {
 		return err
 	}
 	if !exists {
 		return nil
-		// return fmt.Errorf("column %s does not exist", oldColumnName)
 	}
 
 	renameColumnSQL := `ALTER TABLE ` + tableName + ` RENAME COLUMN ` + oldColumnName + ` TO ` + newColumnName + `;`
@@ -129,7 +113,7 @@ func RenameColumn(db *sqlx.DB, tableName, oldColumnName, newColumnName string) e
 	return nil
 }
 
-func DeleteColumn(db *sqlx.DB, tableName, columnName string) error {
+func DeleteColumn(db sqlx.Ext, tableName, columnName string) error {
 	deleteColumnSQL := `ALTER TABLE ` + tableName + ` DROP  COLUMN ` + columnName + `;`
 	// Execute the SQL command
 	_, err := db.Exec(deleteColumnSQL)
@@ -139,7 +123,7 @@ func DeleteColumn(db *sqlx.DB, tableName, columnName string) error {
 	return nil
 }
 
-func DeleteColumnIfExists(db *sqlx.DB, tableName, columnName string) error {
+func DeleteColumnIfExists(db sqlx.Ext, tableName, columnName string) error {
 	// Check if the column exists
 	exists, err := IsColumnExist(db, tableName, columnName)
 	if err != nil {
@@ -158,11 +142,11 @@ func DeleteColumnIfExists(db *sqlx.DB, tableName, columnName string) error {
 	return nil
 }
 
-func IsColumnExist(db *sqlx.DB, tableName, columnName string) (bool, error) {
+func IsColumnExist(db sqlx.Ext, tableName, columnName string) (bool, error) {
 	query := fmt.Sprintf("PRAGMA table_info(%s);", tableName)
 
 	var columns []ColumnInfo
-	if err := db.Select(&columns, query); err != nil {
+	if err := sqlx.Select(db, &columns, query); err != nil {
 		return false, fmt.Errorf("failed to query table info: %w", err)
 	}
 
@@ -176,7 +160,7 @@ func IsColumnExist(db *sqlx.DB, tableName, columnName string) (bool, error) {
 	return exists, nil
 }
 
-func AddColumnIfNotExist(db *sqlx.DB, tableName, columnName, columnType, defaultValue string, nullable bool) error {
+func AddColumnIfNotExist(db sqlx.Ext, tableName, columnName, columnType, defaultValue string, nullable bool) error {
 	exists, err := IsColumnExist(db, tableName, columnName)
 	if err != nil {
 		return err
@@ -214,7 +198,7 @@ func AddColumnIfNotExist(db *sqlx.DB, tableName, columnName, columnType, default
 	return nil
 }
 
-func TableExists(db *sqlx.DB, tableName string) (bool, error) {
+func TableExists(db sqlx.Ext, tableName string) (bool, error) {
 	// var name string
 	// query := `SELECT name FROM sqlite_master WHERE type='table' AND name=?;`
 	// err := db.Get(&name, query, tableName)
@@ -237,7 +221,7 @@ func TableExists(db *sqlx.DB, tableName string) (bool, error) {
 	return true, nil
 }
 
-func RenameTable(db *sqlx.DB, oldName, newName string) error {
+func RenameTable(db sqlx.Ext, oldName, newName string) error {
 	exists, err := TableExists(db, oldName)
 	if err != nil {
 		return err

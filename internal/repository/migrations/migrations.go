@@ -17,7 +17,7 @@ const LatestVersion = "2.2"
 type Migration struct {
 	Version     string
 	Description string
-	Up          func(db *sqlx.DB, schema string) error
+	Up          func(tx *sqlx.Tx, schema string) error
 }
 
 // All returns the ordered list of migrations.
@@ -47,21 +47,12 @@ func RunMigrations(db *sqlx.DB, currentVersion string, schema string) error {
 	if comparison > 0 {
 		return fmt.Errorf("project schema %s is newer than supported schema %s", currentVersion, LatestVersion)
 	}
-	if err := prepareProjectManagementPermissions(db); err != nil {
+	tx, err := db.Beginx()
+	if err != nil {
 		return err
 	}
-	// Earlier migrations reapply the latest schema before the final migration runs.
-	for _, table := range []string{"asset_checkpoint", "task_checkpoint"} {
-		exists, err := utils.TableExists(db, table)
-		if err != nil {
-			return err
-		}
-		if exists {
-			if err = utils.AddColumnIfNotExist(db, table, "source_checkpoint_id", "TEXT", "", true); err != nil {
-				return err
-			}
-		}
-	}
+	defer tx.Rollback()
+
 	for _, m := range All() {
 		shouldRun := false
 		if m.Version == "1.2" {
@@ -75,23 +66,24 @@ func RunMigrations(db *sqlx.DB, currentVersion string, schema string) error {
 		}
 
 		if shouldRun {
-			if err := m.Up(db, schema); err != nil {
-				return err
+			if err := m.Up(tx, schema); err != nil {
+				return fmt.Errorf("failed to migrate project schema to %s: %w", m.Version, err)
 			}
 		}
 	}
 
 	// Re-apply schema to ensure views, triggers, and indexes are current.
-	err = utils.CreateSchema(db, schema)
+	err = utils.CreateSchemaTx(tx, schema)
 	if err != nil {
 		return err
 	}
-
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
+	var integrity string
+	if err = tx.Get(&integrity, "PRAGMA quick_check"); err != nil {
+		return fmt.Errorf("failed to validate migrated project: %w", err)
 	}
-	defer tx.Rollback()
+	if integrity != "ok" {
+		return fmt.Errorf("migrated project failed integrity check: %s", integrity)
+	}
 
 	err = utils.SetProjectVersion(tx, LatestVersion)
 	if err != nil {

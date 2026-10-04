@@ -1,12 +1,16 @@
 package migrations
 
 import (
-	"clustta/internal/utils"
+	_ "embed"
 
 	"github.com/jmoiron/sqlx"
 )
 
-// MigrateV1_7 re-applies the schema to add integration tables.
-func MigrateV1_7(db *sqlx.DB, schema string) error {
-	return utils.CreateSchema(db, schema)
+//go:embed sql/v1_7.sql
+var v1_7SQL string
+
+// MigrateV1_7 adds integration tables.
+func MigrateV1_7(tx *sqlx.Tx, _ string) error {
+	_, err := tx.Exec(v1_7SQL)
+	return err
 }
