@@ -39,9 +39,11 @@
           <div v-if="item.status === 'running'" class="activity-progress-bar" role="progressbar"
             :aria-valuetext="transferTooltip(item)"
             :aria-label="item.title" :aria-valuenow="item.total > 0 ? item.percentage : undefined" aria-valuemin="0" aria-valuemax="100">
+            <span v-if="item.transfer.phase === 'preparing'" class="activity-progress-preparing"></span>
             <span v-if="item.transfer.savedPercentage > 0" class="activity-progress-saved"
               v-tooltip="$t('activity.savedTooltip', { size: utils.formatBytes(item.transfer.saved, 2) })" :style="{ width: item.transfer.savedPercentage + '%' }"></span>
-            <span v-if="item.transfer.downloadedPercentage > 0" class="activity-progress-downloaded"
+            <span v-if="item.transfer.downloadedPercentage > 0"
+              :class="item.transfer.phase === 'rebuilding' ? 'activity-progress-rebuilding' : 'activity-progress-downloaded'"
               v-tooltip="item.transfer.downloading ? $t('activity.downloadedTooltip', { size: utils.formatBytes(item.transfer.downloaded, 2) }) : $t('activity.rebuildingTooltip', { percent: Math.round(item.percentage) })" :style="{ width: item.transfer.downloadedPercentage + '%' }"></span>
           </div>
           <p v-if="item.error || activity.errors[item.operation_id]" class="activity-error" role="alert">{{ item.error || activity.errors[item.operation_id] }}</p>
@@ -80,8 +82,9 @@ import { useI18n } from 'vue-i18n';
 const activity = useActivityStore();
 const { t } = useI18n();
 const transferTooltip = (item) => {
-  const { saved, downloaded, downloading } = item.transfer;
-  if (!downloading) return t('activity.rebuildingTooltip', { percent: Math.round(item.percentage) });
+  const { saved, downloaded, phase } = item.transfer;
+  if (phase === 'preparing') return sentenceCase(item.message || t('activity.pending'));
+  if (phase === 'rebuilding') return t('activity.rebuildingTooltip', { percent: Math.round(item.percentage) });
   return t('activity.transferTooltip', { saved: utils.formatBytes(saved, 2), downloaded: utils.formatBytes(downloaded, 2) });
 };
 defineProps({ maximized: { type: Boolean, default: false } });
@@ -142,8 +145,19 @@ const goToItem = async (operation, requestedItem, type = 'asset') => {
 <style scoped>
 
 .activity-panel {
+  --activity-preparing-start: #64748b;
+  --activity-preparing-end: #cbd5e1;
+  --activity-rebuilding-start: #8b5cf6;
+  --activity-rebuilding-end: #d946ef;
   font-size: 13px;
   border-radius: var(--very-large-radius);
+}
+
+:global([data-theme="dark"]) .activity-panel {
+  --activity-preparing-start: #94a3b8;
+  --activity-preparing-end: #e2e8f0;
+  --activity-rebuilding-start: #a78bfa;
+  --activity-rebuilding-end: #e879f9;
 }
 
 .activity-list {
@@ -233,6 +247,37 @@ const goToItem = async (operation, requestedItem, type = 'asset') => {
 }
 .activity-progress-downloaded {
   background: rgb(67, 210, 67);
+}
+.activity-progress-preparing {
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--activity-preparing-start),
+    var(--activity-preparing-end),
+    var(--activity-preparing-start)
+  );
+  background-size: 200% 100%;
+  animation: activity-progress-shimmer 1.5s linear infinite;
+}
+.activity-progress-rebuilding {
+  background: linear-gradient(
+    90deg,
+    var(--activity-rebuilding-start),
+    var(--activity-rebuilding-end)
+  );
+}
+@keyframes activity-progress-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .activity-progress-preparing {
+    animation: none;
+  }
 }
 .activity-error {
   color: var(--red);

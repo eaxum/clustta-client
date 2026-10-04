@@ -29,9 +29,11 @@ export function activityTransferProgress(operation) {
   const saved = Math.min(received, parseByteSize(activitySavedSize(operation)));
   const percentage = Math.min(100, Math.max(0, Number(operation.percentage) || 0));
   const downloading = !!operation.download_message && operation.message === operation.download_message;
+  const phase = downloading ? 'downloading' : operation.download_message ? 'rebuilding' : 'preparing';
   const savedPercentage = downloading && received > 0 ? percentage * saved / received : 0;
   return {
     downloading,
+    phase,
     saved,
     downloaded: Math.max(0, received - saved),
     savedPercentage,

@@ -136,13 +136,15 @@ test('activity labels preserve names and compact byte summaries preserve values'
 test('transfer segments partition progress without counting saved data as downloaded', () => {
   const operation = { percentage: 60, message: 'Receiving 300 MB/500 MB', download_message: 'Receiving 300 MB/500 MB', extra_message: 'Data saved: 100 MB (33.33%)' };
   const progress = activityTransferProgress(operation);
+  assert.equal(progress.phase, 'downloading');
   assert.equal(progress.savedPercentage, 20);
   const rebuilding = activityTransferProgress({ ...operation, message: 'Rebuilding asset' });
+  assert.equal(rebuilding.phase, 'rebuilding');
   assert.equal(rebuilding.savedPercentage, 0);
   assert.equal(rebuilding.downloadedPercentage, 60);
   assert.equal(progress.downloadedPercentage, 40);
   assert.equal(progress.downloaded, 200 * 1024 ** 2);
   assert.equal(activityTransferProgress({ ...operation, extra_message: 'Data saved: 300 MB (100.00%)' }).downloadedPercentage, 0);
   assert.equal(activityTransferProgress({ ...operation, extra_message: '' }).downloadedPercentage, 60);
-  assert.deepEqual(activityTransferProgress({}), { downloading: false, saved: 0, downloaded: 0, savedPercentage: 0, downloadedPercentage: 0 });
+  assert.deepEqual(activityTransferProgress({}), { downloading: false, phase: 'preparing', saved: 0, downloaded: 0, savedPercentage: 0, downloadedPercentage: 0 });
 });
