@@ -471,6 +471,7 @@
     "downloadProject": "プロジェクトをダウンロード",
     "errorImportingItems": "アイテムのインポートエラー",
     "errorUpdatingItems": "アイテムの更新エラー",
+    "errorChangingAssetStatus": "アセットステータスの変更エラー",
     "allChangesDiscarded": "すべての変更が破棄されました",
     "changeDiscarded": "変更が破棄されました",
     "errorDiscardingChanges": "変更の破棄エラー",

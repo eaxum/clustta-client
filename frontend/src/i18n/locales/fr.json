@@ -471,6 +471,7 @@
     "downloadProject": "Télécharger le projet",
     "errorImportingItems": "Erreur lors de l'importation des éléments",
     "errorUpdatingItems": "Erreur lors de la mise à jour des éléments",
+    "errorChangingAssetStatus": "Erreur lors du changement du statut de l’asset",
     "allChangesDiscarded": "Toutes les modifications annulées",
     "changeDiscarded": "Modification annulée",
     "errorDiscardingChanges": "Erreur lors de l'annulation des modifications",

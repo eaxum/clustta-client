@@ -471,6 +471,7 @@
     "downloadProject": "प्रोजेक्ट डाउनलोड करें",
     "errorImportingItems": "आइटम आयात करने में त्रुटि",
     "errorUpdatingItems": "आइटम अपडेट करने में त्रुटि",
+    "errorChangingAssetStatus": "एसेट की स्थिति बदलने में त्रुटि",
     "allChangesDiscarded": "सभी परिवर्तन छोड़े गए",
     "changeDiscarded": "परिवर्तन छोड़ा गया",
     "errorDiscardingChanges": "परिवर्तन छोड़ने में त्रुटि",

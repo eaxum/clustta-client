@@ -471,6 +471,7 @@
     "downloadProject": "프로젝트 다운로드",
     "errorImportingItems": "항목 가져오기 오류",
     "errorUpdatingItems": "항목 업데이트 오류",
+    "errorChangingAssetStatus": "에셋 상태 변경 오류",
     "allChangesDiscarded": "모든 변경 사항 폐기됨",
     "changeDiscarded": "변경 사항 폐기됨",
     "errorDiscardingChanges": "변경 사항 폐기 오류",

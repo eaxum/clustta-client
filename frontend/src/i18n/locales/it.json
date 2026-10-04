@@ -471,6 +471,7 @@
     "downloadProject": "Scarica progetto",
     "errorImportingItems": "Errore nell'importazione degli elementi",
     "errorUpdatingItems": "Errore nell'aggiornamento degli elementi",
+    "errorChangingAssetStatus": "Errore durante la modifica dello stato dell'asset",
     "allChangesDiscarded": "Tutte le modifiche scartate",
     "changeDiscarded": "Modifica scartata",
     "errorDiscardingChanges": "Errore nello scartare le modifiche",

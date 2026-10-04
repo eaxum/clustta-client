@@ -471,6 +471,7 @@
     "downloadProject": "Скачать проект",
     "errorImportingItems": "Ошибка импорта элементов",
     "errorUpdatingItems": "Ошибка обновления элементов",
+    "errorChangingAssetStatus": "Ошибка изменения статуса ресурса",
     "allChangesDiscarded": "Все изменения отменены",
     "changeDiscarded": "Изменение отменено",
     "errorDiscardingChanges": "Ошибка отмены изменений",

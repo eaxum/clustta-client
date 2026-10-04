@@ -9,7 +9,7 @@
       <p class="card-help">{{ $t('settings.kitsuIntegrationHelp') }}</p>
 
       <div class="input-section">
-        <FormInput v-model="form.api_url" @input="onApiUrlInput" placeholder="https://your-studio.cg-wire.com/api" :error="errors.api_url" :needsValidation="true" :showValidation="!!form.api_url" :valid="!errors.api_url && !!form.api_url" :labelTop="true" />
+        <FormInput v-model="form.api_url" @input="onApiUrlInput" placeholder="https://your-studio.cg-wire.com" :error="errors.api_url" :needsValidation="true" :showValidation="!!form.api_url" :valid="!errors.api_url && !!form.api_url" :labelTop="true" />
       </div>
 
       <div class="input-section">

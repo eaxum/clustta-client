@@ -510,6 +510,7 @@
     "downloadProject": "Download Project",
     "errorImportingItems": "Error importing items",
     "errorUpdatingItems": "Error Updating Items",
+    "errorChangingAssetStatus": "Error changing asset status",
     "allChangesDiscarded": "All changes discarded",
     "changeDiscarded": "Change discarded",
     "errorDiscardingChanges": "Error discarding changes",

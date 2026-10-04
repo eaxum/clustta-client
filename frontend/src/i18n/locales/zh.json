@@ -471,6 +471,7 @@
     "downloadProject": "下载项目",
     "errorImportingItems": "导入项目时出错",
     "errorUpdatingItems": "更新项目时出错",
+    "errorChangingAssetStatus": "更改资产状态时出错",
     "allChangesDiscarded": "所有更改已丢弃",
     "changeDiscarded": "更改已丢弃",
     "errorDiscardingChanges": "丢弃更改时出错",

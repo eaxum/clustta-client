@@ -64,6 +64,7 @@
 import { AssetService } from "@/services";
 
 import { reactive, computed, ref, onMounted, onUnmounted, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 import { browserKanbanParentKey } from '@/lib/browserTree';
 import emitter from '@/lib/mitt';
@@ -95,6 +96,7 @@ const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
 const browserTreeStore = useBrowserTreeStore();
+const { t } = useI18n();
 
 // Board queries serialize unselected fields as zero values, so merge only owned fields.
 const KANBAN_ASSET_FIELDS = [
@@ -477,6 +479,7 @@ const setStatus = async () => {
     }
   } catch (error) {
     console.error('Error changing asset status:', error);
+    notificationStore.errorNotification(t('notifications.errorChangingAssetStatus'), error);
     
     // On error, reload the assets to ensure consistency
     await loadAssets();

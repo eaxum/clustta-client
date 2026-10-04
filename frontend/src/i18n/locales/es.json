@@ -471,6 +471,7 @@
     "downloadProject": "Descargar proyecto",
     "errorImportingItems": "Error al importar elementos",
     "errorUpdatingItems": "Error al actualizar elementos",
+    "errorChangingAssetStatus": "Error al cambiar el estado del asset",
     "allChangesDiscarded": "Todos los cambios descartados",
     "changeDiscarded": "Cambio descartado",
     "errorDiscardingChanges": "Error al descartar los cambios",
