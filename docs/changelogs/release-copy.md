@@ -42,6 +42,7 @@ Drag eligible assets and collections from Clustta into the system file manager o
 - Dependency builds resolve tagged and pinned versions more clearly and surface conflicts with more useful context.
 - Checkpoint tags are easier to browse, select, and identify throughout the interface.
 - Download progress uses clearer phases and supports cancellation where available.
+- Project database upgrades now apply each schema change in order and complete atomically, supporting direct upgrades from schema 1.2 through 2.2.
 
 **Full Changelog**: `77923fb287640e029654fffd59bdba1aef85f565...HEAD`
 
@@ -79,6 +80,10 @@ Track long-running work, inspect progress and details, minimize the panel, and c
 
 Drag eligible assets and collections into the system file manager or another supported application on Windows, macOS, and Linux.
 
+**Improved: Project Upgrades**
+
+Projects created with older Clustta versions can upgrade directly from schema 1.2 through 2.2, with all database changes committed together only after validation succeeds.
+
 ## Apple App Store
 
 ### What's New in This Version
@@ -90,6 +95,7 @@ Clustta 0.4.40 brings versioned dependencies, checkpoint provenance, visible act
 - Record checkpoint lineage and edit checkpoint comments, tags, or source versions.
 - Track long-running work in the new Activity panel.
 - Drag eligible assets and collections into supported apps and file locations.
+- Open projects created with older Clustta versions with safer, validated database upgrades.
 
 ## Microsoft Store
 
@@ -102,6 +108,7 @@ Clustta 0.4.40 brings versioned dependencies, checkpoint provenance, visible act
 - Record checkpoint lineage and edit checkpoint comments, tags, or source versions.
 - Track long-running work in the new Activity panel.
 - Drag eligible assets and collections into supported apps and file locations.
+- Open projects created with older Clustta versions with safer, validated database upgrades.
 
 ## Short Store Summary
 
@@ -118,3 +125,4 @@ Clustta 0.4.40 makes asset history and dependencies easier to understand and con
 - Record where a checkpoint came from and update its comment, tags, or source checkpoint.
 - Track long-running work and cancel supported operations from the Activity panel.
 - Drag eligible assets and collections into supported apps and file locations on Windows, macOS, and Linux.
+- Upgrade projects created with older Clustta versions through a safer, validated migration path.
