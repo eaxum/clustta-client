@@ -9,20 +9,22 @@
       {{ searchTerm ? 'No results' : 'No options available' }}
     </div>
     <div v-else class="checkpoint-selection-options">
-      <button v-for="option in filteredOptions" :key="option.id" class="checkpoint-selection-option"
-        :class="{ 'checkpoint-selection-option-selected': option.id === menuData.selectedId,
-          'checkpoint-selection-checkpoint': option.description,
-          'checkpoint-selection-divider': option.showDivider }"
-        :disabled="option.disabled || isSaving" type="button" @click="selectOption(option)">
-        <img v-if="option.icon" class="small-icons checkpoint-selection-icon" :src="option.icon">
-        <span v-if="option.description" class="checkpoint-option" :title="option.label">
-          <span class="checkpoint-option-message">{{ option.label }}</span>
-          <span class="checkpoint-option-date">{{ option.description }}</span>
-        </span>
-        <span v-else class="checkpoint-selection-label">{{ option.label }}</span>
-        <img v-if="option.id === menuData.selectedId" class="small-icons checkpoint-selection-pin"
-          :src="getAppIcon('pin')">
-      </button>
+      <template v-for="option in filteredOptions" :key="option.id">
+        <span v-if="option.showDivider" class="menu-divider checkpoint-selection-divider"></span>
+        <button class="checkpoint-selection-option"
+          :class="{ 'checkpoint-selection-option-selected': option.id === menuData.selectedId,
+            'checkpoint-selection-checkpoint': option.description }"
+          :disabled="option.disabled || isSaving" type="button" @click="selectOption(option)">
+          <img v-if="option.icon" class="small-icons checkpoint-selection-icon" :src="option.icon">
+          <span v-if="option.description" class="checkpoint-option">
+            <span class="checkpoint-option-message">{{ option.label }}</span>
+            <span class="checkpoint-option-date">{{ option.description }}</span>
+          </span>
+          <span v-else class="checkpoint-selection-label">{{ option.label }}</span>
+          <img v-if="option.id === menuData.selectedId" class="small-icons checkpoint-selection-pin"
+            :src="getAppIcon('pin')">
+        </button>
+      </template>
     </div>
   </div>
 </template>
@@ -154,9 +156,8 @@ const selectOption = async (option) => {
 }
 
 .checkpoint-selection-divider {
-  margin-top: .35rem;
-  border-top: var(--transparent-line);
-  border-radius: 0 0 var(--normal-radius) var(--normal-radius);
+  flex: 0 0 auto;
+  margin: .25rem 0;
 }
 
 .checkpoint-selection-checkpoint .checkpoint-selection-pin {
@@ -178,8 +179,8 @@ const selectOption = async (option) => {
   flex-direction: column;
   min-width: 0;
   width: 100%;
-  gap: .25rem;
-  padding: .5rem;
+  gap: .15rem;
+  padding: .45rem .5rem;
   box-sizing: border-box;
 }
 
@@ -191,16 +192,16 @@ const selectOption = async (option) => {
 }
 
 .checkpoint-option-message {
-  color: var(--text-muted);
+  color: var(--text);
   font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  font-weight: 400;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .checkpoint-option-date {
   color: var(--text-muted);
   font-family: 'Inter', sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 400;
 }
 
