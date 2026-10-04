@@ -197,6 +197,7 @@ defineExpose({ resolve });
   flex-shrink: 0;
 }
 .latest-control span {
+  color: var(--text);
   cursor: pointer;
 }
 .source-option {
