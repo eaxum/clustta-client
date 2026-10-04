@@ -38,7 +38,7 @@
 			</div>
 		</div>
 		<div v-else ref="assetListContainer" class="browser-root-container kanban-container">
-			<Kanban :filtersActive="filtersActive" :assets="rootData" @filtered-count-change="updateKanbanTaskCount" />
+			<Kanban @filtered-count-change="updateKanbanTaskCount" />
 		</div>
 	</div>
 </template>

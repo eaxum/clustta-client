@@ -61,10 +61,11 @@
 
 <script setup>
 // imports
-import { ProjectService, AssetService, CheckpointService, TrashService } from "@/services";
+import { AssetService } from "@/services";
 
 import { reactive, computed, ref, onMounted, onUnmounted, watch } from 'vue';
 import utils from '@/services/utils';
+import { browserKanbanParentKey } from '@/lib/browserTree';
 import emitter from '@/lib/mitt';
 
 // stores/state imports
@@ -78,6 +79,7 @@ import { useDndStore } from '@/stores/dnd';
 import { useMenu } from '@/stores/menu';
 import { useProjectStore } from '@/stores/projects';
 import { useNotificationStore } from '@/stores/notifications';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 
 // components
 import AssetItemCard from '@/instances/desktop/components/AssetItemCard.vue'
@@ -92,12 +94,35 @@ const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
+const browserTreeStore = useBrowserTreeStore();
+
+// Board queries serialize unselected fields as zero values, so merge only owned fields.
+const KANBAN_ASSET_FIELDS = [
+  'asset_path',
+  'asset_type_icon',
+  'asset_type_id',
+  'assignee_id',
+  'collection_dependencies',
+  'collection_id',
+  'collection_path',
+  'dependencies',
+  'extension',
+  'file_path',
+  'id',
+  'icon',
+  'is_link',
+  'is_resource',
+  'name',
+  'pointer',
+  'preview',
+  'status_id',
+  'synced',
+  'tags',
+  'type',
+];
 
 // props
 const props = defineProps({
-  
-  assets: Array,
-  filtersActive: Boolean,
   showThumbs: {
     type: Boolean,
     default: false
@@ -122,33 +147,44 @@ const emit = defineEmits(['filtered-count-change']);
 const targetRefs = ref({});
 const draggedItemRefs = ref({});
 const minimizedColumns = ref([]);
-const cards = ref([]);
+const cards = computed(() => browserTreeStore.getChildren(browserKanbanParentKey));
 const filteredCards = ref([]);
 const hoveredCardIndex = ref(-1);
 const hoveredColumnId = ref(null);
 
 // Fetch asset assets from the backend
 const loadAssets = async () => {
-  try {
-    const projectPath = projectStore.activeProject?.uri;
-    if (projectPath) {
-      let assets;
+  const projectPath = projectStore.activeProject?.uri;
+  if (!projectPath) return;
 
-      // If navigator mode is active and we have a navigated collection,
-      // recursively fetch every asset in the collection's subtree.
-      if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
-        const navigatedCollectionId = collectionStore.navigatedCollection.id;
-        assets = await AssetService.GetCollectionDescendantAssets(projectPath, navigatedCollectionId, false);
-      } else {
-        // Get all assets if not in navigator mode
-        assets = await AssetService.GetAssetAssets(projectPath);
-      }
-      
-      await assetStore.processAssetsIconsAndPreviews(assets);
-      cards.value = assets; // Update cards ref with the fetched assets
-      await updateFilteredCards(); // Update filtered cards
+  browserTreeStore.setProject(projectPath);
+  const refreshVersion = browserTreeStore.beginParentRefresh(browserKanbanParentKey);
+
+  try {
+    let assets;
+
+    // Navigator mode limits the board to the selected collection subtree.
+    if (commonStore.navigatorMode && collectionStore.navigatedCollection) {
+      const navigatedCollectionId = collectionStore.navigatedCollection.id;
+      assets = await AssetService.GetCollectionDescendantAssets(projectPath, navigatedCollectionId, false);
+    } else {
+      assets = await AssetService.GetAssetAssets(projectPath);
     }
+
+    await assetStore.processAssetsIconsAndPreviews(assets);
+    const reconciledAssets = browserTreeStore.replaceProjectedChildrenIfCurrent(
+      projectPath,
+      browserKanbanParentKey,
+      refreshVersion,
+      assets,
+      KANBAN_ASSET_FIELDS
+    );
+    if (reconciledAssets === null) return;
+    await updateFilteredCards();
   } catch (error) {
+    if (browserTreeStore.projectUri === projectPath) {
+      browserTreeStore.failParentRefresh(browserKanbanParentKey, refreshVersion, error);
+    }
     console.error('Error loading asset assets:', error);
   }
 };
@@ -471,23 +507,24 @@ const onDragStop = (cardEl) => {
 };
 
 const putCardInColumn = () => {
-  let draggedCard = cards.value.find(card => card.id === dndStore.draggedItemId);
+  const orderedCards = [...cards.value];
+  const draggedCard = orderedCards.find(card => card.id === dndStore.draggedItemId);
   if (!draggedCard) return;
 
   const targetColumnId = dndStore.itemOverlappedId;
   const insertIndex = hoveredCardIndex.value;
   
   // Remove the card from its current position
-  const currentIndex = cards.value.findIndex(card => card.id === dndStore.draggedItemId);
+  const currentIndex = orderedCards.findIndex(card => card.id === dndStore.draggedItemId);
   if (currentIndex !== -1) {
-    cards.value.splice(currentIndex, 1);
+    orderedCards.splice(currentIndex, 1);
   }
 
   // Update the card's status
   draggedCard.status_id = targetColumnId;
 
   // Find the target column's cards
-  const targetColumnCards = cards.value.filter(card => card.status_id === targetColumnId);
+  const targetColumnCards = orderedCards.filter(card => card.status_id === targetColumnId);
   
   // Calculate the global insertion index
   let globalInsertIndex;
@@ -495,34 +532,34 @@ const putCardInColumn = () => {
     // Insert at the end of the column
     const lastCardOfColumn = targetColumnCards[targetColumnCards.length - 1];
     if (lastCardOfColumn) {
-      globalInsertIndex = cards.value.findIndex(card => card.id === lastCardOfColumn.id) + 1;
+      globalInsertIndex = orderedCards.findIndex(card => card.id === lastCardOfColumn.id) + 1;
     } else {
       // Column is empty, find where to insert based on status order
-      globalInsertIndex = findGlobalInsertIndexForEmptyColumn(targetColumnId);
+      globalInsertIndex = findGlobalInsertIndexForEmptyColumn(targetColumnId, orderedCards);
     }
   } else if (insertIndex === 0) {
     // Insert at the beginning of the column
     const firstCardOfColumn = targetColumnCards[0];
     if (firstCardOfColumn) {
-      globalInsertIndex = cards.value.findIndex(card => card.id === firstCardOfColumn.id);
+      globalInsertIndex = orderedCards.findIndex(card => card.id === firstCardOfColumn.id);
     } else {
-      globalInsertIndex = findGlobalInsertIndexForEmptyColumn(targetColumnId);
+      globalInsertIndex = findGlobalInsertIndexForEmptyColumn(targetColumnId, orderedCards);
     }
   } else {
     // Insert between cards
     const targetCard = targetColumnCards[insertIndex];
     if (targetCard) {
-      globalInsertIndex = cards.value.findIndex(card => card.id === targetCard.id);
+      globalInsertIndex = orderedCards.findIndex(card => card.id === targetCard.id);
     } else {
-      globalInsertIndex = cards.value.length;
+      globalInsertIndex = orderedCards.length;
     }
   }
 
-  // Insert the card at the calculated position
-  cards.value.splice(globalInsertIndex, 0, draggedCard);
+  orderedCards.splice(globalInsertIndex, 0, draggedCard);
+  browserTreeStore.setChildOrder(browserKanbanParentKey, orderedCards);
 };
 
-const findGlobalInsertIndexForEmptyColumn = (targetColumnId) => {
+const findGlobalInsertIndexForEmptyColumn = (targetColumnId, orderedCards) => {
   // Find the position where this column should be based on status order
   const statusOrder = statuses.value;
   const targetStatusIndex = statusOrder.findIndex(status => status.id === targetColumnId);
@@ -530,14 +567,14 @@ const findGlobalInsertIndexForEmptyColumn = (targetColumnId) => {
   // Find the first card that belongs to a status that comes after the target status
   for (let i = targetStatusIndex + 1; i < statusOrder.length; i++) {
     const nextStatusId = statusOrder[i].id;
-    const nextStatusCardIndex = cards.value.findIndex(card => card.status_id === nextStatusId);
+    const nextStatusCardIndex = orderedCards.findIndex(card => card.status_id === nextStatusId);
     if (nextStatusCardIndex !== -1) {
       return nextStatusCardIndex;
     }
   }
   
   // If no cards found in later statuses, insert at the end
-  return cards.value.length;
+  return orderedCards.length;
 };
 
 
@@ -548,8 +585,8 @@ const onWindowMouseUp = () => {
 };
 
 onMounted(async () => {
-  // emitter.emit('refresh-browser')
   window.addEventListener('mouseup', onWindowMouseUp);
+  emitter.on('refresh-browser', loadAssets);
   if (statusStore.statuses.length === 0) {
     await statusStore.reloadStatuses();
   }
@@ -604,13 +641,9 @@ watch(() => commonStore.navigatorMode, async () => {
   await loadAssets();
 });
 
-// Watch for navigated collection changes to reload assets
-watch(() => collectionStore.navigatedCollection, async () => {
-  await loadAssets();
-});
-
 onUnmounted(() => {
   window.removeEventListener('mouseup', onWindowMouseUp);
+  emitter.off('refresh-browser', loadAssets);
 });
 
 

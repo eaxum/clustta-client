@@ -101,6 +101,68 @@ export const useBrowserTreeStore = defineStore('browserTree', {
       return reconciledItems;
     },
 
+    replaceProjectedChildren(parentKey, incomingItems = [], projectedFields = []) {
+      if (!parentKey) return [];
+
+      const reconciledItems = [];
+      const childKeys = [];
+      const includedKeys = new Set();
+
+      for (const incomingItem of incomingItems) {
+        const itemKey = getBrowserItemKey(incomingItem);
+        if (!itemKey || includedKeys.has(itemKey)) continue;
+
+        const currentItem = this.itemsByKey[itemKey];
+        if (currentItem && currentItem !== incomingItem) {
+          for (const field of projectedFields) {
+            if (Object.prototype.hasOwnProperty.call(incomingItem, field)) {
+              currentItem[field] = incomingItem[field];
+            }
+          }
+        }
+
+        const item = currentItem || incomingItem;
+        item.pending = this.isPending(this.projectUri, item);
+        this.itemsByKey[itemKey] = item;
+        reconciledItems.push(item);
+        childKeys.push(itemKey);
+        includedKeys.add(itemKey);
+      }
+
+      this.childKeysByParent[parentKey] = childKeys;
+      this.loadedParents[parentKey] = true;
+      this.loadingParents[parentKey] = false;
+      delete this.parentErrors[parentKey];
+
+      return reconciledItems;
+    },
+
+    replaceProjectedChildrenIfCurrent(
+      projectUri,
+      parentKey,
+      refreshVersion,
+      incomingItems = [],
+      projectedFields = []
+    ) {
+      if (this.projectUri !== projectUri) return null;
+      if (!this.isCurrentRefresh(parentKey, refreshVersion)) return null;
+      return this.replaceProjectedChildren(parentKey, incomingItems, projectedFields);
+    },
+
+    setChildOrder(parentKey, orderedItems = []) {
+      if (!parentKey) return;
+
+      const childKeys = [];
+      const includedKeys = new Set();
+      for (const item of orderedItems) {
+        const itemKey = getBrowserItemKey(item);
+        if (!itemKey || includedKeys.has(itemKey) || !this.itemsByKey[itemKey]) continue;
+        childKeys.push(itemKey);
+        includedKeys.add(itemKey);
+      }
+      this.childKeysByParent[parentKey] = childKeys;
+    },
+
     patchItem(itemKey, updates = {}) {
       const item = this.itemsByKey[itemKey];
       if (!item) return null;

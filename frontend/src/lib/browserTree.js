@@ -1,4 +1,5 @@
 export const browserRootParentKey = 'browser:root';
+export const browserKanbanParentKey = 'browser:kanban';
 
 export const getBrowserItemKey = (item) => {
   if (!item?.id) return '';
