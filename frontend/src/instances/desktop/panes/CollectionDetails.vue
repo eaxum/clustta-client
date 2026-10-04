@@ -12,7 +12,7 @@
       </div>
 
       <div v-if="collectionStore.selectedCollection" class="pane-parameter-section">
-        <div class="action-bar" v-if="userStore.canDo('update_collection')">
+        <div class="action-bar" v-if="canUpdateCollection">
 
           <div class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('folder')" :label="$t('panes.collectionType')" />
@@ -47,7 +47,7 @@
 
         </div>
 
-        <span v-if="userStore.canDo('update_collection')" class="menu-divider"></span>
+        <span v-if="canUpdateCollection" class="menu-divider"></span>
 
         <div class="pane-parameter-detail">
           <div class="simple-text-key">
@@ -140,6 +140,7 @@ import { useI18n } from 'vue-i18n';
 import { useRevealLabel } from '@/composables/useRevealLabel';
 import utils from '@/services/utils';
 import emitter from '@/lib/mitt';
+import { canActInCollection } from '@/lib/permissions';
 
 // store imports
 import { useUserStore } from '@/stores/users';
@@ -171,6 +172,10 @@ const { revealLabel } = useRevealLabel();
 
 // vars
 const placeholder = computed(() => t('placeholders.searchCollaborators'));
+
+const canUpdateCollection = computed(() => {
+  return canActInCollection('update_collection', collectionStore.selectedCollection);
+});
 
 const collaboratorsList = computed(() => {
   return userStore.getProjectCollaborators
@@ -230,6 +235,7 @@ const copyCollectionId = async () => {
 };
 
 const removeUser = (user) => {
+  if (!canUpdateCollection.value) return;
   const userId = user.id;
   CollectionService.Unassign(projectStore.activeProject.uri, collectionStore.selectedCollection.id, userId)
     .then((result) => {
@@ -251,6 +257,7 @@ const removeUser = (user) => {
 };
 
 const addUser = (user) => {
+  if (!canUpdateCollection.value) return;
   const userId = user.id;
 
   if (collectionStore.selectedCollection.assignee_ids.includes(userId)) {
@@ -301,6 +308,7 @@ const resolveParentName = async () => {
 };
 
 const changeCollectionType = async (collectionTypeName) => {
+  if (!canUpdateCollection.value) return;
   stage.operationActive = true;
 
   let newCollectionType;
@@ -333,6 +341,7 @@ const changeCollectionType = async (collectionTypeName) => {
 
 };
 const changeIsShared = async () => {
+  if (!canUpdateCollection.value) return;
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   let collection = collectionStore.selectedCollection;

@@ -13,21 +13,21 @@
       </div>
 
       <div class="pane-parameter-section">
-        <div class="action-bar" v-if="userStore.canDo('update_asset')">
+        <div class="action-bar" v-if="canEditAssetDetails">
 
-          <div class="action-bar-section">
+          <div v-if="canUpdateAsset" class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('file-plus')" :label="$t('panes.type')" />
             <DropDownBox :items="assetTypeOptions" :selectedItem="assetStore.selectedAsset?.asset_type_name"
               :onSelect="changeAssetType" :fixedWidth="true" />
           </div>
 
-          <div v-if="!assetStore.selectedAsset.is_resource" class="action-bar-section">
+          <div v-if="canChangeAssetStatus && !assetStore.selectedAsset.is_resource" class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('clock')" :label="$t('panes.status')" />
             <DropDownBox :items="projectStatuses" :selectedItem="assetStore.selectedAsset.status_short_name"
               :onSelect="setStatus" :fixedWidth="true" />
           </div>
 
-          <div v-if="!assetStore.selectedAsset.assignee_id" class="action-bar-section">
+          <div v-if="canUpdateAsset && !assetStore.selectedAsset.assignee_id" class="action-bar-section">
             <ActionButton :isInactive="true" :icon="getAppIcon('kanban')" :label="$t('panes.task')" />
 
             <ToggleSwitch v-tooltip="!assetStore.selectedAsset.is_resource ? $t('panes.unsetAsTask') : $t('panes.setAsTask')"
@@ -36,7 +36,7 @@
 
         </div>
 
-        <span v-if="userStore.canDo('update_asset')" class="menu-divider"></span>
+        <span v-if="canEditAssetDetails" class="menu-divider"></span>
 
         <div class="asset-details">
           <div v-if="latestCheckpoint?.source_checkpoint_id" class="pane-parameter-detail">
@@ -177,9 +177,9 @@
 
             <div class="tag-section">
               <div class="asset-tag-list">
-                <Chip v-for="tag in assetTags" :key="tag.id" :label="tag.name" :readonly="!userStore.canDo('update_asset')" :onRemove="() => removeTag(tag)" />
-                <Chip v-if="userStore.canDo('update_asset') && !showTagInput" :icon="getAppIcon('plus-circle')" :label="$t('panes.addTag')" :isStatic="false" :readonly="true" @click="openTagInput" />
-                <span v-if="userStore.canDo('update_asset') && showTagInput" class="tag-input-chip">
+                <Chip v-for="tag in assetTags" :key="tag.id" :label="tag.name" :readonly="!canUpdateAsset" :onRemove="() => removeTag(tag)" />
+                <Chip v-if="canUpdateAsset && !showTagInput" :icon="getAppIcon('plus-circle')" :label="$t('panes.addTag')" :isStatic="false" :readonly="true" @click="openTagInput" />
+                <span v-if="canUpdateAsset && showTagInput" class="tag-input-chip">
                   <input ref="tagInput" v-model="tagInputValue" class="tag-chip-input" type="text" :placeholder="$t('panes.addTag')" :size="Math.max(tagInputValue.length, 6)" @keydown.enter.prevent="addTag" @keydown.escape.prevent="closeTagInput" />
                   <ActionButton :icon="getAppIcon('check')" v-tooltip="$t('common.confirm')" @click="addTag" />
                   <ActionButton :icon="getAppIcon('close')" v-tooltip="$t('common.close')" @click="closeTagInput" />
@@ -299,13 +299,22 @@ const assetTypeOptions = computed(() => {
 });
 
 const projectStatuses = computed(() => {
-  const allStatuses = statusStore.statuses;
-  if (!userStore.canDo('set_done_asset')) {
-    const limitedStatus = ['done', 'retake']
-    return allStatuses.filter((item) => !limitedStatus.includes(item.short_name))
-  } else {
-    return allStatuses.map((status) => status.short_name.toUpperCase())
-  }
+  return statusStore.statuses
+    .filter((status) => status.short_name !== 'done' || userStore.canDo('set_done_asset'))
+    .filter((status) => status.short_name !== 'retake' || userStore.canDo('set_retake_asset'))
+    .map((status) => status.short_name.toUpperCase());
+});
+
+const canUpdateAsset = computed(() => {
+  return canActOnAsset('update_asset', assetStore.selectedAsset);
+});
+
+const canChangeAssetStatus = computed(() => {
+  return canActOnAsset('change_status', assetStore.selectedAsset);
+});
+
+const canEditAssetDetails = computed(() => {
+  return canUpdateAsset.value || canChangeAssetStatus.value;
 });
 
 const singleAsset = computed(() => {
@@ -347,7 +356,7 @@ const imageResolution = ref('');
 // methods
 const addTag = async () => {
   const name = tagInputValue.value.trim();
-  if (!name || !assetStore.selectedAsset) return;
+  if (!name || !canUpdateAsset.value) return;
   try {
     const assetId = assetStore.selectedAsset.id;
     const updatedNames = await tagStore.addTagToAsset(assetId, name);
@@ -446,6 +455,7 @@ const unassignAsset = async () => {
 
 // Opens the tag input field and focuses it.
 const openTagInput = () => {
+  if (!canUpdateAsset.value) return;
   showTagInput.value = true;
   nextTick(() => {
     tagInput.value?.focus();
@@ -503,7 +513,7 @@ const confirmUnlinkIntegration = () => {
 
 // Removes a tag from the selected asset.
 const removeTag = async (tag) => {
-  if (!assetStore.selectedAsset) return;
+  if (!canUpdateAsset.value) return;
   try {
     const assetId = assetStore.selectedAsset.id;
     const updatedNames = await tagStore.removeTagFromAsset(assetId, tag.id);
@@ -535,6 +545,7 @@ const revealInExplorer = async () => {
 };
 
 const toggleIsTask = async () => {
+  if (!canUpdateAsset.value) return;
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
   const targetIsTask = assetStore.selectedAsset.is_resource;
@@ -558,6 +569,7 @@ const toggleIsTask = async () => {
 };
 
 const changeAssetType = async (assetTypeName) => {
+  if (!canUpdateAsset.value) return;
   stage.operationActive = true;
 
   let newAssetType;
@@ -590,9 +602,16 @@ const changeAssetType = async (assetTypeName) => {
 };
 
 const setStatus = async (statusName) => {
+  if (!canChangeAssetStatus.value) return;
+  const shortName = statusName.toLowerCase();
+  if (shortName === 'done' && !userStore.canDo('set_done_asset')) return;
+  if (shortName === 'retake' && !userStore.canDo('set_retake_asset')) return;
+
+  const status = statusStore.statuses.find(item => item.short_name === shortName);
+  if (!status) return;
+
   stage.operationActive = true;
   const projectPath = projectStore.activeProject.uri;
-  const status = statusStore.statuses.find(item => item.short_name === statusName.toLowerCase());
   let asset = assetStore.selectedAsset;
   
   await AssetService.ChangeStatus(projectPath, [asset.id], status.id)
