@@ -6,68 +6,42 @@
 - Previous version/tag: `v0.4.39`
 - New version/tag: `v0.4.40`
 - Compare range: `77923fb287640e029654fffd59bdba1aef85f565...HEAD`
-- Release headline: `Precise dependency builds, visible activity, and drag-and-drop exports`
-- Canny types: `new`, `improved`, `fixed`
+- Release headline: `Versioned dependencies, checkpoint provenance, and visible activity`
+- Canny types: `new`, `improved`
 
 ## GitHub Release
 
 ### Clustta 0.4.40
 
+Clustta 0.4.40 makes asset history and dependencies easier to understand and control, with new tools for checkpoint lineage, background activity, and moving files into other applications.
+
 ## New Features
-
-### Precise Dependency Builds
-
-Pin dependencies to specific checkpoints or follow tagged versions, then preview the exact files and versions a build will download. Conflicts resolve more efficiently, and dependency rows can take you straight to the related asset or collection.
-
-### Checkpoint Tags
-
-Tag checkpoints for use in dependency builds, making it easy to follow a named version instead of selecting a fixed checkpoint.
 
 ### Checkpoint Provenance
 
-Record which asset checkpoint a new checkpoint was derived from. Choose a source asset, then use its latest checkpoint or select an exact version. Clustta saves that link with the checkpoint to preserve its lineage across the project.
+Record where a checkpoint came from by linking it to a source asset and either its latest checkpoint or an exact version. The relationship stays with the checkpoint, giving teams a clear record of its lineage.
+
+### Versioned Dependencies and Checkpoint Tags
+
+Pin a dependency to an exact checkpoint or follow a checkpoint tag that can move to a newer version over time. Before building, preview the files and resolved versions Clustta will download.
 
 ### Editable Checkpoints
 
-Update an existing checkpoint's comment, tags, and source checkpoint.
+Update a checkpoint's comment, tags, and source checkpoint after creation, without replacing the checkpoint or losing its history.
 
 ### Activity Panel
 
-Track project downloads and other long-running work from the new Activity panel. Review progress and details, minimize the panel while continuing to work, and cancel supported downloads if needed.
+Follow downloads and other long-running work from the new Activity panel. Review progress and details, minimize the panel while you continue working, and cancel supported operations when needed.
 
-### Drag-and-Drop File Exports
+### Drag-and-Drop Exports
 
-Drag assets from Clustta into the system file manager or another supported application. Native drag-out is available on Windows, macOS, and Linux, with platform-appropriate behavior and clearer availability hints.
-
-### Jack of All Trades Template
-
-Start mixed-media projects with a new template containing open-source starter files for Blender, Krita, GIMP, and Audacity, organized with useful tags.
+Drag eligible assets and collections from Clustta into the system file manager or another supported application. Native drag-out is available on Windows, macOS, and Linux.
 
 ## Improvements
 
-### Safer Project Compatibility and Sync
-
-Clustta now checks project schema and protocol compatibility before operations that could modify a project. Confirmed replicas can migrate safely, local changes are tracked more completely.
-
-### Clearer Downloads and Onboarding
-
-Download progress now uses clearer localized phases and supports cancellation. Storage setup suggests sensible default paths and provides better macOS permission guidance.
-
-### Refined Browsing and Project Controls
-
-- Search supported dropdown lists more quickly and use direct checkboxes in filter menus.
-- Choose whether file type icons appear in the browser.
-- Use a streamlined list view, animated tab indicators, and clearer shortcut labels.
-- Open project settings from the collaborators pane and unassign users from asset details.
-
-## Bug Fixes
-
-- **Authentication** - Preserved project and user state when signing in again after a session expires.
-- **Dependencies** - Fixed checkpoint build permissions, dependency graph views, extension visibility, and conflict resolution.
-- **Sync** - Preserved custom asset types and icons when making a personal project remote and improved discard errors for local changes.
-- **Projects** - Fixed folder reveal actions so they open the selected project's folder.
-- **Assignments** - Handled deleted assignees correctly and improved assignee controls in asset details.
-- **Interface** - Improved default sizing, dark theme defaults, filters, skeleton spacing, responsive empty states, and other visual details.
+- Dependency builds resolve tagged and pinned versions more clearly and surface conflicts with more useful context.
+- Checkpoint tags are easier to browse, select, and identify throughout the interface.
+- Download progress uses clearer phases and supports cancellation where available.
 
 **Full Changelog**: `77923fb287640e029654fffd59bdba1aef85f565...HEAD`
 
@@ -75,90 +49,72 @@ Download progress now uses clearer localized phases and supports cancellation. S
 
 ### Title
 
-Clustta 0.4.40 : Precise dependency builds, visible activity, and drag-and-drop exports
+Clustta 0.4.40 : Versioned dependencies, checkpoint provenance, and visible activity
 
 ### Types
 
-`new, improved, fixed`
+`new, improved`
 
 ### Body
 
-Clustta 0.4.40 adds precise dependency version controls, checkpoint provenance, visible background activity, and cross-platform drag-and-drop exports.
-
-**New: Precise Dependency Builds**
-
-Pin dependencies to exact checkpoints or follow tagged versions, preview what a build will download, and move directly from dependency rows to related assets and collections.
-
-**New: Checkpoint Tags**
-
-Tag checkpoints for dependency builds so dependencies can follow a named version.
+Clustta 0.4.40 makes asset history and dependencies easier to understand and control, while adding visible background activity and cross-platform drag-and-drop exports.
 
 **New: Checkpoint Provenance**
 
-Record where a checkpoint came from by choosing a source asset and linking either its latest checkpoint or an exact version. Clustta stores the link as part of the checkpoint's lineage.
+Link a checkpoint to the source asset and version it came from, preserving a clear record of its lineage.
+
+**New: Versioned Dependencies and Checkpoint Tags**
+
+Pin dependencies to exact checkpoints or follow named checkpoint tags, then preview the files and resolved versions before a build begins.
 
 **New: Editable Checkpoints**
 
-Update an existing checkpoint's comment, tags, and source checkpoint without recreating it.
+Update a checkpoint's comment, tags, and source checkpoint without recreating it.
 
 **New: Activity Panel**
 
-Follow project downloads and other long-running work, inspect details, minimize the panel, and cancel supported downloads.
+Track long-running work, inspect progress and details, minimize the panel, and cancel supported operations.
 
-**New: Drag-and-Drop File Exports**
+**New: Drag-and-Drop Exports**
 
 Drag eligible assets and collections into the system file manager or another supported application on Windows, macOS, and Linux.
-
-**Improved: Compatibility, Sync, and Onboarding**
-
-Benefit from safer project compatibility checks and migrations, more complete local change tracking, synced dependency selections, clearer download progress, and better storage setup guidance.
-
-**Fixed**
-
-- Fixed expired-session reauthentication without losing project context.
-- Fixed dependency permissions, graph views, conflict resolution, and extension visibility.
-- Fixed custom type and icon preservation when moving personal projects online.
-- Fixed selected project folder reveal actions, deleted assignees, and several interface details.
 
 ## Apple App Store
 
 ### What's New in This Version
 
-Clustta 0.4.40 brings more precise dependency builds, visible activity, drag-and-drop exports, and safer project updates.
+Clustta 0.4.40 brings versioned dependencies, checkpoint provenance, visible activity, and drag-and-drop exports.
 
-- Pin dependencies to exact checkpoints or tagged versions and preview build downloads.
-- Tag checkpoints, record their source lineage, and edit checkpoint details after creation.
-- Track downloads and other long-running work in the new Activity panel.
+- Pin dependencies to exact checkpoints or follow checkpoint tags.
+- Preview the files and resolved versions included in a dependency build.
+- Record checkpoint lineage and edit checkpoint comments, tags, or source versions.
+- Track long-running work in the new Activity panel.
 - Drag eligible assets and collections into supported apps and file locations.
-- Start mixed-media work with the new Jack of All Trades project template.
-- Includes improvements to project compatibility, sync, onboarding, authentication, and the interface.
 
 ## Microsoft Store
 
 ### Release Notes
 
-Clustta 0.4.40 brings more precise dependency builds, visible activity, drag-and-drop exports, and safer project updates.
+Clustta 0.4.40 brings versioned dependencies, checkpoint provenance, visible activity, and drag-and-drop exports.
 
-- Pin dependencies to exact checkpoints or tagged versions and preview build downloads.
-- Tag checkpoints, record their source lineage, and edit checkpoint details after creation.
-- Track downloads and other long-running work in the new Activity panel.
+- Pin dependencies to exact checkpoints or follow checkpoint tags.
+- Preview the files and resolved versions included in a dependency build.
+- Record checkpoint lineage and edit checkpoint comments, tags, or source versions.
+- Track long-running work in the new Activity panel.
 - Drag eligible assets and collections into supported apps and file locations.
-- Start mixed-media work with the new Jack of All Trades project template.
-- Includes improvements to project compatibility, sync, onboarding, authentication, and the interface.
 
 ## Short Store Summary
 
-Precise dependency builds, checkpoint provenance, visible activity, and drag-and-drop exports.
+Versioned dependencies, checkpoint provenance, visible activity, and drag-and-drop exports.
 
 ## Flathub Release
 
 ### Clustta 0.4.40
 
-Clustta 0.4.40 adds precise dependency version controls, checkpoint provenance, visible background activity, cross-platform drag-and-drop exports, and safer project updates.
+Clustta 0.4.40 makes asset history and dependencies easier to understand and control.
 
-- Pin dependencies to exact checkpoints or tagged versions and preview build downloads.
-- Tag checkpoints, record their source lineage, and edit checkpoint details after creation.
-- Track downloads and other long-running work in the new Activity panel.
+- Pin dependencies to exact checkpoints or follow checkpoint tags.
+- Preview the files and resolved versions included in a dependency build.
+- Record where a checkpoint came from and update its comment, tags, or source checkpoint.
+- Track long-running work and cancel supported operations from the Activity panel.
 - Drag eligible assets and collections into supported apps and file locations on Windows, macOS, and Linux.
-- Start mixed-media work with the new Jack of All Trades project template.
-- Includes improvements to project compatibility, sync, onboarding, authentication, dependency navigation, and interface polish.

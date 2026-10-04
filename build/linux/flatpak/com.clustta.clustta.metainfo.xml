@@ -80,14 +80,13 @@
   <releases>
     <release version="0.4.40" date="2026-09-21">
       <description>
-        <p>Clustta 0.4.40 adds precise dependency version controls, checkpoint provenance, visible background activity, cross-platform drag-and-drop exports, and safer project updates.</p>
+        <p>Clustta 0.4.40 makes asset history and dependencies easier to understand and control.</p>
         <ul>
-          <li>Pin dependencies to exact checkpoints or tagged versions and preview build downloads</li>
-          <li>Tag checkpoints, record their source lineage, and edit checkpoint details after creation</li>
-          <li>Track downloads and other long-running work in the new Activity panel</li>
+          <li>Pin dependencies to exact checkpoints or follow checkpoint tags</li>
+          <li>Preview the files and resolved versions included in a dependency build</li>
+          <li>Record where a checkpoint came from and update its comment, tags, or source checkpoint</li>
+          <li>Track long-running work and cancel supported operations from the Activity panel</li>
           <li>Drag eligible assets and collections into supported apps and file locations on Windows, macOS, and Linux</li>
-          <li>Start mixed-media work with the new Jack of All Trades project template</li>
-          <li>Includes improvements to project compatibility, sync, onboarding, authentication, dependency navigation, and interface polish</li>
         </ul>
       </description>
     </release>
