@@ -180,7 +180,6 @@ export const canAccessProjectSettings = () => {
 };
 
 export const canAccessProjectSettingsTab = (tabId) => {
-  if (tabId === 'general') return canAccessProjectSettings();
   const permissions = projectSettingsTabPermissions[tabId];
   if (!permissions) return false;
 

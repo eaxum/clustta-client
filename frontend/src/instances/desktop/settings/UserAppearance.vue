@@ -12,7 +12,7 @@
               <div class="settings-header">{{ $t('settings.iconScheme') }}</div>
               <div class="settings-body">{{ $t('settings.iconSchemeDescription') }}</div>
             </div>
-            <div class="settings-action fixed-width">
+            <div class="settings-action">
               <DropDownBox :items="iconStore.iconTypes" :onSelect="selectIconType" :selectedItem="iconStore.selectedIconType" :placeHolder="'None'" :fixedWidth="true" />
             </div>
           </div>
@@ -23,7 +23,7 @@
               <div class="settings-header">{{ $t('settings.theme') }}</div>
               <div class="settings-body">{{ $t('settings.themeDescription') }}</div>
             </div>
-            <div class="settings-action fixed-width">
+            <div class="settings-action">
               <DropDownBox :items="themeStore.availableModes" :onSelect="selectTheme" :selectedItem="themeStore.mode" :placeHolder="'None'" :fixedWidth="true" />
             </div>
           </div>
@@ -105,7 +105,7 @@ const tintSwatchStyle = (tint) => {
 
 <style scoped>
 .fixed-width {
-  min-width: 200px;
+  min-width: 150px;
 }
 
 .tint-swatches {

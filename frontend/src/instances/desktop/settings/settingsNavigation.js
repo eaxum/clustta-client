@@ -1,4 +1,3 @@
-import General from '@/instances/desktop/settings/General.vue';
 import UserAppearance from '@/instances/desktop/settings/UserAppearance.vue';
 import UserBehavior from '@/instances/desktop/settings/UserBehavior.vue';
 import UserExperimental from '@/instances/desktop/settings/UserExperimental.vue';
@@ -64,7 +63,6 @@ export const getAvailableStudioSettingsPages = ({ canCollaborate, isCloudHosted 
 };
 
 export const projectSettingsGroups = [
-  { id: 'general', nameKey: 'settings.navigation.general' },
   { id: 'people', nameKey: 'settings.navigation.people' },
   { id: 'configuration', nameKey: 'settings.navigation.configuration' },
   { id: 'files', nameKey: 'settings.navigation.filesAndAutomation' },
@@ -73,7 +71,6 @@ export const projectSettingsGroups = [
 ];
 
 export const projectSettingsPages = [
-  { id: 'general', nameKey: 'settings.general', icon: 'monitor', group: 'general', component: General },
   { id: 'collaborators', nameKey: 'settings.collaborators', icon: 'person', group: 'people', component: Collaborators },
   { id: 'roles', nameKey: 'settings.roles', icon: 'scale', group: 'people', component: Roles },
   { id: 'templates', nameKey: 'settings.templates', icon: 'file', group: 'configuration', component: Templates },
