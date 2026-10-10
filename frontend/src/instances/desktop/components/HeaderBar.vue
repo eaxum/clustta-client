@@ -42,11 +42,6 @@
 
 		</div>
 
-		<div class="header-bar-actions" v-if="stage.selectedStage === 'trash' && trayStates.trashables.length">
-			<ActionButton :icon="getAppIcon('trash')" :label="$t('components.headerBar.empty')" :showLabel="true" @click="prepEmptyTrashPopUpModal"
-				v-tooltip="$t('components.headerBar.emptyTrash')" :useBackground="true" :color="'var(--danger)'" />
-		</div>
-
 		<!-- Web mode logout button -->
 		<div class="header-bar-actions" v-if="platformStore.isWeb && stage.activeStage === 'account'">
 			<ActionButton :icon="getAppIcon('logout')" :label="$t('common.logout')" :showLabel="true" @click="logUserOut"
@@ -64,7 +59,7 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { ProjectService, AuthService, SyncService } from '@/services';
+import { AuthService, SyncService } from '@/services';
 import { syncData, pullData } from '@/lib/sync';
 import { canAccessProjectSettings } from '@/lib/permissions';
 import { resetStoreInitialization } from '@/router';
@@ -112,7 +107,7 @@ const canOpenProjectSettings = computed(() => projectStore.activeProjectCanQuery
 const { t } = useI18n();
 
 const emits = defineEmits(["update-search", "toggle-search"]);
-const enabledStages = ref(['browser', 'projectSettings']);
+const enabledStages = ref(['browser']);
 
 // computed props
 const projectIsActive = computed(() => { return projectStore.getActiveProject && (platformStore.isWeb || projectStore.getActiveProject.is_downloaded) });
@@ -198,10 +193,6 @@ const activeHeaderConfig = computed(() => {
 	const configs = {
 		projects: { icon: 'home', isInactive: true, title: t('components.headerBar.projects') },
 		dependencies: { icon: 'chevron-left', action: goToList, title: assetName.value, customIcon: assetStore.selectedAsset?.icon, containerClick: toggleFullAssetPath, tooltip: t('components.headerBar.back') },
-		trash: { icon: 'chevron-left', action: goToList, title: t('components.headerBar.trash'), tooltip: t('components.headerBar.back') },
-		projectSettings: { icon: 'chevron-left', action: goToList, title: t('components.headerBar.projectSettings'), tooltip: t('components.headerBar.back') },
-		studioSettings: { icon: 'chevron-left', action: goToProjects, title: t('components.headerBar.studioSettings'), tooltip: t('components.headerBar.back') },
-		settings: { icon: 'chevron-left', action: goToProjects, title: t('components.headerBar.clusttaSettings'), tooltip: t('components.headerBar.back') },
 		account: { icon: 'chevron-left', action: goToProjects, title: t('components.headerBar.accountSettings'), tooltip: t('components.headerBar.back') },
 	};
 	return configs[stage.activeStage] || null;
@@ -288,32 +279,6 @@ const prepDiscardAll = () => {
 	trayStates.popUpModalMessage = t('confirmations.discardAllChanges');
 	trayStates.popUpModalFunction = revertChanges;
 	modals.setModalVisibility('popUpModal', true);
-};
-
-const prepEmptyTrashPopUpModal = () => {
-	trayStates.popUpModalIcon = 'trash'
-	trayStates.popUpModalTitle = t('components.headerBar.emptyTrashTitle');
-	trayStates.popUpModalMessage = t('components.headerBar.emptyTrashMessage');
-	trayStates.popUpModalFunction = emptyTrash;
-	modals.setModalVisibility('popUpModal', true);
-};
-
-const emptyTrash = async () => {
-	await ProjectService.Purge(projectStore.activeProject.uri)
-		.then(() => {
-			trayStates.trashables = [];
-			// trayStates.refreshData();
-			modals.disableAllModals();
-		}).catch((error) => {
-			console.error(error.message)
-			notificationStore.addNotification(
-				t('components.headerBar.errorSyncingData'),
-				error.message,
-				"error",
-				false
-			)
-			modals.disableAllModals();
-		})
 };
 
 const goToList = () => {

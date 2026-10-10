@@ -18,6 +18,7 @@ import IgnoreList from '@/instances/desktop/settings/IgnoreList.vue';
 import Hooks from '@/instances/desktop/settings/Hooks.vue';
 import Advanced from '@/instances/desktop/settings/Advanced.vue';
 import ProjectIntegrations from '@/instances/desktop/settings/ProjectIntegrations.vue';
+import { canAccessProjectSettingsTab } from '@/lib/permissions';
 
 export const userSettingsGroups = [
   { id: 'general', nameKey: 'settings.navigation.general' },
@@ -47,6 +48,14 @@ export const studioSettingsPages = [
   { id: 'studiointegrations', nameKey: 'settings.studioIntegrations', icon: 'plug', group: 'connections', component: StudioIntegrations },
 ];
 
+export const getAvailableStudioSettingsPages = ({ canCollaborate, isCloudHosted }) => {
+  return studioSettingsPages.filter((page) => {
+    if (page.id === 'studioprojects') return !isCloudHosted;
+    if (page.id === 'studiocollaborators') return canCollaborate;
+    return true;
+  });
+};
+
 export const projectSettingsGroups = [
   { id: 'general', nameKey: 'settings.navigation.general' },
   { id: 'people', nameKey: 'settings.navigation.people' },
@@ -70,3 +79,18 @@ export const projectSettingsPages = [
   { id: 'integrations', nameKey: 'settings.integrations', icon: 'plug', group: 'connections', component: ProjectIntegrations },
   { id: 'advanced', nameKey: 'settings.advanced', icon: 'skull', group: 'system', component: Advanced },
 ];
+
+export const getAvailableProjectSettingsPages = ({
+  canCollaborate,
+  hasCustomRoles,
+  hasIntegrations,
+  isRemoteProject,
+}) => {
+  return projectSettingsPages.filter((page) => {
+    if (!canAccessProjectSettingsTab(page.id)) return false;
+    if (page.id === 'collaborators') return isRemoteProject && canCollaborate;
+    if (page.id === 'roles') return isRemoteProject && hasCustomRoles;
+    if (page.id === 'integrations') return hasIntegrations;
+    return true;
+  });
+};

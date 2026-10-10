@@ -77,6 +77,7 @@ export const useTrayStates = defineStore("useTrayStates", {
 
     tagSearchQuery: "",
     trashSearchQuery: "",
+    trashTypeFilter: "all",
 
     autoStart: true,
     autoPaste: true,

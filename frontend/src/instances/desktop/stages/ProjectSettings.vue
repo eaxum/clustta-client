@@ -1,11 +1,8 @@
 <template>
 	<div class="page-list-root absolute-pane">
 		<SettingsShell
-			titleKey="components.headerBar.projectSettings"
-			:groups="projectSettingsGroups"
 			:pages="availablePages"
 			:activePageId="activePageId"
-			@select="selectPage"
 		/>
 	</div>
 </template>
@@ -14,10 +11,9 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import SettingsShell from '@/instances/desktop/settings/components/SettingsShell.vue';
 import {
-	projectSettingsGroups,
-	projectSettingsPages,
+	getAvailableProjectSettingsPages,
 } from '@/instances/desktop/settings/settingsNavigation';
-import { canAccessProjectSettings, canAccessProjectSettingsTab } from '@/lib/permissions';
+import { canAccessProjectSettings } from '@/lib/permissions';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
@@ -32,12 +28,11 @@ const activePageId = ref('');
 const availablePages = computed(() => {
 	const isRemoteProject = !!projectStore.activeProject?.has_remote;
 
-	return projectSettingsPages.filter((page) => {
-		if (!canAccessProjectSettingsTab(page.id)) return false;
-		if (page.id === 'collaborators') return isRemoteProject && entitlementStore.canCollaborate;
-		if (page.id === 'roles') return isRemoteProject && entitlementStore.hasCustomRoles;
-		if (page.id === 'integrations') return entitlementStore.hasIntegrations;
-		return true;
+	return getAvailableProjectSettingsPages({
+		canCollaborate: entitlementStore.canCollaborate,
+		hasCustomRoles: entitlementStore.hasCustomRoles,
+		hasIntegrations: entitlementStore.hasIntegrations,
+		isRemoteProject,
 	});
 });
 

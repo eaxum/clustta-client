@@ -1,11 +1,8 @@
 <template>
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
 		<SettingsShell
-			titleKey="components.headerBar.studioSettings"
-			:groups="studioSettingsGroups"
 			:pages="availablePages"
 			:activePageId="activePageId"
-			@select="selectPage"
 		/>
 	</div>
 </template>
@@ -14,8 +11,7 @@
 import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import SettingsShell from '@/instances/desktop/settings/components/SettingsShell.vue';
 import {
-	studioSettingsGroups,
-	studioSettingsPages,
+	getAvailableStudioSettingsPages,
 } from '@/instances/desktop/settings/settingsNavigation';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useMenu } from '@/stores/menu';
@@ -32,10 +28,9 @@ const pageListRoot = ref(null);
 const activePageId = ref(DEFAULT_PAGE_ID);
 
 const availablePages = computed(() => {
-	return studioSettingsPages.filter((page) => {
-		if (page.id === 'studioprojects') return !projectStore.isCloudHosted;
-		if (page.id === 'studiocollaborators') return entitlementStore.canCollaborate;
-		return true;
+	return getAvailableStudioSettingsPages({
+		canCollaborate: entitlementStore.canCollaborate,
+		isCloudHosted: projectStore.isCloudHosted,
 	});
 });
 

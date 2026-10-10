@@ -1,9 +1,5 @@
 <template>
   <div class="settings-component-root">
-    <div class="trash-list-header">
-      <HeaderTabs :useTooltip="false" :dataTypes="trashTypes" @filter="filterList" :fullWidth="true" />
-    </div>
-
     <div class="settings-component-container">
       <PageState v-if="!filteredTrashItems.length" :message="emptyMessage" :illustration="emptyIllustration" />
 
@@ -20,7 +16,6 @@ import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // components
-import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import TrashItem from '@/instances/desktop/components/TrashItem.vue';
 
@@ -39,24 +34,23 @@ const { t } = useI18n();
 
 // refs
 const assets = ref([]);
-const trashTypeFilter = ref('all');
 
 // computed properties
 // Returns the empty state illustration based on the current filter.
 const emptyIllustration = computed(() => {
   const illustrations = {
-    collection: '/page-states/collections.png',
+    collections: '/page-states/collections.png',
     asset: '/page-states/assets.png',
     template: '/page-states/template.png',
     all: '/page-states/resources.png',
   };
-  return illustrations[trashTypeFilter.value] || '/page-states/resources.png';
+  return illustrations[trayStates.trashTypeFilter] || '/page-states/resources.png';
 });
 
 // Returns the empty state message based on the current filter.
 const emptyMessage = computed(() => {
-  if (trashTypeFilter.value === 'all') return t('stages.noDeletedItems');
-  return t('stages.noDeletedItemsByType', { type: trashTypeFilter.value });
+  if (trayStates.trashTypeFilter === 'all') return t('stages.noDeletedItems');
+  return t('stages.noDeletedItemsByType', { type: trayStates.trashTypeFilter });
 });
 
 // Returns trash items filtered by type and search query.
@@ -64,7 +58,9 @@ const filteredTrashItems = computed(() => {
   const data = sortedTrashItems.value;
   const query = trayStates.trashSearchQuery?.toLowerCase() || '';
   const hasSearch = trayStates.showTraySearch && query !== '';
-  const typeFilter = trashTypeFilter.value;
+  const typeFilter = trayStates.trashTypeFilter === 'collections'
+    ? 'collection'
+    : trayStates.trashTypeFilter;
 
   return data.filter((item) => {
     const matchesType = typeFilter === 'all' || item.type === typeFilter;
@@ -117,17 +113,6 @@ const sortedTrashItems = computed(() => {
   return result.sort((a, b) => a.name.localeCompare(b.name));
 });
 
-// Returns trash type filters excluding checkpoints.
-const trashTypes = computed(() => {
-  return trayStates.trashTypes.filter(trashType => !trashType.name.includes('checkpoint'));
-});
-
-// methods
-// Filters the trash list by type.
-const filterList = (trashType) => {
-  trashTypeFilter.value = trashType === 'collections' ? 'collection' : trashType;
-};
-
 // Returns the collection name for a trash item.
 const getMeta = (type, id, parentId) => {
   if (type === 'asset' || type === 'asset_checkpoint') {
@@ -146,6 +131,7 @@ onBeforeMount(async () => {
 
 onBeforeUnmount(() => {
   trayStates.trashables = [];
+  trayStates.trashTypeFilter = 'all';
 });
 </script>
 
@@ -161,6 +147,7 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   align-items: center;
   justify-content: center;
+  padding: 1.5rem;
 }
 
 .settings-component-container {
@@ -169,21 +156,14 @@ onBeforeUnmount(() => {
   box-sizing: border-box;
   height: 100%;
   overflow: hidden;
-  width: 96%;
+  width: 100%;
+  max-width: 1200px;
   gap: .5rem;
   align-items: center;
   color: white;
   padding: 1rem;
   background-color: var(--surface-1);
   border-radius: var(--very-large-radius);
-}
-
-.trash-list-header {
-  width: 100%;
-  display: flex;
-  box-sizing: border-box;
-  align-items: flex-start;
-  justify-content: flex-start;
 }
 
 .trash-list-body {
@@ -196,19 +176,22 @@ onBeforeUnmount(() => {
   overflow: hidden;
   overflow-y: scroll;
   padding-right: .4rem;
+  scrollbar-color: var(--surface-4) transparent;
+  scrollbar-width: thin;
 }
 
 .trash-list-body::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 .trash-list-body::-webkit-scrollbar-thumb {
-  border-radius: var(--small-radius);
+  min-height: 36px;
+  border-radius: 999px;
   background-color: var(--surface-4);
 }
 
 .trash-list-body::-webkit-scrollbar-track {
-  border-radius: var(--small-radius);
+  background-color: transparent;
 }
 </style>
 

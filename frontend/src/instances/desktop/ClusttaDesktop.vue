@@ -6,9 +6,13 @@
 		<ModalView v-if="modals.activeModal" />
 		<div class="desktop-container">
 			<div ref="desktopBody" id="desktop-body" class="desktop-body tray-root">
-				<SidePane v-if="panes.enabledPanes.includes(stage.selectedStage)" v-show="!panelMaximized" :isWideScreen="isWideScreen" />
+				<SidebarFrame v-if="sidebarVisible" v-show="!panelMaximized" :expanded="expandedSidebarVisible">
+					<SettingsSidebar v-if="settingsSidebarVisible" />
+					<TrashSidebar v-else-if="trashSidebarVisible" />
+					<SidePane v-else :isWideScreen="isWideScreen" />
+				</SidebarFrame>
 				<div class="active-project">
-					<HeaderBar v-if="stage.activeStage !== 'projects'" v-show="!panelMaximized" />
+					<HeaderBar v-if="headerBarVisible" v-show="!panelMaximized" />
 					<div v-show="!panelMaximized" ref="mainAreaContainer" class="main-area">
 						<CenterStage />
 					</div>
@@ -28,6 +32,9 @@ import TitleBar from '@/instances/desktop/components/TitleBar.vue'
 import InfoBar from '@/instances/desktop/components/InfoBar.vue'
 import ModalView from '@/instances/desktop/components/ModalView.vue'
 import SidePane from "@/instances/desktop/components/SidePane.vue";
+import SidebarFrame from '@/instances/desktop/components/SidebarFrame.vue';
+import SettingsSidebar from '@/instances/desktop/settings/components/SettingsSidebar.vue';
+import TrashSidebar from '@/instances/desktop/components/TrashSidebar.vue';
 import HeaderBar from "@/instances/desktop/components/HeaderBar.vue";
 import CenterStage from "@/instances/desktop/components/CenterStage.vue";
 import FlashMessage from '@/instances/common/components/FlashMessage.vue';
@@ -60,6 +67,16 @@ const platformStore = usePlatformStore();
 // computed properties
 const isUserActivated = computed(() => userStore.user !== null);
 const isWideScreen = ref(false);
+const settingsStages = new Set(['settings', 'projectSettings', 'studioSettings']);
+const settingsSidebarVisible = computed(() => settingsStages.has(stage.activeStage));
+const trashSidebarVisible = computed(() => stage.activeStage === 'trash');
+const expandedSidebarVisible = computed(() => settingsSidebarVisible.value || trashSidebarVisible.value);
+const sidebarVisible = computed(() => {
+	return expandedSidebarVisible.value || panes.enabledPanes.includes(stage.selectedStage);
+});
+const headerBarVisible = computed(() => {
+	return stage.activeStage !== 'projects' && !expandedSidebarVisible.value;
+});
 const titleBarVisible = computed(() => {
 	if (platformStore.isWeb) {
 		return stage.activeStage === 'projects';

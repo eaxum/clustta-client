@@ -1,11 +1,8 @@
 <template>
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
 		<SettingsShell
-			titleKey="settings.title"
-			:groups="userSettingsGroups"
 			:pages="userSettingsPages"
 			:activePageId="selectedSettingsTab"
-			@select="filterList"
 		/>
 	</div>
 </template>
@@ -14,7 +11,6 @@
 import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import SettingsShell from '@/instances/desktop/settings/components/SettingsShell.vue';
 import {
-	userSettingsGroups,
 	userSettingsPages,
 } from '@/instances/desktop/settings/settingsNavigation';
 import { useMenu } from '@/stores/menu';
