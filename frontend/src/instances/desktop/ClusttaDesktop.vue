@@ -13,7 +13,12 @@
 				</SidebarFrame>
 				<div class="active-project">
 					<HeaderBar v-if="headerBarVisible" v-show="!panelMaximized" />
-					<div v-show="!panelMaximized" ref="mainAreaContainer" class="main-area">
+					<div
+						v-show="!panelMaximized"
+						ref="mainAreaContainer"
+						class="main-area"
+						:class="{ 'main-area-expanded-radius': !['browser', 'projects'].includes(stage.activeStage) }"
+					>
 						<CenterStage />
 					</div>
 					<InfoBar v-if="!platformStore.isWeb" @maximize-changed="panelMaximized = $event" />
@@ -210,7 +215,11 @@ onBeforeUnmount(async () => {
 	padding-top: 0;
 	background-color: forestgreen;
 	background-color: var(--surface-2-5);
-  border-radius: 16px 16px 0px 0px;
+	border-radius: 16px 16px 0 0;
+}
+
+.main-area-expanded-radius {
+	border-radius: 28px 28px 0 0;
 }
 </style>
 
