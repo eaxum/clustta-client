@@ -185,10 +185,9 @@ onBeforeUnmount(() => {
   width: max-content;
   min-width: max-content;
   min-height: max-content;
-  transition: all 0.3s ease;
+  transition: border-radius 0.3s ease;
   opacity: .8;
   border-radius: var(--normal-radius);
-  /* background-color: crimson; */
 }
 
 /* [data-theme="dark"] .action-button:hover{
@@ -273,8 +272,13 @@ onBeforeUnmount(() => {
 }
 
 .button-active {
-  background-color: var(--bg);
+  background-color: var(--surface-3);
   outline: var(--transparent-line);
+}
+
+.button-active:hover {
+  background-color: var(--surface-3);
+  border-radius: var(--small-radius);
 }
 
 .no-cursor {

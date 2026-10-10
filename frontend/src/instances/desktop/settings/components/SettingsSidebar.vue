@@ -112,7 +112,7 @@ const selectPage = (pageId) => {
 	min-width: 240px;
 	height: 100%;
 	min-height: 0;
-	padding: 1rem .45rem .25rem;
+	padding: .75rem .35rem .25rem;
 	color: var(--text);
 	background-color: var(--surface-1);
 	box-sizing: border-box;

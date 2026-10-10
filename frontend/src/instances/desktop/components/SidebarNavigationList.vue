@@ -1,28 +1,34 @@
 <template>
 	<nav class="sidebar-navigation-list" :aria-label="ariaLabel">
 		<section v-for="group in visibleGroups" :key="group.id" class="sidebar-navigation-group">
-			<h2 v-if="group.name" class="sidebar-navigation-group-title">{{ group.name }}</h2>
-			<button
+			<div v-if="group.name" class="sidebar-navigation-group-title">{{ group.name }}</div>
+			<div v-if="group.name" class="menu-divider"></div>
+			<ActionButton
 				v-for="page in group.pages"
 				:key="page.id"
 				:ref="(element) => setNavigationItem(page.id, element)"
-				class="sidebar-navigation-item"
-				:class="{ 'sidebar-navigation-item-selected': page.id === activePageId }"
+				:icon="getAppIcon(page.icon)"
+				:label="page.name"
+				:show-label="true"
+				:full-width="true"
+				:is-active="page.id === activePageId"
+				:button-function="() => selectPage(page.id)"
 				:aria-current="page.id === activePageId ? 'page' : undefined"
-				type="button"
-				@click="selectPage(page.id)"
+				role="button"
+				tabindex="0"
 				@keydown="handleNavigationKeydown($event, page.id)"
 			>
-				<img class="small-icons sidebar-navigation-icon" :src="getAppIcon(page.icon)" alt="">
-				<span class="sidebar-navigation-label">{{ page.name }}</span>
-				<span v-if="page.badge" class="sidebar-navigation-badge">{{ page.badge }}</span>
-			</button>
+				<template v-if="page.badge" #trailing>
+					<span class="sidebar-navigation-badge">{{ page.badge }}</span>
+				</template>
+			</ActionButton>
 		</section>
 	</nav>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useIconStore } from '@/stores/icons';
 
 const emit = defineEmits(['select']);
@@ -53,15 +59,21 @@ const orderedPageIds = computed(() => {
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 const selectPage = (pageId) => emit('select', pageId);
 
-const setNavigationItem = (pageId, element) => {
-	if (element) {
-		navigationItems.value[pageId] = element;
+const setNavigationItem = (pageId, component) => {
+	if (component) {
+		navigationItems.value[pageId] = component.$el;
 		return;
 	}
 	delete navigationItems.value[pageId];
 };
 
 const handleNavigationKeydown = (event, pageId) => {
+	if (['Enter', ' '].includes(event.key)) {
+		event.preventDefault();
+		selectPage(pageId);
+		return;
+	}
+
 	if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
 	event.preventDefault();
 
@@ -84,7 +96,6 @@ const handleNavigationKeydown = (event, pageId) => {
 .sidebar-navigation-list {
 	display: flex;
 	flex-direction: column;
-	gap: 1rem;
 	min-height: 0;
 	overflow-x: hidden;
 	overflow-y: auto;
@@ -110,72 +121,21 @@ const handleNavigationKeydown = (event, pageId) => {
 .sidebar-navigation-group {
 	display: flex;
 	flex-direction: column;
-	gap: .2rem;
+	gap: .1rem;
+	padding: .5rem;
 }
 
 .sidebar-navigation-group-title {
-	margin: 0 .55rem .25rem;
+	margin: .45rem .45rem .5rem;
 	color: var(--text-muted);
-	font-size: .72rem;
-	font-weight: 500;
-	line-height: 1.4;
+	font-size: .85rem;
+	font-weight: 450;
+	line-height: 1.25;
 }
 
-.sidebar-navigation-item {
-	display: flex;
-	align-items: center;
+.menu-divider {
+	margin-bottom: .2rem;
 	width: 100%;
-	min-height: 36px;
-	gap: .65rem;
-	padding: .45rem .6rem;
-	border: 0;
-	border-radius: var(--large-radius);
-	color: var(--text-muted);
-	background-color: transparent;
-	font: inherit;
-	font-size: .82rem;
-	font-weight: 400;
-	text-align: left;
-	cursor: pointer;
-	box-sizing: border-box;
-	transition:
-		background-color 150ms ease,
-		border-radius 150ms ease,
-		color 150ms ease;
-}
-
-.sidebar-navigation-item:hover {
-	color: var(--text);
-	background-color: var(--surface-3);
-	outline: var(--transparent-line);
-	outline-offset: -1px;
-}
-
-.sidebar-navigation-item:focus-visible {
-	outline: 2px solid var(--accent);
-	outline-offset: -2px;
-}
-
-.sidebar-navigation-item-selected {
-	color: var(--text);
-	background-color: var(--surface-4);
-	font-weight: 500;
-}
-
-.sidebar-navigation-item-selected:hover {
-	border-radius: var(--small-radius);
-}
-
-.sidebar-navigation-icon {
-	flex: 0 0 auto;
-	opacity: .8;
-}
-
-.sidebar-navigation-label {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .sidebar-navigation-badge {
@@ -188,9 +148,5 @@ const handleNavigationKeydown = (event, pageId) => {
 	font-weight: 500;
 	line-height: 1.2;
 	white-space: nowrap;
-}
-
-.sidebar-navigation-item-selected .sidebar-navigation-icon {
-	opacity: 1;
 }
 </style>

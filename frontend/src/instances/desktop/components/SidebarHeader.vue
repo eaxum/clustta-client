@@ -5,7 +5,7 @@
 			:buttonFunction="backFunction"
 			v-tooltip="$t('components.headerBar.back')"
 		/>
-		<h1 class="sidebar-header-title">{{ title }}</h1>
+		<div class="sidebar-header-title">{{ title }}</div>
 		<div class="sidebar-header-actions">
 			<slot />
 		</div>
@@ -38,7 +38,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 	align-items: center;
 	gap: .3rem;
 	min-height: 36px;
-	margin: 0 .2rem 1rem;
+	margin: 0 .2rem .65rem;
 }
 
 .sidebar-header-title {
@@ -46,8 +46,8 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 	margin: 0;
 	overflow: hidden;
 	color: var(--text);
-	font-size: 1.15rem;
-	font-weight: 600;
+	font-size: 1rem;
+	font-weight: 400;
 	line-height: 1.2;
 	text-overflow: ellipsis;
 	white-space: nowrap;

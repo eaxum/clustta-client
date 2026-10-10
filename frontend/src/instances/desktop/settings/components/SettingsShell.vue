@@ -3,7 +3,7 @@
     <main v-if="activePage" class="settings-shell-main">
       <div class="settings-shell-page">
         <header class="settings-page-header">
-          <h2 class="settings-page-title">{{ $t(activePage.nameKey) }}</h2>
+          <div class="settings-page-title">{{ $t(activePage.nameKey) }}</div>
           <p v-if="activePage.descriptionKey" class="settings-page-description">
             {{ $t(activePage.descriptionKey) }}
           </p>
@@ -79,7 +79,7 @@ const activePage = computed(() => {
   margin: 0;
   color: var(--text);
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 300;
   line-height: 1.25;
 }
 
