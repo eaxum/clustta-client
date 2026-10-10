@@ -508,6 +508,7 @@
   "settings": {
     "navigation": {
       "general": "सामान्य",
+      "preferences": "प्राथमिकताएँ",
       "filesAndProjects": "फ़ाइलें और प्रोजेक्ट",
       "system": "सिस्टम",
       "studio": "स्टूडियो",

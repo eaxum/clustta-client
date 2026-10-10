@@ -508,6 +508,7 @@
   "settings": {
     "navigation": {
       "general": "Allgemein",
+      "preferences": "Präferenzen",
       "filesAndProjects": "Dateien und Projekte",
       "system": "System",
       "studio": "Studio",

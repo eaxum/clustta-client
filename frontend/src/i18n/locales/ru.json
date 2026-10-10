@@ -508,6 +508,7 @@
   "settings": {
     "navigation": {
       "general": "Общие",
+      "preferences": "Предпочтения",
       "filesAndProjects": "Файлы и проекты",
       "system": "Система",
       "studio": "Студия",

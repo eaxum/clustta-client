@@ -16,6 +16,10 @@ export const useSettingsStore = defineStore("settings", {
     systemBookmarksHealth: { projects_dir_stale: false, shared_projects_dir_stale: false },
     modalStates: {
       general: false,
+      appearance: false,
+      behavior: false,
+      experimental: false,
+      helpabout: false,
       templates: false,
       collaborators: false,
       tags: false,
@@ -39,6 +43,7 @@ export const useSettingsStore = defineStore("settings", {
       studioprojects: false,
       studiocollaborators: false,
       studiointegrations: false,
+      auditlogs: false,
     },
 
     activeModal: null,

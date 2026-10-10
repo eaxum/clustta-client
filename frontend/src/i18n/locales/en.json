@@ -545,6 +545,7 @@
     "title": "Settings",
     "navigation": {
       "general": "General",
+      "preferences": "Preferences",
       "filesAndProjects": "Files and projects",
       "system": "System",
       "studio": "Studio",

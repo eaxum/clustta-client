@@ -88,13 +88,6 @@
             </div>
           </div>
 
-          <div class="settings-item disabled">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.auditLogs') }}</div>
-              <div class="settings-body">{{ $t('settings.comingSoon') }}</div>
-            </div>
-          </div>
         </div>
       </ProfileCard>
 

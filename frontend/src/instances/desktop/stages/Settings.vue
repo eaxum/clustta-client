@@ -16,7 +16,11 @@ import {
 import { useMenu } from '@/stores/menu';
 import { useSettingsStore } from '@/stores/settings';
 
-const DEFAULT_PAGE_ID = 'general';
+const DEFAULT_PAGE_ID = 'appearance';
+const LEGACY_PAGE_ALIASES = {
+	advanced: 'experimental',
+	general: 'appearance',
+};
 
 const menu = useMenu();
 const settings = useSettingsStore();
@@ -46,7 +50,8 @@ watchEffect(() => {
 });
 
 onMounted(() => {
-	const requestedPageId = settings.pendingTab;
+	const pendingPageId = settings.pendingTab;
+	const requestedPageId = LEGACY_PAGE_ALIASES[pendingPageId] || pendingPageId;
 	settings.pendingTab = null;
 	filterList(isAvailablePage(requestedPageId) ? requestedPageId : DEFAULT_PAGE_ID);
 });

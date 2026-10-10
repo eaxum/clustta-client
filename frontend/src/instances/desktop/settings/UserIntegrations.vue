@@ -40,26 +40,78 @@
             </div>
           </div>
         </div>
+
+        <div class="settings-section-card">
+          <div class="settings-section-card-header">
+            <h2 class="settings-section-card-title">{{ $t('settings.aiAgent') }}</h2>
+          </div>
+          <div class="settings-section-card-content">
+            <div class="settings-item" v-stop-propagation @click="openAgentConfig">
+              <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brain')"></div>
+              <div class="settings-content">
+                <div class="settings-header">{{ $t('settings.llmProvider') }}</div>
+                <div class="settings-body">{{ agentKeyConfigured ? $t('settings.providerConfigured') : $t('settings.configureProvider') }}</div>
+              </div>
+              <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section-card">
+          <div class="settings-section-card-header">
+            <h2 class="settings-section-card-title">{{ $t('settings.plugins') }}</h2>
+          </div>
+          <div class="settings-section-card-content">
+            <div class="settings-item" @click="toggleBridgeEnabled">
+              <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brick')"></div>
+              <div class="settings-content">
+                <div class="settings-header">{{ bridgeEnabled ? $t('settings.disableBridge') : $t('settings.enableBridge') }}</div>
+                <div class="settings-body">{{ $t('settings.bridgeEnabledDescription') }}</div>
+              </div>
+              <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="bridgeEnabled" /></div>
+            </div>
+
+            <div class="settings-item" @click="openPluginsPage">
+              <div class="settings-icon"><img class="small-icons" :src="getAppIcon('download')"></div>
+              <div class="settings-content">
+                <div class="settings-header">{{ $t('settings.downloadPlugins') }}</div>
+                <div class="settings-body">{{ $t('settings.downloadPluginsDescription') }}</div>
+              </div>
+              <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
+import { Browser } from '@wailsio/runtime';
+import { useI18n } from 'vue-i18n';
+import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import { AgentService } from '@/services';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
+import { useNotificationStore } from '@/stores/notifications';
+import { useSettingsStore } from '@/stores/settings';
 
 const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
+const notificationStore = useNotificationStore();
+const settingsStore = useSettingsStore();
+const agentKeyConfigured = ref(false);
+const { t } = useI18n();
 
 const connectedIntegrations = computed(() => {
   return integrationStore.availableIntegrations.filter((integration) => {
     return integrationStore.isAuthenticated(integration.id);
   });
 });
+const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
@@ -67,9 +119,29 @@ const openIntegrationAuth = () => {
   desktopModals.setModalVisibility('integrationAuthModal', true);
 };
 
+const openAgentConfig = () => desktopModals.setModalVisibility('configAgentModal', true);
+const openPluginsPage = () => Browser.OpenURL('https://www.clustta.com/plugins');
+
+const toggleBridgeEnabled = async () => {
+  try {
+    await settingsStore.toggleBridge();
+    notificationStore.addNotification(
+      t('settings.bridgeEnabled'),
+      t('notifications.bridgeToggled', { status: settingsStore.bridgeEnabled ? 'enabled' : 'disabled' }),
+      'success',
+    );
+  } catch (error) {
+    console.error(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdateBridge'), 'error');
+  }
+};
+
 onMounted(async () => {
   try {
     await integrationStore.initialize();
+    await settingsStore.initializeBridge();
+    const status = await AgentService.GetAPIKeyStatus();
+    agentKeyConfigured.value = status.configured;
   } catch (error) {
     console.error('Unable to load user integrations:', error);
   }
@@ -157,5 +229,9 @@ onMounted(async () => {
   background-color: rgba(var(--accent-primary-rgb), .15);
   font-size: 12px;
   font-weight: 500;
+}
+
+.fixed-width {
+  min-width: 200px;
 }
 </style>

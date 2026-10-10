@@ -508,6 +508,7 @@
   "settings": {
     "navigation": {
       "general": "常规",
+      "preferences": "偏好设置",
       "filesAndProjects": "文件和项目",
       "system": "系统",
       "studio": "工作室",

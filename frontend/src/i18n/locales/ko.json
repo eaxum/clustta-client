@@ -508,6 +508,7 @@
   "settings": {
     "navigation": {
       "general": "일반",
+      "preferences": "환경 설정",
       "filesAndProjects": "파일 및 프로젝트",
       "system": "시스템",
       "studio": "스튜디오",

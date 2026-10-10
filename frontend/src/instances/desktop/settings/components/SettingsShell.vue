@@ -114,6 +114,22 @@ const activePage = computed(() => {
   box-sizing: border-box;
 }
 
+.settings-page-content .user-settings-page {
+  height: 100%;
+  min-height: 0;
+  padding-right: .2rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  border-radius: var(--very-large-radius);
+}
+
+.settings-page-content .user-settings-page > .settings-component-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 100%;
+}
+
 .settings-page-content,
 .settings-page-content * {
   scrollbar-color: var(--surface-4) transparent;
@@ -180,6 +196,72 @@ const activePage = computed(() => {
   overflow: hidden;
   border-radius: var(--normal-radius);
   background-color: var(--surface-2);
+}
+
+.settings-page-content .settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  min-height: 50px;
+  height: max-content;
+  padding: .5rem 1rem;
+  overflow: hidden;
+  border-bottom: 1px solid var(--surface-4);
+  color: var(--text);
+  background-color: var(--surface-2);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: background-color .2s ease;
+}
+
+.settings-page-content .settings-item:hover {
+  background-color: var(--hover);
+}
+
+.settings-page-content .settings-icon {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  height: 100%;
+  padding: .3rem;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.settings-page-content .settings-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100%;
+  padding: .4rem .2rem;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.settings-page-content .settings-header {
+  padding: .1rem;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.settings-page-content .settings-body {
+  padding: .1rem;
+  color: var(--text-muted);
+  font-size: 12px;
+  opacity: .8;
+}
+
+.settings-page-content .settings-action {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: max-content;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .actions-divider {

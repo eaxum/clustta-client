@@ -1,12 +1,16 @@
 import General from '@/instances/desktop/settings/General.vue';
+import UserAppearance from '@/instances/desktop/settings/UserAppearance.vue';
+import UserBehavior from '@/instances/desktop/settings/UserBehavior.vue';
+import UserExperimental from '@/instances/desktop/settings/UserExperimental.vue';
+import UserHelpAbout from '@/instances/desktop/settings/UserHelpAbout.vue';
 import Directories from '@/instances/desktop/settings/Directories.vue';
 import ProjectTemplates from '@/instances/desktop/settings/ProjectTemplates.vue';
-import UserAdvanced from '@/instances/desktop/settings/UserAdvanced.vue';
 import UserIntegrations from '@/instances/desktop/settings/UserIntegrations.vue';
 import Studio from '@/instances/desktop/settings/Studio.vue';
 import ProjectStorage from '@/instances/desktop/settings/ProjectStorage.vue';
 import StudioCollaborators from '@/instances/desktop/settings/StudioCollaborators.vue';
 import StudioIntegrations from '@/instances/desktop/settings/StudioIntegrations.vue';
+import StudioAuditLogs from '@/instances/desktop/settings/StudioAuditLogs.vue';
 import Collaborators from '@/instances/desktop/settings/Collaborators.vue';
 import Roles from '@/instances/desktop/settings/Roles.vue';
 import Templates from '@/instances/desktop/settings/Templates.vue';
@@ -21,18 +25,20 @@ import ProjectIntegrations from '@/instances/desktop/settings/ProjectIntegration
 import { canAccessProjectSettingsTab } from '@/lib/permissions';
 
 export const userSettingsGroups = [
-  { id: 'general', nameKey: 'settings.navigation.general' },
+  { id: 'preferences', nameKey: 'settings.navigation.preferences' },
   { id: 'files', nameKey: 'settings.navigation.filesAndProjects' },
   { id: 'connections', nameKey: 'settings.navigation.connections' },
   { id: 'system', nameKey: 'settings.navigation.system' },
 ];
 
 export const userSettingsPages = [
-  { id: 'general', nameKey: 'settings.general', icon: 'monitor', group: 'general', component: General },
+  { id: 'appearance', nameKey: 'settings.appearance', icon: 'palette', group: 'preferences', component: UserAppearance },
+  { id: 'behavior', nameKey: 'settings.behaviour', icon: 'cog', group: 'preferences', component: UserBehavior },
   { id: 'directories', nameKey: 'settings.directories', icon: 'explorer', group: 'files', component: Directories },
   { id: 'projecttemplates', nameKey: 'settings.projectTemplates', icon: 'briefcase', group: 'files', component: ProjectTemplates },
   { id: 'userintegrations', nameKey: 'settings.integrations', icon: 'plug', group: 'connections', component: UserIntegrations },
-  { id: 'advanced', nameKey: 'settings.advanced', icon: 'skull', group: 'system', component: UserAdvanced },
+  { id: 'experimental', nameKey: 'settings.experimentalFeatures', icon: 'skull', group: 'system', component: UserExperimental },
+  { id: 'helpabout', nameKey: 'settings.resourcesSupport', icon: 'help', group: 'system', component: UserHelpAbout },
 ];
 
 export const studioSettingsGroups = [
@@ -45,6 +51,7 @@ export const studioSettingsPages = [
   { id: 'studio', nameKey: 'settings.studio', icon: 'stall', group: 'studio', component: Studio },
   { id: 'studioprojects', nameKey: 'settings.projectStorage', icon: 'briefcase', group: 'management', component: ProjectStorage },
   { id: 'studiocollaborators', nameKey: 'settings.studioCollaborators', icon: 'person', group: 'management', component: StudioCollaborators },
+  { id: 'auditlogs', nameKey: 'settings.auditLogs', icon: 'file', group: 'management', badgeKey: 'settings.comingSoon', component: StudioAuditLogs },
   { id: 'studiointegrations', nameKey: 'settings.studioIntegrations', icon: 'plug', group: 'connections', component: StudioIntegrations },
 ];
 

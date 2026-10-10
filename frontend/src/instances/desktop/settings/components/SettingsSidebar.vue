@@ -78,7 +78,11 @@ const navigationGroups = computed(() => {
 			name: t(group.nameKey),
 			pages: navigationConfig.value.pages
 				.filter((page) => page.group === group.id)
-				.map((page) => ({ ...page, name: t(page.nameKey) })),
+				.map((page) => ({
+					...page,
+					badge: page.badgeKey ? t(page.badgeKey) : '',
+					name: t(page.nameKey),
+				})),
 		}))
 		.filter((group) => group.pages.length);
 });

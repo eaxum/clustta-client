@@ -14,7 +14,8 @@
 				@keydown="handleNavigationKeydown($event, page.id)"
 			>
 				<img class="small-icons sidebar-navigation-icon" :src="getAppIcon(page.icon)" alt="">
-				<span>{{ page.name }}</span>
+				<span class="sidebar-navigation-label">{{ page.name }}</span>
+				<span v-if="page.badge" class="sidebar-navigation-badge">{{ page.badge }}</span>
 			</button>
 		</section>
 	</nav>
@@ -168,6 +169,25 @@ const handleNavigationKeydown = (event, pageId) => {
 .sidebar-navigation-icon {
 	flex: 0 0 auto;
 	opacity: .8;
+}
+
+.sidebar-navigation-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.sidebar-navigation-badge {
+	margin-left: auto;
+	padding: .15rem .35rem;
+	border-radius: 999px;
+	color: var(--text-muted);
+	background-color: var(--surface-2);
+	font-size: .58rem;
+	font-weight: 500;
+	line-height: 1.2;
+	white-space: nowrap;
 }
 
 .sidebar-navigation-item-selected .sidebar-navigation-icon {
