@@ -55,71 +55,6 @@
         </div>
       </div>
 
-      <!-- External Integrations Card -->
-      <div v-if="entitlementStore.hasIntegrations && userStore.canDo('manage_integrations')" class="settings-section-card">
-        <div class="settings-section-card-header integration-card-header">
-          <div class="integration-card-title-group">
-            <h2 class="settings-section-card-title">{{ $t('settings.externalIntegrations') }}</h2>
-            <div class="settings-body integration-card-help">
-              {{ $t('settings.linkIntegrationDescription') }}
-            </div>
-          </div>
-          <ActionButton :icon="getAppIcon('link')" :label="$t('common.link')"
-            :buttonFunction="openIntegrationLink" />
-        </div>
-        <div v-if="linkedIntegration" class="settings-section-card-content">
-
-          <!-- Linked Integration -->
-          <div v-stop-propagation class="settings-item" @click="openIntegrationLink">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(linkedIntegration.integration_id)"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ linkedIntegration.external_project_name }}</div>
-              <div class="settings-body">{{ $t('settings.linkedTo', { integration: linkedIntegration.integration_id }) }}</div>
-            </div>
-            <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="$t('common.manage')" :buttonFunction="openIntegrationLink" />
-            </div>
-          </div>
-
-          <!-- Directory Mapping (only when integration linked) -->
-          <div v-stop-propagation class="settings-item" @click="openDirectoryMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('file-path')"></div>
-            <div class="settings-content">
-              <div class="settings-header">Directory Mapping</div>
-              <div class="settings-body">Configure folder structure for synced items</div>
-            </div>
-            <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openDirectoryMapping" />
-            </div>
-          </div>
-
-          <!-- Asset Type Templates (only when integration linked) -->
-          <div v-stop-propagation class="settings-item" @click="openAssetTypeMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('extension')"></div>
-            <div class="settings-content">
-              <div class="settings-header">Asset Type Mapping</div>
-              <div class="settings-body">Map asset types to file templates</div>
-            </div>
-            <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openAssetTypeMapping" />
-            </div>
-          </div>
-
-          <!-- Status Mapping (only when integration linked) -->
-          <div v-stop-propagation class="settings-item" @click="openStatusMapping">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('clock')"></div>
-            <div class="settings-content">
-              <div class="settings-header">Status Mapping</div>
-              <div class="settings-body">Map statuses to push on checkpoint</div>
-            </div>
-            <div class="settings-action" v-stop-propagation>
-              <ActionButton :icon="getAppIcon('settings')" :label="'Configure'" :buttonFunction="openStatusMapping" />
-            </div>
-          </div>
-
-        </div>
-      </div>
-
     </div>
     </div>
   </div>
@@ -132,13 +67,10 @@ import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 
 // stores
-import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
-import { useIntegrationStore } from '@/stores/integrations';
 import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
 import { useUserStore } from '@/stores/users';
-import { useEntitlementStore } from '@/stores/entitlements';
 import { useNotificationStore } from '@/stores/notifications';
 
 // components
@@ -149,10 +81,7 @@ import IgnoreListBox from '@/instances/common/components/IgnoreListBox.vue';
 import { SettingsService } from '@/services';
 
 // refs
-const desktopModals = useDesktopModalStore();
-const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
-const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const settingsStore = useSettingsStore();
@@ -165,7 +94,6 @@ const savedScriptSettings = ref({ directory: 'Scripts', extensions: ['.py'] });
 const savedEnvironmentVariables = ref([]);
 
 // computed
-const linkedIntegration = computed(() => integrationStore.linkedIntegration);
 const scriptSettingsChanged = computed(() => {
   return JSON.stringify(normalizedScriptSettings()) !== JSON.stringify(savedScriptSettings.value);
 });
@@ -261,36 +189,12 @@ const saveEnvironmentVariables = async () => {
   }
 };
 
-// Opens the integration link modal to manage project integration.
-const openIntegrationLink = () => {
-  desktopModals.setModalVisibility('integrationLinkModal', true);
-};
-
-// Opens the directory mapping modal to configure folder structure.
-const openDirectoryMapping = () => {
-  desktopModals.setModalVisibility('directoryMappingModal', true);
-};
-
-// Opens the asset type mapping modal to configure template mappings.
-const openAssetTypeMapping = () => {
-  desktopModals.setModalVisibility('assetTypeMappingModal', true);
-};
-
-// Opens the status mapping modal to configure status sync.
-const openStatusMapping = () => {
-  desktopModals.setModalVisibility('statusMappingModal', true);
-};
-
 // lifecycle hooks
 onMounted(async () => {
   try {
     const projectUri = projectStore.activeProject?.uri;
     if (projectUri) {
-      await Promise.all([
-        integrationStore.loadLinkedIntegration(),
-        loadScriptSettings(),
-        loadEnvironmentVariables(),
-      ]);
+      await Promise.all([loadScriptSettings(), loadEnvironmentVariables()]);
     }
   } catch (error) {
     console.log(error);

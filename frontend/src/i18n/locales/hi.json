@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "Drop ki gayi files overwrite setting update nahi ho saki"
   },
   "settings": {
+    "navigation": {
+      "general": "सामान्य",
+      "filesAndProjects": "फ़ाइलें और प्रोजेक्ट",
+      "system": "सिस्टम",
+      "studio": "स्टूडियो",
+      "management": "प्रबंधन",
+      "connections": "कनेक्शन",
+      "people": "लोग",
+      "configuration": "कॉन्फ़िगरेशन",
+      "filesAndAutomation": "फ़ाइलें और ऑटोमेशन"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

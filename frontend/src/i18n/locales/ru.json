@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "Не удалось обновить настройку перезаписи перетащенных файлов"
   },
   "settings": {
+    "navigation": {
+      "general": "Общие",
+      "filesAndProjects": "Файлы и проекты",
+      "system": "Система",
+      "studio": "Студия",
+      "management": "Управление",
+      "connections": "Подключения",
+      "people": "Пользователи",
+      "configuration": "Конфигурация",
+      "filesAndAutomation": "Файлы и автоматизация"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

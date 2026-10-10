@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "No se pudo actualizar la opcion de sobrescribir archivos soltados"
   },
   "settings": {
+    "navigation": {
+      "general": "General",
+      "filesAndProjects": "Archivos y proyectos",
+      "system": "Sistema",
+      "studio": "Estudio",
+      "management": "Administración",
+      "connections": "Conexiones",
+      "people": "Personas",
+      "configuration": "Configuración",
+      "filesAndAutomation": "Archivos y automatización"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

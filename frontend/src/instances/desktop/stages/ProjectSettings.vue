@@ -1,131 +1,88 @@
 <template>
 	<div class="page-list-root absolute-pane">
-		<div class="settings-stage-root">
-			<div class="settings-stage-header">
-				<HeaderTabs :useSelected="true" :selectedTab="selectedSettingsContext" :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" />
-			</div>
-			<div class="settings-stage-body">
-				<div class="settings-stage-body-container">
-					<component v-for="page in visiblePages" :key="page.name" :is="page.component" />
-				</div>
-			</div>
-		</div>
+		<SettingsShell
+			titleKey="components.headerBar.projectSettings"
+			:groups="projectSettingsGroups"
+			:pages="availablePages"
+			:activePageId="activePageId"
+			@select="selectPage"
+		/>
 	</div>
 </template>
 
 <script setup>
-// imports
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import SettingsShell from '@/instances/desktop/settings/components/SettingsShell.vue';
+import {
+	projectSettingsGroups,
+	projectSettingsPages,
+} from '@/instances/desktop/settings/settingsNavigation';
 import { canAccessProjectSettings, canAccessProjectSettingsTab } from '@/lib/permissions';
-
-// state imports
-import { useSettingsStore } from '@/stores/settings';
-import { useProjectStore } from '@/stores/projects';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 
-// states/stores
-const settings = useSettingsStore();
-const projectStore = useProjectStore();
 const entitlementStore = useEntitlementStore();
+const projectStore = useProjectStore();
+const settings = useSettingsStore();
 const stage = useStageStore();
+const activePageId = ref('');
 
-// components
-import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
-import General from '@/instances/desktop/settings/General.vue';
-import Collaborators from '@/instances/desktop/settings/Collaborators.vue';
-import Tags from '@/instances/desktop/settings/Tags.vue';
-import Templates from '@/instances/desktop/settings/Templates.vue';
-import WorkflowTemplates from '@/instances/desktop/settings/WorkflowTemplates.vue';
-import AssetTypes from '@/instances/desktop/settings/AssetTypes.vue';
-import Roles from '@/instances/desktop/settings/Roles.vue';
-import CollectionTypes from '@/instances/desktop/settings/CollectionTypes.vue';
-import IgnoreList from '@/instances/desktop/settings/IgnoreList.vue';
-import Advanced from '@/instances/desktop/settings/Advanced.vue';
-import Hooks from '@/instances/desktop/settings/Hooks.vue';
+const availablePages = computed(() => {
+	const isRemoteProject = !!projectStore.activeProject?.has_remote;
 
-const selectedSettingsContext = ref('');
-
-// refs
-const settingsComponents = {
-	general: General,
-	templates: Templates,
-	collaborators: Collaborators,
-	tags: Tags,
-	workflows: WorkflowTemplates,
-	assettypes: AssetTypes,
-	roles: Roles,
-	collectiontypes: CollectionTypes,
-	ignorelist: IgnoreList,
-	advanced: Advanced,
-	hooks: Hooks,
-};
-
-// computed props
-const settingsItems = computed(() => {
-	const isProjectRemote = projectStore.activeProject.has_remote;
-
-	const canCollaborate = entitlementStore.canCollaborate;
-	const hasCustomRoles = entitlementStore.hasCustomRoles;
-	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'studio', 'studiocollaborators', 'studiointegrations'];
-	const remoteProjectIds = ['collaborators', 'roles'];
-
-	const projectSettings = settings.settingsItems.filter((item) => 
-		!userSettingsIds.includes(item.id) &&
-		canAccessProjectSettingsTab(item.id) &&
-		(canCollaborate || item.id !== 'collaborators') &&
-		(hasCustomRoles || item.id !== 'roles')
-	);
-	
-	const localProjectSettings = projectSettings.filter((item) => !remoteProjectIds.includes(item.id));
-	return isProjectRemote ? projectSettings : localProjectSettings;
+	return projectSettingsPages.filter((page) => {
+		if (!canAccessProjectSettingsTab(page.id)) return false;
+		if (page.id === 'collaborators') return isRemoteProject && entitlementStore.canCollaborate;
+		if (page.id === 'roles') return isRemoteProject && entitlementStore.hasCustomRoles;
+		if (page.id === 'integrations') return entitlementStore.hasIntegrations;
+		return true;
+	});
 });
 
-const visiblePages = computed(() => {
-	return Object.entries(settings.modalStates)
-		.filter(([name, isVisible]) => isVisible && canAccessProjectSettingsTab(name))
-		.map(([name]) => ({
-			name,
-			component: settingsComponents[name],
-		}));
-});
-
-// methods
-const filterList = (selectedTab) => {
-	if (!canAccessProjectSettingsTab(selectedTab)) return;
-	selectedSettingsContext.value = selectedTab;
-	settings.setModalVisibility(selectedTab, true);
+const isAvailablePage = (pageId) => {
+	return availablePages.value.some((page) => page.id === pageId);
 };
 
-const ensureAuthorizedTab = () => {
-	const authorizedTabs = settingsItems.value;
-	if (!canAccessProjectSettings() || !authorizedTabs.length) {
+const selectPage = (pageId) => {
+	if (!isAvailablePage(pageId)) return;
+	activePageId.value = pageId;
+	settings.activeModalName = pageId;
+	settings.setModalVisibility(pageId, true);
+};
+
+const ensureAuthorizedPage = () => {
+	if (!canAccessProjectSettings() || !availablePages.value.length) {
 		stage.setStageVisibility('browser', true);
-		return false;
+		return;
 	}
 
-	const activeTab = authorizedTabs.find(item => item.id === settings.activeModal)?.id;
-	const targetTab = activeTab || authorizedTabs[0].id;
-	if (settings.activeModal !== targetTab) {
-		settings.setModalVisibility(targetTab, true);
+	if (isAvailablePage(settings.activeModal)) {
+		activePageId.value = settings.activeModal;
+		return;
 	}
-	settings.activeModalName = targetTab;
-	selectedSettingsContext.value = targetTab;
-	return true;
+
+	selectPage(availablePages.value[0].id);
 };
 
-// onmounted hook
-onMounted(() => {
-	ensureAuthorizedTab();
-});
+watch(
+	() => settings.activeModal,
+	(pageId) => {
+		if (isAvailablePage(pageId)) activePageId.value = pageId;
+	},
+);
 
-watch(settingsItems, ensureAuthorizedTab);
+watch(
+	() => availablePages.value.map((page) => page.id).join('|'),
+	ensureAuthorizedPage,
+);
+
+onMounted(ensureAuthorizedPage);
 
 onUnmounted(() => {
 	settings.disableAllModals();
-	settings.activeModal = null;
-})
-
+});
 </script>
 
 <style scoped>
@@ -134,7 +91,7 @@ onUnmounted(() => {
 
 .page-list-root {
 	box-sizing: border-box;
-	padding: .4rem;
+	padding: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;

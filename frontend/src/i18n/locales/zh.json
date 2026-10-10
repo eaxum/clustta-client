@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "无法更新覆盖拖入文件设置"
   },
   "settings": {
+    "navigation": {
+      "general": "常规",
+      "filesAndProjects": "文件和项目",
+      "system": "系统",
+      "studio": "工作室",
+      "management": "管理",
+      "connections": "连接",
+      "people": "人员",
+      "configuration": "配置",
+      "filesAndAutomation": "文件和自动化"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

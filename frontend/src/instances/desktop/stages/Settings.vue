@@ -1,99 +1,67 @@
 <template>
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
-		<div class="settings-stage-root">
-			<div class="settings-stage-header">
-				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" :useSelected="true" :selectedTab="selectedSettingsTab" />
-			</div>
-			<div class="settings-stage-body">
-				<div class="settings-stage-body-container">
-					<component v-for="page in visiblePages" :key="page.name" :is="page.component" />
-				</div>
-			</div>
-		</div>
+		<SettingsShell
+			titleKey="settings.title"
+			:groups="userSettingsGroups"
+			:pages="userSettingsPages"
+			:activePageId="selectedSettingsTab"
+			@select="filterList"
+		/>
 	</div>
 </template>
 
 <script setup>
-// imports
-import { computed, onMounted, onUnmounted, ref, watchEffect } from 'vue';
-
-// state imports
-import { useSettingsStore } from '@/stores/settings';
+import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import SettingsShell from '@/instances/desktop/settings/components/SettingsShell.vue';
+import {
+	userSettingsGroups,
+	userSettingsPages,
+} from '@/instances/desktop/settings/settingsNavigation';
 import { useMenu } from '@/stores/menu';
+import { useSettingsStore } from '@/stores/settings';
 
-// states/stores
-const settings = useSettingsStore();
+const DEFAULT_PAGE_ID = 'general';
+
 const menu = useMenu();
-
+const settings = useSettingsStore();
 const pageListRoot = ref(null);
-const selectedSettingsTab = ref('general');
+const selectedSettingsTab = ref(DEFAULT_PAGE_ID);
 
-// components
-import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
-import General from '@/instances/desktop/settings/General.vue';
-import Collaborators from '@/instances/desktop/settings/Collaborators.vue';
-import ProjectTemplates from '@/instances/desktop/settings/ProjectTemplates.vue';
-import Directories from '@/instances/desktop/settings/Directories.vue';
-import UserAdvanced from '@/instances/desktop/settings/UserAdvanced.vue';
-
-
-// refs
-const settingsComponents = {
-	general: General,
-	collaborators: Collaborators,
-	projecttemplates: ProjectTemplates,
-	directories: Directories,
-	advanced: UserAdvanced,
+const isAvailablePage = (pageId) => {
+	return userSettingsPages.some((page) => page.id === pageId);
 };
 
-// computed props
-const settingsItems = computed(() => {
-	
-	const userSettingsIds = ['general', 'directories', 'projecttemplates', 'advanced'];
-	const generalSettings = settings.settingsItems.filter((item) => userSettingsIds.includes(item.id));
-	return generalSettings
-});
-
-const visiblePages = computed(() => {
-	return Object.entries(settings.modalStates)
-		.filter(([name, isVisible]) => isVisible)
-		.map(([name]) => ({
-			name,
-			component: settingsComponents[name],
-		}));
-});
-
-// methods
-const filterList = (selectedTab) => {
-	selectedSettingsTab.value = selectedTab;
-	settings.setModalVisibility(selectedTab, true);
+const filterList = (pageId) => {
+	if (!isAvailablePage(pageId)) return;
+	selectedSettingsTab.value = pageId;
+	settings.activeModalName = pageId;
+	settings.setModalVisibility(pageId, true);
 };
+
+watch(
+	() => settings.activeModal,
+	(pageId) => {
+		if (isAvailablePage(pageId)) selectedSettingsTab.value = pageId;
+	},
+);
 
 watchEffect(() => {
-  if (pageListRoot.value) {
-    menu.clickOutsideMask = pageListRoot.value;
-  }
+	if (pageListRoot.value) menu.clickOutsideMask = pageListRoot.value;
 });
 
-// lifecycle hooks
 onMounted(() => {
-	const tab = settings.pendingTab || 'general';
+	const requestedPageId = settings.pendingTab;
 	settings.pendingTab = null;
-	selectedSettingsTab.value = tab;
-	settings.setModalVisibility(tab, true);
+	filterList(isAvailablePage(requestedPageId) ? requestedPageId : DEFAULT_PAGE_ID);
 });
 
 onUnmounted(() => {
 	settings.pendingTab = null;
-});
-
-onUnmounted(() => {
 	settings.disableAllModals();
-	settings.activeModal = null;
-})
+});
 </script>
 
-<style>
+<style scoped>
 @import "@/assets/desktop.css";
 
 .page-list-root {

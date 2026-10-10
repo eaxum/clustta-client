@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "Einstellung zum Ueberschreiben abgelegter Dateien konnte nicht aktualisiert werden"
   },
   "settings": {
+    "navigation": {
+      "general": "Allgemein",
+      "filesAndProjects": "Dateien und Projekte",
+      "system": "System",
+      "studio": "Studio",
+      "management": "Verwaltung",
+      "connections": "Verbindungen",
+      "people": "Personen",
+      "configuration": "Konfiguration",
+      "filesAndAutomation": "Dateien und Automatisierung"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

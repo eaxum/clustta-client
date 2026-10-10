@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "Impossibile aggiornare l impostazione di sovrascrittura dei file rilasciati"
   },
   "settings": {
+    "navigation": {
+      "general": "Generale",
+      "filesAndProjects": "File e progetti",
+      "system": "Sistema",
+      "studio": "Studio",
+      "management": "Gestione",
+      "connections": "Connessioni",
+      "people": "Persone",
+      "configuration": "Configurazione",
+      "filesAndAutomation": "File e automazione"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

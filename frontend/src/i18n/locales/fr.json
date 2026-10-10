@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "Impossible de mettre a jour le parametre d ecrasement des fichiers deposes"
   },
   "settings": {
+    "navigation": {
+      "general": "Général",
+      "filesAndProjects": "Fichiers et projets",
+      "system": "Système",
+      "studio": "Studio",
+      "management": "Gestion",
+      "connections": "Connexions",
+      "people": "Personnes",
+      "configuration": "Configuration",
+      "filesAndAutomation": "Fichiers et automatisation"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

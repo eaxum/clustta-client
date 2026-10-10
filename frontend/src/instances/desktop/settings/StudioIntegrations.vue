@@ -109,7 +109,6 @@ const rowBody = (integration) => {
 
 // Opens the studio integration config modal for the given integration id.
 const openIntegration = (id) => {
-  console.log('clicked')
   integrationStore.setActiveStudioIntegration(id);
   desktopModals.setModalVisibility('studioIntegrationConfigModal', true);
 };

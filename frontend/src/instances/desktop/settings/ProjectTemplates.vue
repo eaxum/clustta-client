@@ -29,8 +29,21 @@
             </div>
 
             <div v-if="projectTemplateStore.projectTemplates.length" class="settings-component-tabs">
-                <div class="menu-divider"></div>
-                <HeaderTabs :dataTypes="templateContexts" @filter="filterList" :fullWidth="true" />
+                <div class="template-context-navigation" role="tablist" :aria-label="$t('settings.projectTemplates')">
+                    <button
+                        v-for="context in templateContexts"
+                        :key="context.id"
+                        class="template-context-button"
+                        :class="{ 'template-context-button-selected': activeTemplateContext === context.id }"
+                        :aria-selected="activeTemplateContext === context.id"
+                        type="button"
+                        role="tab"
+                        @click="filterList(context.id)"
+                    >
+                        <img class="small-icons" :src="getAppIcon(context.icon)" alt="">
+                        <span>{{ context.nameKey ? $t(context.nameKey) : context.name }}</span>
+                    </button>
+                </div>
             </div>
 
             <div v-if="projectTemplateStore.projectTemplates.length" class="settings-component-body">
@@ -93,7 +106,6 @@ import ScrollList from '@/instances/desktop/components/ScrollList.vue';
 import ActionBar from '@/instances/desktop/components/ActionBar.vue';
 import PageState from '@/instances/common/components/PageState.vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
-import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import IgnoreListBox from '@/instances/common/components/IgnoreListBox.vue';
 
@@ -177,7 +189,6 @@ const selectActiveProjectTemplate = (templateName) => {
 };
 
 const filterList = (selectedContext) => {
-    console.log(selectedContext)
     activeTemplateContext.value = selectedContext;
 };
 
@@ -409,10 +420,49 @@ onMounted(async () => {
 .settings-component-tabs {
     width: 100%;
     display: flex;
-    flex-direction: column;
-    /* background-color: darkgoldenrod; */
     align-items: flex-start;
-    justify-content: space-between;
+}
+
+.template-context-navigation {
+    display: inline-flex;
+    max-width: 100%;
+    gap: .2rem;
+    padding: .25rem;
+    overflow-x: auto;
+    border-radius: var(--large-radius);
+    background-color: var(--surface-2);
+}
+
+.template-context-button {
+    display: flex;
+    align-items: center;
+    min-height: 32px;
+    gap: .45rem;
+    padding: .35rem .65rem;
+    border: 0;
+    border-radius: var(--normal-radius);
+    color: var(--text-muted);
+    background-color: transparent;
+    font: inherit;
+    font-size: .78rem;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.template-context-button:hover {
+    color: var(--text);
+    background-color: var(--surface-3);
+}
+
+.template-context-button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
+.template-context-button-selected {
+    color: var(--text);
+    background-color: var(--surface-4);
+    font-weight: 500;
 }
 
 .settings-component-body {

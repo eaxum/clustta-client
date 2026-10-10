@@ -543,6 +543,17 @@
   },
   "settings": {
     "title": "Settings",
+    "navigation": {
+      "general": "General",
+      "filesAndProjects": "Files and projects",
+      "system": "System",
+      "studio": "Studio",
+      "management": "Management",
+      "connections": "Connections",
+      "people": "People",
+      "configuration": "Configuration",
+      "filesAndAutomation": "Files and automation"
+    },
     "scripts": "Scripts",
     "scriptDirectoryFromProjectRoot": "Directory from project root",
     "scriptDirectoryHelp": "Always resolved from the project root. Enter a relative path such as Scripts. The agent only lists immediate files from this directory.",

@@ -1,96 +1,84 @@
 <template>
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
-		<div class="settings-stage-root">
-			<div class="settings-stage-header">
-				<HeaderTabs :dataTypes="settingsItems" @filter="filterList" :fullWidth="true" :useSelected="true" :selectedTab="settings.activeModal" />
-			</div>
-			<div class="settings-stage-body">
-				<div class="settings-stage-body-container">
-					<component v-for="page in visiblePages" :key="page.name" :is="page.component" />
-				</div>
-			</div>
-		</div>
+		<SettingsShell
+			titleKey="components.headerBar.studioSettings"
+			:groups="studioSettingsGroups"
+			:pages="availablePages"
+			:activePageId="activePageId"
+			@select="selectPage"
+		/>
 	</div>
 </template>
 
 <script setup>
-// imports
-import { computed, ref, onMounted, onUnmounted, watchEffect } from 'vue';
-
-// state imports
-import { useSettingsStore } from '@/stores/settings';
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import SettingsShell from '@/instances/desktop/settings/components/SettingsShell.vue';
+import {
+	studioSettingsGroups,
+	studioSettingsPages,
+} from '@/instances/desktop/settings/settingsNavigation';
+import { useEntitlementStore } from '@/stores/entitlements';
 import { useMenu } from '@/stores/menu';
 import { useProjectStore } from '@/stores/projects';
-import { useEntitlementStore } from '@/stores/entitlements';
+import { useSettingsStore } from '@/stores/settings';
 
-// states/stores
-const settings = useSettingsStore();
+const DEFAULT_PAGE_ID = 'studio';
+
+const entitlementStore = useEntitlementStore();
 const menu = useMenu();
 const projectStore = useProjectStore();
-const entitlementStore = useEntitlementStore();
-
+const settings = useSettingsStore();
 const pageListRoot = ref(null);
+const activePageId = ref(DEFAULT_PAGE_ID);
 
-// components
-import HeaderTabs from '@/instances/common/components/HeaderTabs.vue';
-import Studio from '@/instances/desktop/settings/Studio.vue';
-import ProjectStorage from '@/instances/desktop/settings/ProjectStorage.vue';
-import StudioCollaborators from '@/instances/desktop/settings/StudioCollaborators.vue';
-import StudioIntegrations from '@/instances/desktop/settings/StudioIntegrations.vue';
-import ProjectTemplates from '@/instances/desktop/settings/ProjectTemplates.vue';
-
-
-// refs
-const settingsComponents = {
-	studio: Studio,
-	studioprojects: ProjectStorage,
-	studiocollaborators: StudioCollaborators,
-	studiointegrations: StudioIntegrations,
-	projecttemplates: ProjectTemplates,
-};
-
-// computed props
-const settingsItems = computed(() => {
-	const studioSettingsIds = ['studio', 'studioprojects', 'studiocollaborators', 'studiointegrations'];
-	const canCollaborate = entitlementStore.canCollaborate;
-
-	const studioSettings = settings.settingsItems.filter((item) =>
-		studioSettingsIds.includes(item.id) &&
-		(canCollaborate || item.id !== 'studiocollaborators') &&
-		(!projectStore.isCloudHosted || item.id !== 'studioprojects')
-	);
-	return studioSettings;
+const availablePages = computed(() => {
+	return studioSettingsPages.filter((page) => {
+		if (page.id === 'studioprojects') return !projectStore.isCloudHosted;
+		if (page.id === 'studiocollaborators') return entitlementStore.canCollaborate;
+		return true;
+	});
 });
 
-const visiblePages = computed(() => {
-	return Object.entries(settings.modalStates)
-		.filter(([name, isVisible]) => isVisible)
-		.map(([name]) => ({
-			name,
-			component: settingsComponents[name],
-		}));
-});
-
-// methods
-const filterList = (selectedTab) => {
-	settings.setModalVisibility(selectedTab, true);
+const isAvailablePage = (pageId) => {
+	return availablePages.value.some((page) => page.id === pageId);
 };
+
+const selectPage = (pageId) => {
+	if (!isAvailablePage(pageId)) return;
+	activePageId.value = pageId;
+	settings.activeModalName = pageId;
+	settings.setModalVisibility(pageId, true);
+};
+
+const ensureAvailablePage = () => {
+	if (isAvailablePage(settings.activeModal)) {
+		activePageId.value = settings.activeModal;
+		return;
+	}
+	selectPage(DEFAULT_PAGE_ID);
+};
+
+watch(
+	() => settings.activeModal,
+	(pageId) => {
+		if (isAvailablePage(pageId)) activePageId.value = pageId;
+	},
+);
+
+watch(
+	() => availablePages.value.map((page) => page.id).join('|'),
+	ensureAvailablePage,
+);
 
 watchEffect(() => {
-  if (pageListRoot.value) {
-    menu.clickOutsideMask = pageListRoot.value;
-  }
+	if (pageListRoot.value) menu.clickOutsideMask = pageListRoot.value;
 });
 
-// onmounted hook
-onMounted(() => {
-	settings.setModalVisibility('studio', true);
-});
+onMounted(ensureAvailablePage);
 
 onUnmounted(() => {
 	settings.disableAllModals();
-	settings.activeModal = null;
-})
+});
 </script>
 
 <style scoped>
@@ -98,7 +86,7 @@ onUnmounted(() => {
 
 .page-list-root {
 	box-sizing: border-box;
-	padding: .4rem;
+	padding: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;

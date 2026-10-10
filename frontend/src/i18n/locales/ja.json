@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "ドロップしたファイルの上書き設定を更新できませんでした"
   },
   "settings": {
+    "navigation": {
+      "general": "一般",
+      "filesAndProjects": "ファイルとプロジェクト",
+      "system": "システム",
+      "studio": "スタジオ",
+      "management": "管理",
+      "connections": "接続",
+      "people": "メンバー",
+      "configuration": "構成",
+      "filesAndAutomation": "ファイルと自動化"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

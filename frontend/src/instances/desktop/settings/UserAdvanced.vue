@@ -45,40 +45,6 @@
         </div>
       </div>
 
-      <!-- Integrations Card -->
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.integrations') }}</h2>
-        </div>
-        <div class="settings-section-card-content">
-
-          <!-- Connected Integrations List -->
-          <div v-for="integration in connectedIntegrations" :key="integration.id" class="settings-item" @click="openIntegrationAuth">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(integration.icon)"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ integration.name }}</div>
-              <div class="settings-body">{{ $t('settings.connected') }}</div>
-            </div>
-            <div class="settings-action">
-              <span class="connected-badge">{{ $t('common.connected') }}</span>
-            </div>
-          </div>
-
-          <!-- Connect New Integration -->
-          <div class="settings-item" v-stop-propagation @click="openIntegrationAuth">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('plug')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.connectIntegration') }}</div>
-              <div class="settings-body">{{ $t('settings.connectIntegrationDescription') }}</div>
-            </div>
-            <div class="settings-action">
-              <img class="small-icons" :src="getAppIcon('chevron-right')">
-            </div>
-          </div>
-
-        </div>
-      </div>
-
       <!-- Plugins Card -->
       <div class="settings-section-card">
         <div class="settings-section-card-header">
@@ -185,7 +151,6 @@ import { AgentService, SettingsService } from '@/services';
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
-import { useIntegrationStore } from '@/stores/integrations';
 import { useNotificationStore } from '@/stores/notifications';
 import { useSettingsStore } from '@/stores/settings';
 
@@ -193,7 +158,6 @@ import { useSettingsStore } from '@/stores/settings';
 const agentKeyConfigured = ref(false);
 const desktopModals = useDesktopModalStore();
 const iconStore = useIconStore();
-const integrationStore = useIntegrationStore();
 const metadataOnlyStorage = ref(false);
 const notificationStore = useNotificationStore();
 const settingsStore = useSettingsStore();
@@ -208,10 +172,6 @@ const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 const minimizeOnClose = computed(() => settingsStore.minimizeOnClose);
 // Returns the current dropped-file overwrite state from the shared store.
 const overwriteDroppedFiles = computed(() => settingsStore.overwriteDroppedFiles);
-// Returns list of integrations user has authenticated with.
-const connectedIntegrations = computed(() => {
-  return integrationStore.availableIntegrations.filter(i => integrationStore.isAuthenticated(i.id));
-});
 
 // methods
 // Returns the app icon path for the given icon name.
@@ -222,11 +182,6 @@ const getAppIcon = (iconName) => {
 // Opens the AI agent configuration modal.
 const openAgentConfig = () => {
   desktopModals.setModalVisibility('configAgentModal', true);
-};
-
-// Opens the integration authentication modal.
-const openIntegrationAuth = () => {
-  desktopModals.setModalVisibility('integrationAuthModal', true);
 };
 
 // Toggles the bridge HTTP server for DCC plugin integrations.
@@ -328,7 +283,6 @@ onMounted(async () => {
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
     useUpdateSync.value = await SettingsService.GetUseUpdateSync();
     metadataOnlyStorage.value = await SettingsService.GetMetadataOnlyStorage();
-    await integrationStore.initialize();
     const status = await AgentService.GetAPIKeyStatus();
     agentKeyConfigured.value = status.configured;
   } catch (error) {

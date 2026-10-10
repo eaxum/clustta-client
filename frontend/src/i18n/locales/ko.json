@@ -506,6 +506,17 @@
     "failedToUpdateOverwriteDroppedFiles": "드롭한 파일 덮어쓰기 설정을 업데이트하지 못했습니다"
   },
   "settings": {
+    "navigation": {
+      "general": "일반",
+      "filesAndProjects": "파일 및 프로젝트",
+      "system": "시스템",
+      "studio": "스튜디오",
+      "management": "관리",
+      "connections": "연결",
+      "people": "사용자",
+      "configuration": "구성",
+      "filesAndAutomation": "파일 및 자동화"
+    },
     "launchHooks": "Hooks",
     "launchHooksOverview": "Run project setup, scene initialization, scripts, and environment configuration before DCC files open.",
     "addLaunchHook": "Add Hook",

@@ -169,7 +169,8 @@ const projectSettingsTabPermissions = {
   collectiontypes: ['manage_collection_types'],
   workflows: ['manage_workflows'],
   ignorelist: ['manage_project_settings'],
-  advanced: ['manage_project_settings', 'manage_integrations'],
+  integrations: ['manage_integrations'],
+  advanced: ['manage_project_settings'],
   hooks: ['manage_project_settings'],
 };
 
