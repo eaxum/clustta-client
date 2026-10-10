@@ -23,7 +23,7 @@
       </div>
     </div>
 
-    <ActionButton v-if="actionLabel" :icon="actionIcon" :label="actionLabel" @click="actionFunction" :useBackground="true" />
+    <ActionButton v-if="actionLabel" :icon="actionIcon" :label="actionLabel" :showIcon="!!actionIcon" :buttonFunction="actionFunction" />
   </div>
 </template>
 

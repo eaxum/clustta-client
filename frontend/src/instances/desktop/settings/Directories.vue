@@ -475,13 +475,9 @@ onMounted(async () => {
   height: max-content;
   padding: .5rem 1rem;
   gap: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  cursor: default;
+  transition: none;
   border-bottom:  1px solid var(--surface-4);
-}
-
-.location-item:hover {
-  background-color: #ffffff15;
 }
 
 .location-item:active {
@@ -556,10 +552,6 @@ onMounted(async () => {
 
 /* Hide hover actions by default, show on hover */
 .hover-action {
-  display: none;
-}
-
-.location-item:hover .hover-action {
   display: flex;
 }
 

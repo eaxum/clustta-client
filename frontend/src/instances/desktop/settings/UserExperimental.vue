@@ -6,31 +6,31 @@
           <h2 class="settings-section-card-title">{{ $t('settings.experimentalFeatures') }}</h2>
         </div>
         <div class="settings-section-card-content">
-          <div class="settings-item" @click="toggleSyncAfterCheckpoint">
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('refresh')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.syncAfterCheckpoint') }}</div>
               <div class="settings-body">{{ $t('settings.syncAfterCheckpointDescription') }}</div>
             </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="syncAfterCheckpoint" /></div>
+            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="syncAfterCheckpoint" @click="toggleSyncAfterCheckpoint" /></div>
           </div>
 
-          <div class="settings-item" @click="toggleUseUpdateSync">
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('cloud-down')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.useUpdateSync') }}</div>
               <div class="settings-body">{{ $t('settings.useUpdateSyncDescription') }}</div>
             </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="useUpdateSync" /></div>
+            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="useUpdateSync" @click="toggleUseUpdateSync" /></div>
           </div>
 
-          <div class="settings-item" @click="toggleMetadataOnlyStorage">
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('database-sync')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.metadataOnlyStorage') }}</div>
               <div class="settings-body">{{ $t('settings.metadataOnlyStorageDescription') }}</div>
             </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="metadataOnlyStorage" /></div>
+            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="metadataOnlyStorage" @click="toggleMetadataOnlyStorage" /></div>
           </div>
         </div>
       </div>

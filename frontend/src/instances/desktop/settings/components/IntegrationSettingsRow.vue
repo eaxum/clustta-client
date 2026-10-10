@@ -1,5 +1,5 @@
 <template>
-  <div class="integration-settings-row" @click="open">
+  <div class="integration-settings-row">
     <div class="integration-settings-icon">
       <img class="small-icons" :src="getAppIcon(icon)" alt="">
     </div>
@@ -8,7 +8,7 @@
       <div class="integration-settings-description">{{ description }}</div>
     </div>
     <div v-stop-propagation>
-      <ActionButton :icon="getAppIcon('settings')" label="Configure" :buttonFunction="open" />
+      <ActionButton :label="$t('common.configure')" :showIcon="false" :buttonFunction="open" />
     </div>
   </div>
 </template>
@@ -50,12 +50,8 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
   border-bottom: 1px solid var(--surface-4);
   color: var(--text);
   background-color: var(--surface-2);
-  cursor: pointer;
+  cursor: default;
   box-sizing: border-box;
-}
-
-.integration-settings-row:hover {
-  background-color: #ffffff15;
 }
 
 .integration-settings-icon {

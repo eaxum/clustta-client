@@ -17,22 +17,22 @@
             </div>
           </div>
 
-          <div class="settings-item" @click="toggleMinimizeOnClose">
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('minimize')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.minimizeOnClose') }}</div>
               <div class="settings-body">{{ $t('settings.minimizeOnCloseDescription') }}</div>
             </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="minimizeOnClose" /></div>
+            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="minimizeOnClose" @click="toggleMinimizeOnClose" /></div>
           </div>
 
-          <div class="settings-item" @click="toggleOverwriteDroppedFiles">
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('data-download')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.overwriteDroppedFiles') }}</div>
               <div class="settings-body">{{ $t('settings.overwriteDroppedFilesDescription') }}</div>
             </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="overwriteDroppedFiles" /></div>
+            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="overwriteDroppedFiles" @click="toggleOverwriteDroppedFiles" /></div>
           </div>
         </div>
       </div>
@@ -42,13 +42,15 @@
           <h2 class="settings-section-card-title">{{ $t('settings.dataManagement') }}</h2>
         </div>
         <div class="settings-section-card-content">
-          <div class="settings-item" @click="clearRecents">
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('broom')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.clearRecents') }}</div>
               <div class="settings-body">{{ $t('settings.clearRecentsDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+            <div class="settings-action">
+              <ActionButton :label="$t('common.clear')" :showIcon="false" :buttonFunction="clearRecents" />
+            </div>
           </div>
         </div>
       </div>
@@ -61,6 +63,7 @@ import { computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { SettingsService } from '@/services';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';

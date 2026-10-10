@@ -171,7 +171,7 @@ const activePage = computed(() => {
   box-sizing: border-box;
 }
 
-.settings-section-card-header {
+.settings-page-content .settings-section-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -181,7 +181,7 @@ const activePage = computed(() => {
   border-bottom: var(--transparent-line);
 }
 
-.settings-section-card-title {
+.settings-page-content .settings-section-card-title {
   flex: 1;
   margin: 0;
   color: var(--text);
@@ -210,13 +210,41 @@ const activePage = computed(() => {
   border-bottom: 1px solid var(--surface-4);
   color: var(--text);
   background-color: var(--surface-2);
-  cursor: pointer;
+  cursor: default;
   box-sizing: border-box;
-  transition: background-color .2s ease;
+  transition: none;
 }
 
 .settings-page-content .settings-item:hover {
-  background-color: var(--hover);
+  background-color: var(--surface-2);
+}
+
+.settings-page-content .location-item,
+.settings-page-content .integration-settings-row,
+.settings-page-content .project-item-main {
+  cursor: default;
+  transition: none;
+}
+
+.settings-page-content .location-item:hover,
+.settings-page-content .integration-settings-row:hover,
+.settings-page-content .project-item-main:hover {
+  background-color: var(--surface-2);
+}
+
+.settings-page-content .hover-action {
+  display: flex;
+}
+
+.settings-page-content .project-item-actions {
+  min-width: 116px;
+  max-width: 132px;
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.settings-page-content .row-delete {
+  opacity: 1;
 }
 
 .settings-page-content .settings-icon {
@@ -258,6 +286,7 @@ const activePage = computed(() => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: .5rem;
   width: max-content;
   height: 100%;
   overflow: hidden;

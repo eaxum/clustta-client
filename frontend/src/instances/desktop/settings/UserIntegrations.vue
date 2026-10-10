@@ -12,7 +12,6 @@
               v-for="integration in connectedIntegrations"
               :key="integration.id"
               class="settings-item"
-              @click="openIntegrationAuth"
             >
               <div class="settings-icon">
                 <img class="small-icons" :src="getAppIcon(integration.icon)" alt="">
@@ -23,10 +22,11 @@
               </div>
               <div class="settings-action">
                 <span class="connected-badge">{{ $t('common.connected') }}</span>
+                <ActionButton :label="$t('common.manage')" :showIcon="false" :buttonFunction="openIntegrationAuth" />
               </div>
             </div>
 
-            <div class="settings-item" @click="openIntegrationAuth">
+            <div class="settings-item">
               <div class="settings-icon">
                 <img class="small-icons" :src="getAppIcon('plug')" alt="">
               </div>
@@ -35,7 +35,7 @@
                 <div class="settings-body">{{ $t('settings.connectIntegrationDescription') }}</div>
               </div>
               <div class="settings-action">
-                <img class="small-icons" :src="getAppIcon('chevron-right')" alt="">
+                <ActionButton :label="$t('common.connect')" :showIcon="false" :buttonFunction="openIntegrationAuth" />
               </div>
             </div>
           </div>
@@ -46,13 +46,15 @@
             <h2 class="settings-section-card-title">{{ $t('settings.aiAgent') }}</h2>
           </div>
           <div class="settings-section-card-content">
-            <div class="settings-item" v-stop-propagation @click="openAgentConfig">
+            <div class="settings-item">
               <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brain')"></div>
               <div class="settings-content">
                 <div class="settings-header">{{ $t('settings.llmProvider') }}</div>
                 <div class="settings-body">{{ agentKeyConfigured ? $t('settings.providerConfigured') : $t('settings.configureProvider') }}</div>
               </div>
-              <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+              <div class="settings-action">
+                <ActionButton :label="$t('common.configure')" :showIcon="false" :buttonFunction="openAgentConfig" />
+              </div>
             </div>
           </div>
         </div>
@@ -62,22 +64,24 @@
             <h2 class="settings-section-card-title">{{ $t('settings.plugins') }}</h2>
           </div>
           <div class="settings-section-card-content">
-            <div class="settings-item" @click="toggleBridgeEnabled">
+            <div class="settings-item">
               <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brick')"></div>
               <div class="settings-content">
                 <div class="settings-header">{{ bridgeEnabled ? $t('settings.disableBridge') : $t('settings.enableBridge') }}</div>
                 <div class="settings-body">{{ $t('settings.bridgeEnabledDescription') }}</div>
               </div>
-              <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="bridgeEnabled" /></div>
+              <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="bridgeEnabled" @click="toggleBridgeEnabled" /></div>
             </div>
 
-            <div class="settings-item" @click="openPluginsPage">
+            <div class="settings-item">
               <div class="settings-icon"><img class="small-icons" :src="getAppIcon('download')"></div>
               <div class="settings-content">
                 <div class="settings-header">{{ $t('settings.downloadPlugins') }}</div>
                 <div class="settings-body">{{ $t('settings.downloadPluginsDescription') }}</div>
               </div>
-              <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+              <div class="settings-action">
+                <ActionButton :label="$t('common.download')" :showIcon="false" :buttonFunction="openPluginsPage" />
+              </div>
             </div>
           </div>
         </div>
@@ -91,6 +95,7 @@ import { computed, onMounted, ref } from 'vue';
 import { Browser } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { AgentService } from '@/services';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
@@ -184,12 +189,8 @@ onMounted(async () => {
   border-bottom: 1px solid var(--surface-4);
   color: var(--text);
   background-color: var(--surface-2);
-  cursor: pointer;
+  cursor: default;
   box-sizing: border-box;
-}
-
-.settings-item:hover {
-  background-color: #ffffff15;
 }
 
 .settings-icon {

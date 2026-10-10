@@ -323,8 +323,20 @@ onBeforeUnmount(() => {
 .project-list-container::-webkit-scrollbar { width: 8px; }
 .project-list-container::-webkit-scrollbar-thumb { border-radius: 10px; background: var(--surface-2); }
 .project-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(500px, 1fr)); gap: 10px; width: 100%; }
-.project-item-main { display: flex; align-items: flex-start; width: 100%; min-width: 0; padding-left: .5rem; overflow: hidden; box-sizing: border-box; color: var(--text); background: var(--surface-2); border-radius: var(--large-radius); outline: var(--transparent-line); outline-offset: -1px; transition: all .2s ease-out; }
-.project-item-main:hover { background: var(--surface-3); border-radius: var(--small-radius); outline: 1px solid var(--surface-4); }
+.project-item-main {
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  padding-left: .5rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  color: var(--text);
+  background: var(--surface-2);
+  border-radius: var(--large-radius);
+  outline: var(--transparent-line);
+  outline-offset: -1px;
+}
 .project-item-spacer { width: 36px; height: 60px; flex: 0 0 36px; display: flex; align-items: center; justify-content: center; }
 .project-icon { width: 24px; height: 24px; object-fit: contain; }
 .project-item-root { width: 100%; min-width: 0; padding: .3rem 0 .3rem .3rem; box-sizing: border-box; }
@@ -333,8 +345,15 @@ onBeforeUnmount(() => {
 .project-item-details { display: flex; flex-direction: column; gap: .15rem; min-width: 0; padding: .2rem; }
 .project-item-name { overflow: hidden; font-size: 14px; font-weight: 400; white-space: nowrap; text-overflow: ellipsis; }
 .project-item-meta { overflow: hidden; color: var(--text); opacity: .5; font-size: 12px; white-space: nowrap; text-overflow: ellipsis; }
-.project-item-actions { display: flex; align-items: center; justify-content: flex-end; gap: .25rem; max-width: 0; opacity: 0; overflow: hidden; transform: translateX(.5rem); transition: max-width .2s ease-in-out, opacity .2s ease-out, transform .2s ease-out; }
-.project-item-main:hover .project-item-actions { max-width: 132px; min-width: 116px; opacity: 1; transform: translateX(0); }
+.project-item-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .25rem;
+  min-width: 116px;
+  max-width: 132px;
+  overflow: hidden;
+}
 .storage-progress-track { height: 4px; margin-top: .35rem; overflow: hidden; border-radius: 4px; background: var(--surface-4); }
 .storage-progress-value { height: 100%; background: var(--accent); transition: width .2s ease; }
 .storage-error { margin-top: .2rem; color: var(--warning); font-size: .72rem; }

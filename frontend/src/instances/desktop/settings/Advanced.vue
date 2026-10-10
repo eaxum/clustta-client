@@ -359,17 +359,9 @@ onMounted(async () => {
   width: 100%;
   height: max-content;
   background-color: var(--surface-2);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  cursor: default;
+  transition: none;
   border-bottom:  1px solid var(--surface-4);
-}
-
-.settings-item:hover {
-  background-color: #ffffff15;
-}
-
-.settings-item:active {
-  background-color: #00000013;
 }
 
 .settings-icon {

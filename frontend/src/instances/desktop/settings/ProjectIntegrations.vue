@@ -21,7 +21,7 @@
           </div>
 
           <div v-if="linkedIntegration" class="settings-section-card-content">
-            <div class="settings-item" @click="openIntegrationLink">
+            <div class="settings-item">
               <div class="settings-icon">
                 <img class="small-icons" :src="getAppIcon(linkedIntegration.integration_id)" alt="">
               </div>
@@ -33,8 +33,8 @@
               </div>
               <div class="settings-action" v-stop-propagation>
                 <ActionButton
-                  :icon="getAppIcon('settings')"
                   :label="$t('common.manage')"
+                  :showIcon="false"
                   :buttonFunction="openIntegrationLink"
                 />
               </div>
@@ -159,12 +159,8 @@ onMounted(async () => {
   border-bottom: 1px solid var(--surface-4);
   color: var(--text);
   background-color: var(--surface-2);
-  cursor: pointer;
+  cursor: default;
   box-sizing: border-box;
-}
-
-.settings-item:hover {
-  background-color: #ffffff15;
 }
 
 .settings-icon {

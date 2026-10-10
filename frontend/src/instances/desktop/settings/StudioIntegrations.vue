@@ -10,7 +10,7 @@
 
           <div class="settings-section-card-content">
 
-            <div v-for="integration in studioIntegrations" :key="integration.id" class="settings-item" @click="openIntegration(integration.id)" v-stop-propagation>
+            <div v-for="integration in studioIntegrations" :key="integration.id" class="settings-item">
               <div class="settings-icon"><img class="small-icons" :src="getAppIcon(integration.icon)"></div>
 
               <div class="settings-content">
@@ -26,7 +26,7 @@
                   <ToggleSwitch v-if="viewFor(integration.id)?.configured" :switchValueProp="viewFor(integration.id)?.enabled" @click="toggleEnabled(integration.id)" />
                 </div>
 
-                <img class="small-icons chevron" :src="getAppIcon('chevron-right')">
+                <ActionButton :label="$t('common.configure')" :showIcon="false" :buttonFunction="() => openIntegration(integration.id)" />
               </div>
             </div>
 
@@ -217,17 +217,9 @@ onMounted(async () => {
   width: 100%;
   height: max-content;
   background-color: var(--surface-2);
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  cursor: default;
+  transition: none;
   border-bottom: 1px solid var(--surface-4);
-}
-
-.settings-item:hover {
-  background-color: #ffffff15;
-}
-
-.settings-item:active {
-  background-color: #00000013;
 }
 
 .settings-icon {
@@ -277,11 +269,6 @@ onMounted(async () => {
 }
 
 .row-delete {
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.settings-item:hover .row-delete {
   opacity: 1;
 }
 

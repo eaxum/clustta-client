@@ -6,22 +6,26 @@
           <h2 class="settings-section-card-title">{{ $t('settings.resourcesSupport') }}</h2>
         </div>
         <div class="settings-section-card-content">
-          <div v-for="resource in resources" :key="resource.labelKey" class="settings-item" @click="openResource(resource.url)">
+          <div v-for="resource in resources" :key="resource.labelKey" class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon(resource.icon)"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t(resource.labelKey) }}</div>
               <div class="settings-body">{{ $t(resource.descriptionKey) }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            <div class="settings-action">
+              <ActionButton :icon="getAppIcon('square-arrow-right-up')" :buttonFunction="() => openResource(resource.url)" />
+            </div>
           </div>
 
-          <div class="settings-item" @click="openDiagnosticsModal" v-stop-propagation>
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('megaphone')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.submitFeedback') }}</div>
               <div class="settings-body">{{ $t('settings.submitFeedbackDescription') }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+            <div class="settings-action">
+              <ActionButton :label="$t('common.send')" :showIcon="false" :buttonFunction="openDiagnosticsModal" />
+            </div>
           </div>
         </div>
       </div>
@@ -31,13 +35,15 @@
           <h2 class="settings-section-card-title">{{ $t('settings.about') }}</h2>
         </div>
         <div class="settings-section-card-content">
-          <div class="settings-item" @click="displayAppInfo" v-stop-propagation>
+          <div class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('info')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.aboutClustta') }}</div>
               <div class="settings-body">{{ clusttaVersion }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('chevron-right')"></div>
+            <div class="settings-action">
+              <ActionButton :label="$t('common.more')" :showIcon="false" :buttonFunction="displayAppInfo" />
+            </div>
           </div>
         </div>
       </div>
@@ -49,6 +55,7 @@
 import { onMounted, ref } from 'vue';
 import { Browser } from '@wailsio/runtime';
 import utils from '@/services/utils';
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 

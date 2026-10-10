@@ -62,8 +62,8 @@ defineEmits(['toggleEdit']);
 }
 
 .profile-card-title {
-  font-size: 1rem;
-  font-weight: 300;
+  font-size: .9rem;
+  font-weight: 500;
   color: var(--text);
   margin: 0;
   flex: 1;

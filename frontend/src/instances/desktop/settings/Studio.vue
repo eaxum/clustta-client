@@ -53,11 +53,11 @@
 
       <!-- Metrics Row -->
       <div v-if="studioEntitlements" class="metrics-row">
-        <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="getAppIcon('two-persons')" clickable :cardFunction="() => openSettingsTab('studiocollaborators')" />
+        <MetricCard :title="$t('settings.collaborators')" :value="collaboratorsValue" :subtitle="collaboratorsLabel" :icon="getAppIcon('two-persons')" :actionLabel="$t('settings.manage')" :actionFunction="() => openSettingsTab('studiocollaborators')" />
 
         <MetricCard :title="$t('settings.remoteProjects')" :value="projectsValue" :subtitle="projectsLabel" :icon="getAppIcon('briefcase')" />
 
-        <MetricCard :title="$t('settings.storageUsed')" :value="storageValue" :subtitle="storageLabel" :icon="getAppIcon('floppy-disk')" :percent="storagePercent" :warning="storagePercent >= 90" :clickable="!isCloudHosted" :cardFunction="() => openSettingsTab('studioprojects')" />
+        <MetricCard :title="$t('settings.storageUsed')" :value="storageValue" :subtitle="storageLabel" :icon="getAppIcon('floppy-disk')" :percent="storagePercent" :warning="storagePercent >= 90" :actionLabel="!isCloudHosted ? $t('settings.manage') : ''" :actionFunction="() => openSettingsTab('studioprojects')" />
 
         <MetricCard v-if="studioEntitlements.limits?.ai_credits_monthly > 0" :title="$t('settings.aiCredits')" :value="aiCreditsValue" :subtitle="aiCreditsLabel" :icon="getAppIcon('brain')" />
       </div>
@@ -65,19 +65,20 @@
       <!-- Administration Card -->
       <ProfileCard :title="$t('settings.administration')">
         <div class="admin-list">
-          <div v-if="isCloudHosted && studioStore.isStudioAdmin" class="settings-item" @click="openBillingPortal">
+          <div v-if="isCloudHosted && studioStore.isStudioAdmin" class="settings-item">
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon('credit-card')"></div>
             <div class="settings-content">
               <div class="settings-header">{{ $t('settings.billing') }}</div>
               <div class="settings-body">{{ billingStatusText }}</div>
             </div>
-            <div class="settings-action"><img class="small-icons" :src="getAppIcon('square-arrow-right-up')"></div>
+            <div class="settings-action">
+              <ActionButton :label="$t('settings.manageBilling')" :showIcon="false" :buttonFunction="openBillingPortal" />
+            </div>
           </div>
 
           <div
             v-if="isCloudHosted && studioStore.isStudioAdmin && studioEntitlements?.plan !== 'free'"
             class="settings-item"
-            @click.stop="toggleSubscriptionCancellation"
           >
             <div class="settings-icon"><img class="small-icons" :src="getAppIcon(studioEntitlements?.cancel_at_period_end ? 'refresh' : 'close-circle')"></div>
             <div class="settings-content">
@@ -85,6 +86,9 @@
               <div class="settings-body">
                 {{ studioEntitlements?.cancel_at_period_end ? 'Continue the subscription beyond the current billing period.' : 'Your plan remains available until the end of the billing period.' }}
               </div>
+            </div>
+            <div class="settings-action">
+              <ActionButton :label="studioEntitlements?.cancel_at_period_end ? 'Keep subscription' : 'Cancel subscription'" :showIcon="false" :buttonFunction="toggleSubscriptionCancellation" />
             </div>
           </div>
 
@@ -530,8 +534,8 @@ onMounted(async () => {
   justify-content: space-between;
   width: 100%;
   height: max-content;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
+  cursor: default;
+  transition: none;
   border-bottom: 1px solid var(--surface-4);
 }
 
@@ -539,21 +543,9 @@ onMounted(async () => {
   border-bottom: none;
 }
 
-.settings-item:hover {
-  background-color: #ffffff15;
-}
-
-.settings-item:active {
-  background-color: #00000013;
-}
-
 .settings-item.disabled {
   cursor: default;
   opacity: 0.6;
-}
-
-.settings-item.disabled:hover {
-  background-color: transparent;
 }
 
 .settings-icon {
