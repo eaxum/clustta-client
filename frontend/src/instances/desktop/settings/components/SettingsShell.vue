@@ -47,7 +47,7 @@ const activePage = computed(() => {
   min-width: 0;
   min-height: 0;
   color: var(--text);
-  background-color: var(--surface-3);
+  background-color: var(--surface-2-5);
 }
 
 .settings-shell-main {

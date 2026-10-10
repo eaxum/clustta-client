@@ -209,7 +209,7 @@ onBeforeUnmount(async () => {
 	padding-bottom: 0;
 	padding-top: 0;
 	background-color: forestgreen;
-	background-color: var(--surface-3);
+	background-color: var(--surface-2-5);
   border-radius: 16px 16px 0px 0px;
 }
 </style>

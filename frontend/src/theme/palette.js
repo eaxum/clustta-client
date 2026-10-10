@@ -85,6 +85,7 @@ export function buildPalette({ mode = 'light', tint = 'default' } = {}) {
     '--bg':           s(ramp.surface[0]),
     '--surface-1':    s(ramp.surface[1]),
     '--surface-2':    s(ramp.surface[2]),
+    '--surface-2-5':  s((ramp.surface[2] + ramp.surface[3]) / 2),
     '--surface-3':    s(ramp.surface[3]),
     '--surface-4':    s(ramp.surface[4]),
     '--surface-5':    s(ramp.surface[5]),
