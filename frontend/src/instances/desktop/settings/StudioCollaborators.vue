@@ -211,9 +211,7 @@ onMounted( async () => {
   align-items: center;
   color: var(--text);
   /* justify-content: space-between; */
-  border-radius: var(--gigantic-radius);
   padding: 1rem;
-  background-color: crimson;
   background-color: var(--surface-1);
 }
 
@@ -221,7 +219,7 @@ onMounted( async () => {
 	box-sizing: border-box;
 	height: max-content;
 	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+	grid-template-columns: repeat(auto-fill, minmax(800px, 1fr));
 	gap: 10px;
 	width: 100%;
 }

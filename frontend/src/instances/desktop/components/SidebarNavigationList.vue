@@ -122,7 +122,7 @@ const handleNavigationKeydown = (event, pageId) => {
 	display: flex;
 	flex-direction: column;
 	gap: .1rem;
-	padding: .5rem;
+	padding: .5rem 0;
 }
 
 .sidebar-navigation-group-title {

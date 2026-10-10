@@ -155,7 +155,7 @@ const activePage = computed(() => {
 }
 
 .settings-component-container {
-  border-radius: var(--gigantic-radius) !important;
+  border-radius: var(--very-large-radius) !important;
 }
 
 .settings-section-card {
