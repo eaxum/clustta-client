@@ -548,6 +548,8 @@
     "title": "Settings",
     "navigation": {
       "general": "General",
+      "account": "Account",
+      "accountAndSecurity": "Account and security",
       "preferences": "Preferences",
       "filesAndProjects": "Files and projects",
       "system": "System",

@@ -1,11 +1,14 @@
 <template>
-  <div class="user-profile-root absolute-pane">
+  <div
+    class="user-profile-root"
+    :class="{ 'absolute-pane': showAllSections, 'user-settings-page': !showAllSections }"
+  >
       <div ref="userProfileBody" class="user-profile-body">
         <div class="user-profile-container">
           
           <!-- Edit Controls -->
-          <div class="edit-controls">
-            <div v-if="!accountStore.isStudioAuth" class="profile-visibility-toggle">
+          <div v-if="showProfileSection || showSecuritySection" class="edit-controls">
+            <div v-if="showProfileSection && !accountStore.isStudioAuth" class="profile-visibility-toggle">
               <span class="visibility-label">{{ $t('stages.profileVisibility') }}</span>
               <ToggleSwitch 
                 :switchValueProp="profileVisibility" 
@@ -13,7 +16,8 @@
               />
             </div>
             
-            <ActionButton 
+            <ActionButton
+              v-if="showSecuritySection"
               :iconAfter="true" 
               :icon="getAppIcon('key')"
               :label="$t('stages.changePassword')" 
@@ -22,8 +26,22 @@
             />
           </div>
 
+          <ProfileCard v-if="showSecuritySection" :title="$t('menus.accountSettings')">
+            <div class="account-details">
+              <div class="account-detail-row">
+                <span class="account-detail-label">{{ $t('stages.email') }}</span>
+                <span class="account-detail-value">{{ formData.email }}</span>
+              </div>
+              <div class="account-detail-row">
+                <span class="account-detail-label">{{ $t('stages.username') }}</span>
+                <span class="account-detail-value">{{ formData.username }}</span>
+              </div>
+            </div>
+          </ProfileCard>
+
           <!-- Header Card -->
-          <ProfileCard 
+          <ProfileCard
+            v-if="showProfileSection"
             :title="$t('stages.profileInformation')"
             :showEditButton="true"
             :isEditing="editingSections.header"
@@ -147,7 +165,7 @@
             </div>
           </ProfileCard>
 
-          <ProfileCard v-if="!accountStore.isStudioAuth" title="Subscription">
+          <ProfileCard v-if="showBillingSection && !accountStore.isStudioAuth" title="Subscription">
             <div class="subscription-section">
               <div class="subscription-summary">
                 <div>
@@ -176,7 +194,7 @@
           </ProfileCard>
 
           <!-- Studios Card -->
-          <ProfileCard v-if="formData.studios.length" :title="$t('stages.studios')">
+          <ProfileCard v-if="showSecuritySection && formData.studios.length" :title="$t('stages.studios')">
             <div class="studios-container">
               <div
                 v-for="studio in formData.studios"
@@ -204,7 +222,7 @@
 
           <!-- Skills Card -->
           <ProfileCard 
-            v-if="!accountStore.isStudioAuth"
+            v-if="showProfileSection && !accountStore.isStudioAuth"
             :title="$t('stages.skills')"
             :showEditButton="true"
             :isEditing="editingSections.skills"
@@ -219,7 +237,7 @@
 
           <!-- Tools & Software Card -->
           <ProfileCard 
-            v-if="!accountStore.isStudioAuth"
+            v-if="showProfileSection && !accountStore.isStudioAuth"
             :title="$t('stages.toolsAndSoftware')"
             :showEditButton="true"
             :isEditing="editingSections.tools"
@@ -235,7 +253,7 @@
           <!-- Change Password Card -->
           <ProfileCard 
             ref="passwordCard"
-            v-if="editingSections.password"
+            v-if="showSecuritySection && editingSections.password"
             :title="$t('stages.changePassword')"
             :showEditButton="true"
             :isEditing="editingSections.password"
@@ -274,12 +292,12 @@
           </ProfileCard>
 
           <!-- Activity Card -->
-          <ProfileCard  :title="$t('stages.activityComingSoon')">
+          <ProfileCard v-if="showAllSections" :title="$t('stages.activityComingSoon')">
             <ContributionGraph />
           </ProfileCard>
 
           <!-- Danger Zone -->
-          <ProfileCard v-if="!accountStore.isStudioAuth" :title="$t('stages.dangerZone')">
+          <ProfileCard v-if="showSecuritySection && !accountStore.isStudioAuth" :title="$t('stages.dangerZone')">
             <div class="danger-zone">
               <p class="danger-message">
                 {{ $t('stages.deleteAccountWarning') }}
@@ -332,12 +350,20 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onBeforeMount, nextTick } from 'vue';
+import { ref, reactive, computed, onBeforeMount, onBeforeUnmount, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { AuthService, ProfileService, FSService, ClipboardService } from "@/services";
 import { generateAvatar } from '@/lib/avatar';
 
 const isWebMode = import.meta.env.VITE_PLATFORM === 'web';
+
+const props = defineProps({
+  section: {
+    type: String,
+    default: 'all',
+    validator: (value) => ['all', 'profile', 'billing', 'security'].includes(value),
+  },
+});
 
 // Conditionally import Browser only in desktop mode
 let Browser = null;
@@ -396,6 +422,10 @@ const isUsernameTaken = ref(false);
 const isSavingChanges = ref(false);
 const areLinksValid = ref(true);
 const profileSnapshot = ref(null);
+const showAllSections = computed(() => props.section === 'all');
+const showProfileSection = computed(() => showAllSections.value || props.section === 'profile');
+const showBillingSection = computed(() => showAllSections.value || props.section === 'billing');
+const showSecuritySection = computed(() => showAllSections.value || props.section === 'security');
 
 const subscriptionPlanLabel = computed(() => {
   const name = entitlementStore.plan || 'free';
@@ -562,7 +592,7 @@ const isAnyEditMode = computed(() => {
 // Check if sections that require "Save" button are being edited
 // Skills and Tools are saved immediately, so they don't need the save button
 const needsSaveButton = computed(() => {
-  return editingSections.header || editingSections.password;
+  return editingSections.header;
 });
 
 // Methods
@@ -1022,16 +1052,25 @@ const loadReferenceData = async () => {
 
 onBeforeMount(async () => {
   if (userStore.user) {
-    // Studio servers have no skills/tools catalog, so skip reference data there
-    const loaders = [loadUserProfile()];
-    if (!accountStore.isStudioAuth) {
+    const loaders = [];
+    if (showProfileSection.value || showSecuritySection.value) {
+      loaders.push(loadUserProfile());
+    }
+    if (showProfileSection.value && !accountStore.isStudioAuth) {
       loaders.push(loadReferenceData());
+    }
+    if (showBillingSection.value && !accountStore.isStudioAuth) {
       loaders.push(entitlementStore.fetchEntitlements());
     }
     await Promise.all(loaders);
+    loading.value = false;
   } else {
     loading.value = false;
   }
+});
+
+onBeforeUnmount(() => {
+  restoreProfileSnapshot();
 });
 </script>
 
@@ -1047,6 +1086,22 @@ onBeforeMount(async () => {
   /* background-color: var(--surface-1); */
   color: var(--text);
   /* border-radius: 12px; */
+}
+
+.user-settings-page {
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  align-items: stretch;
+}
+
+.user-settings-page .user-profile-body {
+  padding: 0 .2rem 1rem 0;
+}
+
+.user-settings-page .user-profile-container {
+  max-width: none;
+  padding: 0;
 }
 
 .user-profile-stage {
@@ -1128,6 +1183,38 @@ onBeforeMount(async () => {
   gap: 0.5rem;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.account-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: .75rem;
+  border-bottom: var(--transparent-line);
+}
+
+.account-detail-row:last-child {
+  border-bottom: 0;
+}
+
+.account-detail-label {
+  color: var(--text-muted);
+  font-size: .8rem;
+}
+
+.account-detail-value {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: .85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Edit Controls */

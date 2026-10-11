@@ -511,6 +511,8 @@
   "settings": {
     "navigation": {
       "general": "一般",
+      "account": "アカウント",
+      "accountAndSecurity": "アカウントとセキュリティ",
       "preferences": "環境設定",
       "filesAndProjects": "ファイルとプロジェクト",
       "system": "システム",

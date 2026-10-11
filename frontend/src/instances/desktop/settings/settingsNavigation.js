@@ -21,16 +21,21 @@ import IgnoreList from '@/instances/desktop/settings/IgnoreList.vue';
 import Hooks from '@/instances/desktop/settings/Hooks.vue';
 import Advanced from '@/instances/desktop/settings/Advanced.vue';
 import ProjectIntegrations from '@/instances/desktop/settings/ProjectIntegrations.vue';
+import UserProfile from '@/instances/desktop/stages/UserProfile.vue';
 import { canAccessProjectSettingsTab } from '@/lib/permissions';
 
 export const userSettingsGroups = [
   { id: 'preferences', nameKey: 'settings.navigation.preferences' },
+  { id: 'account', nameKey: 'settings.navigation.account' },
   { id: 'files', nameKey: 'settings.navigation.filesAndProjects' },
   { id: 'connections', nameKey: 'settings.navigation.connections' },
   { id: 'system', nameKey: 'settings.navigation.system' },
 ];
 
 export const userSettingsPages = [
+  { id: 'profile', nameKey: 'stages.profileInformation', icon: 'person', group: 'account', component: UserProfile, componentProps: { section: 'profile' } },
+  { id: 'billing', nameKey: 'settings.planAndSubscription', icon: 'credit-card', group: 'account', component: UserProfile, componentProps: { section: 'billing' } },
+  { id: 'accountsecurity', nameKey: 'settings.navigation.accountAndSecurity', icon: 'key', group: 'account', component: UserProfile, componentProps: { section: 'security' } },
   { id: 'appearance', nameKey: 'settings.appearance', icon: 'palette', group: 'preferences', component: UserAppearance },
   { id: 'behavior', nameKey: 'settings.behaviour', icon: 'cog', group: 'preferences', component: UserBehavior },
   { id: 'directories', nameKey: 'settings.directories', icon: 'explorer', group: 'files', component: Directories },
@@ -39,6 +44,10 @@ export const userSettingsPages = [
   { id: 'experimental', nameKey: 'settings.experimentalFeatures', icon: 'skull', group: 'system', component: UserExperimental },
   { id: 'helpabout', nameKey: 'settings.resourcesSupport', icon: 'help', group: 'system', component: UserHelpAbout },
 ];
+
+export const getAvailableUserSettingsPages = ({ isStudioAuth }) => {
+  return userSettingsPages.filter((page) => page.id !== 'billing' || !isStudioAuth);
+};
 
 export const studioSettingsGroups = [
   { id: 'studio', nameKey: 'settings.navigation.studio' },

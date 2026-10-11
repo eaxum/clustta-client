@@ -9,7 +9,7 @@
         <ClusttaLogo :boldText="true" :showText="false" :colored="true" size="small" @click="displayAppInfo()" v-stop-propagation v-tooltip="$t('components.titleBar.aboutClustta')" :class="{ 'is-disabled': progressRunning }" />
       </div>
 
-      <div class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode && stage.selectedStage !== 'settings'"
+      <div class="studio-tabs-parent" v-if="userStore.user && projectStore.selectedStudio && !accountStore.isOfflineMode && !studioSelectorHiddenStages.has(stage.selectedStage)"
       :class="{ 'is-disabled': progressRunning, 'mac-os': !isMacFullscreen && os === 'darwin' }">
         <div class="studio-selector" v-stop-propagation>
           <DropDownBox
@@ -172,6 +172,7 @@ const updateScreenWidth = () => {
 
 const isAuthPage = computed(() => route.path.startsWith('/auth'));
 const restrictedTitles = ref(['projects', 'settings' ])
+const studioSelectorHiddenStages = new Set(['settings', 'projectSettings']);
 
 const isMacFullscreen = ref(false);
 

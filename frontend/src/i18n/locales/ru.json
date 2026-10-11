@@ -511,6 +511,8 @@
   "settings": {
     "navigation": {
       "general": "Общие",
+      "account": "Учетная запись",
+      "accountAndSecurity": "Учетная запись и безопасность",
       "preferences": "Предпочтения",
       "filesAndProjects": "Файлы и проекты",
       "system": "Система",

@@ -1,34 +1,42 @@
 <template>
 	<div ref="pageListRoot" class="page-list-root absolute-pane">
 		<SettingsShell
-			:pages="userSettingsPages"
+			:pages="availableUserSettingsPages"
 			:activePageId="selectedSettingsTab"
 		/>
 	</div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue';
 import SettingsShell from '@/instances/desktop/settings/components/SettingsShell.vue';
 import {
-	userSettingsPages,
+	getAvailableUserSettingsPages,
 } from '@/instances/desktop/settings/settingsNavigation';
+import { useAccountStore } from '@/stores/accounts';
 import { useMenu } from '@/stores/menu';
 import { useSettingsStore } from '@/stores/settings';
 
 const DEFAULT_PAGE_ID = 'appearance';
 const LEGACY_PAGE_ALIASES = {
+	account: 'profile',
 	advanced: 'experimental',
 	general: 'appearance',
 };
 
 const menu = useMenu();
+const accountStore = useAccountStore();
 const settings = useSettingsStore();
 const pageListRoot = ref(null);
 const selectedSettingsTab = ref(DEFAULT_PAGE_ID);
+const availableUserSettingsPages = computed(() => {
+	return getAvailableUserSettingsPages({
+		isStudioAuth: accountStore.isStudioAuth,
+	});
+});
 
 const isAvailablePage = (pageId) => {
-	return userSettingsPages.some((page) => page.id === pageId);
+	return availableUserSettingsPages.value.some((page) => page.id === pageId);
 };
 
 const filterList = (pageId) => {

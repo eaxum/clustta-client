@@ -511,6 +511,8 @@
   "settings": {
     "navigation": {
       "general": "常规",
+      "account": "账户",
+      "accountAndSecurity": "账户与安全",
       "preferences": "偏好设置",
       "filesAndProjects": "文件和项目",
       "system": "系统",

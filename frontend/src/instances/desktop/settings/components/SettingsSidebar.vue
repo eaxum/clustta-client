@@ -19,18 +19,20 @@ import SidebarNavigationList from '@/instances/desktop/components/SidebarNavigat
 import {
 	getAvailableProjectSettingsPages,
 	getAvailableStudioSettingsPages,
+	getAvailableUserSettingsPages,
 	projectSettingsGroups,
 	studioSettingsGroups,
 	userSettingsGroups,
-	userSettingsPages,
 } from '@/instances/desktop/settings/settingsNavigation';
 import { useEntitlementStore } from '@/stores/entitlements';
+import { useAccountStore } from '@/stores/accounts';
 import { useMenu } from '@/stores/menu';
 import { useProjectStore } from '@/stores/projects';
 import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 
 const entitlementStore = useEntitlementStore();
+const accountStore = useAccountStore();
 const menu = useMenu();
 const projectStore = useProjectStore();
 const settings = useSettingsStore();
@@ -64,7 +66,9 @@ const navigationConfig = computed(() => {
 
 	return {
 		groups: userSettingsGroups,
-		pages: userSettingsPages,
+		pages: getAvailableUserSettingsPages({
+			isStudioAuth: accountStore.isStudioAuth,
+		}),
 		titleKey: 'settings.title',
 	};
 });

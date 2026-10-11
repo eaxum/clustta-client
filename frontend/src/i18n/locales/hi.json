@@ -511,6 +511,8 @@
   "settings": {
     "navigation": {
       "general": "सामान्य",
+      "account": "खाता",
+      "accountAndSecurity": "खाता और सुरक्षा",
       "preferences": "प्राथमिकताएँ",
       "filesAndProjects": "फ़ाइलें और प्रोजेक्ट",
       "system": "सिस्टम",

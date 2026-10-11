@@ -16,6 +16,9 @@ export const useSettingsStore = defineStore("settings", {
     systemBookmarksHealth: { projects_dir_stale: false, shared_projects_dir_stale: false },
     modalStates: {
       general: false,
+      profile: false,
+      billing: false,
+      accountsecurity: false,
       appearance: false,
       behavior: false,
       experimental: false,

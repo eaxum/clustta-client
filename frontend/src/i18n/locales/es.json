@@ -511,6 +511,8 @@
   "settings": {
     "navigation": {
       "general": "General",
+      "account": "Cuenta",
+      "accountAndSecurity": "Cuenta y seguridad",
       "preferences": "Preferencias",
       "filesAndProjects": "Archivos y proyectos",
       "system": "Sistema",

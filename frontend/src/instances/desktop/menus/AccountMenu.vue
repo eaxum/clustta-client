@@ -88,6 +88,7 @@ import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
+import { useSettingsStore } from '@/stores/settings';
 import { useStageStore } from '@/stores/stages';
 import { useThemeStore } from '@/stores/theme';
 import { useTrayStates } from '@/stores/TrayStates';
@@ -101,6 +102,7 @@ const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
 const projectStore = useProjectStore();
 const router = useRouter();
+const settingsStore = useSettingsStore();
 const stage = useStageStore();
 const themeStore = useThemeStore();
 const trayStates = useTrayStates();
@@ -139,7 +141,10 @@ const getAppIcon = (iconName) => {
 // Opens the account settings view.
 const openAccountSettings = () => {
   try {
-    stage.setStageVisibility('account', true);
+    settingsStore.pendingTab = 'profile';
+    settingsStore.activeModalName = 'profile';
+    settingsStore.setModalVisibility('profile', true);
+    stage.setStageVisibility('settings', true);
     menu.hideContextMenu();
   } catch (error) {
     notificationStore.errorNotification(t('notifications.settingsFailed'), error);

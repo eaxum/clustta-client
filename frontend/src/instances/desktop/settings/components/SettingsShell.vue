@@ -10,7 +10,11 @@
         </header>
 
         <div class="settings-page-content">
-          <component :is="activePage.component" :key="activePage.id" />
+          <component
+            :is="activePage.component"
+            :key="activePage.id"
+            v-bind="activePage.componentProps"
+          />
         </div>
       </div>
     </main>
