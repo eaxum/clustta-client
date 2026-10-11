@@ -333,20 +333,32 @@ onUnmounted(() => {
 @import "@/assets/tray.css";
 
 .listbox-list-items-root {
-  opacity: 0;
-  animation: fadeIn .1s ease-in-out forwards;
+  animation: dropdown-bubble-up 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: top center;
+  will-change: transform, opacity;
   z-index: 1000;
 }
 
-@keyframes fadeIn {
-  from {
+@keyframes dropdown-bubble-up {
+  0% {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-6px) scale(0.985);
   }
 
-  to {
+  50% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .listbox-list-items-root {
+    animation: none;
   }
 }
 
