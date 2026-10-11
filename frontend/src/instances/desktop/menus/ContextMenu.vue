@@ -1,6 +1,12 @@
 <template>
   <Teleport to="body">
-    <transition name="menu-fade" @enter="startAnimation" @after-enter="endAnimation" @leave="startLeaveAnimation">
+    <transition
+      name="menu-fade"
+      @before-enter="startAnimation"
+      @after-enter="endAnimation"
+      @before-leave="startLeaveAnimation"
+      @after-leave="endAnimation"
+    >
       <div v-if="menu.contextMenuVisible" ref="menuEl" :style="menuStyle" class="context-menu-container">
         <component v-for="menu in visibleMenus" :key="menu.name" :is="menu.component" />
       </div>
@@ -131,9 +137,7 @@ const visibleMenus = computed(() => {
 });
 
 // methods
-// Handles the end of the enter animation.
-const endAnimation = (el) => {
-  el.style.height = '';
+const endAnimation = () => {
   menu.isAnimating = false;
 };
 
@@ -143,24 +147,12 @@ const hideContextMenu = (event) => {
   menu.hideContextMenu();
 };
 
-// Starts the enter animation for the menu.
-const startAnimation = (el) => {
+const startAnimation = () => {
   menu.isAnimating = true;
-  el.style.height = '0px';
-  el.style.opacity = '0';
-  void el.offsetHeight;
-  el.style.height = el.scrollHeight + 'px';
-  menuDimensions.height = el.scrollHeight;
-  el.style.opacity = '1';
 };
 
-// Starts the leave animation for the menu.
-const startLeaveAnimation = (el) => {
+const startLeaveAnimation = () => {
   menu.isAnimating = true;
-  el.style.height = el.scrollHeight + 'px';
-  void el.offsetHeight;
-  el.style.height = '0px';
-  el.style.opacity = '0';
 };
 
 const updateViewportSize = () => {
@@ -242,16 +234,47 @@ onUnmounted(() => {
   border-radius: 10px;
 }
 
-.menu-fade-enter-active,
-.menu-fade-leave-active {
-  transition: opacity 0.2s, height 0.2s;
-  overflow: hidden;
+@keyframes context-menu-bubble-up {
+  0% {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.985);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(0) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-.menu-fade-enter-from,
+.menu-fade-enter-active {
+  animation: context-menu-bubble-up 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transform-origin: top left;
+  will-change: transform, opacity;
+}
+
+.menu-fade-leave-active {
+  transition: opacity 100ms ease, transform 100ms ease;
+  transform-origin: top left;
+}
+
 .menu-fade-leave-to {
   opacity: 0;
-  height: 0;
+  transform: translateY(-3px) scale(0.985);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-fade-enter-active {
+    animation: none;
+  }
+
+  .menu-fade-leave-active {
+    transition: none;
+  }
 }
 
 
