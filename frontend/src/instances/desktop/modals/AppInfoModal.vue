@@ -14,6 +14,11 @@
         <div> {{ $t('modals.trademarkNotice') }} </div>
       </div>
 
+      <div class="about-actions">
+        <ActionButton :label="$t('modals.sourceCode')" :showIcon="false" :buttonFunction="openSourceCode" />
+        <ActionButton :label="$t('modals.viewFullNotices')" :showIcon="false" :buttonFunction="displayLicenses" />
+      </div>
+
       <div class="update-row">
         <span v-if="updateStore.checked" class="update-status">{{ updateStatus }}</span>
         <GeneralButton :colored="false" :label="$t('modals.checkForUpdate')" :fullWidth="false" :buttonFunction="checkForUpdate" :loading="updateStore.isChecking" />
@@ -25,10 +30,12 @@
 <script setup>
 // imports
 import { computed, onMounted, ref } from 'vue';
+import { Browser } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import utils from '@/services/utils';
 
 // components
+import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import GeneralButton from '@/instances/common/components/GeneralButton.vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 
@@ -75,6 +82,13 @@ const checkForUpdate = async () => {
   await updateStore.checkForUpdate();
 };
 
+const displayLicenses = () => modals.setModalVisibility('openSourceLicensesModal', true);
+
+const openSourceCode = () => {
+  const versionPath = clusttaVersion.value ? `/tree/v${clusttaVersion.value}` : '';
+  Browser.OpenURL(`https://github.com/eaxum/clustta-client${versionPath}`);
+};
+
 // lifecycle hooks
 onMounted(async () => {
   await platformStore.initialize();
@@ -113,6 +127,13 @@ onMounted(async () => {
   gap: .3rem;
   padding-top: .5rem;
   align-items: flex-start;
+}
+
+.about-actions {
+  gap: .5rem;
+  width: 100%;
+  display: flex;
+  align-items: center;
 }
 
 .update-row {

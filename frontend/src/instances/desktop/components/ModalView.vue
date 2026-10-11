@@ -36,6 +36,7 @@ import UploadProjectModal from '@/instances/desktop/modals/UploadProjectModal.vu
 
 // components - general
 import AppInfoModal from '@/instances/desktop/modals/AppInfoModal.vue';
+import OpenSourceLicensesModal from '@/instances/desktop/modals/OpenSourceLicensesModal.vue';
 import ShareModal from '@/instances/desktop/modals/ShareModal.vue';
 import BackUpProjectModal from '@/instances/desktop/modals/BackUpProjectModal.vue';
 import ConfirmDangerousActionModal from '@/instances/desktop/modals/ConfirmDangerousActionModal.vue';
@@ -150,6 +151,7 @@ const modalComponents = {
 
   // general
   appInfoModal: AppInfoModal,
+  openSourceLicensesModal: OpenSourceLicensesModal,
   shareModal: ShareModal,
   backUpProjectModal: BackUpProjectModal,
   confirmDangerousActionModal: ConfirmDangerousActionModal,

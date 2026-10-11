@@ -12,6 +12,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       ignoreConfigModal: false,
       directoryConfigModal: false,
       appInfoModal: false,
+      openSourceLicensesModal: false,
       eulaModal: false,
       dirOnboardModal: false,
       backUpProjectModal: false,

@@ -18,11 +18,11 @@
       </SettingsCard>
 
       <SettingsCard :title="$t('settings.about')" :items="aboutItems">
-        <template #action>
+        <template #action="{ item }">
           <ActionButton
-            :label="$t('common.more')"
+            :label="item.actionLabel"
             :showIcon="false"
-            :buttonFunction="displayAppInfo"
+            :buttonFunction="() => runAboutAction(item.id)"
           />
         </template>
       </SettingsCard>
@@ -73,12 +73,40 @@ const aboutItems = computed(() => [
     icon: getAppIcon('info'),
     label: t('settings.aboutClustta'),
     description: clusttaVersion.value,
+    actionLabel: t('common.more'),
+  },
+  {
+    id: 'open-source-licenses',
+    icon: getAppIcon('scale'),
+    label: t('settings.openSourceLicenses'),
+    description: t('settings.openSourceLicensesDescription'),
+    actionLabel: t('modals.viewFullNotices'),
+  },
+  {
+    id: 'source-code',
+    icon: getAppIcon('code-bracket'),
+    label: t('settings.sourceCode'),
+    description: t('settings.sourceCodeDescription'),
+    actionLabel: t('common.open'),
   },
 ]);
 
 const openResource = (url) => Browser.OpenURL(url);
 const openDiagnosticsModal = () => modals.setModalVisibility('submitDiagnosticsModal', true);
 const displayAppInfo = () => modals.setModalVisibility('appInfoModal', true);
+const displayLicenses = () => modals.setModalVisibility('openSourceLicensesModal', true);
+
+const runAboutAction = (itemId) => {
+  if (itemId === 'about-clustta') {
+    displayAppInfo();
+    return;
+  }
+  if (itemId === 'open-source-licenses') {
+    displayLicenses();
+    return;
+  }
+  if (itemId === 'source-code') openResource('https://github.com/eaxum/clustta-client');
+};
 
 onMounted(async () => {
   clusttaVersion.value = await utils.getRawClusttaVersion();
