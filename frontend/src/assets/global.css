@@ -141,6 +141,50 @@
 
   /* width */
   --actions-width: 30px;
+
+  /* interface motion */
+  --motion-duration-fast: 100ms;
+  --motion-duration-standard: 120ms;
+  --motion-duration-layout: 180ms;
+  --motion-duration-slow: 300ms;
+  --motion-easing-bounce: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-easing-layout: cubic-bezier(0.6, 0.05, 0.01, 0.99);
+  --motion-surface-animation: surface-bounce-in;
+}
+
+:root[data-motion="off"] {
+  --motion-duration-fast: 0ms;
+  --motion-duration-standard: 0ms;
+  --motion-duration-layout: 0ms;
+  --motion-duration-slow: 0ms;
+  --motion-surface-animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="on"]) {
+    --motion-duration-fast: 0ms;
+    --motion-duration-standard: 0ms;
+    --motion-duration-layout: 0ms;
+    --motion-duration-slow: 0ms;
+    --motion-surface-animation: none;
+  }
+}
+
+@keyframes surface-bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(var(--motion-entry-offset, 6px)) scale(0.985);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(0) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .root {

@@ -280,6 +280,14 @@ export function GetMinimizeOnClose() {
 }
 
 /**
+ * GetMotionPreference returns the user's interface motion preference.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetMotionPreference() {
+    return $Call.ByID(1346713021);
+}
+
+/**
  * GetOverwriteDroppedFiles returns whether OS file drops overwrite matching files.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -633,6 +641,15 @@ export function SetMetadataOnlyStorage(enabled) {
  */
 export function SetMinimizeOnClose(enabled) {
     return $Call.ByID(2305241605, enabled);
+}
+
+/**
+ * SetMotionPreference sets the user's interface motion preference.
+ * @param {string} preference
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetMotionPreference(preference) {
+    return $Call.ByID(1491064737, preference);
 }
 
 /**

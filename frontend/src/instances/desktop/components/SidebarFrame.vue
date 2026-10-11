@@ -44,9 +44,9 @@ const sidebarStyle = computed(() => ({
 	background-color: var(--surface-1);
 	box-sizing: border-box;
 	transition:
-		width 180ms cubic-bezier(0.6, 0.05, 0.01, 0.99),
-		min-width 180ms cubic-bezier(0.6, 0.05, 0.01, 0.99),
-		flex-basis 180ms cubic-bezier(0.6, 0.05, 0.01, 0.99);
+		width var(--motion-duration-layout) var(--motion-easing-layout),
+		min-width var(--motion-duration-layout) var(--motion-easing-layout),
+		flex-basis var(--motion-duration-layout) var(--motion-easing-layout);
 }
 
 .sidebar-frame-content {
@@ -57,9 +57,4 @@ const sidebarStyle = computed(() => ({
 	overflow: hidden;
 }
 
-@media (prefers-reduced-motion: reduce) {
-	.sidebar-frame {
-		transition: none;
-	}
-}
 </style>

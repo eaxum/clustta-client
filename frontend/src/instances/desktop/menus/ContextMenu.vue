@@ -234,31 +234,17 @@ onUnmounted(() => {
   border-radius: 10px;
 }
 
-@keyframes context-menu-bubble-up {
-  0% {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.985);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateY(0) scale(1.01);
-  }
-
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 .menu-fade-enter-active {
-  animation: context-menu-bubble-up 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --motion-entry-offset: -6px;
+  animation: var(--motion-surface-animation) var(--motion-duration-standard) var(--motion-easing-bounce) both;
   transform-origin: top left;
   will-change: transform, opacity;
 }
 
 .menu-fade-leave-active {
-  transition: opacity 100ms ease, transform 100ms ease;
+  transition:
+    opacity var(--motion-duration-fast) ease,
+    transform var(--motion-duration-fast) ease;
   transform-origin: top left;
 }
 
@@ -266,17 +252,6 @@ onUnmounted(() => {
   opacity: 0;
   transform: translateY(-3px) scale(0.985);
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .menu-fade-enter-active {
-    animation: none;
-  }
-
-  .menu-fade-leave-active {
-    transition: none;
-  }
-}
-
 
 .horizontal-flex{
   padding: 0px;

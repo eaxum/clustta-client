@@ -11,6 +11,14 @@
             :placeHolder="'None'"
             :fixedWidth="true"
           />
+          <DropDownBox
+            v-else-if="item.id === 'interface-motion'"
+            :items="motionOptions"
+            :onSelect="selectMotionPreference"
+            :selectedItem="motionPreference"
+            :placeHolder="$t('settings.motionSystem')"
+            :fixedWidth="true"
+          />
           <ToggleSwitch
             v-else-if="item.id === 'minimize-on-close'"
             :switchValueProp="minimizeOnClose"
@@ -54,8 +62,13 @@ const projectStore = useProjectStore();
 const settingsStore = useSettingsStore();
 const { t } = useI18n();
 
+const MOTION_SYSTEM = 'system';
+const MOTION_ON = 'on';
+const MOTION_OFF = 'off';
+
 const minimizeOnClose = computed(() => settingsStore.minimizeOnClose);
 const overwriteDroppedFiles = computed(() => settingsStore.overwriteDroppedFiles);
+const motionPreference = computed(() => settingsStore.motionPreference);
 const currentViewLabel = computed(() => {
   if (commonStore.defaultViewMode === 'grid') return t('settings.grid');
   if (commonStore.defaultViewMode === 'kanban') return t('settings.kanban');
@@ -67,12 +80,23 @@ const defaultViewIcon = computed(() => {
   return 'list';
 });
 const viewModeOptions = computed(() => [t('settings.list'), t('settings.grid'), t('settings.kanban')]);
+const motionOptions = computed(() => [
+  { id: MOTION_SYSTEM, name: t('settings.motionSystem'), selectionValue: MOTION_SYSTEM },
+  { id: MOTION_ON, name: t('settings.motionOn'), selectionValue: MOTION_ON },
+  { id: MOTION_OFF, name: t('settings.motionOff'), selectionValue: MOTION_OFF },
+]);
 const behaviorItems = computed(() => [
   {
     id: 'default-view',
     icon: getAppIcon(defaultViewIcon.value),
     label: t('settings.defaultView'),
     description: t('settings.defaultViewDescription'),
+  },
+  {
+    id: 'interface-motion',
+    icon: getAppIcon('sparkles'),
+    label: t('settings.interfaceMotion'),
+    description: t('settings.interfaceMotionDescription'),
   },
   {
     id: 'minimize-on-close',
@@ -107,6 +131,15 @@ const selectDefaultView = async (viewLabel) => {
   try {
     await commonStore.setDefaultViewMode(modes.get(viewLabel) || 'list');
     notificationStore.addNotification(t('notifications.defaultViewUpdated'), t('notifications.defaultViewSet', { viewType: viewLabel }), 'success');
+  } catch (error) {
+    console.error(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdate'), 'error');
+  }
+};
+
+const selectMotionPreference = async (preference) => {
+  try {
+    await settingsStore.setMotionPreference(preference);
   } catch (error) {
     console.error(error);
     notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdate'), 'error');

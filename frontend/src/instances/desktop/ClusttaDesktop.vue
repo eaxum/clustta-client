@@ -137,7 +137,7 @@ onBeforeUnmount(async () => {
   width: 100%;
   height: 100%;
   display: flex;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--motion-duration-slow) ease;
   background-color: rgba(0, 0, 0, 0.5);
   align-items: center;
   justify-content: center;

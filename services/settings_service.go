@@ -710,6 +710,16 @@ func (s *SettingsService) SetMinimizeOnClose(enabled bool) error {
 	return settings.SetMinimizeOnClose(enabled)
 }
 
+// GetMotionPreference returns the user's interface motion preference.
+func (s *SettingsService) GetMotionPreference() (string, error) {
+	return settings.GetMotionPreference()
+}
+
+// SetMotionPreference sets the user's interface motion preference.
+func (s *SettingsService) SetMotionPreference(preference string) error {
+	return settings.SetMotionPreference(preference)
+}
+
 // GetBridgeEnabled returns whether the bridge HTTP server is enabled.
 func (s *SettingsService) GetBridgeEnabled() (bool, error) {
 	return settings.GetBridgeEnabled()

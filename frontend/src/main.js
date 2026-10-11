@@ -11,6 +11,7 @@ import { applyTheme } from "@/theme/apply";
 // the design-token system. The real values (from user settings) are loaded
 // later by `useThemeStore.initialize()`.
 applyTheme({ mode: "system", tint: "default" });
+document.documentElement.dataset.motion = "system";
 
 // Tag <html> with the host OS so CSS can target platform-specific quirks
 // (e.g. missing backdrop-filter rendering on WebKitGTK / Linux).

@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   display: flex;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--motion-duration-slow) ease;
   background-color: rgba(0, 0, 0, 0.5);
   align-items: center;
   justify-content: center;
@@ -287,31 +287,11 @@ onBeforeUnmount(() => {
   cursor: wait;
 }
 
-@keyframes modal-bubble-up {
-  0% {
-    opacity: 0;
-    transform: translateY(6px) scale(0.985);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(0) scale(1.01);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 :deep(.modal-container) {
-  animation: modal-bubble-up 120ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  --motion-entry-offset: 6px;
+  animation: var(--motion-surface-animation) var(--motion-duration-standard) var(--motion-easing-bounce) both;
   transform-origin: center center;
   will-change: transform, opacity;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  :deep(.modal-container) {
-    animation: none;
-  }
 }
 </style>
 

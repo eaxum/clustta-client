@@ -158,12 +158,13 @@ type Settings struct {
 	ProjectLocations  []ProjectLocation `json:"project_locations"`
 	DefaultLocationID string            `json:"default_location_id"`
 
-	SyncAfterCheckpoint   bool  `json:"sync_after_checkpoint"`
-	UseUpdateSync         bool  `json:"use_update_sync"`
-	MetadataOnlyStorage   bool  `json:"metadata_only_storage"`
-	OverwriteDroppedFiles *bool `json:"overwrite_dropped_files,omitempty"`
-	BridgeEnabled         bool  `json:"bridge_enabled"`
-	MinimizeOnClose       *bool `json:"minimize_on_close,omitempty"`
+	SyncAfterCheckpoint   bool   `json:"sync_after_checkpoint"`
+	UseUpdateSync         bool   `json:"use_update_sync"`
+	MetadataOnlyStorage   bool   `json:"metadata_only_storage"`
+	OverwriteDroppedFiles *bool  `json:"overwrite_dropped_files,omitempty"`
+	BridgeEnabled         bool   `json:"bridge_enabled"`
+	MinimizeOnClose       *bool  `json:"minimize_on_close,omitempty"`
+	MotionPreference      string `json:"motion_preference,omitempty"`
 
 	AgentAutoApproveDestructive bool `json:"agent_auto_approve_destructive"`
 
@@ -231,6 +232,10 @@ const (
 	viewModeGrid   = "grid"
 	viewModeKanban = "kanban"
 	viewModeList   = "list"
+
+	motionPreferenceSystem = "system"
+	motionPreferenceOn     = "on"
+	motionPreferenceOff    = "off"
 )
 
 func migrateViewModes(settings *Settings, legacyUseGrid *bool) bool {
@@ -646,6 +651,40 @@ func SetMinimizeOnClose(enabled bool) error {
 	}
 	settings.MinimizeOnClose = &enabled
 	return saveSettings(settings)
+}
+
+// GetMotionPreference returns the user's interface motion preference.
+func GetMotionPreference() (string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return motionPreferenceSystem, err
+	}
+	if !isValidMotionPreference(settings.MotionPreference) {
+		return motionPreferenceSystem, nil
+	}
+	return settings.MotionPreference, nil
+}
+
+// SetMotionPreference sets the user's interface motion preference.
+func SetMotionPreference(preference string) error {
+	if !isValidMotionPreference(preference) {
+		return fmt.Errorf("invalid motion preference: %s", preference)
+	}
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.MotionPreference = preference
+	return saveSettings(settings)
+}
+
+func isValidMotionPreference(preference string) bool {
+	switch preference {
+	case motionPreferenceSystem, motionPreferenceOn, motionPreferenceOff:
+		return true
+	default:
+		return false
+	}
 }
 
 // GetBridgeEnabled returns whether the bridge HTTP server is enabled.

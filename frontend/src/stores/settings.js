@@ -5,6 +5,7 @@ export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
     minimizeOnClose: true,
+    motionPreference: 'system',
     overwriteDroppedFiles: true,
     pendingTab: null,
     showTypeIcons: true,
@@ -147,6 +148,26 @@ export const useSettingsStore = defineStore("settings", {
       const newValue = !this.minimizeOnClose;
       await SettingsService.SetMinimizeOnClose(newValue);
       this.minimizeOnClose = newValue;
+    },
+
+    async initializeMotionPreference() {
+      try {
+        this.motionPreference = await SettingsService.GetMotionPreference();
+      } catch (error) {
+        console.error(error);
+        this.motionPreference = 'system';
+      }
+      this.applyMotionPreference();
+    },
+
+    async setMotionPreference(preference) {
+      await SettingsService.SetMotionPreference(preference);
+      this.motionPreference = preference;
+      this.applyMotionPreference();
+    },
+
+    applyMotionPreference() {
+      document.documentElement.dataset.motion = this.motionPreference;
     },
 
     // Loads the overwrite dropped files state from user settings.
