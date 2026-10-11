@@ -1,59 +1,34 @@
 <template>
   <div class="settings-component-root user-settings-page">
     <div class="settings-component-container">
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.behaviour') }}</h2>
-        </div>
-        <div class="settings-section-card-content">
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(defaultViewIcon)"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.defaultView') }}</div>
-              <div class="settings-body">{{ $t('settings.defaultViewDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width">
-              <DropDownBox :items="viewModeOptions" :onSelect="selectDefaultView" :selectedItem="currentViewLabel" :placeHolder="'None'" :fixedWidth="true" />
-            </div>
-          </div>
+      <SettingsCard :title="$t('settings.behaviour')" :items="behaviorItems">
+        <template #action="{ item }">
+          <DropDownBox
+            v-if="item.id === 'default-view'"
+            :items="viewModeOptions"
+            :onSelect="selectDefaultView"
+            :selectedItem="currentViewLabel"
+            :placeHolder="'None'"
+            :fixedWidth="true"
+          />
+          <ToggleSwitch
+            v-else-if="item.id === 'minimize-on-close'"
+            :switchValueProp="minimizeOnClose"
+            @click="toggleMinimizeOnClose"
+          />
+          <ToggleSwitch
+            v-else-if="item.id === 'overwrite-dropped-files'"
+            :switchValueProp="overwriteDroppedFiles"
+            @click="toggleOverwriteDroppedFiles"
+          />
+        </template>
+      </SettingsCard>
 
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('minimize')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.minimizeOnClose') }}</div>
-              <div class="settings-body">{{ $t('settings.minimizeOnCloseDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="minimizeOnClose" @click="toggleMinimizeOnClose" /></div>
-          </div>
-
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('data-download')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.overwriteDroppedFiles') }}</div>
-              <div class="settings-body">{{ $t('settings.overwriteDroppedFilesDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="overwriteDroppedFiles" @click="toggleOverwriteDroppedFiles" /></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.dataManagement') }}</h2>
-        </div>
-        <div class="settings-section-card-content">
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('broom')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.clearRecents') }}</div>
-              <div class="settings-body">{{ $t('settings.clearRecentsDescription') }}</div>
-            </div>
-            <div class="settings-action">
-              <ActionButton :label="$t('common.clear')" :showIcon="false" :buttonFunction="clearRecents" />
-            </div>
-          </div>
-        </div>
-      </div>
+      <SettingsCard :title="$t('settings.dataManagement')" :items="dataManagementItems">
+        <template #action>
+          <ActionButton :label="$t('common.clear')" :showIcon="false" :buttonFunction="clearRecents" />
+        </template>
+      </SettingsCard>
     </div>
   </div>
 </template>
@@ -64,6 +39,7 @@ import { useI18n } from 'vue-i18n';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 import { SettingsService } from '@/services';
 import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
@@ -91,6 +67,34 @@ const defaultViewIcon = computed(() => {
   return 'list';
 });
 const viewModeOptions = computed(() => [t('settings.list'), t('settings.grid'), t('settings.kanban')]);
+const behaviorItems = computed(() => [
+  {
+    id: 'default-view',
+    icon: getAppIcon(defaultViewIcon.value),
+    label: t('settings.defaultView'),
+    description: t('settings.defaultViewDescription'),
+  },
+  {
+    id: 'minimize-on-close',
+    icon: getAppIcon('minimize'),
+    label: t('settings.minimizeOnClose'),
+    description: t('settings.minimizeOnCloseDescription'),
+  },
+  {
+    id: 'overwrite-dropped-files',
+    icon: getAppIcon('data-download'),
+    label: t('settings.overwriteDroppedFiles'),
+    description: t('settings.overwriteDroppedFilesDescription'),
+  },
+]);
+const dataManagementItems = computed(() => [
+  {
+    id: 'clear-recents',
+    icon: getAppIcon('broom'),
+    label: t('settings.clearRecents'),
+    description: t('settings.clearRecentsDescription'),
+  },
+]);
 
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
@@ -140,9 +144,3 @@ onMounted(async () => {
   await settingsStore.initializeOverwriteDroppedFiles();
 });
 </script>
-
-<style scoped>
-.fixed-width {
-  min-width: 200px;
-}
-</style>

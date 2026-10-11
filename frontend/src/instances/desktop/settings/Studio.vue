@@ -63,37 +63,15 @@
       </div>
 
       <!-- Administration Card -->
-      <ProfileCard :title="$t('settings.administration')">
-        <div class="admin-list">
-          <div v-if="isCloudHosted && studioStore.isStudioAdmin" class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('credit-card')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.billing') }}</div>
-              <div class="settings-body">{{ billingStatusText }}</div>
-            </div>
-            <div class="settings-action">
-              <ActionButton :label="$t('settings.manageBilling')" :showIcon="false" :buttonFunction="openBillingPortal" />
-            </div>
-          </div>
-
-          <div
-            v-if="isCloudHosted && studioStore.isStudioAdmin && studioEntitlements?.plan !== 'free'"
-            class="settings-item"
-          >
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon(studioEntitlements?.cancel_at_period_end ? 'refresh' : 'close-circle')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ studioEntitlements?.cancel_at_period_end ? 'Keep subscription' : 'Cancel subscription' }}</div>
-              <div class="settings-body">
-                {{ studioEntitlements?.cancel_at_period_end ? 'Continue the subscription beyond the current billing period.' : 'Your plan remains available until the end of the billing period.' }}
-              </div>
-            </div>
-            <div class="settings-action">
-              <ActionButton :label="studioEntitlements?.cancel_at_period_end ? 'Keep subscription' : 'Cancel subscription'" :showIcon="false" :buttonFunction="toggleSubscriptionCancellation" />
-            </div>
-          </div>
-
-        </div>
-      </ProfileCard>
+      <SettingsCard :title="$t('settings.administration')" :items="administrationItems">
+        <template #action="{ item }">
+          <ActionButton
+            :label="item.actionLabel"
+            :showIcon="false"
+            :buttonFunction="item.action"
+          />
+        </template>
+      </SettingsCard>
 
       <!-- Danger Zone -->
       <ProfileCard :title="$t('stages.dangerZone')">
@@ -122,6 +100,7 @@ import utils from '@/services/utils';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import MetricCard from '@/instances/desktop/components/MetricCard.vue';
 import ProfileCard from '@/instances/desktop/components/ProfileCard.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 
 // stores
 const entitlementStore = useEntitlementStore();
@@ -213,6 +192,32 @@ const billingStatusText = computed(() => {
     return `Renews ${formatBillingDate(subscription.current_period_end)}.`;
   }
   return t('settings.manageBilling');
+});
+const administrationItems = computed(() => {
+  if (!isCloudHosted.value || !studioStore.isStudioAdmin) return [];
+  const items = [
+    {
+      id: 'billing',
+      icon: getAppIcon('credit-card'),
+      label: t('settings.billing'),
+      description: billingStatusText.value,
+      actionLabel: t('settings.manageBilling'),
+      action: openBillingPortal,
+    },
+  ];
+  if (studioEntitlements.value?.plan === 'free') return items;
+  const cancellationPending = studioEntitlements.value?.cancel_at_period_end;
+  items.push({
+    id: 'subscription-cancellation',
+    icon: getAppIcon(cancellationPending ? 'refresh' : 'close-circle'),
+    label: cancellationPending ? 'Keep subscription' : 'Cancel subscription',
+    description: cancellationPending
+      ? 'Continue the subscription beyond the current billing period.'
+      : 'Your plan remains available until the end of the billing period.',
+    actionLabel: cancellationPending ? 'Keep subscription' : 'Cancel subscription',
+    action: toggleSubscriptionCancellation,
+  });
+  return items;
 });
 
 // Returns the storage usage as a percentage (0–100).
@@ -514,83 +519,6 @@ onMounted(async () => {
 .metrics-row {
   display: flex;
   gap: 1rem;
-}
-
-/* Administration */
-.admin-list {
-  display: flex;
-  flex-direction: column;
-  margin: -1.5rem;
-}
-
-.settings-item {
-  color: var(--text);
-  box-sizing: border-box;
-  overflow: hidden;
-  min-height: 50px;
-  display: flex;
-  padding: .5rem 1rem;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: max-content;
-  cursor: default;
-  transition: none;
-  border-bottom: 1px solid var(--surface-4);
-}
-
-.settings-item:last-child {
-  border-bottom: none;
-}
-
-.settings-item.disabled {
-  cursor: default;
-  opacity: 0.6;
-}
-
-.settings-icon {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  height: 100%;
-  padding: .3rem;
-  width: max-content;
-}
-
-.settings-content {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  overflow: hidden;
-  height: 100%;
-  padding: .4rem .2rem;
-  flex: 1;
-}
-
-.settings-header {
-  padding: .1rem;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.settings-body {
-  color: var(--text-muted);
-  padding: .1rem;
-  font-size: 12px;
-  opacity: .8;
-}
-
-.settings-action {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  overflow: hidden;
-  height: 100%;
-  width: max-content;
 }
 
 /* Danger Zone */

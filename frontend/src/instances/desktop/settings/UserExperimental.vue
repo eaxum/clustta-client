@@ -1,47 +1,23 @@
 <template>
   <div class="settings-component-root user-settings-page">
     <div class="settings-component-container">
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.experimentalFeatures') }}</h2>
-        </div>
-        <div class="settings-section-card-content">
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('refresh')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.syncAfterCheckpoint') }}</div>
-              <div class="settings-body">{{ $t('settings.syncAfterCheckpointDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="syncAfterCheckpoint" @click="toggleSyncAfterCheckpoint" /></div>
-          </div>
-
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('cloud-down')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.useUpdateSync') }}</div>
-              <div class="settings-body">{{ $t('settings.useUpdateSyncDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="useUpdateSync" @click="toggleUseUpdateSync" /></div>
-          </div>
-
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('database-sync')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.metadataOnlyStorage') }}</div>
-              <div class="settings-body">{{ $t('settings.metadataOnlyStorageDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="metadataOnlyStorage" @click="toggleMetadataOnlyStorage" /></div>
-          </div>
-        </div>
-      </div>
+      <SettingsCard :title="$t('settings.experimentalFeatures')" :items="experimentalItems">
+        <template #action="{ item }">
+          <ToggleSwitch
+            :switchValueProp="item.enabled"
+            @click="item.toggle"
+          />
+        </template>
+      </SettingsCard>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 import { SettingsService } from '@/services';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
@@ -91,6 +67,33 @@ const toggleMetadataOnlyStorage = () => updateSetting({
   successKey: 'notifications.metadataOnlyStorageToggled',
 });
 
+const experimentalItems = computed(() => [
+  {
+    id: 'sync-after-checkpoint',
+    icon: getAppIcon('refresh'),
+    label: t('settings.syncAfterCheckpoint'),
+    description: t('settings.syncAfterCheckpointDescription'),
+    enabled: syncAfterCheckpoint.value,
+    toggle: toggleSyncAfterCheckpoint,
+  },
+  {
+    id: 'update-sync',
+    icon: getAppIcon('cloud-down'),
+    label: t('settings.useUpdateSync'),
+    description: t('settings.useUpdateSyncDescription'),
+    enabled: useUpdateSync.value,
+    toggle: toggleUseUpdateSync,
+  },
+  {
+    id: 'metadata-only-storage',
+    icon: getAppIcon('database-sync'),
+    label: t('settings.metadataOnlyStorage'),
+    description: t('settings.metadataOnlyStorageDescription'),
+    enabled: metadataOnlyStorage.value,
+    toggle: toggleMetadataOnlyStorage,
+  },
+]);
+
 onMounted(async () => {
   try {
     syncAfterCheckpoint.value = await SettingsService.GetSyncAfterCheckpoint();
@@ -101,9 +104,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style scoped>
-.fixed-width {
-  min-width: 200px;
-}
-</style>

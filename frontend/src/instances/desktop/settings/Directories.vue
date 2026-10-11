@@ -2,172 +2,72 @@
   <div class="settings-component-root">
     <div class="settings-component-scroll">
     <div class="settings-component-container">
-      
-      <!-- Clustta Data Card -->
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.clusttaData') }}</h2>
-        </div>
-        <div class="settings-section-card-content">
-          <!-- Local Projects -->
-          <div class="location-item">
-            <!-- Location Icon -->
-            <div class="location-icon">
-              <img v-if="settingsStore.systemBookmarksHealth.projects_dir_stale"
-                class="small-icons" :src="getAppIcon('alert')" v-tooltip="$t('settings.locationStale')">
-              <img v-else class="small-icons" :src="getAppIcon('folder')">
-            </div>
-            
-            <!-- Location Content -->
-            <div class="location-content">
-              <!-- Header -->
-              <div class="location-header">
-                <div class="location-name">{{ $t('settings.localProjects') }}</div>
-              </div>
-              
-              <!-- Body (Path) -->
-              <div class="location-body">
-                {{ projectsDirectory }}
-              </div>
-            </div>
-            
-            <!-- Location Actions -->
-            <div class="location-actions">
-              <ActionButton 
-                :icon="getAppIcon('explorer')" 
-                :buttonFunction="() => selectDirectoryPath('personal')"
-                v-tooltip="$t('settings.browsePath')"
-              />
-            </div>
-          </div>
+      <SettingsCard :title="$t('settings.clusttaData')" :items="systemDirectoryItems">
+        <template #action="{ item }">
+          <ActionButton
+            :icon="getAppIcon('explorer')"
+            :buttonFunction="() => selectDirectoryPath(item.context)"
+            v-tooltip="$t('settings.browsePath')"
+          />
+        </template>
+      </SettingsCard>
 
-          <!-- Shared Projects -->
-          <div class="location-item" v-if="!accountStore.isOfflineMode">
-            <!-- Location Icon -->
-            <div class="location-icon">
-              <img v-if="settingsStore.systemBookmarksHealth.shared_projects_dir_stale"
-                class="small-icons" :src="getAppIcon('alert')" v-tooltip="$t('settings.locationStale')">
-              <img v-else class="small-icons" :src="getAppIcon('folder')">
-            </div>
-            
-            <!-- Location Content -->
-            <div class="location-content">
-              <!-- Header -->
-              <div class="location-header">
-                <div class="location-name">{{ $t('settings.sharedProjects') }}</div>
-              </div>
-              
-              <!-- Body (Path) -->
-              <div class="location-body">
-                {{ sharedProjectsDirectory }}
-              </div>
-            </div>
-            
-            <!-- Location Actions -->
-            <div class="location-actions">
-              <ActionButton 
-                :icon="getAppIcon('explorer')" 
-                :buttonFunction="() => selectDirectoryPath('shared')"
-                v-tooltip="$t('settings.browsePath')"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Working Folder Locations Card -->
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.projectFolders') }}</h2>
-          <ActionButton 
+      <SettingsCard :title="$t('settings.projectFolders')" :items="locationItems">
+        <template #header-action>
+          <ActionButton
             :icon="getAppIcon('plus-circle')" 
             :label="$t('settings.addLocation')" 
             :buttonFunction="addLocation"
             :showLabel="true"
           />
-        </div>
-        <div class="settings-section-card-content">
-          <div class="locations-scroll-container">
-            <div v-for="location in locations" :key="location.id" class="location-item">
-              
-              <!-- Location Icon - shows alert if path doesn't exist or bookmark is stale -->
-              <div class="location-icon">
-                <img v-if="locationHealthMap[location.id] && (!locationHealthMap[location.id].exists || locationHealthMap[location.id].stale)"
-                  class="small-icons" :src="getAppIcon('alert')"
-                  v-tooltip="locationHealthMap[location.id].stale ? $t('settings.locationStale') : $t('settings.locationMissing')">
-                <img v-else class="small-icons" :src="getAppIcon('folder')">
-              </div>
-              
-              <!-- Location Content -->
-              <div class="location-content">
-                <!-- Editing Mode - Header Only -->
-                <div v-if="editingLocationId === location.id" class="location-header">
-                  <RenameInput 
-                    v-model="editableLocationName"
-                    :originalValue="location.name"
-                    :placeholder="$t('placeholders.locationName')"
-                    @confirm="confirmEditLocationName(location)"
-                    @cancel="cancelEditingLocation"
-                  />
-                </div>
-                
-                <!-- Normal Display Mode - Header -->
-                <div v-else class="location-header">
-                  <div class="location-name">{{ location.name }}</div>
-                </div>
-                
-                <!-- Body (Path - always visible) -->
-                <div class="location-body">
-                  {{ location.path }}
-                </div>
-              </div>
-              
-              <!-- Location Actions -->
-              <div class="location-actions">
-                <!-- Star button - always visible for default location (hidden while editing) -->
-                <ActionButton 
-                  v-if="location.is_default && editingLocationId !== location.id"
-                  :icon="getAppIcon('star')" 
-                  :buttonFunction="() => setDefaultLocation(location.id)"
-                  :disabled="true"
-                  v-tooltip="$t('settings.defaultLocation')"
-                />
-                
-                <!-- Other actions - visible on hover -->
-                <template v-if="editingLocationId !== location.id">
-                  <ActionButton 
-                    :icon="getAppIcon('edit')" 
-                    :buttonFunction="() => startEditingLocation(location)"
-                    v-tooltip="$t('settings.editName')"
-                    class="hover-action"
-                  />
-                  <ActionButton 
-                    v-if="!location.is_default"
-                    :icon="getAppIcon('star')" 
-                    :buttonFunction="() => setDefaultLocation(location.id)"
-                    v-tooltip="$t('settings.setAsDefault')"
-                    class="hover-action"
-                  />
-                  <ActionButton 
-                    :icon="getAppIcon('explorer')" 
-                    :buttonFunction="() => selectPath(location)"
-                    v-tooltip="$t('settings.changeLocation')"
-                    class="hover-action"
-                  />
-                  <ActionButton 
-                    :icon="getAppIcon('trash')" 
-                    :buttonFunction="() => removeLocation(location.id)"
-                    :isDisabled="!canDeleteLocation(location.id)"
-                    v-tooltip="canDeleteLocation(location.id) ? $t('settings.removeLocation') : $t('settings.cannotRemoveLocation')"
-                    class="hover-action"
-                  />
-                </template>
-              </div>
-              
-            </div>
-          </div>
-        </div>
-      </div>
+        </template>
+
+        <template #label="{ item }">
+          <RenameInput
+            v-if="editingLocationId === item.location.id"
+            v-model="editableLocationName"
+            :originalValue="item.location.name"
+            :placeholder="$t('placeholders.locationName')"
+            @confirm="confirmEditLocationName(item.location)"
+            @cancel="cancelEditingLocation"
+          />
+          <template v-else>{{ item.label }}</template>
+        </template>
+
+        <template #action="{ item }">
+          <ActionButton
+            v-if="item.location.is_default && editingLocationId !== item.location.id"
+            :icon="getAppIcon('star')"
+            :buttonFunction="() => setDefaultLocation(item.location.id)"
+            :isDisabled="true"
+            v-tooltip="$t('settings.defaultLocation')"
+          />
+          <template v-if="editingLocationId !== item.location.id">
+            <ActionButton
+              :icon="getAppIcon('edit')"
+              :buttonFunction="() => startEditingLocation(item.location)"
+              v-tooltip="$t('settings.editName')"
+            />
+            <ActionButton
+              v-if="!item.location.is_default"
+              :icon="getAppIcon('star')"
+              :buttonFunction="() => setDefaultLocation(item.location.id)"
+              v-tooltip="$t('settings.setAsDefault')"
+            />
+            <ActionButton
+              :icon="getAppIcon('explorer')"
+              :buttonFunction="() => selectPath(item.location)"
+              v-tooltip="$t('settings.changeLocation')"
+            />
+            <ActionButton
+              :icon="getAppIcon('trash')"
+              :buttonFunction="() => removeLocation(item.location.id)"
+              :isDisabled="!canDeleteLocation(item.location.id)"
+              v-tooltip="canDeleteLocation(item.location.id) ? $t('settings.removeLocation') : $t('settings.cannotRemoveLocation')"
+            />
+          </template>
+        </template>
+      </SettingsCard>
 
     </div>
   </div>
@@ -175,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { computed, ref, onMounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
@@ -184,6 +84,7 @@ import { useSettingsStore } from '@/stores/settings';
 import { SettingsService, DialogService } from '@/services';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
@@ -203,6 +104,51 @@ const locationHealthMap = ref({});
 const locationUsageMap = ref({});
 const editingLocationId = ref(null);
 const editableLocationName = ref('');
+const getLocationHealthTooltip = (health) => {
+  if (health?.stale) return t('settings.locationStale');
+  if (health && !health.exists) return t('settings.locationMissing');
+  return '';
+};
+const systemDirectoryItems = computed(() => {
+  const items = [
+    {
+      id: 'local-projects',
+      context: 'personal',
+      icon: getAppIcon(settingsStore.systemBookmarksHealth?.projects_dir_stale ? 'alert' : 'folder'),
+      iconTooltip: settingsStore.systemBookmarksHealth?.projects_dir_stale
+        ? t('settings.locationStale')
+        : '',
+      label: t('settings.localProjects'),
+      description: projectsDirectory.value,
+    },
+  ];
+  if (!accountStore.isOfflineMode) {
+    items.push({
+      id: 'shared-projects',
+      context: 'shared',
+      icon: getAppIcon(settingsStore.systemBookmarksHealth?.shared_projects_dir_stale ? 'alert' : 'folder'),
+      iconTooltip: settingsStore.systemBookmarksHealth?.shared_projects_dir_stale
+        ? t('settings.locationStale')
+        : '',
+      label: t('settings.sharedProjects'),
+      description: sharedProjectsDirectory.value,
+    });
+  }
+  return items;
+});
+const locationItems = computed(() => {
+  return locations.value.map((location) => {
+    const health = locationHealthMap.value[location.id];
+    return {
+      id: location.id,
+      icon: getAppIcon(health && (!health.exists || health.stale) ? 'alert' : 'folder'),
+      iconTooltip: getLocationHealthTooltip(health),
+      label: location.name,
+      description: location.path,
+      location,
+    };
+  });
+});
 
 // Methods for project/shared directories
 const selectDirectoryPath = async (context) => {
@@ -452,107 +398,12 @@ onMounted(async () => {
 }
 
 
-/* Working Locations Section */
-.locations-scroll-container {
-  display: flex;
-  flex-direction: column;
-  /* gap: 0.5rem; */
-  overflow-y: auto;
-  /* padding-right: 0.25rem; */
-  background-color: var(--surface-2);
-  border-radius: var(--normal-radius);
-}
-
-/* Location item - styled like settings-item */
-.location-item {
-  display: flex;
-  /* border-radius: 8px; */
-  align-items: center;
-  /* background-color: var(--surface-2); */
-  overflow: hidden;
-  box-sizing: border-box;
-  min-height: 50px;
-  height: max-content;
-  padding: .5rem 1rem;
-  gap: 0.5rem;
-  cursor: default;
-  transition: none;
-  border-bottom:  1px solid var(--surface-4);
-}
-
-.location-item:active {
-  background-color: #00000013;
-}
-
-/* Location icon (optional) */
-.location-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: .3rem;
-  box-sizing: border-box;
-}
-
-/* Location content - like settings-content */
-.location-content {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  flex: 1;
-  overflow: hidden;
-  padding: .2rem;
-  box-sizing: border-box;
-}
-
-.location-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: .1rem;
-}
-
-.location-name {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.location-body {
-  color: var(--text-muted);
-  font-size: 12px;
-  opacity: .8;
-  padding: .1rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-}
-
-/* Edit mode styling */
 .rename-input {
   flex: 1;
   display: flex;
   align-items: center;
   width: 100%;
   box-sizing: border-box;
-}
-
-/* Location actions - like settings-action */
-.location-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  box-sizing: border-box;
-}
-
-/* Hide hover actions by default, show on hover */
-.hover-action {
-  display: flex;
 }
 
 .disabled {

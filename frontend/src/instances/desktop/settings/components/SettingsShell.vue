@@ -224,14 +224,12 @@ const activePage = computed(() => {
 }
 
 .settings-page-content .location-item,
-.settings-page-content .integration-settings-row,
 .settings-page-content .project-item-main {
   cursor: default;
   transition: none;
 }
 
 .settings-page-content .location-item:hover,
-.settings-page-content .integration-settings-row:hover,
 .settings-page-content .project-item-main:hover {
   background-color: var(--surface-2);
 }

@@ -2,39 +2,41 @@
   <div class="settings-component-root">
     <div class="settings-component-scroll">
       <div class="settings-component-container">
-
-        <div class="settings-section-card">
-          <div class="settings-section-card-header">
-            <h2 class="settings-section-card-title">{{ $t('settings.studioIntegrations') }}</h2>
-          </div>
-
-          <div class="settings-section-card-content">
-
-            <div v-for="integration in studioIntegrations" :key="integration.id" class="settings-item">
-              <div class="settings-icon"><img class="small-icons" :src="getAppIcon(integration.icon)"></div>
-
-              <div class="settings-content">
-                <div class="settings-header">{{ integration.name }}</div>
-                <div class="settings-body">{{ rowBody(integration) }}</div>
-                <div v-if="viewFor(integration.id)?.warning" class="integration-warning">{{ viewFor(integration.id).warning }}</div>
-              </div>
-
-              <div class="settings-action">
-                <ActionButton v-if="viewFor(integration.id)?.configured" class="row-delete" :icon="getAppIcon('trash')" :label="$t('common.delete')" :showLabel="true" :buttonFunction="() => onDelete(integration.id)" useDanger useOutline v-stop-propagation />
-
-                <div v-stop-propagation>
-                  <ToggleSwitch v-if="viewFor(integration.id)?.configured" :switchValueProp="viewFor(integration.id)?.enabled" @click="toggleEnabled(integration.id)" />
-                </div>
-
-                <ActionButton :label="$t('common.configure')" :showIcon="false" :buttonFunction="() => openIntegration(integration.id)" />
-              </div>
+        <SettingsCard :title="$t('settings.studioIntegrations')" :items="studioIntegrationItems">
+          <template #details="{ item }">
+            <div v-if="viewFor(item.id)?.warning" class="integration-warning">
+              {{ viewFor(item.id).warning }}
             </div>
+          </template>
 
-            <div v-if="studioIntegrations.length === 0" class="empty-state">{{ $t('common.loading') }}...</div>
+          <template #action="{ item }">
+            <ActionButton
+              v-if="viewFor(item.id)?.configured"
+              :icon="getAppIcon('trash')"
+              :label="$t('common.delete')"
+              :showLabel="true"
+              :buttonFunction="() => onDelete(item.id)"
+              useDanger
+              useOutline
+              v-stop-propagation
+            />
+            <div v-if="viewFor(item.id)?.configured" v-stop-propagation>
+              <ToggleSwitch
+                :switchValueProp="viewFor(item.id)?.enabled"
+                @click="toggleEnabled(item.id)"
+              />
+            </div>
+            <ActionButton
+              :label="$t('common.configure')"
+              :showIcon="false"
+              :buttonFunction="() => openIntegration(item.id)"
+            />
+          </template>
 
+          <div v-if="studioIntegrationItems.length === 0" class="empty-state">
+            {{ $t('common.loading') }}...
           </div>
-        </div>
-
+        </SettingsCard>
       </div>
     </div>
   </div>
@@ -47,6 +49,7 @@ import { useI18n } from 'vue-i18n';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 
 // stores
@@ -74,6 +77,14 @@ const studioIntegrations = computed(() => {
     .map((id) => integrationStore.getIntegration(id))
     .filter((i) => !!i);
 });
+const studioIntegrationItems = computed(() => {
+  return studioIntegrations.value.map((integration) => ({
+    id: integration.id,
+    icon: getAppIcon(integration.icon),
+    label: integration.name,
+    description: rowBody(integration),
+  }));
+});
 
 // methods
 // Returns the app icon path for the given icon name.
@@ -81,15 +92,6 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Returns the cached studio config view for the given integration id.
 const viewFor = (id) => integrationStore.studioConfig[id] || null;
-
-// Returns the badge class for a row based on its current status.
-const statusClass = (id) => {
-  const v = viewFor(id);
-  if (!v?.configured) return 'status-stopped';
-  if (v.last_error) return 'status-error';
-  if (v.status === 'running') return 'status-running';
-  return 'status-stopped';
-};
 
 // Returns the badge label for a row based on its current status.
 const statusLabel = (id) => {
@@ -204,90 +206,6 @@ onMounted(async () => {
   padding-right: .2rem;
   border-radius: var(--large-radius);
 }
-
-.settings-item {
-  color: var(--text);
-  box-sizing: border-box;
-  overflow: hidden;
-  min-height: 50px;
-  display: flex;
-  padding: .5rem 1rem;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: max-content;
-  background-color: var(--surface-2);
-  cursor: default;
-  transition: none;
-  border-bottom: 1px solid var(--surface-4);
-}
-
-.settings-icon {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  height: 100%;
-  padding: .3rem;
-  width: max-content;
-}
-
-.settings-content {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  overflow: hidden;
-  height: 100%;
-  padding: .4rem .2rem;
-  flex: 1;
-}
-
-.settings-header {
-  padding: .1rem;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.settings-body {
-  color: var(--text-muted);
-  padding: .1rem;
-  font-size: 12px;
-  opacity: .8;
-}
-
-.settings-action {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  overflow: hidden;
-  height: 100%;
-  width: max-content;
-  gap: .5rem;
-}
-
-.row-delete {
-  opacity: 1;
-}
-
-.chevron {
-  opacity: .6;
-}
-
-.status-badge {
-  font-size: .7rem;
-  padding: .25rem .6rem;
-  border-radius: 999px;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  white-space: nowrap;
-}
-
-.status-running { background-color: rgba(36, 129, 30, .25); color: #6ee07a; }
-.status-stopped { background-color: rgba(255, 255, 255, .08); color: var(--white-half); }
-.status-error { background-color: rgba(255, 80, 80, .15); color: #ff6b6b; }
 
 .integration-warning {
   margin-top: .25rem;

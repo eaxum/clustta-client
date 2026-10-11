@@ -1,56 +1,45 @@
 <template>
   <div class="settings-component-root user-settings-page">
     <div class="settings-component-container">
-      <div class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.appearance') }}</h2>
-        </div>
-        <div class="settings-section-card-content">
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('palette')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.iconScheme') }}</div>
-              <div class="settings-body">{{ $t('settings.iconSchemeDescription') }}</div>
-            </div>
-            <div class="settings-action">
-              <DropDownBox :items="iconStore.iconTypes" :onSelect="selectIconType" :selectedItem="iconStore.selectedIconType" :placeHolder="'None'" :fixedWidth="true" />
-            </div>
+      <SettingsCard :title="$t('settings.appearance')" :items="appearanceItems">
+        <template #action="{ item }">
+          <DropDownBox
+            v-if="item.id === 'icon-scheme'"
+            :items="iconStore.iconTypes"
+            :onSelect="selectIconType"
+            :selectedItem="iconStore.selectedIconType"
+            :placeHolder="'None'"
+            :fixedWidth="true"
+          />
+          <DropDownBox
+            v-else-if="item.id === 'theme'"
+            :items="themeStore.availableModes"
+            :onSelect="selectTheme"
+            :selectedItem="themeStore.mode"
+            :placeHolder="'None'"
+            :fixedWidth="true"
+          />
+          <div v-else-if="item.id === 'accent'" class="tint-swatches">
+            <button
+              v-for="tint in themeStore.availableTints"
+              :key="tint"
+              class="tint-swatch"
+              :class="{ 'tint-swatch-active': themeStore.tint === tint }"
+              :style="tintSwatchStyle(tint)"
+              v-tooltip="$t(`settings.tints.${tint}`)"
+              @click="selectTint(tint)"
+            ></button>
           </div>
-
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="themeIcon"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.theme') }}</div>
-              <div class="settings-body">{{ $t('settings.themeDescription') }}</div>
-            </div>
-            <div class="settings-action">
-              <DropDownBox :items="themeStore.availableModes" :onSelect="selectTheme" :selectedItem="themeStore.mode" :placeHolder="'None'" :fixedWidth="true" />
-            </div>
-          </div>
-
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('palette')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.accent') }}</div>
-              <div class="settings-body">{{ $t('settings.accentDescription') }}</div>
-            </div>
-            <div class="settings-action tint-swatches">
-              <button v-for="tint in themeStore.availableTints" :key="tint" class="tint-swatch" :class="{ 'tint-swatch-active': themeStore.tint === tint }" :style="tintSwatchStyle(tint)" v-tooltip="$t(`settings.tints.${tint}`)" @click="selectTint(tint)"></button>
-            </div>
-          </div>
-
-          <div class="settings-item">
-            <div class="settings-icon"><img class="small-icons" :src="getAppIcon('translation')"></div>
-            <div class="settings-content">
-              <div class="settings-header">{{ $t('settings.language') }}</div>
-              <div class="settings-body">{{ $t('settings.languageDescription') }}</div>
-            </div>
-            <div class="settings-action fixed-width">
-              <DropDownBox :items="availableLanguages" :onSelect="selectLanguage" :selectedItem="currentLanguageName" :placeHolder="'None'" :fixedWidth="true" />
-            </div>
-          </div>
-        </div>
-      </div>
+          <DropDownBox
+            v-else-if="item.id === 'language'"
+            :items="availableLanguages"
+            :onSelect="selectLanguage"
+            :selectedItem="currentLanguageName"
+            :placeHolder="'None'"
+            :fixedWidth="true"
+          />
+        </template>
+      </SettingsCard>
     </div>
   </div>
 </template>
@@ -59,6 +48,7 @@
 import { computed } from 'vue';
 import DropDownBox from '@/instances/common/components/DropDownBox.vue';
 import { useLocale } from '@/composables/useLocale';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 import { SettingsService } from '@/services';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
@@ -76,6 +66,32 @@ const themeIcon = computed(() => {
   if (themeStore.mode === 'system') return getAppIcon('palette');
   return themeStore.resolvedMode === 'dark' ? getAppIcon('moon') : getAppIcon('sun');
 });
+const appearanceItems = computed(() => [
+  {
+    id: 'icon-scheme',
+    icon: getAppIcon('palette'),
+    label: t('settings.iconScheme'),
+    description: t('settings.iconSchemeDescription'),
+  },
+  {
+    id: 'theme',
+    icon: themeIcon.value,
+    label: t('settings.theme'),
+    description: t('settings.themeDescription'),
+  },
+  {
+    id: 'accent',
+    icon: getAppIcon('palette'),
+    label: t('settings.accent'),
+    description: t('settings.accentDescription'),
+  },
+  {
+    id: 'language',
+    icon: getAppIcon('translation'),
+    label: t('settings.language'),
+    description: t('settings.languageDescription'),
+  },
+]);
 
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
@@ -104,16 +120,11 @@ const tintSwatchStyle = (tint) => {
 </script>
 
 <style scoped>
-.fixed-width {
-  min-width: 150px;
-}
-
 .tint-swatches {
   display: flex;
   align-items: center;
   gap: .4rem;
   width: min-content;
-  padding: .5rem;
 }
 
 .tint-swatch {

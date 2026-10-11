@@ -2,64 +2,30 @@
   <div class="settings-component-root">
     <div class="settings-component-scroll">
       <div class="settings-component-container">
-        <div
+        <SettingsCard
           v-if="entitlementStore.hasIntegrations && userStore.canDo('manage_integrations')"
-          class="settings-section-card"
+          :title="$t('settings.externalIntegrations')"
+          :description="$t('settings.linkIntegrationDescription')"
+          :items="integrationItems"
+          :showContent="!!linkedIntegration"
         >
-          <div class="settings-section-card-header integration-card-header">
-            <div class="integration-card-title-group">
-              <h2 class="settings-section-card-title">{{ $t('settings.externalIntegrations') }}</h2>
-              <div class="settings-body integration-card-help">
-                {{ $t('settings.linkIntegrationDescription') }}
-              </div>
-            </div>
+          <template #header-action>
             <ActionButton
               :icon="getAppIcon('link')"
               :label="$t('common.link')"
               :buttonFunction="openIntegrationLink"
             />
-          </div>
+          </template>
 
-          <div v-if="linkedIntegration" class="settings-section-card-content">
-            <div class="settings-item">
-              <div class="settings-icon">
-                <img class="small-icons" :src="getAppIcon(linkedIntegration.integration_id)" alt="">
-              </div>
-              <div class="settings-content">
-                <div class="settings-header">{{ linkedIntegration.external_project_name }}</div>
-                <div class="settings-body">
-                  {{ $t('settings.linkedTo', { integration: linkedIntegration.integration_id }) }}
-                </div>
-              </div>
-              <div class="settings-action" v-stop-propagation>
-                <ActionButton
-                  :label="$t('common.manage')"
-                  :showIcon="false"
-                  :buttonFunction="openIntegrationLink"
-                />
-              </div>
-            </div>
-
-            <IntegrationSettingsRow
-              icon="file-path"
-              label="Directory Mapping"
-              description="Configure folder structure for synced items"
-              :open="openDirectoryMapping"
+          <template #action="{ item }">
+            <ActionButton
+              :label="item.id === 'linked-project' ? $t('common.manage') : $t('common.configure')"
+              :showIcon="false"
+              :buttonFunction="item.open"
+              v-stop-propagation
             />
-            <IntegrationSettingsRow
-              icon="extension"
-              label="Asset Type Mapping"
-              description="Map asset types to file templates"
-              :open="openAssetTypeMapping"
-            />
-            <IntegrationSettingsRow
-              icon="clock"
-              label="Status Mapping"
-              description="Map statuses to push on checkpoint"
-              :open="openStatusMapping"
-            />
-          </div>
-        </div>
+          </template>
+        </SettingsCard>
       </div>
     </div>
   </div>
@@ -67,8 +33,9 @@
 
 <script setup>
 import { computed, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
-import IntegrationSettingsRow from '@/instances/desktop/settings/components/IntegrationSettingsRow.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useEntitlementStore } from '@/stores/entitlements';
 import { useIconStore } from '@/stores/icons';
@@ -80,6 +47,7 @@ const entitlementStore = useEntitlementStore();
 const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const userStore = useUserStore();
+const { t } = useI18n();
 
 const linkedIntegration = computed(() => integrationStore.linkedIntegration);
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
@@ -99,6 +67,41 @@ const openAssetTypeMapping = () => {
 const openStatusMapping = () => {
   desktopModals.setModalVisibility('statusMappingModal', true);
 };
+const integrationItems = computed(() => {
+  if (!linkedIntegration.value) return [];
+  return [
+    {
+      id: 'linked-project',
+      icon: getAppIcon(linkedIntegration.value.integration_id),
+      label: linkedIntegration.value.external_project_name,
+      description: t('settings.linkedTo', {
+        integration: linkedIntegration.value.integration_id,
+      }),
+      open: openIntegrationLink,
+    },
+    {
+      id: 'directory-mapping',
+      icon: getAppIcon('file-path'),
+      label: 'Directory Mapping',
+      description: 'Configure folder structure for synced items',
+      open: openDirectoryMapping,
+    },
+    {
+      id: 'asset-type-mapping',
+      icon: getAppIcon('extension'),
+      label: 'Asset Type Mapping',
+      description: 'Map asset types to file templates',
+      open: openAssetTypeMapping,
+    },
+    {
+      id: 'status-mapping',
+      icon: getAppIcon('clock'),
+      label: 'Status Mapping',
+      description: 'Map statuses to push on checkpoint',
+      open: openStatusMapping,
+    },
+  ];
+});
 
 onMounted(async () => {
   try {
@@ -135,61 +138,4 @@ onMounted(async () => {
   box-sizing: border-box;
 }
 
-.integration-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.integration-card-title-group {
-  min-width: 0;
-}
-
-.integration-card-help {
-  padding: .15rem 0 0;
-}
-
-.settings-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 50px;
-  padding: .5rem 1rem;
-  border-bottom: 1px solid var(--surface-4);
-  color: var(--text);
-  background-color: var(--surface-2);
-  cursor: default;
-  box-sizing: border-box;
-}
-
-.settings-icon {
-  display: flex;
-  padding: .3rem;
-}
-
-.settings-content {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  padding: .4rem .2rem;
-}
-
-.settings-header {
-  padding: .1rem;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.settings-body {
-  padding: .1rem;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.settings-action {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
 </style>

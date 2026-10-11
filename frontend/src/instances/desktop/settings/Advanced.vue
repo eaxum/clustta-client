@@ -3,11 +3,11 @@
     <div class="settings-component-scroll">
     <div class="settings-component-container">
 
-      <div v-if="userStore.canDo('manage_project_settings')" class="settings-section-card">
-        <div class="settings-section-card-header">
-          <h2 class="settings-section-card-title">{{ $t('settings.scripts') }}</h2>
-        </div>
-        <div class="settings-section-card-content script-settings">
+      <SettingsCard
+        v-if="userStore.canDo('manage_project_settings')"
+        :title="$t('settings.scripts')"
+      >
+        <div class="script-settings">
           <label class="script-setting-label" for="agent-script-directory">{{ $t('settings.scriptDirectoryFromProjectRoot') }}</label>
           <input id="agent-script-directory" v-model="scriptDirectory" class="input-short script-directory-input"
             placeholder="Scripts" @keydown.enter.prevent="saveScriptSettings" />
@@ -23,21 +23,20 @@
               :buttonFunction="saveScriptSettings" :isDisabled="!scriptSettingsChanged" />
           </div>
         </div>
-      </div>
+      </SettingsCard>
 
-      <div v-if="userStore.canDo('manage_project_settings')" class="settings-section-card">
-        <div class="settings-section-card-header environment-card-header">
-          <div class="environment-card-title-group">
-            <h2 class="settings-section-card-title">{{ $t('settings.environmentVariables') }}</h2>
-            <div class="settings-body environment-card-help">
-              {{ $t('settings.environmentVariablesHelp', { projectRoot: '<ProjectRoot>' }) }}
-            </div>
-          </div>
+      <SettingsCard
+        v-if="userStore.canDo('manage_project_settings')"
+        :title="$t('settings.environmentVariables')"
+        :description="$t('settings.environmentVariablesHelp', { projectRoot: '<ProjectRoot>' })"
+        :showContent="!!(environmentVariables.length || environmentVariablesChanged)"
+      >
+        <template #header-action>
           <ActionButton :icon="getAppIcon('plus-circle')" :label="$t('common.add')"
             :buttonFunction="addEnvironmentVariable" />
-        </div>
-        <div v-if="environmentVariables.length || environmentVariablesChanged"
-          class="settings-section-card-content environment-settings">
+        </template>
+
+        <div class="environment-settings">
           <div class="environment-variable-list">
             <div v-for="variable in environmentVariables" :key="variable.id" class="environment-variable-row">
               <input v-model="variable.name" class="input-short environment-variable-name" type="text"
@@ -53,7 +52,7 @@
               :buttonFunction="saveEnvironmentVariables" :isDisabled="!environmentVariablesChanged" />
           </div>
         </div>
-      </div>
+      </SettingsCard>
 
     </div>
     </div>
@@ -76,6 +75,7 @@ import { useNotificationStore } from '@/stores/notifications';
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import IgnoreListBox from '@/instances/common/components/IgnoreListBox.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 
 // services
 import { SettingsService } from '@/services';
@@ -197,7 +197,7 @@ onMounted(async () => {
       await Promise.all([loadScriptSettings(), loadEnvironmentVariables()]);
     }
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 });
 </script>
@@ -245,24 +245,6 @@ onMounted(async () => {
 .script-settings-actions {
   display: flex;
   justify-content: flex-end;
-}
-
-.environment-card-header,
-.integration-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.environment-card-title-group,
-.integration-card-title-group {
-  min-width: 0;
-}
-
-.environment-card-help,
-.integration-card-help {
-  padding: .15rem 0 0;
 }
 
 .environment-settings {
@@ -346,70 +328,4 @@ onMounted(async () => {
   border-radius: var(--large-radius);
 }
 
-/* Settings item styling */
-.settings-item {
-  color: var(--text);
-  box-sizing: border-box;
-  overflow: hidden;
-  min-height: 50px;
-  display: flex;
-  padding: .5rem 1rem;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  height: max-content;
-  background-color: var(--surface-2);
-  cursor: default;
-  transition: none;
-  border-bottom:  1px solid var(--surface-4);
-}
-
-.settings-icon {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  height: 100%;
-  padding: .3rem;
-  width: max-content;
-}
-
-.settings-content {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  overflow: hidden;
-  height: 100%;
-  padding: .4rem .2rem;
-  flex: 1;
-}
-
-.settings-header {
-  padding: .1rem;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.settings-body {
-  color: var(--text-muted);
-  padding: .1rem;
-  font-size: 12px;
-  opacity: .8;
-}
-
-.settings-action {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  overflow: hidden;
-  height: 100%;
-  width: max-content;
-}
-
-.fixed-width {
-  min-width: 200px;
-}
 </style>

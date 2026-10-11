@@ -2,89 +2,42 @@
   <div class="settings-component-root">
     <div class="settings-component-scroll">
       <div class="settings-component-container">
-        <div class="settings-section-card">
-          <div class="settings-section-card-header">
-            <h2 class="settings-section-card-title">{{ $t('settings.integrations') }}</h2>
-          </div>
+        <SettingsCard :title="$t('settings.integrations')" :items="integrationItems">
+          <template #action="{ item }">
+            <span v-if="item.connected" class="connected-badge">{{ $t('common.connected') }}</span>
+            <ActionButton
+              :label="item.connected ? $t('common.manage') : $t('common.connect')"
+              :showIcon="false"
+              :buttonFunction="openIntegrationAuth"
+            />
+          </template>
+        </SettingsCard>
 
-          <div class="settings-section-card-content">
-            <div
-              v-for="integration in connectedIntegrations"
-              :key="integration.id"
-              class="settings-item"
-            >
-              <div class="settings-icon">
-                <img class="small-icons" :src="getAppIcon(integration.icon)" alt="">
-              </div>
-              <div class="settings-content">
-                <div class="settings-header">{{ integration.name }}</div>
-                <div class="settings-body">{{ $t('settings.connected') }}</div>
-              </div>
-              <div class="settings-action">
-                <span class="connected-badge">{{ $t('common.connected') }}</span>
-                <ActionButton :label="$t('common.manage')" :showIcon="false" :buttonFunction="openIntegrationAuth" />
-              </div>
-            </div>
+        <SettingsCard :title="$t('settings.aiAgent')" :items="agentItems">
+          <template #action>
+            <ActionButton
+              :label="$t('common.configure')"
+              :showIcon="false"
+              :buttonFunction="openAgentConfig"
+            />
+          </template>
+        </SettingsCard>
 
-            <div class="settings-item">
-              <div class="settings-icon">
-                <img class="small-icons" :src="getAppIcon('plug')" alt="">
-              </div>
-              <div class="settings-content">
-                <div class="settings-header">{{ $t('settings.connectIntegration') }}</div>
-                <div class="settings-body">{{ $t('settings.connectIntegrationDescription') }}</div>
-              </div>
-              <div class="settings-action">
-                <ActionButton :label="$t('common.connect')" :showIcon="false" :buttonFunction="openIntegrationAuth" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="settings-section-card">
-          <div class="settings-section-card-header">
-            <h2 class="settings-section-card-title">{{ $t('settings.aiAgent') }}</h2>
-          </div>
-          <div class="settings-section-card-content">
-            <div class="settings-item">
-              <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brain')"></div>
-              <div class="settings-content">
-                <div class="settings-header">{{ $t('settings.llmProvider') }}</div>
-                <div class="settings-body">{{ agentKeyConfigured ? $t('settings.providerConfigured') : $t('settings.configureProvider') }}</div>
-              </div>
-              <div class="settings-action">
-                <ActionButton :label="$t('common.configure')" :showIcon="false" :buttonFunction="openAgentConfig" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="settings-section-card">
-          <div class="settings-section-card-header">
-            <h2 class="settings-section-card-title">{{ $t('settings.plugins') }}</h2>
-          </div>
-          <div class="settings-section-card-content">
-            <div class="settings-item">
-              <div class="settings-icon"><img class="small-icons" :src="getAppIcon('brick')"></div>
-              <div class="settings-content">
-                <div class="settings-header">{{ bridgeEnabled ? $t('settings.disableBridge') : $t('settings.enableBridge') }}</div>
-                <div class="settings-body">{{ $t('settings.bridgeEnabledDescription') }}</div>
-              </div>
-              <div class="settings-action fixed-width"><ToggleSwitch :switchValueProp="bridgeEnabled" @click="toggleBridgeEnabled" /></div>
-            </div>
-
-            <div class="settings-item">
-              <div class="settings-icon"><img class="small-icons" :src="getAppIcon('download')"></div>
-              <div class="settings-content">
-                <div class="settings-header">{{ $t('settings.downloadPlugins') }}</div>
-                <div class="settings-body">{{ $t('settings.downloadPluginsDescription') }}</div>
-              </div>
-              <div class="settings-action">
-                <ActionButton :label="$t('common.download')" :showIcon="false" :buttonFunction="openPluginsPage" />
-              </div>
-            </div>
-          </div>
-        </div>
+        <SettingsCard :title="$t('settings.plugins')" :items="pluginItems">
+          <template #action="{ item }">
+            <ToggleSwitch
+              v-if="item.id === 'bridge'"
+              :switchValueProp="bridgeEnabled"
+              @click="toggleBridgeEnabled"
+            />
+            <ActionButton
+              v-else
+              :label="$t('common.download')"
+              :showIcon="false"
+              :buttonFunction="openPluginsPage"
+            />
+          </template>
+        </SettingsCard>
       </div>
     </div>
   </div>
@@ -96,6 +49,7 @@ import { Browser } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import ToggleSwitch from '@/instances/common/components/ToggleSwitch.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.vue';
 import { AgentService } from '@/services';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
@@ -119,6 +73,46 @@ const connectedIntegrations = computed(() => {
 const bridgeEnabled = computed(() => settingsStore.bridgeEnabled);
 
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const integrationItems = computed(() => [
+  ...connectedIntegrations.value.map((integration) => ({
+    id: integration.id,
+    icon: getAppIcon(integration.icon),
+    label: integration.name,
+    description: t('settings.connected'),
+    connected: true,
+  })),
+  {
+    id: 'connect-integration',
+    icon: getAppIcon('plug'),
+    label: t('settings.connectIntegration'),
+    description: t('settings.connectIntegrationDescription'),
+    connected: false,
+  },
+]);
+const agentItems = computed(() => [
+  {
+    id: 'llm-provider',
+    icon: getAppIcon('brain'),
+    label: t('settings.llmProvider'),
+    description: agentKeyConfigured.value
+      ? t('settings.providerConfigured')
+      : t('settings.configureProvider'),
+  },
+]);
+const pluginItems = computed(() => [
+  {
+    id: 'bridge',
+    icon: getAppIcon('brick'),
+    label: bridgeEnabled.value ? t('settings.disableBridge') : t('settings.enableBridge'),
+    description: t('settings.bridgeEnabledDescription'),
+  },
+  {
+    id: 'download-plugins',
+    icon: getAppIcon('download'),
+    label: t('settings.downloadPlugins'),
+    description: t('settings.downloadPluginsDescription'),
+  },
+]);
 
 const openIntegrationAuth = () => {
   desktopModals.setModalVisibility('integrationAuthModal', true);
@@ -179,50 +173,6 @@ onMounted(async () => {
   box-sizing: border-box;
 }
 
-.settings-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  min-height: 50px;
-  padding: .5rem 1rem;
-  border: 0;
-  border-bottom: 1px solid var(--surface-4);
-  color: var(--text);
-  background-color: var(--surface-2);
-  cursor: default;
-  box-sizing: border-box;
-}
-
-.settings-icon {
-  display: flex;
-  padding: .3rem;
-}
-
-.settings-content {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  padding: .4rem .2rem;
-}
-
-.settings-header {
-  padding: .1rem;
-  font-size: 14px;
-  font-weight: 400;
-}
-
-.settings-body {
-  padding: .1rem;
-  color: var(--text-muted);
-  font-size: 12px;
-}
-
-.settings-action {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-}
-
 .connected-badge {
   padding: 4px 8px;
   border-radius: var(--small-radius);
@@ -230,9 +180,5 @@ onMounted(async () => {
   background-color: rgba(var(--accent-primary-rgb), .15);
   font-size: 12px;
   font-weight: 500;
-}
-
-.fixed-width {
-  min-width: 200px;
 }
 </style>
