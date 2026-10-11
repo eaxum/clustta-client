@@ -45,6 +45,7 @@ const activePage = computed(() => {
 @import "@/assets/desktop.css";
 
 .settings-shell {
+  --settings-shell-max-width: 900px;
   display: flex;
   width: 100%;
   height: 100%;
@@ -69,7 +70,7 @@ const activePage = computed(() => {
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--settings-shell-max-width);
   min-width: 0;
   min-height: 0;
 }
