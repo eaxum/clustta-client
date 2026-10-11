@@ -389,20 +389,22 @@ onUnmounted(() => {
   gap: .5rem;
   flex: 1;
   min-height: 35px;
-  background-color: var(--bg);
+  background-color: var(--surface-2);
+  outline: var(--transparent-line);
   outline-offset: -1px;
-  /* background-color: crimson; */
+  transition: background-color .2s ease, border-radius .2s ease;
 }
 
 .list-box-parent:hover {
-    outline: var(--transparent-line);
-    background-color: var(--surface-2);
+  border-radius: var(--small-radius);
+  background-color: var(--surface-2-5);
 }
 
 .list-box-parent.is-expanded {
-    position: relative;
-    z-index: 100001;
-    background-color: transparent;
+  position: relative;
+  z-index: 100001;
+  border-radius: var(--large-radius);
+  background-color: var(--surface-2-5);
 }
 
 .list-box-parent-content {
