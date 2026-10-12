@@ -5,7 +5,7 @@
         <template #action="{ item }">
           <DropDownBox
             v-if="item.id === 'icon-scheme'"
-            :items="iconStore.iconTypes"
+            :items="iconSchemeOptions"
             :onSelect="selectIconType"
             :selectedItem="iconStore.selectedIconType"
             :placeHolder="'None'"
@@ -13,7 +13,7 @@
           />
           <DropDownBox
             v-else-if="item.id === 'theme'"
-            :items="themeStore.availableModes"
+            :items="themeOptions"
             :onSelect="selectTheme"
             :selectedItem="themeStore.mode"
             :placeHolder="'None'"
@@ -62,6 +62,16 @@ const { t, currentLanguage, languageNames, setLocale, getLocaleCode } = useLocal
 
 const availableLanguages = computed(() => Object.values(languageNames));
 const currentLanguageName = computed(() => currentLanguage.value);
+const iconSchemeOptions = computed(() => iconStore.iconTypes.map((iconType) => ({
+  id: iconType,
+  name: t(`settings.iconSchemes.${iconType}`),
+  selectionValue: iconType,
+})));
+const themeOptions = computed(() => themeStore.availableModes.map((mode) => ({
+  id: mode,
+  name: t(`settings.themeModes.${mode}`),
+  selectionValue: mode,
+})));
 const themeIcon = computed(() => {
   if (themeStore.mode === 'system') return getAppIcon('palette');
   return themeStore.resolvedMode === 'dark' ? getAppIcon('moon') : getAppIcon('sun');

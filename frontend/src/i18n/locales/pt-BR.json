@@ -570,6 +570,22 @@
     "iconScheme": "Esquema de ícones",
     "iconSchemeDescription": "Alternar entre diferentes estilos de ícone para a interface do usuário.",
     "themeDescription": "Modo Claro ou Escuro.",
+    "iconSchemes": {
+      "solid": "Preenchido",
+      "outline": "Contorno"
+    },
+    "themeModes": {
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Escuro"
+    },
+    "accent": "Cor de destaque",
+    "accentDescription": "Escolha uma tonalidade para a interface.",
+    "tints": {
+      "default": "Amora",
+      "blue": "Mirtilo",
+      "pink": "Morango"
+    },
     "defaultViewDescription": "Escolha entre visualização em lista, grade ou Kanban como padrão.",
     "dataManagement": "Gerenciamento de Dados",
     "clearRecents": "Limpar recentes",

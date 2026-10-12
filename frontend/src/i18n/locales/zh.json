@@ -570,6 +570,22 @@
     "iconScheme": "图标方案",
     "iconSchemeDescription": "在不同的用户界面图标样式之间切换。",
     "themeDescription": "亮色或暗色模式。",
+    "iconSchemes": {
+      "solid": "实心",
+      "outline": "轮廓"
+    },
+    "themeModes": {
+      "system": "跟随系统",
+      "light": "浅色",
+      "dark": "深色"
+    },
+    "accent": "强调色",
+    "accentDescription": "选择界面的色调。",
+    "tints": {
+      "default": "黑莓",
+      "blue": "蓝莓",
+      "pink": "草莓"
+    },
     "defaultViewDescription": "选择列表、网格或看板视图作为默认视图。",
     "dataManagement": "数据管理",
     "clearRecents": "清除最近项目",

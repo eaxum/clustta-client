@@ -570,6 +570,22 @@
     "iconScheme": "Stile icone",
     "iconSchemeDescription": "Cambia tra diversi stili di icone per l'interfaccia utente.",
     "themeDescription": "Modalità chiara o scura.",
+    "iconSchemes": {
+      "solid": "Pieno",
+      "outline": "Contorno"
+    },
+    "themeModes": {
+      "system": "Sistema",
+      "light": "Chiaro",
+      "dark": "Scuro"
+    },
+    "accent": "Accento",
+    "accentDescription": "Scegli una tonalità di colore per l'interfaccia.",
+    "tints": {
+      "default": "Mora",
+      "blue": "Mirtillo",
+      "pink": "Fragola"
+    },
     "defaultViewDescription": "Scegli tra lista, griglia o Kanban come vista predefinita.",
     "dataManagement": "Gestione dati",
     "clearRecents": "Cancella recenti",

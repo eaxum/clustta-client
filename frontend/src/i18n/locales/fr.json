@@ -570,6 +570,22 @@
     "iconScheme": "Schéma d'icônes",
     "iconSchemeDescription": "Basculez entre différents styles d'icônes pour l'interface utilisateur.",
     "themeDescription": "Mode clair ou sombre.",
+    "iconSchemes": {
+      "solid": "Plein",
+      "outline": "Contour"
+    },
+    "themeModes": {
+      "system": "Système",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "accent": "Accent",
+    "accentDescription": "Choisissez une teinte pour l'interface.",
+    "tints": {
+      "default": "Mûre",
+      "blue": "Myrtille",
+      "pink": "Fraise"
+    },
     "defaultViewDescription": "Choisissez entre la vue liste, grille ou Kanban par défaut.",
     "dataManagement": "Gestion des Données",
     "clearRecents": "Effacer les récents",

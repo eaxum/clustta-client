@@ -570,6 +570,22 @@
     "iconScheme": "Esquema de iconos",
     "iconSchemeDescription": "Alterna entre diferentes estilos de iconos para la interfaz de usuario.",
     "themeDescription": "Modo claro u oscuro.",
+    "iconSchemes": {
+      "solid": "Sólido",
+      "outline": "Contorno"
+    },
+    "themeModes": {
+      "system": "Sistema",
+      "light": "Claro",
+      "dark": "Oscuro"
+    },
+    "accent": "Acento",
+    "accentDescription": "Elige un tono de color para la interfaz.",
+    "tints": {
+      "default": "Mora",
+      "blue": "Arándano",
+      "pink": "Fresa"
+    },
     "defaultViewDescription": "Elige entre vista de lista, cuadrícula o Kanban como predeterminada.",
     "dataManagement": "Gestión de Datos",
     "clearRecents": "Borrar recientes",

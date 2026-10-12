@@ -570,6 +570,22 @@
     "iconScheme": "아이콘 스타일",
     "iconSchemeDescription": "사용자 인터페이스의 아이콘 스타일을 전환합니다.",
     "themeDescription": "라이트 또는 다크 모드.",
+    "iconSchemes": {
+      "solid": "채움",
+      "outline": "윤곽선"
+    },
+    "themeModes": {
+      "system": "시스템",
+      "light": "라이트",
+      "dark": "다크"
+    },
+    "accent": "강조색",
+    "accentDescription": "인터페이스의 색조를 선택합니다.",
+    "tints": {
+      "default": "블랙베리",
+      "blue": "블루베리",
+      "pink": "스트로베리"
+    },
     "defaultViewDescription": "기본 보기로 목록, 그리드 또는 칸반 보기를 선택합니다.",
     "dataManagement": "데이터 관리",
     "clearRecents": "최근 항목 초기화",

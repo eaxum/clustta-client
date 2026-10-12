@@ -605,7 +605,16 @@
     "appearance": "Appearance",
     "iconScheme": "Icon scheme",
     "iconSchemeDescription": "Toggle between different icon styles for the user interface.",
+    "iconSchemes": {
+      "solid": "Solid",
+      "outline": "Outline"
+    },
     "themeDescription": "Light or Dark mode.",
+    "themeModes": {
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
     "accent": "Accent",
     "accentDescription": "Choose a color tint for the interface.",
     "tints": {

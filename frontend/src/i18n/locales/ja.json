@@ -570,6 +570,22 @@
     "iconScheme": "アイコンスキーム",
     "iconSchemeDescription": "ユーザーインターフェースのアイコンスタイルを切り替えます。",
     "themeDescription": "ライトモードまたはダークモード。",
+    "iconSchemes": {
+      "solid": "塗りつぶし",
+      "outline": "アウトライン"
+    },
+    "themeModes": {
+      "system": "システム",
+      "light": "ライト",
+      "dark": "ダーク"
+    },
+    "accent": "アクセント",
+    "accentDescription": "インターフェースの色合いを選択します。",
+    "tints": {
+      "default": "ブラックベリー",
+      "blue": "ブルーベリー",
+      "pink": "ストロベリー"
+    },
     "defaultViewDescription": "デフォルトとしてリスト、グリッド、またはカンバンビューを選択してください。",
     "dataManagement": "データ管理",
     "clearRecents": "最近の項目をクリア",

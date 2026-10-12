@@ -570,6 +570,22 @@
     "iconScheme": "आइकन योजना",
     "iconSchemeDescription": "यूज़र इंटरफ़ेस के लिए विभिन्न आइकन शैलियों के बीच टॉगल करें।",
     "themeDescription": "लाइट या डार्क मोड।",
+    "iconSchemes": {
+      "solid": "ठोस",
+      "outline": "रूपरेखा"
+    },
+    "themeModes": {
+      "system": "सिस्टम",
+      "light": "हल्का",
+      "dark": "गहरा"
+    },
+    "accent": "रंग",
+    "accentDescription": "इंटरफ़ेस के लिए रंग चुनें।",
+    "tints": {
+      "default": "ब्लैकबेरी",
+      "blue": "ब्लूबेरी",
+      "pink": "स्ट्रॉबेरी"
+    },
     "defaultViewDescription": "डिफ़ॉल्ट के रूप में सूची, ग्रिड या कानबन दृश्य चुनें।",
     "dataManagement": "डेटा प्रबंधन",
     "clearRecents": "हालिया साफ़ करें",
@@ -751,8 +767,8 @@
     "connected": "Connected",
     "clusttaLocalProjectsData": "Clustta Local Projects Data",
     "clusttaSharedProjectsData": "Clustta Shared Projects Data",
-    "overwriteDroppedFiles": "Drop ki gayi files overwrite karein",
-    "overwriteDroppedFilesDescription": "Jab OS file Clustta me drop ki jati hai, to numbered copy banane ke bajay matching destination file overwrite hoti hai. Agar file tracked asset se judi hai, to checkpoint banaya jata hai."
+    "overwriteDroppedFiles": "ड्रॉप की गई फ़ाइलें ओवरराइट करें",
+    "overwriteDroppedFilesDescription": "जब ऑपरेटिंग सिस्टम की कोई फ़ाइल Clustta में ड्रॉप की जाती है, तो क्रमांकित प्रति बनाने के बजाय उससे मेल खाने वाली गंतव्य फ़ाइल को ओवरराइट करें। यदि फ़ाइल किसी ट्रैक किए गए एसेट से जुड़ी है, तो एक चेकपॉइंट बनाएँ।"
   },
   "modals": {
     "export": {

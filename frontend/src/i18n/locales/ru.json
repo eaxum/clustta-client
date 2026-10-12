@@ -570,6 +570,22 @@
     "iconScheme": "Стиль иконок",
     "iconSchemeDescription": "Переключение между различными стилями иконок для пользовательского интерфейса.",
     "themeDescription": "Светлая или тёмная тема.",
+    "iconSchemes": {
+      "solid": "Сплошные",
+      "outline": "Контурные"
+    },
+    "themeModes": {
+      "system": "Как в системе",
+      "light": "Светлая",
+      "dark": "Тёмная"
+    },
+    "accent": "Акцентный цвет",
+    "accentDescription": "Выберите оттенок интерфейса.",
+    "tints": {
+      "default": "Ежевика",
+      "blue": "Черника",
+      "pink": "Клубника"
+    },
     "defaultViewDescription": "Выберите вид по умолчанию: список, сетка или канбан.",
     "dataManagement": "Управление данными",
     "clearRecents": "Очистить недавние",
