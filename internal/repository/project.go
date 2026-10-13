@@ -1816,7 +1816,7 @@ func GetProjectPreview(tx *sqlx.Tx) (models.Preview, error) {
 	return preview, nil
 }
 
-func SetIgnoreList(projectUri, studioName string, ignoreList []string, user auth_service.User) error {
+func SetIgnoreList(projectPath, projectUri string, ignoreList []string, user auth_service.User) error {
 	if utils.IsValidURL(projectUri) {
 		ignoreListJson, err := json.Marshal(ignoreList)
 		if err != nil {
@@ -1851,13 +1851,6 @@ func SetIgnoreList(projectUri, studioName string, ignoreList []string, user auth
 				return err
 			}
 			return errors.New(string(body))
-		}
-
-		paths := strings.Split(projectUri, "/")
-		projectName := paths[len(paths)-1]
-		projectPath, err := resolveLocalProjectPath(studioName, projectName)
-		if err != nil {
-			return err
 		}
 
 		dbConn, err := utils.OpenDb(projectPath)

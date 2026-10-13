@@ -9,14 +9,8 @@ export async function addIgnoredItem(item) {
 
     let ignoreList = projectStore.activeProject.ignore_list;
     ignoreList.push(item);
-    let projectUri;
-    if (projectStore.activeProject.has_remote) {
-        projectUri = projectStore.getActiveProjectUrl;
-    } else {
-        projectUri = projectStore.activeProject.uri;
-    }
     await ProjectService.SetIgnoreList(
-        projectUri,
+        projectStore.activeProject.uri,
         projectStore.selectedStudio.name,
         ignoreList
     )

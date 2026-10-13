@@ -271,15 +271,30 @@ func (p *ProjectService) GetIgnoreList(projectPath string) ([]string, error) {
 	return repository.GetIgnoreList(tx)
 }
 
-func (p *ProjectService) SetIgnoreList(projectUri, studioName string, ignoreList []string) error {
-	if err := requireProjectPermissionForPath(projectUri, permissionManageProjectSettings); err != nil {
+func (p *ProjectService) SetIgnoreList(projectPath, studioName string, ignoreList []string) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageProjectSettings); err != nil {
+		return err
+	}
+	projectUri, err := resolveIgnoreListProjectURI(projectPath)
+	if err != nil {
 		return err
 	}
 	user, err := auth_service.GetActiveUser()
 	if err != nil {
 		return err
 	}
-	return repository.SetIgnoreList(projectUri, studioName, ignoreList, user)
+	return repository.SetIgnoreList(projectPath, projectUri, ignoreList, user)
+}
+
+func resolveIgnoreListProjectURI(projectPath string) (string, error) {
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve project remote: %w", err)
+	}
+	if remoteURL != "" {
+		return remoteURL, nil
+	}
+	return projectPath, nil
 }
 
 func (p *ProjectService) CloseProject(projectPath string) error {

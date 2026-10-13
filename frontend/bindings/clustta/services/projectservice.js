@@ -299,13 +299,13 @@ export function ResetDefaultTemplates() {
 }
 
 /**
- * @param {string} projectUri
+ * @param {string} projectPath
  * @param {string} studioName
  * @param {string[]} ignoreList
  * @returns {$CancellablePromise<void>}
  */
-export function SetIgnoreList(projectUri, studioName, ignoreList) {
-    return $Call.ByID(610021480, projectUri, studioName, ignoreList);
+export function SetIgnoreList(projectPath, studioName, ignoreList) {
+    return $Call.ByID(610021480, projectPath, studioName, ignoreList);
 }
 
 /**

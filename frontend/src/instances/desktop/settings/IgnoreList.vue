@@ -99,14 +99,6 @@ const getAppIcon = (iconName) => {
   return icon;
 };
 
-// Returns the project URI used for saving the ignore list.
-const getProjectUri = () => {
-  if (projectStore.activeProject.has_remote) {
-    return projectStore.getActiveProjectUrl;
-  }
-  return projectStore.activeProject.uri;
-};
-
 // Merges template entries into the current ignore list, skipping duplicates.
 const mergeTemplateEntries = (entries) => {
   const newItems = entries.filter((e) => !ignoreList.value.includes(e));
@@ -183,8 +175,7 @@ const removeIgnoredItem = (item) => {
 
 // Persists the current ignore list to the project and updates the store.
 const saveIgnoreList = () => {
-  const projectUri = getProjectUri();
-  ProjectService.SetIgnoreList(projectUri, projectStore.selectedStudio.name, ignoreList.value)
+  ProjectService.SetIgnoreList(projectStore.activeProject.uri, projectStore.selectedStudio.name, ignoreList.value)
     .then(() => {
       let project = projectStore.activeProject;
       let projectIndex = projectStore.projects.findIndex((p) => p.id === project.id);
