@@ -202,8 +202,7 @@ background-color: #f0f0f0;
 }
 
 .emoji {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", 
-  "Segoe UI", "Apple Color Emoji", sans-serif;
+  font-family: var(--font-family-emoji);
   font-size: 2rem;
 }
 
@@ -214,9 +213,9 @@ margin-top: 1rem;
 }
 
 .unicode {
-font-family: monospace;
-font-size: 0.9rem;
-color: #666;
+  font-family: var(--font-family-monospace);
+  font-size: 0.9rem;
+  color: #666;
 margin-top: 0.5rem;
 }
 

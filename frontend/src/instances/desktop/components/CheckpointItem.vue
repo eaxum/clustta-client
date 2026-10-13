@@ -515,7 +515,7 @@ onBeforeUnmount(() => {
 
 .checkpoint-item-label-text {
     /* background-color: indianred; */
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-family-interface);
     font-size: 12px;
     color: var(--text-muted);
     width: 100%;

@@ -485,7 +485,7 @@ onMounted(async () => {
 }
 
 .compound-input{
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   box-sizing: border-box;
   font-size: 16px;
   border-radius: 12px;
@@ -500,7 +500,7 @@ onMounted(async () => {
 
 .compound-input-text{
   display: flex;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   box-sizing: border-box;
   font-size: 16px;
   border: 0px;
@@ -528,7 +528,7 @@ onMounted(async () => {
 }
 
 .input-label {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   color: var(--text);
   font-size: 14px;
   font-weight: 500;
@@ -576,7 +576,7 @@ onMounted(async () => {
 
 .studio-id,
 .studio-key {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-family-technical);
   font-size: 14px;
 }
 
@@ -611,7 +611,7 @@ onMounted(async () => {
   border: none;
   border-radius: 8px;
   padding: 10px 12px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-family-technical);
   font-size: 14px;
   font-weight: 500;
   outline: none;
@@ -668,7 +668,7 @@ onMounted(async () => {
   min-height: 140px;
   color: var(--text);
   border: none;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-family-technical);
   background-color: transparent;
   font-weight: 500;
   font-size: 13px;

@@ -258,7 +258,6 @@ const selectCollectionType = (collectionTypeName) => {
 }
 
 .file-hierarchy {
-  /* font-family: Arial, sans-serif; */
   user-select: none;
 }
 

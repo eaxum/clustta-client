@@ -67,7 +67,7 @@ const triggerAction = () => {
 }
 
 .assignee-list-item-name {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   /* font-weight: 100; */
   color: var(--text);
   font-size: 14px;

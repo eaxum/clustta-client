@@ -338,7 +338,7 @@ const logUserOut = async () => {
 @import "@/assets/desktop.css";
 
 .desktop-search-bar {
-	font-family: 'Inter', sans-serif;
+	font-family: var(--font-family-interface);
 	font-weight: 200;
 	box-sizing: border-box;
 	font-size: 16px;

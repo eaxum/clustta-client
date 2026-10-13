@@ -129,7 +129,7 @@ onMounted(() => {
 .data-name-input{
   z-index: 26;
   /* z-index: initial; */
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-style: italic;
   box-sizing: border-box;
   border-radius: 8px;

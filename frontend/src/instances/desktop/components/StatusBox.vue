@@ -127,7 +127,7 @@ onBeforeUnmount(() => {
 }
 
 .status-box-pill-text {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 14px;
   font-weight: 400;
   color: rgb(15, 15, 15);

@@ -1,6 +1,6 @@
 
 .root {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-weight: 200;
   place-items: center;
   color: black;
@@ -16,7 +16,7 @@
     justify-content: center;
     user-select: none;
     cursor: default;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-family-interface);
     font-weight: 300;
     margin: 0;
     overflow: hidden;

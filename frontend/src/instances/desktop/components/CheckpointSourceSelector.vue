@@ -218,14 +218,14 @@ defineExpose({ resolve });
 
 .checkpoint-option-message {
   color: var(--text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 14px;
   font-weight: 400;
 }
 
 .checkpoint-option-date {
   color: var(--text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 12px;
   font-weight: 400;
 }

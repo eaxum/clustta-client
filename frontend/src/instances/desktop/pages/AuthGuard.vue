@@ -104,7 +104,7 @@ const platformStore = usePlatformStore()
 }
 
 .auth-header {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-family-display);
   font-size: 4rem;
   font-weight: 600;
   line-height: 90%;
@@ -213,7 +213,7 @@ const platformStore = usePlatformStore()
   padding: 0.75rem;
   background-color: var(--bg);
   
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   /* font-weight: 200; */
   box-sizing: border-box;
   font-size: 16px;
@@ -289,7 +289,7 @@ const platformStore = usePlatformStore()
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s, border-radius 0.2s;
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-family-display);
   font-weight: 600;
   line-height: 90%;
 }

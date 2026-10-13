@@ -244,7 +244,7 @@ onUnmounted(() => {
   flex: 1;
   min-width: 60px;
   height: 27px;
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 16px;
   color: var(--text);
   background: transparent;
@@ -257,7 +257,7 @@ onUnmounted(() => {
 
 
 .desktop-input-long{
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-weight: 300;
   box-sizing: border-box;
   font-size: 16px;

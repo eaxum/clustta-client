@@ -135,8 +135,7 @@ onMounted(() => {
 .project-icon {
   font-size: x-large;
 
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Emoji",
-    "Segoe UI", "Apple Color Emoji", sans-serif;
+  font-family: var(--font-family-emoji);
   font-size: 2rem;
 }
 
@@ -178,7 +177,7 @@ onMounted(() => {
 }
 
 .page-header-title {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   color: var(--text);
   font-size: 20px;
   white-space: nowrap;

@@ -554,7 +554,7 @@ onMounted(async () => {
   border: 1px solid var(--border-strong);
   border-radius: var(--small-radius);
   color: var(--text);
-  font-family: monospace;
+  font-family: var(--font-family-monospace);
   font-size: 0.875rem;
   box-sizing: border-box;
 }
@@ -576,7 +576,7 @@ onMounted(async () => {
 
 .preview-path {
   color: var(--text);
-  font-family: monospace;
+  font-family: var(--font-family-monospace);
 }
 
 .task-output-section {
@@ -646,7 +646,7 @@ onMounted(async () => {
   border: 1px solid var(--border-strong);
   border-radius: var(--small-radius);
   color: var(--text);
-  font-family: monospace;
+  font-family: var(--font-family-monospace);
   font-size: 0.75rem;
 }
 

@@ -548,7 +548,7 @@ watch(() => route.query, () => {
 }
 
 .discover-title {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-family-display);
   font-size: 3.5rem;
   font-weight: 700;
   color: var(--text);

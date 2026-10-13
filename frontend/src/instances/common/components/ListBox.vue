@@ -178,7 +178,7 @@ onBeforeUnmount(() => {
   align-items: center;
   padding: 4px;
   overflow: hidden;
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 16px;
   white-space: nowrap;
   justify-content: space-between;
@@ -204,7 +204,7 @@ onBeforeUnmount(() => {
 }
 
 .list-box-parent-text {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   position: absolute;
   pointer-events: none;
   white-space: nowrap;

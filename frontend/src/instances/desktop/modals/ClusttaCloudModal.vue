@@ -572,7 +572,7 @@ onMounted(async () => {
 }
 
 .price-amount {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-family-display);
   font-size: 36px;
   font-weight: 700;
   color: var(--text);
@@ -624,7 +624,7 @@ onMounted(async () => {
 .common-features-title {
   margin: 0 0 1.5rem;
   color: var(--text);
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-family-display);
   font-size: 24px;
   font-weight: 700;
   text-align: center;
@@ -656,7 +656,7 @@ onMounted(async () => {
 .enterprise-title {
   margin: 0 0 8px;
   color: var(--text);
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-family-display);
   font-size: 28px;
   line-height: 1.1;
 }

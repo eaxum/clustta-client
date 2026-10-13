@@ -651,7 +651,7 @@ onUnmounted(() => {
   height: 27px;
   /* margin: 3px; */
   /* padding: 0 4px; */
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 14px;
   font-weight: 300;
   color: var(--text);

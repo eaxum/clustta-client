@@ -356,8 +356,7 @@ const handleScroll = () => {
 
 .project-icon {
 	font-size: x-large;
-	font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Emoji",
-		"Segoe UI", "Apple Color Emoji", sans-serif;
+	font-family: var(--font-family-emoji);
 	font-size: 1.8rem;
 }
 

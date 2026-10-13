@@ -187,7 +187,7 @@ onMounted(async () => {
 @import "@/assets/desktop.css";
 
 .description-text {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 14px;
   color: var(--text-muted);
   line-height: 1.5;

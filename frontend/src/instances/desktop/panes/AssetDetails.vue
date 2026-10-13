@@ -967,7 +967,7 @@ onBeforeUnmount(() => {
 
 .input-label {
 
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   color: white;
   font-size: 14px;
   white-space: nowrap;

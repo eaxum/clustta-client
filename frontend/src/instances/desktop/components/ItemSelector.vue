@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
   flex: 1;
   min-width: 60px;
   height: 40px;
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 14px;
   font-weight: 300;
   color: var(--text);

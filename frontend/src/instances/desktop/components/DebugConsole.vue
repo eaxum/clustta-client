@@ -337,7 +337,7 @@ onBeforeUnmount(() => {
   flex: 1;
   overflow-y: auto;
   padding: 0.5rem;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-family-code);
   font-size: 12px;
 }
 

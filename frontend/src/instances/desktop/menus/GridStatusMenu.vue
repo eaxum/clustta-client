@@ -140,7 +140,7 @@ const emitAssetUpdates = (assetId, updates) => {
 }
 
 .grid-status-menu-pill-text {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 12px;
   font-weight: 700;
   color: rgb(15, 15, 15);

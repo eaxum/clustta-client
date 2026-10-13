@@ -287,7 +287,7 @@ onMounted(() => {
 }
 
 .auth-header {
-  font-family: 'Bricolage Grotesque', sans-serif;
+  font-family: var(--font-family-display);
   font-size: 4rem;
   font-weight: 600;
   line-height: 90%;
@@ -349,7 +349,7 @@ onMounted(() => {
   height: 100%;
   padding: 0.75rem;
   background-color: var(--bg);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   box-sizing: border-box;
   font-size: 16px;
   border-radius: 12px;

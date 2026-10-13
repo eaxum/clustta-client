@@ -401,7 +401,7 @@ onMounted(() => {
 }
 
 .status-pill-text {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-family-interface);
     font-size: 12px;
     font-weight: 200;
     color: rgb(15, 15, 15);
@@ -452,7 +452,7 @@ onMounted(() => {
 }
 
 .timeline-item-label-text {
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-family-interface);
     font-size: 14px;
     /* font-weight: 200; */
     color: var(--text);

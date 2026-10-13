@@ -251,7 +251,7 @@ onMounted(async () => {
 }
 
 .input-label {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   color: var(--text);
   font-size: 14px;
   font-weight: 500;
@@ -270,7 +270,7 @@ onMounted(async () => {
 }
 
 .monospace-input {
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-family-technical);
   font-size: 14px;
 }
 

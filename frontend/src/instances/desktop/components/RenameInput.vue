@@ -128,7 +128,7 @@ const handleCancel = () => {
   /* max-height: 50% !important;
   height: 30px; */
   height: 100%;
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
 }
 
 @keyframes shake {

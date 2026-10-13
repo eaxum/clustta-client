@@ -79,7 +79,7 @@ defineExpose({ focus });
 }
 
 .searchbar-input {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-weight: 400;
   font-size: 14px;
   width: 100%;

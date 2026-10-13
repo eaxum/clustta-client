@@ -536,7 +536,7 @@ onUnmounted(() => {
 }
 
 .input-label {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 14px;
   white-space: nowrap;
   flex: 1;

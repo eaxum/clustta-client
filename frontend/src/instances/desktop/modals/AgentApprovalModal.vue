@@ -592,7 +592,6 @@ watch(paginatedItems, async (items) => {
 }
 
 .note-line {
-  /* font-family: var(--mono-font, monospace); */
   word-break: break-all;
 }
 

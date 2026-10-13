@@ -355,7 +355,7 @@ onMounted(async () => {
 }
 
 .auth-subheader {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 1rem;
   font-weight: 300;
   color: var(--text-muted);

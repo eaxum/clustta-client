@@ -193,14 +193,14 @@ const selectOption = async (option) => {
 
 .checkpoint-option-message {
   color: var(--text);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 13px;
   font-weight: 500;
 }
 
 .checkpoint-option-date {
   color: var(--text-muted);
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 11px;
   font-weight: 400;
 }

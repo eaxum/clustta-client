@@ -686,7 +686,7 @@ const chipChange = () => {
 
 
 .combo-list-item {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 18px;
   font-weight: 200;
   color: white;
@@ -963,7 +963,7 @@ const chipChange = () => {
 
 
   box-sizing: border-box;
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   font-size: 16px;
   white-space: nowrap;
   color: rgba(255, 255, 255, 0.8);

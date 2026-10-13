@@ -269,7 +269,7 @@ onMounted(async () => {
 }
 
 .input-label {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   color: var(--text);
   white-space: nowrap;
   flex: 1;

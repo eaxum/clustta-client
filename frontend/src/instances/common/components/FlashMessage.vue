@@ -405,7 +405,7 @@ onBeforeUnmount(() => {
 }
 
 .header-text {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   color: var(--text);
   font-size: 18px;
   white-space: nowrap;

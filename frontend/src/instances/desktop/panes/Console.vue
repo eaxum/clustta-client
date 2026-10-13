@@ -1541,7 +1541,7 @@ onUnmounted(() => {
 }
 
 .console-input {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-family-interface);
   font-weight: 300;
   font-size: 13px;
   box-sizing: border-box;
@@ -1694,7 +1694,7 @@ onUnmounted(() => {
   border-radius: 6px;
   color: var(--text);
   background: var(--surface-4);
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-family-code);
   font-size: 0.92em;
   font-weight: 600;
   line-height: inherit;
@@ -1848,7 +1848,7 @@ onUnmounted(() => {
   background-color: var(--surface-1);
   border-radius: var(--small-radius);
   border: 1px solid var(--surface-4);
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-family-code);
   font-size: 12px;
   overflow-x: auto;
   white-space: pre;
@@ -1859,7 +1859,7 @@ onUnmounted(() => {
   padding: 0.1rem 0.35rem;
   background-color: var(--surface-1);
   border-radius: 3px;
-  font-family: 'Consolas', 'Monaco', monospace;
+  font-family: var(--font-family-code);
   font-size: 12px;
   color: var(--text-muted);
 }

@@ -206,7 +206,7 @@ label {
   border-radius: 4px;
   border: 1px solid #e5e7eb;
   font-size: 14px;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-family-technical);
 }
 
 .pattern-info {

@@ -471,7 +471,7 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--text);
   opacity: 0.5;
-  font-family: monospace;
+  font-family: var(--font-family-monospace);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -510,7 +510,7 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   font-size: 13px;
   font-size: 14px;
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -528,7 +528,7 @@ onUnmounted(() => {
 }
 
 .input-label {
-  font-family: Inter, sans-serif;
+  font-family: var(--font-family-interface);
   color: var(--text);
   font-size: 14px;
   white-space: nowrap;
