@@ -137,6 +137,7 @@ type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
 	ThemeTint             string `json:"theme_tint"`
+	InterfaceTextSize     int    `json:"interface_text_size,omitempty"`
 	Language              string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
 	EulaAccepted          bool   `json:"eula_accepted"`
 	ProjectGridView       bool   `json:"project_grid_view"`
@@ -236,6 +237,10 @@ const (
 	motionPreferenceSystem = "system"
 	motionPreferenceOn     = "on"
 	motionPreferenceOff    = "off"
+
+	defaultInterfaceTextSize = 13
+	minimumInterfaceTextSize = 13
+	maximumInterfaceTextSize = 15
 )
 
 func migrateViewModes(settings *Settings, legacyUseGrid *bool) bool {
@@ -476,6 +481,35 @@ func SetThemeTint(tint string) error {
 	}
 	settings.ThemeTint = tint
 	return saveSettings(settings)
+}
+
+// GetInterfaceTextSize returns the interface text size in pixels.
+func GetInterfaceTextSize() (int, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return defaultInterfaceTextSize, err
+	}
+	if !isValidInterfaceTextSize(settings.InterfaceTextSize) {
+		return defaultInterfaceTextSize, nil
+	}
+	return settings.InterfaceTextSize, nil
+}
+
+// SetInterfaceTextSize persists the interface text size in pixels.
+func SetInterfaceTextSize(size int) error {
+	if !isValidInterfaceTextSize(size) {
+		return fmt.Errorf("interface text size must be between %d and %d pixels", minimumInterfaceTextSize, maximumInterfaceTextSize)
+	}
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.InterfaceTextSize = size
+	return saveSettings(settings)
+}
+
+func isValidInterfaceTextSize(size int) bool {
+	return size >= minimumInterfaceTextSize && size <= maximumInterfaceTextSize
 }
 
 // GetLanguage returns the user's language preference or defaults to "en".

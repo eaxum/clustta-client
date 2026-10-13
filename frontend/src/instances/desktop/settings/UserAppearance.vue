@@ -31,6 +31,15 @@
             ></button>
           </div>
           <DropDownBox
+            v-else-if="item.id === 'text-size'"
+            :items="textSizeOptions"
+            :onSelect="selectTextSize"
+            :selectedItem="String(settingsStore.interfaceTextSize)"
+            :placeHolder="`${DEFAULT_INTERFACE_TEXT_SIZE} px`"
+            :prioritizeSelected="false"
+            :fixedWidth="true"
+          />
+          <DropDownBox
             v-else-if="item.id === 'language'"
             :items="availableLanguages"
             :onSelect="selectLanguage"
@@ -52,11 +61,23 @@ import SettingsCard from '@/instances/desktop/settings/components/SettingsCard.v
 import { SettingsService } from '@/services';
 import { useIconStore } from '@/stores/icons';
 import { useNotificationStore } from '@/stores/notifications';
+import { useSettingsStore } from '@/stores/settings';
 import { useThemeStore } from '@/stores/theme';
 import { TINTS } from '@/theme/palette';
 
+const MINIMUM_INTERFACE_TEXT_SIZE = 13;
+const MEDIUM_INTERFACE_TEXT_SIZE = 14;
+const MAXIMUM_INTERFACE_TEXT_SIZE = 15;
+const DEFAULT_INTERFACE_TEXT_SIZE = MINIMUM_INTERFACE_TEXT_SIZE;
+const INTERFACE_TEXT_SIZES = [
+  MINIMUM_INTERFACE_TEXT_SIZE,
+  MEDIUM_INTERFACE_TEXT_SIZE,
+  MAXIMUM_INTERFACE_TEXT_SIZE,
+];
+
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
+const settingsStore = useSettingsStore();
 const themeStore = useThemeStore();
 const { t, currentLanguage, languageNames, setLocale, getLocaleCode } = useLocale();
 
@@ -72,8 +93,12 @@ const themeOptions = computed(() => themeStore.availableModes.map((mode) => ({
   name: t(`settings.themeModes.${mode}`),
   selectionValue: mode,
 })));
+const textSizeOptions = INTERFACE_TEXT_SIZES.map((size) => ({
+  id: String(size),
+  name: `${size} px`,
+  selectionValue: String(size),
+}));
 const themeIcon = computed(() => {
-  if (themeStore.mode === 'system') return getAppIcon('palette');
   return themeStore.resolvedMode === 'dark' ? getAppIcon('moon') : getAppIcon('sun');
 });
 const appearanceItems = computed(() => [
@@ -94,6 +119,12 @@ const appearanceItems = computed(() => [
     icon: getAppIcon('palette'),
     label: t('settings.accent'),
     description: t('settings.accentDescription'),
+  },
+  {
+    id: 'text-size',
+    icon: getAppIcon('text-size'),
+    label: t('settings.textSize'),
+    description: t('settings.textSizeDescription'),
   },
   {
     id: 'language',
@@ -121,6 +152,14 @@ const selectLanguage = async (languageName) => {
 
 const selectTheme = (theme) => themeStore.setMode(theme);
 const selectTint = (tint) => themeStore.setTint(tint);
+const selectTextSize = async (size) => {
+  try {
+    await settingsStore.setInterfaceTextSize(size);
+  } catch (error) {
+    console.error(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdate'), 'error');
+  }
+};
 const tintSwatchStyle = (tint) => {
   const config = TINTS[tint];
   if (!config) return {};

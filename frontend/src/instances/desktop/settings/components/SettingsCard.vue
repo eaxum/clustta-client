@@ -86,7 +86,7 @@ defineProps({
 .settings-card-header-description {
   padding-top: .15rem;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-compact);
   font-weight: 400;
   line-height: 1.35;
 }
@@ -121,14 +121,14 @@ defineProps({
 }
 
 .settings-card-label {
-  font-size: 13px;
+  font-size: var(--font-size-interface);
   font-weight: 500;
   line-height: 1.3;
 }
 
 .settings-card-description {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-compact);
   font-weight: 400;
   line-height: 1.35;
 }

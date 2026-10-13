@@ -169,8 +169,8 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background-color: transparent;
   text-align: center;
-  font-size: 14px;
-  line-height: 14px;
+  font-size: var(--font-size-interface);
+  line-height: 1;
   background-color: transparent;
   color: var(--text);
   position: relative;

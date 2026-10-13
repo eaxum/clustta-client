@@ -492,6 +492,16 @@ func (s *SettingsService) SetThemeTint(tint string) error {
 	return settings.SetThemeTint(tint)
 }
 
+// GetInterfaceTextSize retrieves the interface text size in pixels.
+func (s *SettingsService) GetInterfaceTextSize() (int, error) {
+	return settings.GetInterfaceTextSize()
+}
+
+// SetInterfaceTextSize sets the interface text size in pixels.
+func (s *SettingsService) SetInterfaceTextSize(size int) error {
+	return settings.SetInterfaceTextSize(size)
+}
+
 // GetLanguage retrieves the user's language preference.
 func (s *SettingsService) GetLanguage() (string, error) {
 	language, err := settings.GetLanguage()

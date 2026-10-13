@@ -128,7 +128,7 @@ const handleNavigationKeydown = (event, pageId) => {
 .sidebar-navigation-group-title {
 	margin: .45rem .45rem .5rem;
 	color: var(--text-muted);
-	font-size: .85rem;
+	font-size: var(--font-size-emphasis);
 	font-weight: 450;
 	line-height: 1.25;
 }
@@ -144,7 +144,7 @@ const handleNavigationKeydown = (event, pageId) => {
 	border-radius: 999px;
 	color: var(--text-muted);
 	background-color: var(--surface-2);
-	font-size: .58rem;
+	font-size: var(--font-size-compact);
 	font-weight: 500;
 	line-height: 1.2;
 	white-space: nowrap;

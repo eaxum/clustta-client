@@ -36,10 +36,10 @@ const props = defineProps({
   border-radius: 16px;
   padding: 10px 18px;
   border: 0px;
-  font-size: 16px;
+  font-size: var(--font-size-interface);
   cursor: pointer;
   transition: all 0.3s ease;
-  height: 35px;
+  height: 30px;
   overflow: hidden;
   width: max-content;
   min-width: 100px;
@@ -96,7 +96,7 @@ const props = defineProps({
   align-items: center;
   justify-content: center;
   gap: 6px;
-  font-size: 16px;
+  font-size: var(--font-size-interface);
 }
 
 .general-button-icon {

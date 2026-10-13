@@ -91,7 +91,7 @@ const activePage = computed(() => {
 .settings-page-description {
   margin: .35rem 0 0;
   color: var(--text-muted);
-  font-size: .72rem;
+  font-size: var(--font-size-compact);
   font-weight: 300;
   line-height: 1.4;
 }
@@ -190,7 +190,7 @@ const activePage = computed(() => {
   flex: 1;
   margin: 0;
   color: var(--text);
-  font-size: .9rem;
+  font-size: var(--font-size-emphasis);
   font-weight: 500;
 }
 
@@ -274,14 +274,14 @@ const activePage = computed(() => {
 
 .settings-page-content .settings-header {
   padding: .1rem;
-  font-size: 14px;
+  font-size: var(--font-size-interface);
   font-weight: 400;
 }
 
 .settings-page-content .settings-body {
   padding: .1rem;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: var(--font-size-compact);
   opacity: .8;
 }
 

@@ -220,6 +220,14 @@ export function GetIntegrationCredential(integrationId) {
 }
 
 /**
+ * GetInterfaceTextSize retrieves the interface text size in pixels.
+ * @returns {$CancellablePromise<number>}
+ */
+export function GetInterfaceTextSize() {
+    return $Call.ByID(4022591707);
+}
+
+/**
  * GetLanguage retrieves the user's language preference.
  * @returns {$CancellablePromise<string>}
  */
@@ -605,6 +613,15 @@ export function SetEulaAccepted(eulaAccepted) {
  */
 export function SetIconScheme(iconScheme) {
     return $Call.ByID(2125293608, iconScheme);
+}
+
+/**
+ * SetInterfaceTextSize sets the interface text size in pixels.
+ * @param {number} size
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetInterfaceTextSize(size) {
+    return $Call.ByID(1399575975, size);
 }
 
 /**

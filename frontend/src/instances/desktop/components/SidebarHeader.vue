@@ -46,7 +46,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 	margin: 0;
 	overflow: hidden;
 	color: var(--text);
-	font-size: 1rem;
+	font-size: var(--font-size-emphasis);
 	font-weight: 400;
 	line-height: 1.2;
 	text-overflow: ellipsis;

@@ -581,6 +581,8 @@
     },
     "accent": "Acento",
     "accentDescription": "Elige un tono de color para la interfaz.",
+    "textSize": "Tamaño del texto",
+    "textSizeDescription": "Ajusta el tamaño del texto de la interfaz.",
     "tints": {
       "default": "Mora",
       "blue": "Arándano",

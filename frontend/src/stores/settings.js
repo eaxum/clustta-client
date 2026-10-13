@@ -1,9 +1,20 @@
 import { defineStore } from "pinia";
 import { SettingsService } from '@/services';
 
+const DEFAULT_INTERFACE_TEXT_SIZE = 13;
+const MINIMUM_INTERFACE_TEXT_SIZE = 13;
+const MAXIMUM_INTERFACE_TEXT_SIZE = 15;
+
+const isValidInterfaceTextSize = (size) => (
+  Number.isInteger(size)
+  && size >= MINIMUM_INTERFACE_TEXT_SIZE
+  && size <= MAXIMUM_INTERFACE_TEXT_SIZE
+);
+
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
+    interfaceTextSize: DEFAULT_INTERFACE_TEXT_SIZE,
     minimizeOnClose: true,
     motionPreference: 'system',
     overwriteDroppedFiles: true,
@@ -168,6 +179,31 @@ export const useSettingsStore = defineStore("settings", {
 
     applyMotionPreference() {
       document.documentElement.dataset.motion = this.motionPreference;
+    },
+
+    async initializeInterfaceTextSize() {
+      try {
+        const size = await SettingsService.GetInterfaceTextSize();
+        this.interfaceTextSize = isValidInterfaceTextSize(size) ? size : DEFAULT_INTERFACE_TEXT_SIZE;
+      } catch (error) {
+        console.error(error);
+        this.interfaceTextSize = DEFAULT_INTERFACE_TEXT_SIZE;
+      }
+      this.applyInterfaceTextSize();
+    },
+
+    async setInterfaceTextSize(size) {
+      const numericSize = Number(size);
+      if (!isValidInterfaceTextSize(numericSize)) {
+        throw new RangeError(`Interface text size must be between ${MINIMUM_INTERFACE_TEXT_SIZE}px and ${MAXIMUM_INTERFACE_TEXT_SIZE}px`);
+      }
+      await SettingsService.SetInterfaceTextSize(numericSize);
+      this.interfaceTextSize = numericSize;
+      this.applyInterfaceTextSize();
+    },
+
+    applyInterfaceTextSize() {
+      document.documentElement.style.setProperty('--font-size-interface', `${this.interfaceTextSize}px`);
     },
 
     // Loads the overwrite dropped files state from user settings.

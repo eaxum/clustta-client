@@ -72,6 +72,10 @@
   
 :root {
 
+  --font-size-interface: 13px;
+  --font-size-compact: max(13px, calc(var(--font-size-interface) - 1px));
+  --font-size-emphasis: min(15px, calc(var(--font-size-interface) + 1px));
+
   --entity: hsla(0, 0%, 7%, 0.9);
   --entity-alt: hsla(0, 0%, 11%, 0.7);
 
@@ -216,6 +220,7 @@ body {
   user-select: none;
   cursor: default;
   font-family: 'Inter', sans-serif;
+  font-size: var(--font-size-interface);
   font-weight: 350;
   margin: 0;
   overflow: hidden;
@@ -234,7 +239,7 @@ body {
 }
 
 .input-alert{
-  font-size: 14px;
+  font-size: var(--font-size-interface);
 }
 
 .emoji {
@@ -257,7 +262,7 @@ body {
 }
 
 .login-button-text{
-  font-size: 16px;
+  font-size: var(--font-size-interface);
 }
 
 @keyframes loadingRotate {
@@ -288,7 +293,7 @@ animation: loadingRotate .5s linear infinite;
   height: 30px;
   padding: .4rem;
   border-radius: var(--small-radius);
-  font-size: 12px;
+  font-size: var(--font-size-compact);
   overflow: hidden;
   box-shadow: 0 0 5px rgba(56, 54, 54, 0.5);
   top:40%;
@@ -330,7 +335,7 @@ animation: loadingRotate .5s linear infinite;
   background-color: var(--surface-3);
   color: var(--text-secondary, var(--text));
   font-family: inherit;
-  font-size: 11px;
+  font-size: var(--font-size-compact);
   font-weight: 400;
   line-height: 1rem;
   text-align: center;
@@ -376,7 +381,7 @@ animation: loadingRotate .5s linear infinite;
 .input-short{
   font-family: 'Inter', sans-serif;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: var(--font-size-interface);
   border-radius: var(--large-radius);
   padding: 10px;
   border: 0px;
@@ -411,7 +416,7 @@ animation: loadingRotate .5s linear infinite;
   font-family: 'Inter', sans-serif;
   font-weight: 300;
   box-sizing: border-box;
-  font-size: 14px;
+  font-size: var(--font-size-interface);
   border-radius: 8px;
   box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.05000000074505806);
   padding: 10px;
@@ -526,7 +531,7 @@ animation: loadingRotate .5s linear infinite;
 
 .chip {
   cursor: pointer;
-  font-size: 14px;
+  font-size: var(--font-size-interface);
   align-items: center;
   transition: background-color 0.2s ease-in-out;
   padding: 0.3rem .4rem;
@@ -654,8 +659,8 @@ img.no-filter {
   overflow: hidden;
   background-color: transparent;
   text-align: center;
-  font-size: 14px;
-  line-height: 14px;
+  font-size: var(--font-size-interface);
+  line-height: 1;
   background-color: transparent;
   color: var(--text);
   position: relative;
@@ -798,7 +803,7 @@ img.no-filter {
   padding-left: .5rem;
   font-family: Inter, sans-serif;
   color: var(--text);
-  font-size: 14px;
+  font-size: var(--font-size-interface);
   white-space: nowrap;
   font-weight: 350;
   /* flex: 1; */

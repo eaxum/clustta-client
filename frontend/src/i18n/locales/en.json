@@ -617,6 +617,8 @@
     },
     "accent": "Accent",
     "accentDescription": "Choose a color tint for the interface.",
+    "textSize": "Text size",
+    "textSizeDescription": "Adjust the size of interface text.",
     "tints": {
       "default": "Blackberry",
       "blue": "Blueberry",

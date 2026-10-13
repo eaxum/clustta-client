@@ -149,7 +149,7 @@ const filteredItems = computed(() => {
     return searchableText.includes(query);
   });
   const selectedIdx = items.findIndex(item => getItemSelectionValue(item) === props.selectedItem);
-  if (selectedIdx > 0) items.unshift(...items.splice(selectedIdx, 1));
+  if (props.prioritizeSelected && selectedIdx > 0) items.unshift(...items.splice(selectedIdx, 1));
   return items;
 });
 
@@ -201,6 +201,7 @@ const props = defineProps({
   searchPlaceholder: { type: String, default: 'Start typing...' },
   useFilter: { type: Boolean, default: true },
   minHeight: { type: Number, default: 35 },
+  prioritizeSelected: { type: Boolean, default: true },
   fullWidth: { type: Boolean, default: true },
   fixedWidth: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
@@ -373,7 +374,7 @@ onUnmounted(() => {
   padding: 0 6px;
   overflow: hidden;
   font-family: Inter, sans-serif;
-  font-size: 16px;
+  font-size: var(--font-size-interface);
   white-space: nowrap;
   justify-content: space-between;
   gap: .5rem;
@@ -414,7 +415,7 @@ onUnmounted(() => {
   pointer-events: none;
   white-space: nowrap;
   padding-left: .5rem;
-  font-size: 14px;
+  font-size: var(--font-size-interface);
   width: 100%;
   font-weight: 400;
 }
@@ -548,7 +549,7 @@ onUnmounted(() => {
   padding: 0.2rem .4rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 14px;
+  font-size: var(--font-size-interface);
 
 }
 

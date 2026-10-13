@@ -581,6 +581,8 @@
     },
     "accent": "アクセント",
     "accentDescription": "インターフェースの色合いを選択します。",
+    "textSize": "テキストサイズ",
+    "textSizeDescription": "インターフェースのテキストサイズを調整します。",
     "tints": {
       "default": "ブラックベリー",
       "blue": "ブルーベリー",
