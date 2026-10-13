@@ -186,7 +186,6 @@ const loadAssetState = async (options = {}) => {
   } catch (error) {
     if (props.isFilteredView) return;
     console.error(`Error loading asset state for ${asset.id}:`, error);
-    browserTreeStore.patchItem(itemKey.value, { file_status: 'fetchable' });
   } finally {
     clearTimeout(loadingTimer);
     loadingAssetState.value = false;

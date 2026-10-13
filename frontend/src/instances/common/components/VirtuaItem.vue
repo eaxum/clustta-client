@@ -394,7 +394,6 @@ const loadAssetState = async (options = {}) => {
     browserTreeStore.patchItem(itemKey.value, { file_status: fileStatus });
   } catch (error) {
     console.error(`Error loading asset state for ${asset.id}:`, error);
-    browserTreeStore.patchItem(itemKey.value, { file_status: 'fetchable' });
   } finally {
     clearTimeout(loadingTimer);
     loadingAssetState.value = false;

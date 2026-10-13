@@ -380,20 +380,30 @@ func GetCollectionAssets(tx *sqlx.Tx, id string) ([]models.Asset, error) {
 		statusesMap[status.Id] = status
 	}
 
-	qoutedAssetIds := make([]string, len(assets))
-	for i, asset := range assets {
-		qoutedAssetIds[i] = fmt.Sprintf("\"%s\"", asset.Id)
+	assetCheckpoints := map[string][]models.Checkpoint{}
+	if len(assets) > 0 {
+		assetIds := make([]string, len(assets))
+		for i, asset := range assets {
+			assetIds[i] = asset.Id
+		}
+
+		checkpointQuery, args, err := sqlx.In(`
+			SELECT * FROM asset_checkpoint
+			WHERE asset_id IN (?) AND trashed = 0
+			ORDER BY created_at DESC
+		`, assetIds)
+		if err != nil {
+			return assets, err
+		}
+
+		checkpoints := []models.Checkpoint{}
+		if err := tx.Select(&checkpoints, tx.Rebind(checkpointQuery), args...); err != nil {
+			return assets, err
+		}
+		for _, checkpoint := range checkpoints {
+			assetCheckpoints[checkpoint.AssetId] = append(assetCheckpoints[checkpoint.AssetId], checkpoint)
+		}
 	}
-	// assetsCheckpointQuery := fmt.Sprintf("SELECT * FROM asset_checkpoint WHERE asset_id IN (%s) AND trashed = 0 ORDER BY created_at DESC", strings.Join(qoutedAssetIds, ","))
-
-	// // checkpointQuery := "SELECT * FROM asset_checkpoint WHERE trashed = 0 ORDER BY created_at DESC"
-	// assetsCheckpoints := []models.Checkpoint{}
-	// tx.Select(&assetsCheckpoints, assetsCheckpointQuery)
-
-	// assetCheckpoints := map[string][]models.Checkpoint{}
-	// for _, assetCheckpoint := range assetsCheckpoints {
-	// 	assetCheckpoints[assetCheckpoint.AssetId] = append(assetCheckpoints[assetCheckpoint.AssetId], assetCheckpoint)
-	// }
 
 	rootFolder, err := utils.GetProjectWorkingDir(tx)
 	if err != nil {
@@ -448,12 +458,13 @@ func GetCollectionAssets(tx *sqlx.Tx, id string) ([]models.Asset, error) {
 			return assets, err
 		}
 		assets[i].FilePath = assetFilePath
-		// assets[i].Checkpoints = assetCheckpoints[asset.Id]
-		// fileStatus, err := GetAssetFileStatus(&assets[i], assetCheckpoints[asset.Id])
-		// if err != nil {
-		// 	return assets, err
-		// }
-		assets[i].FileStatus = "fetchable"
+		assets[i].Checkpoints = assetCheckpoints[asset.Id]
+
+		fileStatus, err := GetAssetFileStatus(&assets[i], assetCheckpoints[asset.Id])
+		if err != nil {
+			return assets, err
+		}
+		assets[i].FileStatus = fileStatus
 	}
 
 	return assets, nil
