@@ -102,12 +102,14 @@ const finishAnimation = () => {
   --switch-travel: calc(var(--switch-container-width) - var(--switch-size));
   --switch-motion-trailing-distance: 5px;
   --switch-motion-overshoot: 2px;
+  --switch-track-radius: 12px;
+  --switch-thumb-radius: 12px;
   display: flex;
   align-items: center;
   position: relative;
   height: var(--switch-size);
   flex-basis: var(--switch-container-width);
-  border-radius: 12px;
+  border-radius: var(--switch-track-radius);
   background-color: var(--primaryDarkestColor);
   flex-shrink: 0;
   transition:
@@ -121,7 +123,7 @@ const finishAnimation = () => {
   left: 4px;
   height: calc(var(--switch-size) - 8px);
   width: calc(var(--switch-size) - 8px);
-  border-radius: 12px;
+  border-radius: var(--switch-thumb-radius);
   background-color: rgba(255, 255, 255, 0.274);
   transition:
     transform var(--motion-duration-standard) ease-in-out,
@@ -135,11 +137,20 @@ const finishAnimation = () => {
 }
 
 .toggle-container:hover .toggle-switch::before {
-  border-radius: var(--tiny-radius);
+  border-radius:
+    var(--small-radius)
+    var(--switch-thumb-radius)
+    var(--switch-thumb-radius)
+    var(--small-radius);
   transform: scale(0.72, 0.92);
 }
 
 .toggle-container:hover .toggle-input:checked + .toggle-switch::before {
+  border-radius:
+    var(--switch-thumb-radius)
+    var(--small-radius)
+    var(--small-radius)
+    var(--switch-thumb-radius);
   transform: translateX(var(--switch-travel)) scale(0.72, 0.92);
 }
 
