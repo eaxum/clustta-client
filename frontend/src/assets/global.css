@@ -6,10 +6,12 @@
     font-style: normal;
 }
 
+/* Normalize selectable interface fonts to Sora's 0.534 em x-height. */
 @font-face {
   font-family: 'Inter';
   src: url('./fonts/Inter/Inter-VariableFont.ttf') format('truetype');
   font-weight: 100 900;
+  size-adjust: 97.9%;
   font-display: swap;
   font-style: normal;
 }
@@ -27,6 +29,7 @@
   src: url('./fonts/SourGummy/SourGummy-VariableFont_wdth,wght.ttf') format('truetype');
   font-weight: 100 900;
   font-stretch: 100% 125%;
+  size-adjust: 106.8%;
   font-display: swap;
   font-style: normal;
 }
@@ -36,6 +39,7 @@
   src: url('./fonts/SourGummy/SourGummy-Italic-VariableFont_wdth,wght.ttf') format('truetype');
   font-weight: 100 900;
   font-stretch: 100% 125%;
+  size-adjust: 106.8%;
   font-display: swap;
   font-style: italic;
 }
