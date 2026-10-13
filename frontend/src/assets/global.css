@@ -177,12 +177,14 @@
 @keyframes surface-bounce-in {
   0% {
     opacity: 0;
-    transform: translateY(var(--motion-entry-offset, 6px)) scale(0.985);
+    transform:
+      translateY(var(--motion-entry-offset, 6px))
+      scale(var(--motion-entry-scale, 0.985));
   }
 
   50% {
     opacity: 1;
-    transform: translateY(0) scale(1.01);
+    transform: translateY(0) scale(var(--motion-overshoot-scale, 1.01));
   }
 
   100% {

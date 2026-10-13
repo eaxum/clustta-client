@@ -15,6 +15,7 @@
     </div>
     <Teleport to="#app">
       <div v-if="isExpanded" ref="listItemsRoot" v-stop-propagation class="listbox-list-items-root"
+        :class="{ 'listbox-list-items-root-short': isShortList }"
         :style="{ top: listItemsAnchor + 'px', left: listItemsLeft + 'px', width: listItemsWidth + 'px', maxHeight: listItemMaxHeight + 'px' }">
         <div v-if="isSearchable" class="listbox-search" @click.stop @keydown.stop>
           <SearchBar ref="searchBar" class="drop-down-search-bar" v-model="searchTerm" :placeholder="searchPlaceholder"
@@ -134,6 +135,7 @@ const listItemsPaddingTop = ref(0);
 const WRAP_PAD_X = 6;
 const WRAP_PAD_Y = 6;
 const DEFAULT_SEARCH_ITEM_THRESHOLD = 10;
+const SHORT_LIST_ITEM_THRESHOLD = 5;
 const isSearchable = computed(() => (
   props.searchable || (props.items?.length || 0) > DEFAULT_SEARCH_ITEM_THRESHOLD
 ));
@@ -152,6 +154,7 @@ const filteredItems = computed(() => {
   if (props.prioritizeSelected && selectedIdx > 0) items.unshift(...items.splice(selectedIdx, 1));
   return items;
 });
+const isShortList = computed(() => filteredItems.value.length < SHORT_LIST_ITEM_THRESHOLD);
 
 const isPlaceholder = computed(() => !props.selectedItem);
 
@@ -334,11 +337,20 @@ onUnmounted(() => {
 @import "@/assets/tray.css";
 
 .listbox-list-items-root {
-  --motion-entry-offset: -6px;
+  --motion-entry-offset: -8px;
+  --motion-entry-scale: 0.975;
+  --motion-overshoot-scale: 1.018;
   animation: var(--motion-surface-animation) var(--motion-duration-standard) var(--motion-easing-bounce) both;
   transform-origin: top center;
   will-change: transform, opacity;
   z-index: 1000;
+}
+
+.listbox-list-items-root-short {
+  --motion-entry-offset: -10px;
+  --motion-entry-scale: 0.96;
+  --motion-overshoot-scale: 1.025;
+  animation-duration: var(--motion-duration-layout);
 }
 
 .list-box-container {
