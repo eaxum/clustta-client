@@ -137,6 +137,7 @@ type Settings struct {
 	IconScheme            string `json:"icon_scheme"`
 	Theme                 string `json:"theme"`
 	ThemeTint             string `json:"theme_tint"`
+	InterfaceFont         string `json:"interface_font,omitempty"`
 	InterfaceTextSize     int    `json:"interface_text_size,omitempty"`
 	Language              string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
 	EulaAccepted          bool   `json:"eula_accepted"`
@@ -237,6 +238,10 @@ const (
 	motionPreferenceSystem = "system"
 	motionPreferenceOn     = "on"
 	motionPreferenceOff    = "off"
+	interfaceFontSora      = "sora"
+	interfaceFontInter     = "inter"
+	interfaceFontSourGummy = "sour-gummy"
+	defaultInterfaceFont   = interfaceFontSora
 
 	defaultInterfaceTextSize = 13
 	minimumInterfaceTextSize = 13
@@ -481,6 +486,35 @@ func SetThemeTint(tint string) error {
 	}
 	settings.ThemeTint = tint
 	return saveSettings(settings)
+}
+
+// GetInterfaceFont returns the selected interface font.
+func GetInterfaceFont() (string, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return defaultInterfaceFont, err
+	}
+	if !isValidInterfaceFont(settings.InterfaceFont) {
+		return defaultInterfaceFont, nil
+	}
+	return settings.InterfaceFont, nil
+}
+
+// SetInterfaceFont persists the selected interface font.
+func SetInterfaceFont(font string) error {
+	if !isValidInterfaceFont(font) {
+		return fmt.Errorf("unsupported interface font %q", font)
+	}
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.InterfaceFont = font
+	return saveSettings(settings)
+}
+
+func isValidInterfaceFont(font string) bool {
+	return font == interfaceFontSora || font == interfaceFontInter || font == interfaceFontSourGummy
 }
 
 // GetInterfaceTextSize returns the interface text size in pixels.

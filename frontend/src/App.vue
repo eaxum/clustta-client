@@ -479,6 +479,7 @@ function startCheckSycnTokenInterval() {
 
 onMounted(async () => {
     await platformStore.initialize();
+    await settingsStore.initializeInterfaceFont();
     await settingsStore.initializeInterfaceTextSize();
     await settingsStore.initializeMotionPreference();
     await settingsStore.initializeShowTypeIcons();

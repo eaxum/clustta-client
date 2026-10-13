@@ -583,6 +583,8 @@
     "accentDescription": "インターフェースの色合いを選択します。",
     "textSize": "テキストサイズ",
     "textSizeDescription": "インターフェースのテキストサイズを調整します。",
+    "interfaceFont": "フォント",
+    "interfaceFontDescription": "インターフェースのフォントを選択します。",
     "tints": {
       "default": "ブラックベリー",
       "blue": "ブルーベリー",

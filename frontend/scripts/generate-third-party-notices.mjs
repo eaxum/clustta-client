@@ -129,6 +129,14 @@ const collectFontPackages = () => {
     join(frontendDirectory, 'src', 'assets', 'fonts', 'Inter', 'OFL.txt'),
     'utf8',
   ).trim();
+  const soraLicense = readFileSync(
+    join(frontendDirectory, 'src', 'assets', 'fonts', 'Sora', 'OFL.txt'),
+    'utf8',
+  ).trim().replace(/[ \t]+$/gm, '');
+  const sourGummyLicense = readFileSync(
+    join(frontendDirectory, 'src', 'assets', 'fonts', 'SourGummy', 'OFL.txt'),
+    'utf8',
+  ).trim().replace(/[ \t]+$/gm, '');
   const licenseBodyStart = interLicense.indexOf(openFontLicenseSeparator);
   if (licenseBodyStart === -1) throw new Error('Could not find the SIL Open Font License body.');
   const openFontLicense = interLicense.slice(licenseBodyStart);
@@ -147,6 +155,18 @@ const collectFontPackages = () => {
       version: 'bundled font',
       license: 'OFL-1.1',
       notice: interLicense,
+    },
+    {
+      name: 'Sora',
+      version: 'bundled font',
+      license: 'OFL-1.1',
+      notice: soraLicense,
+    },
+    {
+      name: 'Sour Gummy',
+      version: 'bundled font',
+      license: 'OFL-1.1',
+      notice: sourGummyLicense,
     },
     {
       name: 'Bricolage Grotesque',

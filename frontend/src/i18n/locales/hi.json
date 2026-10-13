@@ -583,6 +583,8 @@
     "accentDescription": "इंटरफ़ेस के लिए रंग चुनें।",
     "textSize": "टेक्स्ट का आकार",
     "textSizeDescription": "इंटरफ़ेस टेक्स्ट का आकार समायोजित करें।",
+    "interfaceFont": "फ़ॉन्ट",
+    "interfaceFontDescription": "इंटरफ़ेस के लिए फ़ॉन्ट चुनें।",
     "tints": {
       "default": "ब्लैकबेरी",
       "blue": "ब्लूबेरी",

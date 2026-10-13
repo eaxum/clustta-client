@@ -583,6 +583,8 @@
     "accentDescription": "인터페이스의 색조를 선택합니다.",
     "textSize": "텍스트 크기",
     "textSizeDescription": "인터페이스 텍스트의 크기를 조정합니다.",
+    "interfaceFont": "글꼴",
+    "interfaceFontDescription": "인터페이스 글꼴을 선택하세요.",
     "tints": {
       "default": "블랙베리",
       "blue": "블루베리",

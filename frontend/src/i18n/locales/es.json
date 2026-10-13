@@ -583,6 +583,8 @@
     "accentDescription": "Elige un tono de color para la interfaz.",
     "textSize": "Tamaño del texto",
     "textSizeDescription": "Ajusta el tamaño del texto de la interfaz.",
+    "interfaceFont": "Tipo de letra",
+    "interfaceFontDescription": "Elige el tipo de letra de la interfaz.",
     "tints": {
       "default": "Mora",
       "blue": "Arándano",

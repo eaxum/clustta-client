@@ -220,6 +220,14 @@ export function GetIntegrationCredential(integrationId) {
 }
 
 /**
+ * GetInterfaceFont retrieves the selected interface font.
+ * @returns {$CancellablePromise<string>}
+ */
+export function GetInterfaceFont() {
+    return $Call.ByID(342114700);
+}
+
+/**
  * GetInterfaceTextSize retrieves the interface text size in pixels.
  * @returns {$CancellablePromise<number>}
  */
@@ -613,6 +621,15 @@ export function SetEulaAccepted(eulaAccepted) {
  */
 export function SetIconScheme(iconScheme) {
     return $Call.ByID(2125293608, iconScheme);
+}
+
+/**
+ * SetInterfaceFont sets the selected interface font.
+ * @param {string} font
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetInterfaceFont(font) {
+    return $Call.ByID(214170376, font);
 }
 
 /**

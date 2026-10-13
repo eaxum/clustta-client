@@ -583,6 +583,8 @@
     "accentDescription": "Scegli una tonalità di colore per l'interfaccia.",
     "textSize": "Dimensione del testo",
     "textSizeDescription": "Regola la dimensione del testo dell'interfaccia.",
+    "interfaceFont": "Carattere",
+    "interfaceFontDescription": "Scegli il carattere dell'interfaccia.",
     "tints": {
       "default": "Mora",
       "blue": "Mirtillo",

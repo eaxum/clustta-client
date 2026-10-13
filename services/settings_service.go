@@ -492,6 +492,16 @@ func (s *SettingsService) SetThemeTint(tint string) error {
 	return settings.SetThemeTint(tint)
 }
 
+// GetInterfaceFont retrieves the selected interface font.
+func (s *SettingsService) GetInterfaceFont() (string, error) {
+	return settings.GetInterfaceFont()
+}
+
+// SetInterfaceFont sets the selected interface font.
+func (s *SettingsService) SetInterfaceFont(font string) error {
+	return settings.SetInterfaceFont(font)
+}
+
 // GetInterfaceTextSize retrieves the interface text size in pixels.
 func (s *SettingsService) GetInterfaceTextSize() (int, error) {
 	return settings.GetInterfaceTextSize()

@@ -583,6 +583,8 @@
     "accentDescription": "Escolha uma tonalidade para a interface.",
     "textSize": "Tamanho do texto",
     "textSizeDescription": "Ajuste o tamanho do texto da interface.",
+    "interfaceFont": "Fonte",
+    "interfaceFontDescription": "Escolha a fonte da interface.",
     "tints": {
       "default": "Amora",
       "blue": "Mirtilo",

@@ -619,6 +619,8 @@
     "accentDescription": "Choose a color tint for the interface.",
     "textSize": "Text size",
     "textSizeDescription": "Adjust the size of interface text.",
+    "interfaceFont": "Interface font",
+    "interfaceFontDescription": "Choose the font used throughout the interface.",
     "tints": {
       "default": "Blackberry",
       "blue": "Blueberry",

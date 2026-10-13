@@ -31,6 +31,14 @@
             ></button>
           </div>
           <DropDownBox
+            v-else-if="item.id === 'interface-font'"
+            :items="interfaceFontOptions"
+            :onSelect="selectInterfaceFont"
+            :selectedItem="settingsStore.interfaceFont"
+            :placeHolder="DEFAULT_INTERFACE_FONT_NAME"
+            :fixedWidth="true"
+          />
+          <DropDownBox
             v-else-if="item.id === 'text-size'"
             :items="textSizeOptions"
             :onSelect="selectTextSize"
@@ -69,10 +77,16 @@ const MINIMUM_INTERFACE_TEXT_SIZE = 13;
 const MEDIUM_INTERFACE_TEXT_SIZE = 14;
 const MAXIMUM_INTERFACE_TEXT_SIZE = 15;
 const DEFAULT_INTERFACE_TEXT_SIZE = MINIMUM_INTERFACE_TEXT_SIZE;
+const DEFAULT_INTERFACE_FONT_NAME = 'Sora';
 const INTERFACE_TEXT_SIZES = [
   MINIMUM_INTERFACE_TEXT_SIZE,
   MEDIUM_INTERFACE_TEXT_SIZE,
   MAXIMUM_INTERFACE_TEXT_SIZE,
+];
+const INTERFACE_FONTS = [
+  { id: 'sora', name: 'Sora', selectionValue: 'sora' },
+  { id: 'inter', name: 'Inter', selectionValue: 'inter' },
+  { id: 'sour-gummy', name: 'Sour Gummy', selectionValue: 'sour-gummy' },
 ];
 
 const iconStore = useIconStore();
@@ -98,6 +112,7 @@ const textSizeOptions = INTERFACE_TEXT_SIZES.map((size) => ({
   name: `${size} px`,
   selectionValue: String(size),
 }));
+const interfaceFontOptions = INTERFACE_FONTS;
 const themeIcon = computed(() => {
   return themeStore.resolvedMode === 'dark' ? getAppIcon('moon') : getAppIcon('sun');
 });
@@ -119,6 +134,12 @@ const appearanceItems = computed(() => [
     icon: getAppIcon('palette'),
     label: t('settings.accent'),
     description: t('settings.accentDescription'),
+  },
+  {
+    id: 'interface-font',
+    icon: getAppIcon('alphabets'),
+    label: t('settings.interfaceFont'),
+    description: t('settings.interfaceFontDescription'),
   },
   {
     id: 'text-size',
@@ -152,6 +173,14 @@ const selectLanguage = async (languageName) => {
 
 const selectTheme = (theme) => themeStore.setMode(theme);
 const selectTint = (tint) => themeStore.setTint(tint);
+const selectInterfaceFont = async (font) => {
+  try {
+    await settingsStore.setInterfaceFont(font);
+  } catch (error) {
+    console.error(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdate'), 'error');
+  }
+};
 const selectTextSize = async (size) => {
   try {
     await settingsStore.setInterfaceTextSize(size);

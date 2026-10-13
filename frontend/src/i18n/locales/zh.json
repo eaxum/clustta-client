@@ -583,6 +583,8 @@
     "accentDescription": "选择界面的色调。",
     "textSize": "文本大小",
     "textSizeDescription": "调整界面文本的大小。",
+    "interfaceFont": "字体",
+    "interfaceFontDescription": "选择界面字体。",
     "tints": {
       "default": "黑莓",
       "blue": "蓝莓",

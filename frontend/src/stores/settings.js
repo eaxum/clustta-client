@@ -4,6 +4,8 @@ import { SettingsService } from '@/services';
 const DEFAULT_INTERFACE_TEXT_SIZE = 13;
 const MINIMUM_INTERFACE_TEXT_SIZE = 13;
 const MAXIMUM_INTERFACE_TEXT_SIZE = 15;
+const DEFAULT_INTERFACE_FONT = 'sora';
+const INTERFACE_FONTS = Object.freeze(['sora', 'inter', 'sour-gummy']);
 
 const isValidInterfaceTextSize = (size) => (
   Number.isInteger(size)
@@ -11,9 +13,12 @@ const isValidInterfaceTextSize = (size) => (
   && size <= MAXIMUM_INTERFACE_TEXT_SIZE
 );
 
+const isValidInterfaceFont = (font) => INTERFACE_FONTS.includes(font);
+
 export const useSettingsStore = defineStore("settings", {
   state: () => ({
     bridgeEnabled: false,
+    interfaceFont: DEFAULT_INTERFACE_FONT,
     interfaceTextSize: DEFAULT_INTERFACE_TEXT_SIZE,
     minimizeOnClose: true,
     motionPreference: 'system',
@@ -204,6 +209,30 @@ export const useSettingsStore = defineStore("settings", {
 
     applyInterfaceTextSize() {
       document.documentElement.style.setProperty('--font-size-interface', `${this.interfaceTextSize}px`);
+    },
+
+    async initializeInterfaceFont() {
+      try {
+        const font = await SettingsService.GetInterfaceFont();
+        this.interfaceFont = isValidInterfaceFont(font) ? font : DEFAULT_INTERFACE_FONT;
+      } catch (error) {
+        console.error(error);
+        this.interfaceFont = DEFAULT_INTERFACE_FONT;
+      }
+      this.applyInterfaceFont();
+    },
+
+    async setInterfaceFont(font) {
+      if (!isValidInterfaceFont(font)) {
+        throw new RangeError(`Unsupported interface font: ${font}`);
+      }
+      await SettingsService.SetInterfaceFont(font);
+      this.interfaceFont = font;
+      this.applyInterfaceFont();
+    },
+
+    applyInterfaceFont() {
+      document.documentElement.dataset.interfaceFont = this.interfaceFont;
     },
 
     // Loads the overwrite dropped files state from user settings.

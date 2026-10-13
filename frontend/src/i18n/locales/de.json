@@ -583,6 +583,8 @@
     "accentDescription": "Wählen Sie eine Farbtönung für die Benutzeroberfläche.",
     "textSize": "Textgröße",
     "textSizeDescription": "Passen Sie die Größe des Oberflächentextes an.",
+    "interfaceFont": "Schriftart",
+    "interfaceFontDescription": "Wählen Sie die Schriftart der Benutzeroberfläche.",
     "tints": {
       "default": "Brombeere",
       "blue": "Blaubeere",

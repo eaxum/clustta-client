@@ -583,6 +583,8 @@
     "accentDescription": "Choisissez une teinte pour l'interface.",
     "textSize": "Taille du texte",
     "textSizeDescription": "Ajustez la taille du texte de l'interface.",
+    "interfaceFont": "Police",
+    "interfaceFontDescription": "Choisissez la police de l'interface.",
     "tints": {
       "default": "Mûre",
       "blue": "Myrtille",

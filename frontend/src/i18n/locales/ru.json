@@ -583,6 +583,8 @@
     "accentDescription": "Выберите оттенок интерфейса.",
     "textSize": "Размер текста",
     "textSizeDescription": "Настройте размер текста интерфейса.",
+    "interfaceFont": "Шрифт",
+    "interfaceFontDescription": "Выберите шрифт интерфейса.",
     "tints": {
       "default": "Ежевика",
       "blue": "Черника",
