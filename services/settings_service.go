@@ -88,26 +88,8 @@ func (s *SettingsService) SetPreLaunchHookSettings(projectPath string, settings 
 	if err := requireProjectSettingsPermission(tx); err != nil {
 		return repository.PreLaunchHookSettings{}, err
 	}
-	for _, hook := range normalized.Hooks {
-		scriptPaths, err := agent.ResolveTrackedScriptPaths(projectPath, hook.ScriptAssetIDs)
-		if err != nil {
-			return repository.PreLaunchHookSettings{}, err
-		}
-		for _, scriptPath := range scriptPaths {
-			extension := strings.ToLower(filepath.Ext(scriptPath))
-			for _, targetExtension := range hook.Extensions {
-				dcc := repository.PreLaunchDCCForExtension(targetExtension)
-				if dcc == "" {
-					return repository.PreLaunchHookSettings{}, fmt.Errorf("script hooks do not support %s files", targetExtension)
-				}
-				if dcc == repository.PreLaunchDCCBlender && extension != ".py" {
-					return repository.PreLaunchHookSettings{}, fmt.Errorf("Blender hooks only support Python scripts")
-				}
-				if dcc == repository.PreLaunchDCCMaya && extension != ".py" && extension != ".mel" {
-					return repository.PreLaunchHookSettings{}, fmt.Errorf("Maya hooks only support Python and MEL scripts")
-				}
-			}
-		}
+	if err := validatePreLaunchHookScripts(projectPath, normalized.Hooks); err != nil {
+		return repository.PreLaunchHookSettings{}, err
 	}
 	if err := repository.SetPreLaunchHookSettings(tx, normalized); err != nil {
 		return repository.PreLaunchHookSettings{}, err
@@ -116,6 +98,31 @@ func (s *SettingsService) SetPreLaunchHookSettings(projectPath string, settings 
 		return repository.PreLaunchHookSettings{}, err
 	}
 	return s.GetPreLaunchHookSettings(projectPath)
+}
+
+func validatePreLaunchHookScripts(projectPath string, hooks []repository.PreLaunchHook) error {
+	for _, hook := range hooks {
+		scriptPaths, err := agent.ResolveConfiguredScriptPaths(projectPath, hook.ScriptAssetIDs)
+		if err != nil {
+			return err
+		}
+		for _, scriptPath := range scriptPaths {
+			extension := strings.ToLower(filepath.Ext(scriptPath))
+			for _, targetExtension := range hook.Extensions {
+				dcc := repository.PreLaunchDCCForExtension(targetExtension)
+				if dcc == "" {
+					return fmt.Errorf("script hooks do not support %s files", targetExtension)
+				}
+				if dcc == repository.PreLaunchDCCBlender && extension != ".py" {
+					return fmt.Errorf("Blender hooks only support Python scripts")
+				}
+				if dcc == repository.PreLaunchDCCMaya && extension != ".py" && extension != ".mel" {
+					return fmt.Errorf("Maya hooks only support Python and MEL scripts")
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (s *SettingsService) SetProjectEnvironmentVariables(projectPath string, requestedSettings repository.PreLaunchHookSettings) (repository.PreLaunchHookSettings, error) {
