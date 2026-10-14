@@ -1,7 +1,11 @@
 <template>
   <div class="tabs-container">
     <div ref="tabBar" class="tab-bar">
-      <div class="selection-indicator" :class="{ 'selection-indicator-ready': isIndicatorReady }"
+      <div ref="selectionIndicator" class="selection-indicator" :class="{
+        'selection-indicator-ready': isIndicatorReady,
+        'selection-indicator-fading': isIndicatorFading,
+        'selection-indicator-teleporting': isIndicatorTeleporting,
+      }"
         :style="indicatorStyle" aria-hidden="true"></div>
 
       <TransitionGroup name="tab-list">
@@ -142,10 +146,44 @@ const dragPosition = ref({ x: 0, y: 0 })
 const tabRects = ref([]);
 const indicatorStyle = ref({ opacity: 0 });
 const isIndicatorReady = ref(false);
+const isIndicatorFading = ref(false);
+const isIndicatorTeleporting = ref(false);
 const tabBar = ref(null);
+const selectionIndicator = ref(null);
 const workspaceTabElements = ref([]);
 
+const DISTANT_TAB_THRESHOLD = 1;
+const MILLISECONDS_PER_SECOND = 1000;
+
 let resizeObserver = null;
+let indicatorNavigationId = 0;
+let visibleIndicatorIndex = null;
+
+const parseTransitionTime = (value) => {
+  const duration = Number.parseFloat(value);
+  if (Number.isNaN(duration)) return 0;
+  return value.trim().endsWith('ms') ? duration : duration * MILLISECONDS_PER_SECOND;
+};
+
+const getIndicatorTransitionDuration = () => {
+  if (!selectionIndicator.value) return 0;
+
+  const styles = window.getComputedStyle(selectionIndicator.value);
+  const durations = styles.transitionDuration.split(',').map(parseTransitionTime);
+  return Math.max(0, ...durations);
+};
+
+const waitForIndicatorTransition = () => {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, getIndicatorTransitionDuration());
+  });
+};
+
+const waitForAnimationFrame = () => {
+  return new Promise((resolve) => {
+    window.requestAnimationFrame(resolve);
+  });
+};
 
 const updateSelectionIndicator = () => {
   if (!tabBar.value) return;
@@ -156,6 +194,7 @@ const updateSelectionIndicator = () => {
 
   if (!selectedElement) {
     indicatorStyle.value = { opacity: 0 };
+    visibleIndicatorIndex = null;
     return;
   }
 
@@ -168,11 +207,59 @@ const updateSelectionIndicator = () => {
     opacity: 1,
     transform: `translate3d(${selectedBounds.left - tabBarBounds.left}px, ${selectedBounds.top - tabBarBounds.top}px, 0)`,
   };
+  visibleIndicatorIndex = workspaceTabs.value.findIndex((workspace) => {
+    return workspace.name === activeWorkspace.value;
+  });
 };
 
 const scheduleSelectionIndicatorUpdate = async () => {
   await nextTick();
   updateSelectionIndicator();
+};
+
+const transitionSelectionIndicator = async () => {
+  const navigationId = ++indicatorNavigationId;
+  isIndicatorFading.value = false;
+  isIndicatorTeleporting.value = false;
+  await nextTick();
+  if (navigationId !== indicatorNavigationId) return;
+
+  const targetIndex = workspaceTabs.value.findIndex((workspace) => {
+    return workspace.name === activeWorkspace.value;
+  });
+  const tabDistance = Math.abs(targetIndex - visibleIndicatorIndex);
+
+  if (
+    visibleIndicatorIndex === null ||
+    targetIndex < 0 ||
+    tabDistance <= DISTANT_TAB_THRESHOLD ||
+    getIndicatorTransitionDuration() === 0
+  ) {
+    updateSelectionIndicator();
+    return;
+  }
+
+  isIndicatorFading.value = true;
+  indicatorStyle.value = { ...indicatorStyle.value, opacity: 0 };
+  await nextTick();
+  await waitForIndicatorTransition();
+  if (navigationId !== indicatorNavigationId) return;
+
+  isIndicatorTeleporting.value = true;
+  updateSelectionIndicator();
+  indicatorStyle.value = { ...indicatorStyle.value, opacity: 0 };
+  await nextTick();
+  await waitForAnimationFrame();
+  await waitForAnimationFrame();
+  if (navigationId !== indicatorNavigationId) return;
+
+  isIndicatorTeleporting.value = false;
+  indicatorStyle.value = { ...indicatorStyle.value, opacity: 1 };
+  await nextTick();
+  await waitForIndicatorTransition();
+  if (navigationId !== indicatorNavigationId) return;
+
+  isIndicatorFading.value = false;
 };
 
 
@@ -300,7 +387,7 @@ const updateTabRects = () => {
   })
 }
 
-watch(activeWorkspace, scheduleSelectionIndicatorUpdate);
+watch(activeWorkspace, transitionSelectionIndicator);
 watch(workspaceTabs, scheduleSelectionIndicatorUpdate, { deep: true });
 
 onMounted(async () => {
@@ -318,6 +405,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  indicatorNavigationId += 1;
   window.removeEventListener('resize', updateTabRects)
   resizeObserver?.disconnect();
 });
@@ -452,7 +540,19 @@ const getTabStyle = (index) => {
 }
 
 .selection-indicator-ready {
-  transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out, opacity 0.2s ease-out;
+  transition:
+    transform var(--motion-duration-layout) ease-out,
+    width var(--motion-duration-layout) ease-out,
+    height var(--motion-duration-layout) ease-out,
+    opacity var(--motion-duration-layout) ease-out;
+}
+
+.selection-indicator-fading {
+  transition: opacity var(--motion-duration-fast) ease-out;
+}
+
+.selection-indicator-teleporting {
+  transition: none;
 }
 
 .tab {
@@ -694,7 +794,7 @@ const getTabStyle = (index) => {
 }
 
 .tab-list-move {
-  transition: transform 0.2s ease;
+  transition: transform var(--motion-duration-layout) ease;
 }
 
 .tab:hover .dirty-indicator {

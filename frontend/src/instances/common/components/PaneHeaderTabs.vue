@@ -183,7 +183,11 @@ onBeforeUnmount(() => {
 }
 
 .selection-indicator-ready {
-  transition: transform 0.2s ease-out, width 0.2s ease-out, height 0.2s ease-out, opacity 0.2s ease-out;
+  transition:
+    transform var(--motion-duration-layout) ease-out,
+    width var(--motion-duration-layout) ease-out,
+    height var(--motion-duration-layout) ease-out,
+    opacity var(--motion-duration-layout) ease-out;
 }
 
 .fullwidth-header-tab-root {
@@ -236,7 +240,9 @@ onBeforeUnmount(() => {
   opacity: .5;
   justify-content: flex-start;
   padding: 5px .5rem;
-  transition: background-color 0.2s ease-out, opacity 0.2s ease-out;
+  transition:
+    background-color var(--motion-duration-layout) ease-out,
+    opacity var(--motion-duration-layout) ease-out;
   border-radius: var(--large-radius);
   flex-shrink: 0;
 }
@@ -263,7 +269,9 @@ onBeforeUnmount(() => {
   width: 100%;
   background-color: transparent;
   opacity: 1;
-  transition: background-color 0.2s ease-out, opacity 0.2s ease-out;
+  transition:
+    background-color var(--motion-duration-layout) ease-out,
+    opacity var(--motion-duration-layout) ease-out;
   min-width: 0;
   flex-shrink: 1;
   overflow: hidden;
