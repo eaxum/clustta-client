@@ -1,10 +1,8 @@
 <template>
   <div class="asset-item" :class="[`asset-item-${variant}`, {
     'asset-item-clickable': clickable,
-    'asset-item-disabled': isDisabled,
     'asset-item-outline-disabled': disableOutline,
-    'asset-item-selected': selected,
-  }]" :aria-disabled="isDisabled" :aria-selected="selected" @click="handleClick" @dblclick="handleDoubleClick">
+  }]" @click="handleClick">
     <div class="asset-item-meta">
       <img class="asset-item-icon small-icons" :class="{ 'no-filter': hasResolvedIcon }" :src="displayIcon" @error="handleIconError" />
 
@@ -112,10 +110,6 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  selected: {
-    type: Boolean,
-    default: false,
-  },
   disableOutline: {
     type: Boolean,
     default: false,
@@ -126,7 +120,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['click', 'dblclick', 'navigate']);
+const emit = defineEmits(['click', 'navigate']);
 
 const iconStore = useIconStore();
 const slots = useSlots();
@@ -134,10 +128,6 @@ const resolvedIcon = ref('');
 const iconLoadKey = ref('');
 
 const itemValue = computed(() => props.item || {});
-const isCollection = computed(() => {
-  const itemType = itemValue.value.type || itemValue.value.item_type || '';
-  return itemType.includes('collection') || !!itemValue.value.collection_type_id;
-});
 
 const normalizePath = (filePath = '') => filePath.replace(/\\/g, '/');
 
@@ -158,7 +148,6 @@ const stripExtension = (value = '', extension = '') => {
 };
 
 const extension = computed(() => {
-  if (isCollection.value) return '';
   return props.extension
     || itemValue.value.extension
     || getExtension(props.fullPath || itemValue.value.fullPath || itemValue.value.display_path || itemValue.value.asset_path || '');
@@ -195,6 +184,7 @@ const displayName = computed(() => {
 
 const normalizedKind = computed(() => props.kind || itemValue.value.kind || 'default');
 const normalizedKindLabel = computed(() => props.kindLabel || itemValue.value.kindLabel || '');
+
 const explicitIcon = computed(() => props.icon || itemValue.value.icon || '');
 const fallbackIcon = computed(() => itemValue.value.fallbackIcon || props.fallbackIcon || '');
 const displayIcon = computed(() => resolvedIcon.value || explicitIcon.value || fallbackIcon.value || getAppIcon('generic'));
@@ -204,15 +194,10 @@ const showActions = computed(() => props.showNavigate || !!slots.actions);
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 const handleClick = () => {
-  if (props.clickable && !props.isDisabled) emit('click', itemValue.value);
-};
-
-const handleDoubleClick = () => {
-  if (props.clickable && !props.isDisabled) emit('dblclick', itemValue.value);
+  if (props.clickable) emit('click', itemValue.value);
 };
 
 const handleNavigate = () => {
-  if (props.isDisabled) return;
   emit('navigate', itemValue.value);
 };
 
@@ -269,36 +254,17 @@ watch(() => `${extension.value}:${explicitIcon.value}`, loadIcon, { immediate: t
   cursor: pointer;
 }
 
-.asset-item-disabled {
-  cursor: not-allowed;
-  opacity: .55;
-}
-
 .asset-item-outline-disabled {
   outline: none;
 }
 
 .asset-item-compact {
   min-height: 34px;
-  background-color: var(--surface-2);
+  background-color: transparent;
 }
 
 .asset-item-compact:hover {
   background-color: var(--surface-3);
-}
-
-.asset-item-selected,
-.asset-item-selected:hover,
-.asset-item-compact.asset-item-selected,
-.asset-item-compact.asset-item-selected:hover {
-  background-color: var(--selected-soft);
-  outline: var(--transparent-line);
-  outline-offset: -1px;
-}
-
-.asset-item-selected:hover,
-.asset-item-compact.asset-item-selected:hover {
-  background-color: var(--selected);
 }
 
 .asset-item-actions {

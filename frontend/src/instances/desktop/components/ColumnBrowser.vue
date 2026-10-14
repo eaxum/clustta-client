@@ -9,13 +9,18 @@
       <ColumnPane
         v-for="column in visibleColumns"
         :key="column.key"
+        :active="column.index === activeColumnIndex"
+        :editingKey="editingKey"
         :error="browserTreeStore.parentErrors[column.key]"
         :items="column.items"
         :loading="isColumnLoading(column)"
+        :renamingKey="renamingKey"
         :selectedKey="selectedKeys[column.index] || ''"
         :title="column.title"
+        @cancelRename="cancelRename"
         @contextmenu="openContextMenu"
         @open="openItem"
+        @rename="renameItem"
         @retry="retryColumn(column)"
         @select="selectItem($event, column.index)"
         @stateAction="handleAssetStateAction"
@@ -29,11 +34,19 @@
 <script setup>
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { Events } from '@wailsio/runtime';
 import { useAssetLauncher } from '@/composables/useAssetLauncher';
 import ColumnPane from '@/instances/desktop/components/ColumnPane.vue';
 import { browserRootParentKey, getBrowserItemKey } from '@/lib/browserTree';
-import { canCreateCheckpointForItem, isCheckpointBlockedByAssignment } from '@/lib/permissions';
-import { CheckpointService } from '@/services';
+import emitter from '@/lib/mitt';
+import { getParentPath } from '@/lib/pathlib';
+import {
+  canActInNavigatedCollection,
+  canActOnAsset,
+  canCreateCheckpointForItem,
+  isCheckpointBlockedByAssignment,
+} from '@/lib/permissions';
+import { AssetService, CheckpointService, CollectionService, FSService } from '@/services';
 import { useAssetStore } from '@/stores/assets';
 import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
@@ -46,6 +59,7 @@ import { useProjectStore } from '@/stores/projects';
 import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUntrackedItemStore } from '@/stores/untracked';
+import { useUserStore } from '@/stores/users';
 
 const MINIMUM_COLUMN_COUNT = 3;
 const MAXIMUM_COLUMN_COUNT = 5;
@@ -71,15 +85,19 @@ const projectStore = useProjectStore();
 const stage = useStageStore();
 const trayStates = useTrayStates();
 const untrackedItemStore = useUntrackedItemStore();
+const userStore = useUserStore();
 const { t } = useI18n();
 const { launchAsset } = useAssetLauncher();
 
 const activeColumnIndex = ref(0);
 const columnBrowser = ref(null);
 const columnCapacity = ref(MINIMUM_COLUMN_COUNT);
+const editingKey = ref('');
+const renamingKey = ref('');
 const selectedKeys = ref([]);
 const selectedPath = ref([]);
 let resizeObserver = null;
+let stopRenameShortcut = null;
 
 const columns = computed(() => {
   const result = [{
@@ -284,6 +302,7 @@ const restoreNavigationPath = async () => {
 };
 
 const selectItem = async (item, columnIndex) => {
+  editingKey.value = '';
   activeColumnIndex.value = columnIndex;
   selectedKeys.value = selectedKeys.value.slice(0, columnIndex + 1);
   selectedKeys.value[columnIndex] = getBrowserItemKey(item);
@@ -329,6 +348,102 @@ const openContextMenu = (event, item) => {
 
   untrackedItemStore.selectUntrackedItem(item);
   menu.showContextMenu(event, 'untrackedItemMenu', true);
+};
+
+const getActiveItem = () => {
+  const column = columns.value[activeColumnIndex.value];
+  const selectedKey = selectedKeys.value[activeColumnIndex.value];
+  return column?.items.find((item) => getBrowserItemKey(item) === selectedKey) || null;
+};
+
+const canRenameItem = (item) => {
+  if (!item || stage.operationActive || renamingKey.value || stage.activeStage !== 'browser') return false;
+  if (item.type === 'untracked_asset' || item.type === 'untracked_collection') {
+    return canActInNavigatedCollection('update_asset');
+  }
+  if (isCollection(item)) return userStore.canDo('update_collection');
+  return canActOnAsset('update_asset', item);
+};
+
+const startRename = () => {
+  const item = getActiveItem();
+  if (!canRenameItem(item)) return;
+  editingKey.value = getBrowserItemKey(item);
+};
+
+const cancelRename = () => {
+  if (renamingKey.value) return;
+  editingKey.value = '';
+  nextTick(() => columnBrowser.value?.focus());
+};
+
+const emitItemUpdates = (itemId, updates) => {
+  browserTreeStore.patchItemsById(
+    itemId,
+    Object.fromEntries(updates.map(({ property, value }) => [property, value]))
+  );
+  emitter.emit('update-root-data', { itemId, updates });
+};
+
+const renameAsset = async (asset, name) => {
+  if (asset.type === 'asset') {
+    await AssetService.RenameAsset(projectStore.activeProject.uri, asset.id, name);
+    emitItemUpdates(asset.id, [
+      { property: 'name', value: name },
+      { property: 'file_status', value: 'outdated' },
+    ]);
+    return;
+  }
+
+  const oldPath = asset.file_path;
+  const newPath = `${getParentPath(oldPath)}/${name}${asset.extension || ''}`;
+  await FSService.Rename(oldPath, newPath);
+  emitItemUpdates(asset.id, [
+    { property: 'name', value: name },
+    { property: 'file_path', value: newPath },
+  ]);
+};
+
+const renameCollection = async (collection, name) => {
+  const normalizedFilePath = (collection.file_path || '').replace(/\\/g, '/');
+  const newFilePath = `${getParentPath(normalizedFilePath)}/${name}`;
+
+  if (collection.type === 'untracked_collection') {
+    await FSService.Rename(normalizedFilePath, newFilePath);
+    emitItemUpdates(collection.id, [
+      { property: 'name', value: name },
+      { property: 'file_path', value: newFilePath },
+    ]);
+    return;
+  }
+
+  await CollectionService.RenameCollection(projectStore.activeProject.uri, collection.id, name);
+  const collectionParentPath = getParentPath(collection.collection_path || '');
+  const newCollectionPath = collectionParentPath ? `${collectionParentPath}/${name}` : name;
+  emitItemUpdates(collection.id, [
+    { property: 'name', value: name },
+    { property: 'collection_path', value: newCollectionPath },
+    { property: 'file_path', value: newFilePath },
+  ]);
+};
+
+const renameItem = async (item, name) => {
+  if (!canRenameItem(item)) return;
+
+  renamingKey.value = getBrowserItemKey(item);
+  try {
+    if (isCollection(item)) {
+      await renameCollection(item, name);
+    } else {
+      await renameAsset(item, name);
+    }
+    editingKey.value = '';
+    nextTick(() => columnBrowser.value?.focus());
+  } catch (error) {
+    notificationStore.errorNotification(t('notifications.renameFailed'), error.message || error);
+  } finally {
+    renamingKey.value = '';
+  }
 };
 
 const retryColumn = async (column) => {
@@ -383,6 +498,7 @@ const moveToPreviousColumn = () => {
 };
 
 const handleKeyDown = async (event) => {
+  if (editingKey.value || event.target instanceof HTMLInputElement) return;
   if (event.key === 'ArrowDown') {
     event.preventDefault();
     await selectAdjacentItem(1);
@@ -472,6 +588,9 @@ watch(() => props.rootItems.map(getBrowserItemKey).join('|'), async () => {
 });
 
 onMounted(async () => {
+  emitter.on('renameAsset', startRename);
+  emitter.on('renameCollection', startRename);
+  stopRenameShortcut = Events.On('rename-item', startRename);
   resizeObserver = new ResizeObserver(updateColumnCapacity);
   resizeObserver.observe(columnBrowser.value);
   updateColumnCapacity();
@@ -480,6 +599,9 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  emitter.off('renameAsset', startRename);
+  emitter.off('renameCollection', startRename);
+  stopRenameShortcut?.();
   resizeObserver?.disconnect();
 });
 
@@ -504,11 +626,6 @@ defineExpose({ refreshOpenColumns });
   gap: .8rem;
   box-sizing: border-box;
   padding: 1px;
-}
-
-.column-browser:focus-visible {
-  outline: 1px solid var(--accent);
-  outline-offset: -1px;
 }
 
 .column-placeholder {

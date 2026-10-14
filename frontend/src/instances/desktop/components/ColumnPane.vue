@@ -1,6 +1,6 @@
 <template>
   <section class="column-pane" :aria-label="title">
-    <header class="column-pane-header" v-tooltip="title">
+    <header class="column-pane-header" :class="{ 'column-pane-header-active': active }" v-tooltip="title">
       <span>{{ title }}</span>
     </header>
 
@@ -27,109 +27,43 @@
         @dblclick.stop
         @contextmenu.stop.prevent="selectForContextMenu($event, item)"
       >
-        <AssetItem
+        <ColumnItem
           :item="item"
-          :icon="getItemIcon(item)"
-          :fallbackIcon="getFallbackIcon(item)"
-          :hideExtension="commonStore.hideExtensions"
-          :showFullPath="commonStore.showFullPath"
+          :editing="editingKey === getBrowserItemKey(item)"
+          :renaming="renamingKey === getBrowserItemKey(item)"
           :selected="selectedKey === getBrowserItemKey(item)"
-          :tooltip="getTooltip(item)"
-          :showBadge="false"
-          :clickable="true"
-          variant="compact"
-          @click="emit('select', item)"
+          @cancelRename="emit('cancelRename')"
           @dblclick="emit('open', item)"
-        >
-          <template #persistent>
-            <ActionButton
-              v-if="getAssetStateIcon(item)"
-              class="column-pane-state-icon"
-              :icon="getAppIcon(getAssetStateIcon(item))"
-              :isInactive="!isAssetStateActionable(item)"
-              :noFilter="item.file_status === 'normal'"
-              :useAlert="isAlertState(item)"
-              :useDanger="item.type === 'untracked_asset'"
-              :buttonFunction="() => emit('stateAction', item)"
-              v-tooltip="item.file_status || item.type"
-            />
-            <img v-if="isCollection(item)" class="small-icons column-pane-chevron" :src="getAppIcon('chevron-right')" />
-          </template>
-        </AssetItem>
+          @rename="emit('rename', item, $event)"
+          @select="emit('select', item)"
+          @stateAction="emit('stateAction', item)"
+        />
       </div>
     </div>
   </section>
 </template>
 
 <script setup>
-import AssetItem from '@/instances/desktop/components/AssetItem.vue';
-import ActionButton from '@/instances/desktop/components/ActionButton.vue';
+import ColumnItem from '@/instances/desktop/components/ColumnItem.vue';
 import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
 import { getBrowserItemKey } from '@/lib/browserTree';
-import { useCommonStore } from '@/stores/common';
-import { useIconStore } from '@/stores/icons';
-import { usePlatformStore } from '@/stores/platform';
 
 defineProps({
+  active: { type: Boolean, default: false },
+  editingKey: { type: String, default: '' },
   error: { type: [Error, String, Object], default: null },
   items: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  renamingKey: { type: String, default: '' },
   selectedKey: { type: String, default: '' },
   title: { type: String, default: '' },
 });
 
-const emit = defineEmits(['contextmenu', 'open', 'retry', 'select', 'stateAction']);
-
-const commonStore = useCommonStore();
-const iconStore = useIconStore();
-const platformStore = usePlatformStore();
-
-const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
+const emit = defineEmits(['cancelRename', 'contextmenu', 'open', 'rename', 'retry', 'select', 'stateAction']);
 
 const isCollection = (item) => {
   const itemType = item.type || item.item_type || '';
   return itemType.includes('collection') || !!item.collection_type_id;
-};
-
-const getFallbackIcon = (item) => {
-  if (isCollection(item)) return getAppIcon(item.collection_type_icon || 'folder');
-  return getAppIcon(item.asset_type_icon || 'file');
-};
-
-const getItemIcon = (item) => {
-  if (isCollection(item)) return getAppIcon(item.collection_type_icon || item.icon || 'folder');
-  return item.icon || '';
-};
-
-const getTooltip = (item) => {
-  return item.file_path || item.collection_path || item.asset_path || item.name || '';
-};
-
-const getAssetStateIcon = (item) => {
-  if (isCollection(item)) return '';
-  if (item.type === 'untracked_asset') return 'plus-stone';
-  if (platformStore.isWeb) return 'arrow-down-ramp';
-
-  const stateIcons = {
-    fetchable: 'fetch',
-    missing: 'alert',
-    modified: 'plus-stone',
-    normal: 'circle-check-go',
-    outdated: 'circle-check',
-  };
-  return stateIcons[item.file_status] || '';
-};
-
-const isAlertState = (item) => {
-  return item.file_status === 'modified' || item.file_status === 'outdated';
-};
-
-const isAssetStateActionable = (item) => {
-  return (platformStore.isWeb && item.type === 'asset')
-    || item.type === 'untracked_asset'
-    || item.file_status === 'modified'
-    || item.file_status === 'outdated'
-    || item.file_status === 'fetchable';
 };
 
 const selectForContextMenu = (event, item) => {
@@ -161,7 +95,7 @@ const itemMainClass = (item) => {
 
 .column-pane-header {
   display: flex;
-  min-height: 40px;
+  min-height: 32px;
   align-items: center;
   box-sizing: border-box;
   padding: 0 .8rem;
@@ -175,6 +109,11 @@ const itemMainClass = (item) => {
   font-weight: 500;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.column-pane-header-active {
+  color: var(--text);
+  background-color: var(--selected-soft);
 }
 
 .column-pane-header span {
@@ -215,6 +154,7 @@ const itemMainClass = (item) => {
 .column-pane-state {
   display: flex;
   min-height: 5rem;
+  flex: 1;
   align-items: center;
   justify-content: center;
   gap: .4rem;
@@ -235,14 +175,4 @@ const itemMainClass = (item) => {
   color: var(--accent);
 }
 
-.column-pane-chevron {
-  flex: 0 0 auto;
-  opacity: .65;
-}
-
-.column-pane-state-icon {
-  flex: 0 0 auto;
-  padding: 0;
-  opacity: 1;
-}
 </style>
