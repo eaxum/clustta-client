@@ -17,6 +17,21 @@ export const getDefaultTaskOutput = (template, taskType) => {
   return `${subjectPlaceholder}-${String(taskType || '').toLowerCase()}`;
 };
 
+export const fillDefaultTaskOutputs = (template, taskTypes) => {
+  const taskOutputs = { ...(template.task_outputs || {}) };
+
+  for (const taskType of taskTypes) {
+    const taskTypeName = taskType.name;
+    const isEnabled = template.task_output_enabled?.[taskTypeName] !== false;
+    const hasOutput = String(taskOutputs[taskTypeName] || '').trim() !== '';
+    if (!taskTypeName || !isEnabled || hasOutput) continue;
+
+    taskOutputs[taskTypeName] = getDefaultTaskOutput(template, taskTypeName);
+  }
+
+  return taskOutputs;
+};
+
 export const getDirectoryTemplatePreviewValues = (template) => {
   const entity = inferDirectoryTemplateEntity(template.id, template.template);
   const isShotTemplate = entity === SHOT_ENTITY;

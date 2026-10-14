@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  fillDefaultTaskOutputs,
   getDefaultTaskOutput,
   getDirectoryTemplatePreviewValues,
   inferDirectoryTemplateEntity,
@@ -36,4 +37,31 @@ test('unclassified templates retain the asset default', () => {
 
   assert.equal(getDefaultTaskOutput(customTemplate, 'Modeling'), '<Asset>-modeling');
   assert.equal(getDirectoryTemplatePreviewValues(customTemplate).OutputName, 'hero-modeling');
+});
+
+test('auto task outputs fill blank enabled fields for each entity', () => {
+  const assetOutputs = fillDefaultTaskOutputs(assetTemplate, [{ name: 'Modeling' }]);
+  const shotOutputs = fillDefaultTaskOutputs(shotTemplate, [{ name: 'Animation' }]);
+
+  assert.deepEqual(assetOutputs, { Modeling: '<Asset>-modeling' });
+  assert.deepEqual(shotOutputs, { Animation: '<Shot>-animation' });
+});
+
+test('auto task outputs preserve custom values and skip disabled fields', () => {
+  const template = {
+    ...shotTemplate,
+    task_outputs: { Animation: 'custom-animation' },
+    task_output_enabled: { Lighting: false },
+  };
+
+  const outputs = fillDefaultTaskOutputs(template, [
+    { name: 'Animation' },
+    { name: 'Lighting' },
+    { name: 'Compositing' },
+  ]);
+
+  assert.deepEqual(outputs, {
+    Animation: 'custom-animation',
+    Compositing: '<Shot>-compositing',
+  });
 });

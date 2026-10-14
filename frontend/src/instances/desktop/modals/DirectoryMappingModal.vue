@@ -26,7 +26,11 @@
 
         <!-- Path Templates -->
         <div class="templates-section">
-          <h3 class="section-title">Path Templates</h3>
+          <div class="templates-header">
+            <h3 class="section-title">Path Templates</h3>
+            <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssignTaskOutputs"
+              :showLabel="true" :useBackground="true" :isDisabled="externalTaskTypes.length === 0" />
+          </div>
 
           <!-- Dynamic Templates -->
           <div v-for="template in customTemplates" :key="template.id" class="template-item">
@@ -107,6 +111,7 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
+  fillDefaultTaskOutputs,
   getDefaultTaskOutput,
   getDirectoryTemplatePreviewValues,
   inferDirectoryTemplateEntity,
@@ -240,6 +245,13 @@ const configuredTaskOutputCount = (template) => {
   return getTemplateTaskTypes(template)
     .filter(taskType => isTaskOutputEnabled(template, taskType.name))
     .length;
+};
+
+const autoAssignTaskOutputs = () => {
+  for (const template of customTemplates.value) {
+    const taskTypes = getTemplateTaskTypes(template);
+    template.task_outputs = fillDefaultTaskOutputs(template, taskTypes);
+  }
 };
 
 const isTaskOutputEnabled = (template, taskType) => {
@@ -470,6 +482,12 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.templates-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .section-title {
