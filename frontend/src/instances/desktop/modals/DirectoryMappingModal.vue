@@ -68,7 +68,7 @@
                     type="text"
                     class="task-output-input"
                     v-model="template.task_outputs[taskType.name]"
-                    :placeholder="defaultTaskOutput(taskType.name)"
+                    :placeholder="getDefaultTaskOutput(template, taskType.name)"
                     :disabled="!isTaskOutputEnabled(template, taskType.name)"
                   />
                 </div>
@@ -105,6 +105,12 @@
 // imports
 import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+
+import {
+  getDefaultTaskOutput,
+  getDirectoryTemplatePreviewValues,
+  inferDirectoryTemplateEntity,
+} from '@/lib/directoryMapping';
 
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
@@ -227,27 +233,13 @@ const getAppIcon = (iconName) => {
 
 // Returns preview for a template.
 const getTemplatePreview = (template) => {
-  return resolvePath(template.template, {
-    Episode: 'ep01',
-    Sequence: 'seq001',
-    Shot: 'shot010',
-    CollectionType: 'character',
-    Category: 'heroes',
-    Asset: 'hero',
-    AssetType: 'modeling',
-    OutputName: 'hero-modeling',
-    TemplateExtension: '.ext',
-  });
+  return resolvePath(template.template, getDirectoryTemplatePreviewValues(template));
 };
 
 const configuredTaskOutputCount = (template) => {
   return getTemplateTaskTypes(template)
     .filter(taskType => isTaskOutputEnabled(template, taskType.name))
     .length;
-};
-
-const defaultTaskOutput = (taskType) => {
-  return `<Asset>-${String(taskType || '').toLowerCase()}`;
 };
 
 const isTaskOutputEnabled = (template, taskType) => {
@@ -272,20 +264,13 @@ const toggleTaskOutputs = (templateId) => {
   };
 };
 
-const inferTemplateEntity = (id, template = '') => {
-  const value = `${id || ''} ${template || ''}`.toLowerCase();
-  if (value.includes('<shot>') || value.includes('shot')) return 'shot';
-  if (value.includes('<asset>') || value.includes('asset')) return 'asset';
-  return '';
-};
-
 const getTemplateTaskTypes = (template) => {
-	const entity = inferTemplateEntity(template.id, template.template);
-	if (!entity) return externalTaskTypes.value;
-	if (!externalTaskTypes.value.some(taskType => taskType.for_entity)) return externalTaskTypes.value;
+  const entity = inferDirectoryTemplateEntity(template.id, template.template);
+  if (!entity) return externalTaskTypes.value;
+  if (!externalTaskTypes.value.some(taskType => taskType.for_entity)) return externalTaskTypes.value;
 
-	return externalTaskTypes.value.filter(taskType => {
-		const forEntity = String(taskType.for_entity || '').toLowerCase();
+  return externalTaskTypes.value.filter(taskType => {
+    const forEntity = String(taskType.for_entity || '').toLowerCase();
     return forEntity === entity;
   });
 };
