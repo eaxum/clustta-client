@@ -26,10 +26,10 @@
       :icon="getAppIcon('file')" :showLabel="true" :fullWidth="true"
       :label="settingsStore.showFileTypeIcons ? $t('modals.hideFileTypeIcons') : $t('modals.showFileTypeIcons')" :buttonFunction="toggleShowFileTypeIcons" />
 
-    <span v-if="!isKanbanActive && !commonStore.useGrid" class="menu-divider"></span>
+    <span v-if="listViewActive" class="menu-divider"></span>
 
     <!-- Collapse Section -->
-    <ActionButton v-if="!isKanbanActive && !commonStore.useGrid"
+    <ActionButton v-if="listViewActive"
       :icon="getAppIcon('collapse-up')" :showLabel="true" :fullWidth="true" :label="$t('menus.collapseAll')"
       shortcut="collapseAll" :buttonFunction="collapseAll" />
 
@@ -68,13 +68,14 @@ const viewMenu = ref(null);
 // computed properties
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
+const listViewActive = computed(() => commonStore.viewMode === 'list');
 const untrackedVisibilityLabel = computed(() => `${commonStore.showUntracked ? t('common.hide') : t('common.show')} ${t('menus.untracked')}`);
 
 // methods
 
 // Collapses all expanded collections.
 const collapseAll = () => {
-  if (isKanbanActive.value || commonStore.useGrid) return;
+  if (!listViewActive.value) return;
   emitter.emit('collapse-all');
   menu.hideContextMenu();
 };

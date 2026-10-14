@@ -5,6 +5,7 @@
     <template v-else>
       <ActionButton :icon="getAppIcon('list')" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
       <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
+      <ActionButton :icon="getAppIcon('columns')" v-tooltip="$t('menus.columnsView')" :buttonFunction="setColumnsView" />
       <ActionButton :icon="getAppIcon('kanban')" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
     </template>
   </div>
@@ -30,11 +31,13 @@ const expanded = ref(false);
 
 // computed properties
 const isExpanded = computed(() => expanded.value || commonStore.viewMode === 'kanban');
+const isColumnsActive = computed(() => commonStore.viewMode === 'columns');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
 
 // Returns the icon name for the currently active view mode.
 const activeIcon = computed(() => {
+  if (isColumnsActive.value) return 'columns';
   if (isGridActive.value) return 'four-squares';
   if (isKanbanActive.value) return 'kanban';
   return 'list';
@@ -57,6 +60,12 @@ const refreshView = () => emitter.emit('refresh-browser', {
 // Sets the view to grid mode.
 const setGridView = () => {
   commonStore.setGridView();
+  refreshView();
+};
+
+// Sets the view to columns mode.
+const setColumnsView = () => {
+  commonStore.setColumnsView();
   refreshView();
 };
 

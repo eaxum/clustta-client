@@ -70,16 +70,18 @@ const minimizeOnClose = computed(() => settingsStore.minimizeOnClose);
 const overwriteDroppedFiles = computed(() => settingsStore.overwriteDroppedFiles);
 const motionPreference = computed(() => settingsStore.motionPreference);
 const currentViewLabel = computed(() => {
+  if (commonStore.defaultViewMode === 'columns') return t('settings.columns');
   if (commonStore.defaultViewMode === 'grid') return t('settings.grid');
   if (commonStore.defaultViewMode === 'kanban') return t('settings.kanban');
   return t('settings.list');
 });
 const defaultViewIcon = computed(() => {
+  if (commonStore.defaultViewMode === 'columns') return 'columns';
   if (commonStore.defaultViewMode === 'grid') return 'four-squares';
   if (commonStore.defaultViewMode === 'kanban') return 'kanban';
   return 'list';
 });
-const viewModeOptions = computed(() => [t('settings.list'), t('settings.grid'), t('settings.kanban')]);
+const viewModeOptions = computed(() => [t('settings.list'), t('settings.grid'), t('settings.columns'), t('settings.kanban')]);
 const motionOptions = computed(() => [
   { id: MOTION_SYSTEM, name: t('settings.motionSystem'), selectionValue: MOTION_SYSTEM },
   { id: MOTION_ON, name: t('settings.motionOn'), selectionValue: MOTION_ON },
@@ -126,6 +128,7 @@ const selectDefaultView = async (viewLabel) => {
   const modes = new Map([
     [t('settings.list'), 'list'],
     [t('settings.grid'), 'grid'],
+    [t('settings.columns'), 'columns'],
     [t('settings.kanban'), 'kanban'],
   ]);
   try {

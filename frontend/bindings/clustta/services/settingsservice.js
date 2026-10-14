@@ -174,7 +174,7 @@ export function GetDefaultLocation() {
 
 /**
  * GetDefaultViewMode retrieves the default view mode setting.
- * Returns "list", "grid", or "kanban".
+ * Returns "list", "grid", "kanban", or "columns".
  * @returns {$CancellablePromise<string>}
  */
 export function GetDefaultViewMode() {

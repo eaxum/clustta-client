@@ -127,6 +127,12 @@
     "project": "Project",
     "purgeUntracked": "Purge untracked"
   },
+  "columns": {
+    "empty": "No items in this location",
+    "loadFailed": "Could not load this location",
+    "results": "Results",
+    "retry": "Retry"
+  },
   "placeholders": {
     "addIgnoreItem": "Add items separated by space or comma",
     "addItem": "Add item",
@@ -649,6 +655,7 @@
     "sourceCodeDescription": "View the source code for Clustta.",
     "grid": "Grid",
     "list": "List",
+    "columns": "Columns",
     "kanban": "Kanban",
     "directories": "Directories",
     "templates": "Templates",
@@ -1176,6 +1183,7 @@
     "goToAsset": "Go to Asset",
     "goToCollection": "Go to Collection",
     "gridView": "Grid View",
+    "columnsView": "Columns View",
     "ignoreExtensionType": "Ignore extension type",
     "ignoreFileFolder": "Ignore this file/folder",
     "isAssigned": "Is assigned",

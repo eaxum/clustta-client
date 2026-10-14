@@ -231,9 +231,10 @@ func loadUserSettings() (Settings, error) {
 }
 
 const (
-	viewModeGrid   = "grid"
-	viewModeKanban = "kanban"
-	viewModeList   = "list"
+	viewModeColumns = "columns"
+	viewModeGrid    = "grid"
+	viewModeKanban  = "kanban"
+	viewModeList    = "list"
 
 	motionPreferenceSystem = "system"
 	motionPreferenceOn     = "on"
@@ -282,7 +283,7 @@ func migrateViewModes(settings *Settings, legacyUseGrid *bool) bool {
 
 func normalizeViewMode(viewMode string) string {
 	switch viewMode {
-	case viewModeGrid, viewModeKanban:
+	case viewModeColumns, viewModeGrid, viewModeKanban:
 		return viewMode
 	default:
 		return viewModeList
@@ -569,7 +570,7 @@ func SetLanguage(language string) error {
 }
 
 // GetDefaultViewMode retrieves the default view mode setting.
-// Returns "list", "grid", or "kanban".
+// Returns "list", "grid", "kanban", or "columns".
 func GetDefaultViewMode() (string, error) {
 	settings, err := loadUserSettings()
 	if err != nil {

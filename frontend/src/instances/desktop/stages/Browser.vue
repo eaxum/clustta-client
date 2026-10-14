@@ -25,7 +25,10 @@
 			<GhostItem :data="draggedCard" :index="0" />
 			<div class="browser-root-content">
 				<div class="left-column" :class="{ 'file-drop-target-active': isHovered }" data-file-drop-target>
-					<VirtuaScroll v-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
+					<ColumnBrowser v-if="columnsView" ref="columnBrowser" :flatMode="isFilteredView"
+						:loadChildren="loadColumnChildren" :rootItems="rootData" :rootLabel="columnRootLabel"
+						:rootLoading="!assetStore.assetsLoaded" />
+					<VirtuaScroll v-else-if="(!assetStore.assetsLoaded || rootData.length) && !commonStore.useGrid" :items="rootData" />
 					<GridView v-else-if="!assetStore.assetsLoaded || rootData.length" :rootItems="rootData"
 						:isFilteredView="isFilteredView" />
 					<PageState v-else :message="message()" :prompt="prompt()" :illustration="illustration()" />
@@ -50,6 +53,7 @@ import { Events } from '@wailsio/runtime';
 import { useI18n } from 'vue-i18n';
 import { v4 as uuidv4 } from 'uuid';
 import emitter from '@/lib/mitt';
+import { getBrowserItemKey } from '@/lib/browserTree';
 import { getRelativePath } from '@/lib/pathlib';
 import { canActInCollection, canActInNavigatedCollection, canActOnAssets, canCreateAssetHere, canCreateCollectionHere } from '@/lib/permissions';
 import { useDebounce } from '@/lib/debounce';
@@ -59,6 +63,7 @@ import { invalidateAssetThumbnailsForItems } from '@/composables/useAssetThumbna
 // components
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import Breadcrumbs from '@/instances/common/components/Breadcrumbs.vue';
+import ColumnBrowser from '@/instances/desktop/components/ColumnBrowser.vue';
 import CreateMenu from '@/instances/desktop/components/CreateMenu.vue';
 import DetailsPane from '@/instances/desktop/components/DetailsPane.vue';
 import FilterBar from '@/instances/common/components/FilterBar.vue';
@@ -124,6 +129,7 @@ const { t } = useI18n();
 // refs
 const browserFilters = ref(null);
 const browserRoot = ref(null);
+const columnBrowser = ref(null);
 const observer = ref(null);
 const rootData = computed(() => browserTreeStore.rootItems);
 const screenWidth = ref(window.innerWidth);
@@ -188,6 +194,15 @@ const isHovered = computed(() =>
 );
 
 const kanbanView = computed(() => commonStore.viewMode === 'kanban');
+const columnsView = computed(() => commonStore.viewMode === 'columns');
+
+const columnRootLabel = computed(() => {
+	if (isFilteredView.value) return t('columns.results');
+	return (commonStore.navigatorMode ? collectionStore.navigatedCollection?.name : '')
+		|| commonStore.activeWorkspace
+		|| projectStore.activeProject?.name
+		|| t('common.project');
+});
 
 const isWideScreen = computed(() => screenWidth.value >= 1000);
 
@@ -644,7 +659,9 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Returns the current directory path based on navigation context.
 const getCurrentDirectory = () => {
-	if (commonStore.navigatorMode && collectionStore.navigatedCollection) return collectionStore.navigatedCollection.file_path;
+	if ((commonStore.navigatorMode || columnsView.value) && collectionStore.navigatedCollection) {
+		return collectionStore.navigatedCollection.file_path;
+	}
 	return projectStore.activeProject?.working_directory;
 };
 
@@ -674,7 +691,7 @@ const handleUpdateRootData = (eventData) => {
 
 // Folder watched at the root level. Falls back to the project working dir.
 const rootWatchPath = computed(() =>
-	collectionStore.navigatedCollection?.file_path
+	(commonStore.navigatorMode ? collectionStore.navigatedCollection?.file_path : null)
 		?? projectStore.activeProject?.working_directory
 		?? null
 );
@@ -1064,6 +1081,43 @@ const sortItems = (collections, assets, untrackedCollections, untrackedAssets) =
 	];
 };
 
+// Loads one collection level for the columns view into the normalized browser cache.
+const loadColumnChildren = async (collection) => {
+	if (!collection || !projectStore.activeProject) return [];
+	const collectionType = collection.type;
+	if (collectionType !== 'collection' && collectionType !== 'untracked_collection') return [];
+
+	const parentKey = getBrowserItemKey(collection);
+	const refreshVersion = browserTreeStore.beginParentRefresh(parentKey);
+	const project = projectStore.activeProject;
+
+	try {
+		const children = await CollectionService.GetCollectionChildren(
+			project.uri,
+			collection.id,
+			project.working_directory,
+			collection.file_path,
+			project.ignore_list,
+			collectionType === 'untracked_collection'
+		);
+		if (!browserTreeStore.isCurrentRefresh(parentKey, refreshVersion)) return [];
+
+		await assetStore.processAssetsIconsAndPreviews(children.assets || []);
+		await assetStore.processUntrackedAssetsIcons(children.untracked_assets || []);
+		if (!browserTreeStore.isCurrentRefresh(parentKey, refreshVersion)) return [];
+
+		return browserTreeStore.replaceChildrenIfCurrent(
+			parentKey,
+			refreshVersion,
+			composeVisibleItems(children)
+		) || [];
+	} catch (error) {
+		browserTreeStore.failParentRefresh(parentKey, refreshVersion, error);
+		console.error(`Error loading column children for ${collection.id}:`, error);
+		return [];
+	}
+};
+
 const browserScrollSelectors = [
 	'.virtua-scroll-container',
 	'.navigator-root-viewport'
@@ -1158,6 +1212,7 @@ const fullRefresh = async () => {
 	assetStore.assetsLoaded = true;
 	loadStateBarFlags();
 	await nextTick();
+	if (columnsView.value) await columnBrowser.value?.refreshOpenColumns();
 	dndStore.triggerDomUpdate();
 };
 
@@ -1258,6 +1313,7 @@ const refreshBrowserData = async (options = {}, isSoftRefresh = false) => {
 		await nextTick();
 		restoreViewportAnchor(viewportAnchor);
 	}
+	if (columnsView.value) await columnBrowser.value?.refreshOpenColumns();
 	dndStore.triggerDomUpdate();
 };
 
@@ -1464,7 +1520,7 @@ Events.On('toggle-path-visibility', () => {
 });
 
 Events.On('collapse-all', () => {
-	if (operationsActive.value || isEditableElementFocused() || kanbanView.value || commonStore.useGrid) return;
+	if (operationsActive.value || isEditableElementFocused() || kanbanView.value || commonStore.useGrid || columnsView.value) return;
 	collapseAll();
 });
 
@@ -1535,6 +1591,7 @@ watch(() => projectStore.activeProject, async () => {
 });
 
 watch(() => collectionStore.navigatedCollection, async () => {
+	if (!commonStore.navigatorMode) return;
 	await hardRefresh();
 });
 
@@ -1549,6 +1606,29 @@ watch(() => commonStore.navigatorMode, async () => {
 	await hardRefresh();
 	stage.operationActive = false
 });
+
+watch(() => commonStore.viewMode, (viewMode) => {
+	if (viewMode === 'columns' || viewMode === 'list') {
+		commonStore.navigatorMode = false;
+		if (viewMode === 'columns' && stage.selectedItem) {
+			let selectedLocation = null;
+			if (stage.selectedItem.type?.includes('collection')) {
+				selectedLocation = stage.selectedItem;
+			} else if (stage.selectedItem.parent_id) {
+				selectedLocation = Object.values(browserTreeStore.itemsByKey)
+					.find((item) => item.id === stage.selectedItem.parent_id && item.type?.includes('collection'));
+				if (!selectedLocation && collectionStore.navigatedCollection?.id === stage.selectedItem.parent_id) {
+					selectedLocation = collectionStore.navigatedCollection;
+				}
+			}
+			collectionStore.navigatedCollection = selectedLocation;
+		}
+		return;
+	}
+	if (viewMode === 'grid' && collectionStore.navigatedCollection) {
+		commonStore.navigatorMode = true;
+	}
+}, { immediate: true, flush: 'sync' });
 
 // lifecycle hooks
 

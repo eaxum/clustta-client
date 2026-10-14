@@ -6,10 +6,11 @@ import { useCollectionStore } from "@/stores/collections";
 
 const cloneFilterList = (filters) => JSON.parse(JSON.stringify(filters ?? []));
 
+const VIEW_MODE_COLUMNS = 'columns';
 const VIEW_MODE_GRID = 'grid';
 const VIEW_MODE_KANBAN = 'kanban';
 const VIEW_MODE_LIST = 'list';
-const VALID_VIEW_MODES = new Set([VIEW_MODE_LIST, VIEW_MODE_GRID, VIEW_MODE_KANBAN]);
+const VALID_VIEW_MODES = new Set([VIEW_MODE_LIST, VIEW_MODE_GRID, VIEW_MODE_KANBAN, VIEW_MODE_COLUMNS]);
 
 let defaultViewMode = VIEW_MODE_LIST;
 await SettingsService.GetDefaultViewMode()
@@ -96,6 +97,7 @@ export const useCommonStore = defineStore("common", {
     },
   }),
   getters: {
+    useColumns: (state) => state.viewMode === VIEW_MODE_COLUMNS,
     useGrid: (state) => state.viewMode === VIEW_MODE_GRID,
     getCollections: (state) => {
       return state.collections;
@@ -246,6 +248,9 @@ export const useCommonStore = defineStore("common", {
     setGridView() {
       this.applyViewMode(VIEW_MODE_GRID);
     },
+    setColumnsView() {
+      this.applyViewMode(VIEW_MODE_COLUMNS);
+    },
     setKanbanView() {
       if (this.viewMode !== VIEW_MODE_KANBAN) {
         this.previousViewMode = this.viewMode;
@@ -258,6 +263,7 @@ export const useCommonStore = defineStore("common", {
         : VIEW_MODE_LIST;
       this.previousViewMode = null;
       switch (target) {
+        case VIEW_MODE_COLUMNS: this.setColumnsView(); break;
         case VIEW_MODE_GRID: this.setGridView(); break;
         default: this.setListView(); break;
       }

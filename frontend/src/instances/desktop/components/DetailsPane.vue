@@ -309,9 +309,9 @@ const projectUsers = computed(() => {
 });
 
 const selectedSettingsContext = computed(() => {
-  let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
+  const index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
   const activePaneContext = settingsItems.value?.find((item) => item.tab_name === panes.activeModal);
-  return activePaneContext?.name;
+  return activePaneContext?.name || settingsItems.value[index]?.name;
 });
 
 const settingsItems = computed(() => {
@@ -1015,14 +1015,14 @@ const viewChanges = () => filterList('Changes');
 // watchers
 watch(() => settingsItems.value, (newItems, oldItems) => {
   const previousTabName = oldItems?.[activeTabIndex.value]?.tab_name;
+  let nextTabIndex = 0;
   if (previousTabName) {
     const matchIndex = newItems.findIndex((item) => item.tab_name === previousTabName);
-    if (matchIndex !== -1) {
-      activeTabIndex.value = matchIndex;
-      return;
-    }
+    if (matchIndex !== -1) nextTabIndex = matchIndex;
   }
-  activeTabIndex.value = 0;
+  activeTabIndex.value = nextTabIndex;
+  const nextPane = newItems[nextTabIndex]?.tab_name;
+  if (nextPane) panes.setPaneVisibility(nextPane, true);
 });
 
 watchEffect(() => { if (detailsPaneRoot.value) menu.clickOutsideMask = detailsPaneRoot.value; });

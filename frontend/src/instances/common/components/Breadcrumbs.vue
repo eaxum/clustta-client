@@ -9,10 +9,10 @@
 		</template>
 
 		<template v-else>
-			<ActionButton v-if="commonStore.navigatorMode && !navigationLocked" :icon="getAppIcon(commonStore.navigatorMode ? 'home' : 'forward-slash')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
+			<ActionButton v-if="hasNavigatedContext && !navigationLocked" :icon="getAppIcon('home')" v-tooltip="$t('components.breadcrumbs.home')" :buttonFunction="goHome" />
 			<ActionButton :icon="getAppIcon('refresh')" v-tooltip="{ text: $t('components.breadcrumbs.refresh'), shortcut: 'refresh' }" :buttonFunction="refresh" />
 
-			<ActionButton v-if="commonStore.navigatorMode && !navigationLocked" :icon="getAppIcon('arrow-back-ramp')"
+			<ActionButton v-if="hasNavigatedContext && !navigationLocked" :icon="getAppIcon('arrow-back-ramp')"
 				:allowDeactivate="true" v-tooltip="{ text: $t('components.breadcrumbs.upALevel'), shortcut: 'navigateUp' }" :buttonFunction="goUpALevel" />
 
 			<ActionButton v-if="showProjectChip" :icon="getAppIcon('forward-slash')" v-tooltip="commonStore.navigatorMode ? 'Home' : ''"
@@ -36,7 +36,7 @@
 					</div>
 				</nav>
 			</div>
-			<template v-if="commonStore.navigatorMode && navigationLocked">
+			<template v-if="hasNavigatedContext && navigationLocked">
 				<div class="kanban-path-separator"></div>
 				<span class="kanban-filter-text result-count-label">{{ filteredResultsLabel }}</span>
 			</template>
@@ -135,9 +135,12 @@ const navigatedCollection = computed(() => collectionStore.navigatedCollection);
 const isDefaultWorkspace = computed(() => commonStore.activeWorkspace === 'Project');
 
 const isKanbanView = computed(() => commonStore.viewMode === 'kanban');
+const hasNavigatedContext = computed(() => {
+	return commonStore.navigatorMode || (!isKanbanView.value && !!navigatedCollection.value);
+});
 
 // Collection navigation is locked while the browser is presenting search/filter results.
-const navigationLocked = computed(() => commonStore.navigatorMode && props.resultModeActive);
+const navigationLocked = computed(() => hasNavigatedContext.value && props.resultModeActive);
 
 const taskCountLabel = computed(() => {
 	const count = props.filteredResultCounts?.assets ?? 0;
@@ -190,7 +193,7 @@ const hasActiveFilters = computed(() => {
 
 // Show the project-name chip only on the Project workspace at the root with no active filters/search.
 const showProjectChip = computed(() => {
-	return !commonStore.navigatorMode
+	return !hasNavigatedContext.value
 		&& commonStore.viewMode !== 'kanban'
 		&& isDefaultWorkspace.value
 		&& !hasActiveFilters.value;
@@ -198,7 +201,7 @@ const showProjectChip = computed(() => {
 
 const showFilteredLabel = computed(() => {
 	if (isKanbanView.value) return true;
-	if (commonStore.navigatorMode) return false;
+	if (hasNavigatedContext.value) return false;
 	return !showProjectChip.value;
 });
 
@@ -207,7 +210,7 @@ const showRootFilteredSeparator = computed(() => {
 });
 
 const path = computed(() => {
-	if (commonStore.navigatorMode) {
+	if (hasNavigatedContext.value) {
 		return navigatedCollection.value?.type === 'collection'
 			? navigatedCollection.value?.collection_path
 			: navigatedCollection.value?.item_path;
@@ -293,7 +296,7 @@ const copyDirectoryPath = async () => {
 	const project = projectStore.getActiveProject;
 	let explorerPath;
 
-	if (!commonStore.navigatorMode) {
+	if (!hasNavigatedContext.value) {
 		explorerPath = project.working_directory.replace(/\\/g, '/');
 		await FSService.MakeDirs(explorerPath);
 	} else {
@@ -438,7 +441,7 @@ const handleNavigateUpShortcut = async (event) => {
 	if (event.key !== 'Backspace' || event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
 	const activeElement = document.activeElement;
 	const isEditing = activeElement?.matches('input, textarea, [contenteditable="true"]');
-	if (!commonStore.navigatorMode || navigationLocked.value || !collectionStore.navigatedCollection || stage.operationActive || isEditing) return;
+	if (!hasNavigatedContext.value || navigationLocked.value || !collectionStore.navigatedCollection || stage.operationActive || isEditing) return;
 	event.preventDefault();
 	await goUpALevel();
 };
@@ -456,7 +459,7 @@ const refresh = () => emitter.emit('refresh-browser', {
 const revealInExplorer = async () => {
 	const project = projectStore.getActiveProject;
 
-	if (!commonStore.navigatorMode) {
+	if (!hasNavigatedContext.value) {
 		await FSService.MakeDirs(project.working_directory);
 		FSService.RevealInExplorer(project.working_directory);
 	} else {

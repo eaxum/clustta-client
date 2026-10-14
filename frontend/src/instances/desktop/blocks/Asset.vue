@@ -393,6 +393,7 @@ import { AssetService, CheckpointService, FSService, SyncService } from "@/servi
 
 // composables
 import { useAssetThumbnail, getFileTypeIcon } from '@/composables/useAssetThumbnail';
+import { useAssetLauncher } from '@/composables/useAssetLauncher';
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -430,6 +431,7 @@ const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const { t } = useI18n();
+const { launchAsset, renameAssetPath } = useAssetLauncher();
 
 // props
 const props = defineProps({
@@ -874,107 +876,7 @@ const launchSelectedAsset = () => {
 
 // Launches the asset file or opens web link.
 const launchAssetCommand = async () => {
-  if (!userStore.canDo('pull_chunk')) {
-    return;
-  }
-  const asset = props.asset;
-  if (asset.is_link && isValidWeblink(asset.pointer)) {
-    Browser.OpenURL(asset.pointer);
-    return;
-  }
-
-  if (hasRenamePending.value) {
-    prepRenameBeforeLaunchModal(asset);
-    return;
-  }
-
-  await launchAssetFile(asset);
-};
-
-// Launches or fetches an asset whose local path is current.
-const launchAssetFile = async (asset) => {
-  const filePath = asset.pointer || asset.file_path;
-  if (await FSService.Exists(filePath)) {
-    if (asset.type === 'untracked_asset') {
-      await FSService.LaunchFile(filePath);
-      return;
-    }
-    await launchProjectAsset(asset.id);
-    return;
-  }
-
-  if (asset.type === 'untracked_asset') return;
-
-  try {
-    const response = await CheckpointService.Revert(
-      projectStore.activeProject.uri,
-      projectStore.getActiveProjectUrl,
-      [asset.id]
-    );
-    if (!response?.restored_asset_ids?.includes(asset.id)) return;
-    browserTreeStore.markAssetsAvailable(response.restored_asset_ids);
-    await launchProjectAsset(asset.id);
-  } catch (error) {
-    notificationStore.errorNotification(t('notifications.errorFetchingAsset'), error);
-  }
-};
-
-const launchProjectAsset = async (assetId) => {
-  try {
-    const projectPath = projectStore.activeProject.uri;
-    const trust = await FSService.PreparePreLaunch(
-      projectPath,
-      projectStore.getActiveProjectUrl,
-      assetId,
-    );
-    if (trust?.required && localStorage.getItem(preLaunchTrustKey(trust)) !== trust.digest) {
-      confirmPreLaunchTrust(assetId, trust);
-      return;
-    }
-    await FSService.LaunchProjectAsset(projectPath, assetId);
-  } catch (error) {
-    notificationStore.errorNotification(t('notifications.errorLaunchingAsset'), error);
-  }
-};
-
-const preLaunchTrustKey = (trust) => {
-  return `clustta-prelaunch-trust:${projectStore.activeProject.id}:${trust.hook_id}`;
-};
-
-const confirmPreLaunchTrust = (assetId, trust) => {
-  trayStates.dangerousActionTitle = t('blocks.trustLaunchHookTitle', { name: trust.hook_name });
-  trayStates.dangerousActionMessage = t('blocks.trustLaunchHookMessage', {
-    scripts: trust.scripts.join(', '),
-  });
-  trayStates.dangerousActionIcon = 'alert';
-  trayStates.dangerousActionConfirmLabel = t('blocks.trustAndLaunch');
-  trayStates.dangerousActionConfirmText = '';
-  trayStates.dangerousActionShowInput = false;
-  trayStates.dangerousActionShowToggle = false;
-  trayStates.dangerousActionFunction = async () => {
-    localStorage.setItem(preLaunchTrustKey(trust), trust.digest);
-    await launchProjectAsset(assetId);
-  };
-  modals.setModalVisibility('confirmDangerousActionModal', true);
-};
-
-// Warns before renaming and launching an asset.
-const prepRenameBeforeLaunchModal = (asset) => {
-  trayStates.dangerousActionTitle = t('blocks.renameRequiredTitle');
-  trayStates.dangerousActionMessage = t('blocks.renameRequiredMessage', {
-    oldName: asset.local_path?.split(/[\\/]/).pop(),
-    newName: `${asset.name}${asset.extension}`,
-  });
-  trayStates.dangerousActionIcon = 'alert';
-  trayStates.dangerousActionConfirmLabel = t('common.proceed');
-  trayStates.dangerousActionConfirmText = '';
-  trayStates.dangerousActionShowInput = false;
-  trayStates.dangerousActionShowToggle = false;
-  trayStates.dangerousActionFunction = async () => {
-    await renameAssetPath(asset);
-    await launchAssetFile(asset);
-  };
-  modals.setModalVisibility('confirmDangerousActionModal', true);
+  await launchAsset(props.asset);
 };
 
 // Triggers rename from the menu.
@@ -1061,17 +963,6 @@ const revertAsset = async (index, asset, event) => {
       console.log(error);
       notificationStore.errorNotification(t('notifications.errorRevertingAsset'), error);
     });
-};
-
-const renameAssetPath = async (asset) => {
-  await AssetService.ApplyPathUpdate(projectStore.activeProject.uri, asset.id);
-  asset.local_path = '';
-  asset.file_status = await AssetService.GetAssetState(projectStore.activeProject.uri, asset.id);
-  emitAssetUpdates(asset.id, [
-    { property: 'local_path', value: '' },
-    { property: 'file_status', value: asset.file_status }
-  ]);
-  emitter.emit('refresh-browser');
 };
 
 const applyPathUpdate = async (index, asset, event) => {

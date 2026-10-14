@@ -538,7 +538,7 @@ func (s *SettingsService) SetLanguage(language string) error {
 }
 
 // GetDefaultViewMode retrieves the default view mode setting.
-// Returns "list", "grid", or "kanban".
+// Returns "list", "grid", "kanban", or "columns".
 func (s *SettingsService) GetDefaultViewMode() (string, error) {
 	viewMode, err := settings.GetDefaultViewMode()
 	if err != nil {
