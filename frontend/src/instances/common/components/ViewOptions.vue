@@ -1,19 +1,15 @@
 <template>
-  <div class="view-options-root" @mouseenter="expanded = true" @mouseleave="expanded = false">
-    <ActionButton v-if="!isExpanded" :icon="getAppIcon(activeIcon)" v-tooltip="activeTooltip" />
-
-    <template v-else>
-      <ActionButton :icon="getAppIcon('list')" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
-      <ActionButton :icon="getAppIcon('four-squares')" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
-      <ActionButton :icon="getAppIcon('columns')" v-tooltip="$t('menus.columnsView')" :buttonFunction="setColumnsView" />
-      <ActionButton :icon="getAppIcon('kanban')" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
-    </template>
+  <div class="view-options-root">
+    <ActionButton :icon="getAppIcon('list')" :isActive="isListActive" v-tooltip="$t('menus.listView')" :buttonFunction="setListView" />
+    <ActionButton :icon="getAppIcon('four-squares')" :isActive="isGridActive" v-tooltip="$t('menus.gridView')" :buttonFunction="setGridView" />
+    <ActionButton :icon="getAppIcon('columns')" :isActive="isColumnsActive" v-tooltip="$t('menus.columnsView')" :buttonFunction="setColumnsView" />
+    <ActionButton :icon="getAppIcon('kanban')" :isActive="isKanbanActive" v-tooltip="$t('menus.kanbanView')" :buttonFunction="setKanbanView" />
   </div>
 </template>
 
 <script setup>
 // imports
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import emitter from '@/lib/mitt';
 
 // components
@@ -26,27 +22,11 @@ import { useIconStore } from '@/stores/icons';
 const commonStore = useCommonStore();
 const iconStore = useIconStore();
 
-// refs
-const expanded = ref(false);
-
 // computed properties
-const isExpanded = computed(() => expanded.value || commonStore.viewMode === 'kanban');
+const isListActive = computed(() => commonStore.viewMode === 'list');
 const isColumnsActive = computed(() => commonStore.viewMode === 'columns');
 const isGridActive = computed(() => commonStore.viewMode === 'grid');
 const isKanbanActive = computed(() => commonStore.viewMode === 'kanban');
-
-// Returns the icon name for the currently active view mode.
-const activeIcon = computed(() => {
-  if (isColumnsActive.value) return 'columns';
-  if (isGridActive.value) return 'four-squares';
-  if (isKanbanActive.value) return 'kanban';
-  return 'list';
-});
-
-// Returns the tooltip for the currently active view mode.
-const activeTooltip = computed(() => {
-  return commonStore.viewMode;
-});
 
 // methods
 
@@ -91,11 +71,5 @@ const setListView = () => {
   box-sizing: border-box;
   height: min-content;
   overflow: hidden;
-}
-
-.view-options-root:hover {
-  /* padding: .2rem; */
-  /* background-color: var(--surface-1); */
-  border-radius: var(--large-radius);
 }
 </style>
