@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -91,11 +91,24 @@ const collectNodePackages = () => {
 };
 
 const collectGoPackages = () => {
+  const distDirectory = join(frontendDirectory, 'dist');
+  const distExisted = existsSync(distDirectory);
+  const embedPlaceholder = join(distDirectory, `.license-generation-${process.pid}`);
   const template = '{{with .Module}}{{if .Dir}}{{.Path}}|{{.Version}}|{{.Dir}}{{end}}{{end}}';
-  const output = execFileSync('go', ['list', '-deps', '-f', template, '.'], {
-    cwd: repositoryDirectory,
-    encoding: 'utf8',
-  });
+
+  mkdirSync(distDirectory, { recursive: true });
+  writeFileSync(embedPlaceholder, '');
+
+  let output;
+  try {
+    output = execFileSync('go', ['list', '-deps', '-f', template, '.'], {
+      cwd: repositoryDirectory,
+      encoding: 'utf8',
+    });
+  } finally {
+    rmSync(embedPlaceholder, { force: true });
+    if (!distExisted) rmSync(distDirectory, { recursive: true, force: true });
+  }
 
   return output
     .split(/\r?\n/)
