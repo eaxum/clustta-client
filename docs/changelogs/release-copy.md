@@ -1,128 +1,138 @@
-# Clustta 0.4.40 Release Copy
+# Clustta 0.4.41 Release Copy
 
 ## Release Inputs
 
-- Version: `0.4.40`
-- Previous version/tag: `v0.4.39`
-- New version/tag: `v0.4.40`
-- Compare range: `77923fb287640e029654fffd59bdba1aef85f565...HEAD`
-- Release headline: `Versioned dependencies, checkpoint provenance, and visible activity`
-- Canny types: `new`, `improved`
+- Version: `0.4.41`
+- Previous version/tag: `v0.4.40`
+- New version/tag: `v0.4.41`
+- Compare range: `v0.4.40...v0.4.41`
+- Release headline: `Column browsing and a more personal workspace`
+- Canny types: `new`, `improved`, `fixed`
 
 ## GitHub Release
 
-### Clustta 0.4.40
+### Clustta 0.4.41
 
-Clustta 0.4.40 makes asset history and dependencies easier to understand and control, with new tools for checkpoint lineage, background activity, and moving files into other applications.
+Clustta 0.4.41 introduces column browsing, reorganizes settings, and adds more control over how the interface looks and moves.
 
 ## New Features
 
-### Checkpoint Provenance
+### Column Browser
 
-Record where a checkpoint came from by linking it to a source asset and either its latest checkpoint or an exact version. The relationship stays with the checkpoint, giving teams a clear record of its lineage.
+Browse project hierarchies across side-by-side columns while keeping each level visible. Navigate with the keyboard, rename items inline, move assets and collections between locations, and drag eligible files into supported applications.
 
-### Versioned Dependencies and Checkpoint Tags
+Your selected browser view now persists between sessions, and the active view is always clearly highlighted.
 
-Pin a dependency to an exact checkpoint or follow a checkpoint tag that can move to a newer version over time. Before building, preview the files and resolved versions Clustta will download.
+### Interface Personalization
 
-### Editable Checkpoints
-
-Update a checkpoint's comment, tags, and source checkpoint after creation, without replacing the checkpoint or losing its history.
-
-### Activity Panel
-
-Follow downloads and other long-running work from the new Activity panel. Review progress and details, minimize the panel while you continue working, and cancel supported operations when needed.
-
-### Drag-and-Drop Exports
-
-Drag eligible assets and collections from Clustta into the system file manager or another supported application. Native drag-out is available on Windows, macOS, and Linux.
+Choose an interface font and text size, and control interface motion with system, on, or off preferences. Motion settings apply to menus, dropdowns, and controls throughout the application.
 
 ## Improvements
 
-- Dependency builds resolve tagged and pinned versions more clearly and surface conflicts with more useful context.
-- Checkpoint tags are easier to browse, select, and identify throughout the interface.
-- Download progress uses clearer phases and supports cancellation where available.
-- Project database upgrades now apply each schema change in order and complete atomically, supporting direct upgrades from schema 1.2 through 2.2.
+### Reorganized Settings
 
-**Full Changelog**: `77923fb287640e029654fffd59bdba1aef85f565...HEAD`
+User, studio, and project settings now use a consistent grouped layout that makes account, appearance, storage, integration, and project options easier to find.
+
+### Kitsu Directory Mapping
+
+Automatically fill task output paths when configuring directory mappings. Shot mappings now use shot placeholders, while asset mappings continue to use asset placeholders.
+
+### Smaller UX Polish
+
+- Dropdowns, context menus, toggles, and workspace tabs now animate more smoothly.
+- Open-source licence and third-party notices are available from the application.
+- Build with Dependencies is only shown for remote projects where it is supported.
+
+## Bug Fixes
+
+- **Asset status** - Refreshed assets retain accurate local, outdated, and fetchable file states.
+- **Project ignore lists** - Remote ignore-list changes now update the correct local project.
+- **Launch hooks** - Hook configuration can be updated even when a script asset has local changes.
+- **Workspace tabs** - Moving between distant tabs now uses a smoother transition.
+
+**Full Changelog**: `v0.4.40...v0.4.41`
 
 ## Canny Changelog
 
 ### Title
 
-Clustta 0.4.40 : Versioned dependencies, checkpoint provenance, and visible activity
+Clustta 0.4.41 : Column browsing and a more personal workspace
 
 ### Types
 
-`new, improved`
+`new, improved, fixed`
 
 ### Body
 
-Clustta 0.4.40 makes asset history and dependencies easier to understand and control, while adding visible background activity and cross-platform drag-and-drop exports.
+Clustta 0.4.41 adds a new way to browse project hierarchies, reorganizes settings, and gives you more control over interface text, fonts, and motion.
 
-**New: Checkpoint Provenance**
+**New: Column Browser**
 
-Link a checkpoint to the source asset and version it came from, preserving a clear record of its lineage.
+Browse folders and assets across side-by-side columns, navigate with the keyboard, rename items inline, move items between locations, and drag eligible files into supported applications.
 
-**New: Versioned Dependencies and Checkpoint Tags**
+**New: Interface Personalization**
 
-Pin dependencies to exact checkpoints or follow named checkpoint tags, then preview the files and resolved versions before a build begins.
+Choose an interface font and text size, and decide whether interface motion follows your system preference, stays on, or stays off.
 
-**New: Editable Checkpoints**
+**Improved: Settings**
 
-Update a checkpoint's comment, tags, and source checkpoint without recreating it.
+User, studio, and project settings now share a clearer grouped layout, making account, appearance, storage, integration, and project options easier to find.
 
-**New: Activity Panel**
+**Improved: Kitsu Directory Mapping**
 
-Track long-running work, inspect progress and details, minimize the panel, and cancel supported operations.
+Automatically fill task output paths with the correct asset or shot placeholders.
 
-**New: Drag-and-Drop Exports**
+**Improved: Smaller UX Polish**
 
-Drag eligible assets and collections into the system file manager or another supported application on Windows, macOS, and Linux.
+- Browser view selection now persists between sessions.
+- Dropdowns, context menus, toggles, and workspace tabs animate more smoothly.
+- Open-source licence and third-party notices are available from the application.
 
-**Improved: Project Upgrades**
+**Fixed**
 
-Projects created with older Clustta versions can upgrade directly from schema 1.2 through 2.2, with all database changes committed together only after validation succeeds.
+- **Asset status** - Refreshed assets retain the correct file state.
+- **Project ignore lists** - Remote changes update the correct local project.
+- **Launch hooks** - Hook configuration can be updated when scripts have local changes.
 
 ## Apple App Store
 
 ### What's New in This Version
 
-Clustta 0.4.40 brings versioned dependencies, checkpoint provenance, visible activity, and drag-and-drop exports.
+Clustta 0.4.41 adds column browsing and more control over your workspace.
 
-- Pin dependencies to exact checkpoints or follow checkpoint tags.
-- Preview the files and resolved versions included in a dependency build.
-- Record checkpoint lineage and edit checkpoint comments, tags, or source versions.
-- Track long-running work in the new Activity panel.
-- Drag eligible assets and collections into supported apps and file locations.
-- Open projects created with older Clustta versions with safer, validated database upgrades.
+- Browse project hierarchies across side-by-side columns.
+- Navigate with the keyboard, rename inline, and move or export items with drag-and-drop.
+- Choose your interface font, text size, and motion preference.
+- Find user, studio, and project settings in a clearer grouped layout.
+- Automatically fill Kitsu task output paths with the correct placeholders.
+- Keep asset file states accurate after refresh and include additional reliability fixes.
 
 ## Microsoft Store
 
 ### Release Notes
 
-Clustta 0.4.40 brings versioned dependencies, checkpoint provenance, visible activity, and drag-and-drop exports.
+Clustta 0.4.41 adds column browsing and more control over your workspace.
 
-- Pin dependencies to exact checkpoints or follow checkpoint tags.
-- Preview the files and resolved versions included in a dependency build.
-- Record checkpoint lineage and edit checkpoint comments, tags, or source versions.
-- Track long-running work in the new Activity panel.
-- Drag eligible assets and collections into supported apps and file locations.
-- Open projects created with older Clustta versions with safer, validated database upgrades.
+- Browse project hierarchies across side-by-side columns.
+- Navigate with the keyboard, rename inline, and move or export items with drag-and-drop.
+- Choose your interface font, text size, and motion preference.
+- Find user, studio, and project settings in a clearer grouped layout.
+- Automatically fill Kitsu task output paths with the correct placeholders.
+- Keep asset file states accurate after refresh and include additional reliability fixes.
 
 ## Short Store Summary
 
-Versioned dependencies, checkpoint provenance, visible activity, and drag-and-drop exports.
+Browse projects in columns and personalize interface fonts, text size, and motion.
 
 ## Flathub Release
 
-### Clustta 0.4.40
+### Clustta 0.4.41
 
-Clustta 0.4.40 makes asset history and dependencies easier to understand and control.
+Clustta 0.4.41 adds column browsing and more control over your workspace.
 
-- Pin dependencies to exact checkpoints or follow checkpoint tags.
-- Preview the files and resolved versions included in a dependency build.
-- Record where a checkpoint came from and update its comment, tags, or source checkpoint.
-- Track long-running work and cancel supported operations from the Activity panel.
-- Drag eligible assets and collections into supported apps and file locations on Windows, macOS, and Linux.
-- Upgrade projects created with older Clustta versions through a safer, validated migration path.
+- Browse project hierarchies across side-by-side columns.
+- Navigate with the keyboard, rename inline, and move or export items with drag-and-drop.
+- Choose your interface font, text size, and motion preference.
+- Find user, studio, and project settings in a clearer grouped layout.
+- Automatically fill Kitsu task output paths with the correct placeholders.
+- Keep accurate asset file states after refreshing a project.

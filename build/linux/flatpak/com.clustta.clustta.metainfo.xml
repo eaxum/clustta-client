@@ -78,7 +78,20 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="0.4.40" date="2026-09-21">
+    <release version="0.4.41" date="2026-10-15">
+      <description>
+        <p>Clustta 0.4.41 adds column browsing and more control over your workspace.</p>
+        <ul>
+          <li>Browse project hierarchies across side-by-side columns</li>
+          <li>Navigate with the keyboard, rename inline, and move or export items with drag-and-drop</li>
+          <li>Choose your interface font, text size, and motion preference</li>
+          <li>Find user, studio, and project settings in a clearer grouped layout</li>
+          <li>Automatically fill Kitsu task output paths with the correct placeholders</li>
+          <li>Keep accurate asset file states after refreshing a project</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.4.41" date="2026-10-15">
       <description>
         <p>Clustta 0.4.40 makes asset history and dependencies easier to understand and control.</p>
         <ul>
