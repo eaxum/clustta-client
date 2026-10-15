@@ -14,11 +14,14 @@
         :error="browserTreeStore.parentErrors[column.key]"
         :items="column.items"
         :loading="isColumnLoading(column)"
+        :parent="column.parent"
         :renamingKey="renamingKey"
         :selectedKey="selectedKeys[column.index] || ''"
         :title="column.title"
         @cancelRename="cancelRename"
         @contextmenu="openContextMenu"
+        @itemMousedown="handleItemMouseDown($event, column.index)"
+        @itemMouseup="handleItemMouseUp"
         @open="openItem"
         @rename="renameItem"
         @retry="retryColumn(column)"
@@ -51,6 +54,7 @@ import { useAssetStore } from '@/stores/assets';
 import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useDndStore } from '@/stores/dnd';
 import { useMenu } from '@/stores/menu';
 import { useNotificationStore } from '@/stores/notifications';
 import { usePaneStore } from '@/stores/panes';
@@ -76,6 +80,7 @@ const props = defineProps({
 const assetStore = useAssetStore();
 const browserTreeStore = useBrowserTreeStore();
 const collectionStore = useCollectionStore();
+const dndStore = useDndStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
 const notificationStore = useNotificationStore();
@@ -98,6 +103,7 @@ const selectedKeys = ref([]);
 const selectedPath = ref([]);
 let resizeObserver = null;
 let stopRenameShortcut = null;
+let dragTimer = null;
 
 const columns = computed(() => {
   const result = [{
@@ -321,6 +327,29 @@ const selectItem = async (item, columnIndex) => {
   collectionStore.navigateToCollection(item);
   syncExpandedCollectionPath();
   await loadCollection(item);
+};
+
+const handleItemMouseDown = ({ event, item }, columnIndex) => {
+  if (stage.operationActive || editingKey.value || renamingKey.value) return;
+  if (stage.isContextMenuClick(event)) return;
+  if (event.target.closest('.action-button, .export-drag-handle, input')) return;
+
+  clearTimeout(dragTimer);
+  activeColumnIndex.value = columnIndex;
+  selectedKeys.value = selectedKeys.value.slice(0, columnIndex + 1);
+  selectedKeys.value[columnIndex] = getBrowserItemKey(item);
+  if (!stage.markedItems.includes(item.id)) focusItem(item);
+  menu.disableAllMenus();
+
+  dragTimer = setTimeout(() => {
+    stage.firstSelectedItemId = '';
+    dndStore.onDragStart(event, item.id, { allowExpanded: true });
+  }, dndStore.dragDelay);
+};
+
+const handleItemMouseUp = () => {
+  clearTimeout(dragTimer);
+  dragTimer = null;
 };
 
 const openItem = async (item) => {
@@ -599,6 +628,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  clearTimeout(dragTimer);
   emitter.off('renameAsset', startRename);
   emitter.off('renameCollection', startRename);
   stopRenameShortcut?.();

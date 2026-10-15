@@ -18,9 +18,11 @@ export const useDndStore = defineStore("dnd", {
     itemOverlappedId: null,
     isOverlapping: false,
     isOverRoot: false,
+    isOverProjectRoot: false,
     targetItemId: null,
     targetItemPath: null,
     targetItem: null,
+    targetContainerElement: null,
     draggedItem: null,
     dropType: null,
     hoverTargetId: null,
@@ -104,11 +106,12 @@ export const useDndStore = defineStore("dnd", {
       this.visibleItemRefs = {};
     },
 
-    onDragStart(e, id) {
+    onDragStart(e, id, options = {}) {
       const stage = useStageStore();
       const commonStore = useCommonStore();
+      const allowExpanded = options.allowExpanded === true;
 
-      if (this.lockUI || !this.userCanDrag || (!commonStore.useGrid && id in stage.expandedCollections)) {
+      if (this.lockUI || !this.userCanDrag || (!allowExpanded && !commonStore.useGrid && id in stage.expandedCollections)) {
         return;
       }
 
@@ -160,6 +163,8 @@ export const useDndStore = defineStore("dnd", {
       
       this.setGhostCardStyle(true);
       this.isOverRoot = false;
+      this.isOverProjectRoot = false;
+      this.targetContainerElement = null;
       
       for (let target of filteredTargets) {
         let targetEl = this.itemRefs[target.id];
@@ -208,9 +213,39 @@ export const useDndStore = defineStore("dnd", {
       }
 
       if (!this.isOverlapping) {
+        const columnTargets = Array.from(document.querySelectorAll('[data-column-drop-target]'));
+        const columnTarget = columnTargets.find((element) => {
+          const rect = element.getBoundingClientRect();
+          return dragX >= rect.x && dragX <= rect.x + rect.width
+            && dragY >= rect.y && dragY <= rect.y + rect.height;
+        });
+
+        if (columnTarget) {
+          this.targetContainerElement = columnTarget;
+          const parentData = columnTarget.dataset.columnParent;
+          if (parentData) {
+            const parent = JSON.parse(parentData);
+            this.targetItemId = parent.id;
+            this.targetItem = parent;
+            this.isOverlapping = true;
+            this.dropType = parent.item_type ? 'untracked' : 'child';
+          } else {
+            this.targetItemId = null;
+            this.targetItem = null;
+            this.dropType = null;
+            this.isOverRoot = true;
+            this.isOverProjectRoot = true;
+          }
+          return requestAnimationFrame(this.updateUI);
+        }
+
+        this.targetItemId = null;
+        this.targetItem = null;
+        this.dropType = null;
+
         // Not over any item drop-zone: detect whether the cursor is over the
         // empty root list area so it can be highlighted/dropped to root.
-        const rootEl = document.querySelector(".left-column");
+        const rootEl = columnTargets.length ? null : document.querySelector(".left-column");
         if (rootEl) {
           const r = rootEl.getBoundingClientRect();
           this.isOverRoot =
@@ -260,11 +295,13 @@ export const useDndStore = defineStore("dnd", {
       this.altKeyActive = false;
       this.isOverlapping = false;
       this.isOverRoot = false;
+      this.isOverProjectRoot = false;
       this.dropType = null;
 
       this.draggedItem = null;
       this.draggedItemId = null;
       this.targetItem = null;
+      this.targetContainerElement = null;
 
       this.itemOverlappedId = null;
       this.dropPromptMessage = "";

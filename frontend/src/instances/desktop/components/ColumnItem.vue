@@ -1,10 +1,13 @@
 <template>
   <div
-    class="column-item"
+    class="column-item drop-zone"
     :class="{
       'column-item-editing': editing,
+      'column-item-drop-target': isDropTarget,
       'column-item-selected': selected,
     }"
+    :data-file-drop-target="fileDropTarget"
+    :id="fileDropTargetId"
     :aria-selected="selected"
     @click="handleClick"
     @dblclick="handleDoubleClick"
@@ -31,6 +34,12 @@
       </div>
 
       <div class="column-item-actions">
+        <ExportDragHandle
+          v-if="!isCollection"
+          :assets="exportAssets"
+          :displayable="canDisplayExportHandle"
+          :exportable="isExportable"
+        />
         <ActionButton
           v-if="assetStateIcon"
           class="column-item-state-icon"
@@ -55,11 +64,16 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import ExportDragHandle from '@/instances/common/components/ExportDragHandle.vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import RenameInput from '@/instances/desktop/components/RenameInput.vue';
+import { canDisplayExportDrag, canExportFiles, getExportDragSelection } from '@/lib/exportDrag';
+import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCommonStore } from '@/stores/common';
+import { useDndStore } from '@/stores/dnd';
 import { useIconStore } from '@/stores/icons';
 import { usePlatformStore } from '@/stores/platform';
+import { useStageStore } from '@/stores/stages';
 
 const props = defineProps({
   editing: { type: Boolean, default: false },
@@ -70,9 +84,12 @@ const props = defineProps({
 
 const emit = defineEmits(['cancelRename', 'dblclick', 'rename', 'select', 'stateAction']);
 
+const browserTreeStore = useBrowserTreeStore();
 const commonStore = useCommonStore();
+const dndStore = useDndStore();
 const iconStore = useIconStore();
 const platformStore = usePlatformStore();
+const stage = useStageStore();
 const { t } = useI18n();
 const editableName = ref(props.item.name || '');
 const resolvedIcon = ref('');
@@ -81,6 +98,16 @@ let iconLoadVersion = 0;
 const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 const itemType = computed(() => props.item.type || props.item.item_type || '');
 const isCollection = computed(() => itemType.value.includes('collection') || !!props.item.collection_type_id);
+const isTrackedAsset = computed(() => props.item.type === 'asset' || !!props.item.asset_type_id);
+const fileDropTarget = computed(() => {
+  return isCollection.value || isTrackedAsset.value ? '' : null;
+});
+const fileDropTargetId = computed(() => {
+  if (isCollection.value) return `drop-${props.item.id}`;
+  if (isTrackedAsset.value) return `drop-asset-${props.item.id}`;
+  return undefined;
+});
+const isDropTarget = computed(() => dndStore.targetItemId === props.item.id && !dndStore.targetContainerElement);
 const extension = computed(() => isCollection.value ? '' : props.item.extension || '');
 const explicitIcon = computed(() => {
   if (isCollection.value) {
@@ -129,9 +156,16 @@ const isAssetStateActionable = computed(() => {
     || props.item.file_status === 'outdated'
     || props.item.file_status === 'fetchable';
 });
+const exportAssets = computed(() => getExportDragSelection(
+  props.item,
+  stage.selectedItems,
+  browserTreeStore.itemsByKey
+));
+const canDisplayExportHandle = computed(() => canDisplayExportDrag(exportAssets.value));
+const isExportable = computed(() => canExportFiles(exportAssets.value));
 
 const handleClick = () => {
-  if (props.editing || props.renaming) return;
+  if (props.editing || props.renaming || dndStore.draggedItemId) return;
   emit('select', props.item);
 };
 
@@ -196,6 +230,12 @@ watch(() => `${extension.value}:${explicitIcon.value}`, loadIcon, { immediate: t
 .column-item-selected,
 .column-item-selected:hover {
   background-color: var(--selected-soft);
+}
+
+.column-item-drop-target,
+.column-item-drop-target:hover {
+  background-color: color-mix(in oklch, var(--drop-hover) 24%, var(--surface-2));
+  outline-color: var(--drop-hover);
 }
 
 .column-item-editing {

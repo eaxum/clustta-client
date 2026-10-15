@@ -1,5 +1,14 @@
 <template>
-  <section class="column-pane" :aria-label="title">
+  <section
+    ref="columnPane"
+    class="column-pane"
+    :class="{ 'column-pane-drop-target': isPaneDropTarget }"
+    :data-column-parent="parent ? JSON.stringify(parent) : ''"
+    data-column-drop-target
+    data-file-drop-target
+    :id="parent ? `drop-column-${parent.id}` : 'drop-column-root'"
+    :aria-label="title"
+  >
     <header class="column-pane-header" :class="{ 'column-pane-header-active': active }" v-tooltip="title">
       <span>{{ title }}</span>
     </header>
@@ -20,12 +29,18 @@
         v-for="item in items"
         v-else
         :key="getBrowserItemKey(item)"
-        class="column-pane-row"
+        :ref="(element) => setItemRef(item.id, element)"
+        class="column-pane-row virtua-item-header"
         :class="itemMainClass(item)"
+        :data-id="item.id"
+        :data-other="JSON.stringify(item)"
+        :id="item.id"
         role="option"
         @click.stop
         @dblclick.stop
         @contextmenu.stop.prevent="selectForContextMenu($event, item)"
+        @mousedown.stop="emit('itemMousedown', { event: $event, item })"
+        @mouseup="emit('itemMouseup', { event: $event, item })"
       >
         <ColumnItem
           :item="item"
@@ -44,22 +59,42 @@
 </template>
 
 <script setup>
+import { computed, ref } from 'vue';
 import ColumnItem from '@/instances/desktop/components/ColumnItem.vue';
 import ListSkeleton from '@/instances/desktop/components/ListSkeleton.vue';
 import { getBrowserItemKey } from '@/lib/browserTree';
+import { useDndStore } from '@/stores/dnd';
 
-defineProps({
+const props = defineProps({
   active: { type: Boolean, default: false },
   editingKey: { type: String, default: '' },
   error: { type: [Error, String, Object], default: null },
   items: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  parent: { type: Object, default: null },
   renamingKey: { type: String, default: '' },
   selectedKey: { type: String, default: '' },
   title: { type: String, default: '' },
 });
 
-const emit = defineEmits(['cancelRename', 'contextmenu', 'open', 'rename', 'retry', 'select', 'stateAction']);
+const emit = defineEmits([
+  'cancelRename',
+  'contextmenu',
+  'itemMousedown',
+  'itemMouseup',
+  'open',
+  'rename',
+  'retry',
+  'select',
+  'stateAction',
+]);
+
+const dndStore = useDndStore();
+const columnPane = ref(null);
+const isPaneDropTarget = computed(() => {
+  return dndStore.targetContainerElement === columnPane.value
+    && (dndStore.isOverlapping || dndStore.isOverProjectRoot);
+});
 
 const isCollection = (item) => {
   const itemType = item.type || item.item_type || '';
@@ -73,6 +108,14 @@ const selectForContextMenu = (event, item) => {
 
 const itemMainClass = (item) => {
   return isCollection(item) ? 'collection-item-main' : 'asset-item-main';
+};
+
+const setItemRef = (itemId, element) => {
+  if (element) {
+    dndStore.addRef(itemId, element);
+    return;
+  }
+  dndStore.removeRef(itemId);
 };
 </script>
 
@@ -91,6 +134,12 @@ const itemMainClass = (item) => {
   border-radius: var(--very-large-radius);
   outline: var(--transparent-line);
   outline-offset: -1px;
+  transition: background-color .2s ease-out, outline-color .2s ease-out;
+}
+
+.column-pane-drop-target {
+  background-color: color-mix(in oklch, var(--drop-hover) 10%, var(--surface-1));
+  outline-color: var(--drop-hover);
 }
 
 .column-pane-header {

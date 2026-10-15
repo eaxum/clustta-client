@@ -11,9 +11,9 @@
 			<FilterBar v-if="showFilters || kanbanView" :kanbanView="kanbanView" />
 			<CreateMenu v-else-if="!kanbanView" :kanbanView="kanbanView" :importItems="importItems" :disabled="!canCreateInWorkspace" />
 			<StateBar v-if="!showFilters && !kanbanView && !stateBarInactive" :hasData="!!rootData.length" />
-			<div v-if="!kanbanView"
-				class="view-options">
+			<div class="view-options">
 				<ViewOptions />
+				<div v-if="!kanbanView" class="view-options-divider"></div>
 				<ActionButton v-if="!kanbanView" :icon="getAppIcon('arrows-sort')" v-tooltip="$t('stages.sort')" :buttonFunction="openSortMenu" />
 				<ActionButton v-if="!kanbanView" :icon="getAppIcon('eye-cog')" v-tooltip="$t('stages.viewOptions')" :buttonFunction="openViewMenu" />
 				<ActionButton v-if="!kanbanView && isWideScreen" :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
@@ -600,10 +600,14 @@ const getDroppedAssetTarget = (elementId) => {
 };
 
 const getDroppedCollectionDirectory = (elementId) => {
+	if (elementId === 'drop-column-root') return projectStore.activeProject?.working_directory ?? null;
 	if (!elementId.startsWith('drop-')) return null;
 	if (elementId.startsWith('drop-asset-')) return null;
-	const collectionId = elementId.replace('drop-', '');
-	const collection = dndStore.allViewItems?.find(item => item.id === collectionId && (item.type === 'collection' || item.type === 'untracked_collection'));
+	const collectionId = elementId.startsWith('drop-column-')
+		? elementId.replace('drop-column-', '')
+		: elementId.replace('drop-', '');
+	const collection = dndStore.allViewItems?.find(item => item.id === collectionId && (item.type === 'collection' || item.type === 'untracked_collection'))
+		|| Object.values(browserTreeStore.itemsByKey).find(item => item.id === collectionId && (item.type === 'collection' || item.type === 'untracked_collection'));
 	return collection?.file_path ?? null;
 };
 
@@ -869,9 +873,10 @@ const onDragStop = async (event) => {
 	if (kanbanView.value) return;
 	if (dndStore.draggedItemId === null) return;
 	document.documentElement.style.cursor = 'default';
-	const dropTarget = dndStore.itemRefs[dndStore.targetItemId];
+	const dropTarget = dndStore.targetContainerElement || dndStore.itemRefs[dndStore.targetItemId];
 	const draggedItem = dndStore.itemRefs[dndStore.draggedItemId];
-	const targetCollection = dndStore.allViewItems.find((item) => item.id === dndStore.targetItemId);
+	const targetCollection = dndStore.targetItem
+		|| dndStore.allViewItems.find((item) => item.id === dndStore.targetItemId);
 	stage.operationActive = true;
 
 	// Initialize cardRect with fallback to ghost position
@@ -890,8 +895,11 @@ const onDragStop = async (event) => {
 	// A move-to-root happens with the Alt override or when released over empty root space.
 	// In navigator mode, "root" is the collection currently being viewed.
 	const moveToRoot = event.altKey || (!dndStore.isOverlapping && dndStore.isOverRoot);
-	const rootParentId = commonStore.navigatorMode ? (collectionStore.navigatedCollection?.id ?? '') : '';
-	const rootDir = (commonStore.navigatorMode && collectionStore.navigatedCollection?.file_path)
+	const useProjectRoot = dndStore.isOverProjectRoot;
+	const rootParentId = useProjectRoot
+		? ''
+		: commonStore.navigatorMode ? (collectionStore.navigatedCollection?.id ?? '') : '';
+	const rootDir = (!useProjectRoot && commonStore.navigatorMode && collectionStore.navigatedCollection?.file_path)
 		? collectionStore.navigatedCollection.file_path
 		: projectStore.activeProject.working_directory;
 
@@ -1778,6 +1786,13 @@ onBeforeUnmount(() => {
 	width: max-content;
 	height: max-content;
 	min-width: min-content;
+}
+
+.view-options-divider {
+	display: flex;
+	background-color: var(--surface-4);
+	height: 16px;
+	width: 1.5px;
 }
 
 .dash-board-filter {
