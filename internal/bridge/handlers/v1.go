@@ -105,6 +105,7 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"project.workspace",
 			"assets.list",
 			"assets.context",
+			"ayon.workfiles.resolve",
 			"assets.status",
 			"assets.open",
 			"assets.reveal",

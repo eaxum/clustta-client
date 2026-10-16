@@ -14,6 +14,124 @@ import * as models$0 from "../internal/repository/models/models.js";
 import * as time$0 from "../../time/models.js";
 
 /**
+ * AYONWorkfileContext identifies one AYON task workfile.
+ */
+export class AYONWorkfileContext {
+    /**
+     * Creates a new AYONWorkfileContext instance.
+     * @param {Partial<AYONWorkfileContext>} [$$source = {}] - The source object to create the AYONWorkfileContext.
+     */
+    constructor($$source = {}) {
+        if (!("ProjectID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["ProjectID"] = "";
+        }
+        if (!("FolderID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["FolderID"] = "";
+        }
+        if (!("TaskID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["TaskID"] = "";
+        }
+        if (!("TaskName" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["TaskName"] = "";
+        }
+        if (!("TaskTypeID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["TaskTypeID"] = "";
+        }
+        if (!("TaskType" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["TaskType"] = "";
+        }
+        if (!("Application" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["Application"] = "";
+        }
+        if (!("Extension" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["Extension"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AYONWorkfileContext instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AYONWorkfileContext}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AYONWorkfileContext(/** @type {Partial<AYONWorkfileContext>} */($$parsedSource));
+    }
+}
+
+/**
+ * AYONWorkfileResult contains the resolved Clustta asset.
+ */
+export class AYONWorkfileResult {
+    /**
+     * Creates a new AYONWorkfileResult instance.
+     * @param {Partial<AYONWorkfileResult>} [$$source = {}] - The source object to create the AYONWorkfileResult.
+     */
+    constructor($$source = {}) {
+        if (!("Asset" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Asset}
+             */
+            this["Asset"] = null;
+        }
+        if (!("Created" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["Created"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AYONWorkfileResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AYONWorkfileResult}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AYONWorkfileResult(/** @type {Partial<AYONWorkfileResult>} */($$parsedSource));
+    }
+}
+
+/**
  * AccountInfo represents account data with auth context for frontend binding
  */
 export class AccountInfo {

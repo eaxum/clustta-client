@@ -80,6 +80,7 @@ func Start() {
 	mux.HandleFunc("GET /v1/projects/{projectId}/workspace", handlers.V1ProjectWorkspace)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets", handlers.V1ListAssignedAssets)
 	mux.HandleFunc("GET /v1/projects/{projectId}/statuses", handlers.V1ListStatuses)
+	mux.HandleFunc("POST /v1/projects/{projectId}/integrations/ayon/workfiles/resolve", handlers.V1ResolveAYONWorkfile)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1ListDependencies)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1CreateDependency)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/dependencies/{edgeId}/selector", handlers.V1UpdateDependencySelector)
@@ -173,7 +174,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
 		w.Header().Set(
 			"Access-Control-Allow-Headers",
-			"Content-Type, Authorization, X-Clustta-Studio",
+			"Content-Type, Authorization, Idempotency-Key, X-Clustta-Studio",
 		)
 
 		if r.Method == http.MethodOptions {

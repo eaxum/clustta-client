@@ -18,13 +18,13 @@
 
       <!-- Authentication Form -->
       <div v-else class="auth-form">
-        <!-- Kitsu Login Form -->
-        <div v-if="selectedIntegration.auth_type === 'password'" class="form-fields">
-          <FormInput v-model="apiUrl" placeholder="Server URL (e.g., https://kitsu.mystudio.com)" needsValidation
+        <div v-if="selectedIntegration.auth_type === 'password' || selectedIntegration.auth_type === 'token'" class="form-fields">
+          <FormInput v-model="apiUrl" placeholder="Server URL" needsValidation
             :valid="isApiUrlValid" :showValidation="!!apiUrl" :error="apiUrlError" />
-          <FormInput v-model="email" placeholder="Email address" needsValidation :valid="isEmailValid"
+          <FormInput v-if="selectedIntegration.auth_type === 'password'" v-model="email" placeholder="Email address" needsValidation :valid="isEmailValid"
             :showValidation="!!email" />
-          <FormInput v-model="password" placeholder="Password" isSecret />
+          <FormInput v-if="selectedIntegration.auth_type === 'password'" v-model="password" placeholder="Password" isSecret />
+          <FormInput v-else v-model="apiKey" placeholder="Service user API key" isSecret />
         </div>
 
         <!-- OAuth Info (ClickUp) -->
@@ -35,7 +35,7 @@
 
         <div class="pop-up-actions">
           <GeneralButton :label="$t('common.back')" :fullWidth="true" :buttonFunction="clearSelection" :colored="false" />
-          <GeneralButton v-if="selectedIntegration.auth_type === 'password'" :label="isAuthenticated(selectedIntegration.id) ? 'Reconnect' : 'Connect'"
+          <GeneralButton v-if="selectedIntegration.auth_type === 'password' || selectedIntegration.auth_type === 'token'" :label="isAuthenticated(selectedIntegration.id) ? 'Reconnect' : 'Connect'"
             :fullWidth="true" @click="authenticate" :isActive="canAuthenticate" :loading="isAuthenticating" />
           <GeneralButton v-else :label="'Authorize'" :fullWidth="true" @click="startOAuth" :isActive="true" />
         </div>
@@ -82,6 +82,7 @@ const trayStates = useTrayStates();
 // refs
 const apiUrl = ref('');
 const apiUrlError = ref('');
+const apiKey = ref('');
 const email = ref('');
 const isAuthenticating = ref(false);
 const password = ref('');
@@ -120,7 +121,9 @@ const isEmailValid = computed(() => {
 
 // Checks if form can be submitted.
 const canAuthenticate = computed(() => {
-  return isApiUrlValid.value && isEmailValid.value && password.value.length > 0;
+  if (!selectedIntegration.value || !isApiUrlValid.value) return false;
+  if (selectedIntegration.value.auth_type === 'token') return apiKey.value.length > 0;
+  return isEmailValid.value && password.value.length > 0;
 });
 
 // methods
@@ -134,6 +137,7 @@ const authenticate = async () => {
       api_url: apiUrl.value.trim(),
       email: email.value,
       password: password.value,
+      api_key: apiKey.value,
     });
 
     if (result.success) {
@@ -155,6 +159,7 @@ const authenticate = async () => {
 const clearSelection = () => {
   selectedIntegration.value = null;
   apiUrl.value = '';
+  apiKey.value = '';
   email.value = '';
   password.value = '';
   apiUrlError.value = '';

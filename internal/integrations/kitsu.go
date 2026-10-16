@@ -268,7 +268,7 @@ func (k *KitsuClient) GetProjectAssets(token, apiUrl, projectID string) ([]Exter
 }
 
 // UpdateAssetStatus updates an asset's status in Kitsu.
-func (k *KitsuClient) UpdateAssetStatus(token, apiUrl, assetID, status string) error {
+func (k *KitsuClient) UpdateAssetStatus(token, apiUrl, _ string, assetID, status string) error {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
 	// Kitsu status changes are done via the comment action endpoint
@@ -434,7 +434,7 @@ func (k *KitsuClient) GetAssetTypes(token, apiUrl, projectID string) ([]External
 }
 
 // GetTaskStatuses fetches all task statuses from Kitsu.
-func (k *KitsuClient) GetTaskStatuses(token, apiUrl string) ([]ExternalStatusInfo, error) {
+func (k *KitsuClient) GetTaskStatuses(token, apiUrl, _ string) ([]ExternalStatusInfo, error) {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 	data, err := k.get(token, apiUrl+"/api/data/task-status")
 	if err != nil {

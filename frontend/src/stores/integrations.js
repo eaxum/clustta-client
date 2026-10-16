@@ -381,7 +381,10 @@ export const useIntegrationStore = defineStore('integrations', {
           JSON.stringify(selectedAssets)
         );
         this.lastSyncAt = new Date().toISOString();
-        notificationStore.addNotification('Kitsu import completed', '', 'success');
+        const integrationName = this.availableIntegrations.find(integration => {
+          return integration.id === this.linkedIntegration?.integration_id;
+        })?.name || 'Integration';
+        notificationStore.addNotification(`${integrationName} import completed`, '', 'success');
       } catch (error) {
         notificationStore.addNotification(error.message || 'Sync failed', '', 'error');
         throw error;

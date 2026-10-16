@@ -40,6 +40,7 @@ switches invalidate the appropriate cache automatically.
 
 ## Operations
 
+- `POST /v1/projects/{projectId}/integrations/ayon/workfiles/resolve`
 - `POST /v1/projects/{projectId}/assets/{assetId}/status`
 - `POST /v1/projects/{projectId}/assets/{assetId}/open`
 - `POST /v1/projects/{projectId}/assets/{assetId}/reveal`
@@ -52,6 +53,25 @@ switches invalidate the appropriate cache automatically.
 - `DELETE /v1/projects/{projectId}/checkpoint-tags/{tagId}`
 - `POST /v1/projects/{projectId}/assets/{assetId}/build`
 - `POST /v1/projects/{projectId}/assets/{assetId}/revert`
+
+The AYON workfile resolver accepts AYON project, folder, task, task type, and
+application identifiers. It returns the existing mapped workfile or creates one
+from the task type's configured template. The AYON project, folder, and task
+type must already be mapped. The active Clustta user must be a project member
+with `create_asset` and `assign_asset` permissions when creation is required.
+
+```json
+{
+  "ayon_project_id": "ayon-project-id",
+  "folder_id": "ayon-folder-id",
+  "task_id": "ayon-task-id",
+  "task_name": "modeling",
+  "task_type_id": "modeling-type-id",
+  "task_type": "Modeling",
+  "application": "blender",
+  "extension": ".blend"
+}
+```
 
 Open focuses the tracked asset in Clustta Desktop. Reveal opens the system file
 manager with the tracked asset selected. Both return `204 No Content`.

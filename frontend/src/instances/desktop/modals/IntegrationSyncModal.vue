@@ -1,6 +1,6 @@
 <template>
   <div class="modal-container large-modal" v-esc="closeModal">
-    <HeaderArea :title="$t('kitsu.importTitle')" icon="kitsu" />
+    <HeaderArea :title="`Import from ${integrationName}`" :icon="integrationIcon" />
 
     <div class="general-container">
       <!-- Loading State -->
@@ -40,7 +40,7 @@
         <div class="sync-preview-scroll">
           <div v-if="syncPreviewTree.length === 0" class="empty-preview">
             <img :src="getAppIcon('check-circle')" alt="" class="empty-icon" />
-            <span class="empty-text">{{ $t('kitsu.emptyImport') }}</span>
+            <span class="empty-text">No items to import</span>
           </div>
           <div v-else class="preview-tree-content">
             <PreviewVirtuaItem v-for="item in syncPreviewTree" :key="item.id" :item="item" 
@@ -51,7 +51,7 @@
         </div>
 
         <MissingTypesAlert v-if="selectedMissingTypes.length" :missingTypes="selectedMissingTypes"
-          integrationName="Kitsu" :expanded="showMissingTypes" @toggle="showMissingTypes = !showMissingTypes" />
+          :integrationName="integrationName" :expanded="showMissingTypes" @toggle="showMissingTypes = !showMissingTypes" />
         <p v-if="permissionMessage" class="permission-message">{{ permissionMessage }}</p>
         <p v-if="executionError" class="inline-error">{{ executionError }}</p>
       </div>
@@ -120,6 +120,14 @@ const previewItemHeight = 48;
 // Returns the hierarchical tree for sync preview.
 const syncPreviewTree = computed(() => integrationStore.syncPreviewTree);
 
+const linkedProvider = computed(() => integrationStore.availableIntegrations.find(integration => {
+  return integration.id === integrationStore.linkedIntegration?.integration_id;
+}));
+
+const integrationName = computed(() => linkedProvider.value?.name || 'Integration');
+
+const integrationIcon = computed(() => linkedProvider.value?.icon || 'plug');
+
 const allTreeItems = computed(() => flattenTree(syncPreviewTree.value));
 
 const selectedCount = computed(() => allTreeItems.value.filter(item => {
@@ -161,7 +169,7 @@ const readinessMessage = computed(() => {
   return t('kitsu.openProjectToImport');
 });
 
-const readinessActionLabel = computed(() => readinessState.value === 'credentialRequired' ? t('kitsu.connectKitsu') : t('kitsu.manageIntegration'));
+const readinessActionLabel = computed(() => readinessState.value === 'credentialRequired' ? `Connect ${integrationName.value}` : t('kitsu.manageIntegration'));
 
 // methods
 // Closes the modal.
@@ -297,7 +305,7 @@ const unselectAll = () => {
 // Loads the sync preview without changing project data.
 const loadSyncPreview = async () => {
   isLoading.value = true;
-  loadingMessage.value = t('kitsu.loadingImport');
+  loadingMessage.value = `Loading ${integrationName.value} import...`;
   expandedItems.value = new Set();
   error.value = null;
   executionError.value = null;
@@ -319,7 +327,7 @@ const loadSyncPreview = async () => {
       return;
     }
 
-    loadingMessage.value = t('kitsu.fetchingData');
+    loadingMessage.value = `Fetching ${integrationName.value} data...`;
     await integrationStore.getSyncPreview();
 
     // Load templates for extension display
@@ -331,7 +339,7 @@ const loadSyncPreview = async () => {
       readinessState.value = 'credentialRequired';
       return;
     }
-    error.value = err.message || t('kitsu.previewFailed');
+    error.value = err.message || `Failed to load ${integrationName.value} import preview`;
   } finally {
     isLoading.value = false;
   }

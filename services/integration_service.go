@@ -2385,7 +2385,11 @@ func (s *IntegrationService) GetExternalStatuses(projectPath, token string) ([]i
 		return nil, err
 	}
 
-	return integration.GetTaskStatuses(token, integrationProject.ApiUrl)
+	return integration.GetTaskStatuses(
+		token,
+		integrationProject.ApiUrl,
+		integrationProject.ExternalProjectId,
+	)
 }
 
 // SaveStatusMappings saves status mappings to sync_options (Clustta status ID → external status ID).
@@ -2545,7 +2549,13 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 
 		// Push status update only if not already included in the preview comment
 		if externalStatusId != "" && !statusPushedWithPreview {
-			err = integration.UpdateAssetStatus(cred.AccessToken, integrationProject.ApiUrl, mapping.ExternalId, externalStatusId)
+			err = integration.UpdateAssetStatus(
+				cred.AccessToken,
+				integrationProject.ApiUrl,
+				integrationProject.ExternalProjectId,
+				mapping.ExternalId,
+				externalStatusId,
+			)
 			if err != nil {
 				log.Printf("integration push: status update failed for asset %s: %v", assetId, err)
 			}

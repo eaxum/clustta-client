@@ -74,6 +74,8 @@ export {
 };
 
 export {
+    AYONWorkfileContext,
+    AYONWorkfileResult,
     AccountInfo,
     AgentKeyStatus,
     AssetIntegrationDetails,

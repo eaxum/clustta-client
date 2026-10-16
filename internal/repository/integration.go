@@ -11,6 +11,11 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+var (
+	ErrCollectionMappingNotFound = errors.New("collection mapping not found")
+	ErrAssetMappingNotFound      = errors.New("asset mapping not found")
+)
+
 // CreateIntegrationProject creates or updates an integration link for the project.
 // If an integration already exists, it will be updated with the new values.
 func CreateIntegrationProject(tx *sqlx.Tx, id, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, linkedByUserId, linkedAt string) (models.IntegrationProject, error) {
@@ -161,7 +166,7 @@ func GetCollectionMappingByExternalId(tx *sqlx.Tx, integrationId, externalId str
 		return mapping, err
 	}
 	if len(mappings) == 0 {
-		return mapping, errors.New("collection mapping not found")
+		return mapping, ErrCollectionMappingNotFound
 	}
 	return mappings[0], nil
 }
@@ -265,7 +270,7 @@ func GetAssetMappingByExternalId(tx *sqlx.Tx, integrationId, externalId string) 
 		return mapping, err
 	}
 	if len(mappings) == 0 {
-		return mapping, errors.New("asset mapping not found")
+		return mapping, ErrAssetMappingNotFound
 	}
 	return mappings[0], nil
 }

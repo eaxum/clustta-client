@@ -32,10 +32,10 @@ type Integration interface {
 	GetAssetTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error)
 
 	// Status discovery (for mapping configuration)
-	GetTaskStatuses(token, apiUrl string) ([]ExternalStatusInfo, error)
+	GetTaskStatuses(token, apiUrl, projectID string) ([]ExternalStatusInfo, error)
 
 	// Push operations
-	UpdateAssetStatus(token, apiUrl, assetID, status string) error
+	UpdateAssetStatus(token, apiUrl, projectID, assetID, status string) error
 	UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string, onProgress UploadProgressFunc) error
 }
 

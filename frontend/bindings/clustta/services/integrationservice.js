@@ -222,6 +222,18 @@ export function PushToIntegration(projectPath, assetIds, checkpointId, previewPa
 }
 
 /**
+ * ResolveOrCreateAYONWorkfile resolves or lazily creates an AYON task workfile.
+ * @param {string} projectPath
+ * @param {$models.AYONWorkfileContext} context
+ * @returns {$CancellablePromise<$models.AYONWorkfileResult>}
+ */
+export function ResolveOrCreateAYONWorkfile(projectPath, context) {
+    return $Call.ByID(3573236710, projectPath, context).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType19($result);
+    }));
+}
+
+/**
  * SaveStatusMappings saves status mappings to sync_options (Clustta status ID → external status ID).
  * @param {string} projectPath
  * @param {{ [_: string]: string }} statusMappings
@@ -281,3 +293,4 @@ const $$createType15 = integrations$0.MissingType.createFrom;
 const $$createType16 = $Create.Array($$createType15);
 const $$createType17 = integrations$0.SyncPreview.createFrom;
 const $$createType18 = integrations$0.SyncOptions.createFrom;
+const $$createType19 = $models.AYONWorkfileResult.createFrom;

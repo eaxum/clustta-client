@@ -7,7 +7,7 @@
       <div v-if="linkedIntegration" class="linked-container">
         <div class="linked-info">
           <div class="linked-header">
-            <img :src="getAppIcon(linkedIntegration.integration_id)" class="integration-icon" />
+            <img :src="getAppIcon(linkedIntegrationIcon)" class="integration-icon" />
             <div class="linked-details">
               <span class="project-name">{{ linkedIntegration.external_project_name }}</span>
               <span class="integration-name">{{ linkedIntegration.integration_id }}</span>
@@ -130,6 +130,13 @@ const title = computed(() => {
 // Returns the linked integration for current project.
 const linkedIntegration = computed(() => integrationStore.linkedIntegration);
 
+const linkedIntegrationIcon = computed(() => {
+  const provider = integrationStore.availableIntegrations.find(integration => {
+    return integration.id === linkedIntegration.value?.integration_id;
+  });
+  return provider?.icon || 'plug';
+});
+
 // methods
 // Clears the selection state.
 const clearSelection = () => {
@@ -201,10 +208,10 @@ const selectProject = (project) => {
 
 // Unlinks the current project from its integration.
 const confirmUnlinkProject = () => {
-  trayStates.popUpModalTitle = t('kitsu.unlinkTitle');
-  trayStates.popUpModalMessage = t('kitsu.unlinkMessage');
+  trayStates.popUpModalTitle = 'Unlink project integration?';
+  trayStates.popUpModalMessage = 'This removes the project link and mappings. The account connection remains available.';
   trayStates.popUpModalIcon = 'plug-cancel';
-  trayStates.popUpModalButtons = ['Cancel', t('kitsu.unlinkProject')];
+  trayStates.popUpModalButtons = ['Cancel', 'Unlink Project'];
   trayStates.popUpModalFunction = async () => {
     try {
       await integrationStore.unlinkProject();

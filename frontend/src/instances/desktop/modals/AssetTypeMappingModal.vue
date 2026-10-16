@@ -16,7 +16,7 @@
       <div v-else class="mapping-content">
         <div class="section-header">
           <p class="section-description">
-            Map each asset type from Kitsu to an asset template. The template determines which file is created for each asset.
+            Map each {{ integrationName }} task type to an asset template. The template determines which workfile is created lazily.
           </p>
           <ActionButton :icon="getAppIcon('sparkles')" :label="'Auto'" :buttonFunction="autoAssign" :showLabel="true" :useBackground="true" />
         </div>
@@ -85,14 +85,19 @@ const isSaving = ref(false);
 const mappings = ref({});
 const originalMappings = ref({});
 
-const mappingColumns = [
-  { key: 'asset_type', label: 'Kitsu Asset Type', width: '50%' },
+const mappingColumns = computed(() => [
+  { key: 'asset_type', label: `${integrationName.value} Task Type`, width: '50%' },
   { key: 'template', label: 'Asset template', width: '50%' },
-];
+]);
 
 // computed
 const externalAssetTypes = computed(() => {
   return integrationStore.externalAssetTypes || [];
+});
+
+const integrationName = computed(() => {
+  const integrationId = integrationStore.linkedIntegration?.integration_id;
+  return integrationStore.availableIntegrations.find(integration => integration.id === integrationId)?.name || 'External';
 });
 
 const templates = computed(() => {
