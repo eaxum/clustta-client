@@ -111,10 +111,10 @@ import { computed, onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import {
+  filterTaskTypesForTemplate,
   fillDefaultTaskOutputs,
   getDefaultTaskOutput,
   getDirectoryTemplatePreviewValues,
-  inferDirectoryTemplateEntity,
 } from '@/lib/directoryMapping';
 
 // components
@@ -277,14 +277,7 @@ const toggleTaskOutputs = (templateId) => {
 };
 
 const getTemplateTaskTypes = (template) => {
-  const entity = inferDirectoryTemplateEntity(template.id, template.template);
-  if (!entity) return externalTaskTypes.value;
-  if (!externalTaskTypes.value.some(taskType => taskType.for_entity)) return externalTaskTypes.value;
-
-  return externalTaskTypes.value.filter(taskType => {
-    const forEntity = String(taskType.for_entity || '').toLowerCase();
-    return forEntity === entity;
-  });
+  return filterTaskTypesForTemplate(template, externalTaskTypes.value);
 };
 
 // Inserts a placeholder at cursor position in the active input.

@@ -82,10 +82,17 @@ func (s *IntegrationService) ResolveOrCreateAYONWorkfile(projectPath string, con
 		return AYONWorkfileResult{}, fmt.Errorf("%w: AYON project is not linked", ErrAYONMappingNotConfigured)
 	}
 
-	externalID := ayonWorkfileExternalID(context.TaskID, context.Application)
+	externalID := strings.TrimSpace(context.TaskID)
 	existing, found, err := resolveMappedAYONAsset(tx, externalID, userID, role)
 	if err != nil {
 		return AYONWorkfileResult{}, err
+	}
+	if !found {
+		legacyExternalID := ayonWorkfileExternalID(context.TaskID, context.Application)
+		existing, found, err = resolveMappedAYONAsset(tx, legacyExternalID, userID, role)
+		if err != nil {
+			return AYONWorkfileResult{}, err
+		}
 	}
 	if found {
 		if err := tx.Commit(); err != nil {

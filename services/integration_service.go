@@ -31,6 +31,10 @@ const kitsuCategoryMetadataKey = "category"
 type IntegrationService struct {
 }
 
+type externalEntityURLResolver interface {
+	GetExternalEntityURL(token, apiURL, projectID, entityID string) (string, error)
+}
+
 // AssetIntegrationDetails describes the integration link for an asset's current type.
 type AssetIntegrationDetails struct {
 	Enabled         bool   `json:"enabled"`
@@ -122,6 +126,26 @@ func (s *IntegrationService) GetAssetIntegrationDetails(projectPath, assetID str
 		mapping,
 		parentType,
 	)
+	if details.ExternalURL == "" {
+		resolver, supported := integration.(externalEntityURLResolver)
+		if supported {
+			credential, credentialErr := settings.GetIntegrationCredential(integrationProject.IntegrationId)
+			if credentialErr != nil {
+				log.Printf("integration details: credentials unavailable for %s: %v", integrationProject.IntegrationId, credentialErr)
+			} else {
+				details.ExternalURL, err = resolver.GetExternalEntityURL(
+					credential.AccessToken,
+					integrationProject.ApiUrl,
+					integrationProject.ExternalProjectId,
+					mapping.ExternalId,
+				)
+				if err != nil {
+					log.Printf("integration details: external URL unavailable for %s: %v", integrationProject.IntegrationId, err)
+					details.ExternalURL = ""
+				}
+			}
+		}
+	}
 	return details, nil
 }
 
@@ -2536,7 +2560,16 @@ func (s *IntegrationService) PushToIntegration(projectPath string, assetIds []st
 					})
 				}
 			}
-			err = integration.UploadPreview(cred.AccessToken, integrationProject.ApiUrl, mapping.ExternalId, previewPath, message, externalStatusId, onProgress)
+			err = integration.UploadPreview(
+				cred.AccessToken,
+				integrationProject.ApiUrl,
+				integrationProject.ExternalProjectId,
+				mapping.ExternalId,
+				previewPath,
+				message,
+				externalStatusId,
+				onProgress,
+			)
 			if err != nil {
 				log.Printf("integration push: preview upload failed for asset %s: %v", assetId, err)
 				failedCount++

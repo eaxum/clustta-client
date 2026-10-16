@@ -12,8 +12,8 @@
 			@click="createWorkflow" v-tooltip="$t('components.createMenu.addWorkflow')" />
 		<ActionButton :icon="getAppIcon('web-plus')" :isDisabled="props.disabled || kanbanView || !canCreateAsset"
 			@click="createWebLink" v-tooltip="{ text: $t('components.createMenu.addWeblink'), shortcut: 'newLink' }" />
-		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('kitsu')" :isDisabled="props.disabled || kanbanView"
-			v-tooltip="$t('kitsu.importFromKitsu')" :buttonFunction="openSyncModal" />
+		<ActionButton v-if="integrationStore.linkedIntegration" :icon="getAppIcon('plug')" :isDisabled="props.disabled || kanbanView"
+			v-tooltip="syncIntegrationLabel" :buttonFunction="openSyncModal" />
 		<!-- <ActionButton :icon="getAppIcon('arrow-down-ramp')" :isDisabled="platformStore.isWeb || kanbanView || !canCreateCollection"
 			@click="importItems" v-tooltip="'Import Items'" /> -->
 	</div>
@@ -56,6 +56,11 @@ const canCreateCollection = computed(() => canCreateCollectionHere());
 
 const canCreateWorkflow = computed(() => canCreateAsset.value && canCreateCollection.value);
 const creationBlocked = computed(() => props.disabled || props.kanbanView);
+const syncIntegrationLabel = computed(() => {
+	const integrationId = integrationStore.linkedIntegration?.integration_id;
+	const integration = integrationStore.getIntegration(integrationId);
+	return `Sync with ${integration?.name || 'integration'}`;
+});
 
 // methods
 

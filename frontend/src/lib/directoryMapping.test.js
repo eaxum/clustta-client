@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import {
+  filterTaskTypesForTemplate,
   fillDefaultTaskOutputs,
   getDefaultTaskOutput,
   getDirectoryTemplatePreviewValues,
@@ -20,6 +21,26 @@ const shotTemplate = {
 test('directory mapping identifies asset and shot templates', () => {
   assert.equal(inferDirectoryTemplateEntity(assetTemplate.id, assetTemplate.template), 'asset');
   assert.equal(inferDirectoryTemplateEntity(shotTemplate.id, shotTemplate.template), 'shot');
+});
+
+test('generic task types are available to asset and shot templates', () => {
+  const taskTypes = [
+    { name: 'Modeling', for_entity: 'task' },
+    { name: 'Texture', for_entity: 'task' },
+  ];
+
+  assert.deepEqual(filterTaskTypesForTemplate(assetTemplate, taskTypes), taskTypes);
+  assert.deepEqual(filterTaskTypesForTemplate(shotTemplate, taskTypes), taskTypes);
+});
+
+test('entity-scoped task types only appear on matching templates', () => {
+  const assetTask = { name: 'Modeling', for_entity: 'asset' };
+  const shotTask = { name: 'Animation', for_entity: 'shot' };
+  const genericTask = { name: 'Review', for_entity: 'task' };
+  const taskTypes = [assetTask, shotTask, genericTask];
+
+  assert.deepEqual(filterTaskTypesForTemplate(assetTemplate, taskTypes), [assetTask, genericTask]);
+  assert.deepEqual(filterTaskTypesForTemplate(shotTemplate, taskTypes), [shotTask, genericTask]);
 });
 
 test('task output defaults use the matching entity placeholder', () => {

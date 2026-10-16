@@ -1,5 +1,6 @@
 const ASSET_ENTITY = 'asset';
 const SHOT_ENTITY = 'shot';
+const TASK_ENTITY = 'task';
 
 const ASSET_PLACEHOLDER = '<Asset>';
 const SHOT_PLACEHOLDER = '<Shot>';
@@ -9,6 +10,22 @@ export const inferDirectoryTemplateEntity = (id, template = '') => {
   if (value.includes(SHOT_PLACEHOLDER.toLowerCase()) || value.includes(SHOT_ENTITY)) return SHOT_ENTITY;
   if (value.includes(ASSET_PLACEHOLDER.toLowerCase()) || value.includes(ASSET_ENTITY)) return ASSET_ENTITY;
   return '';
+};
+
+export const filterTaskTypesForTemplate = (template, taskTypes) => {
+  const entity = inferDirectoryTemplateEntity(template.id, template.template);
+  if (!entity) return taskTypes;
+
+  const hasEntityScopedTypes = taskTypes.some(taskType => {
+    const scope = String(taskType.for_entity || '').toLowerCase();
+    return scope && scope !== TASK_ENTITY;
+  });
+  if (!hasEntityScopedTypes) return taskTypes;
+
+  return taskTypes.filter(taskType => {
+    const scope = String(taskType.for_entity || '').toLowerCase();
+    return !scope || scope === TASK_ENTITY || scope === entity;
+  });
 };
 
 export const getDefaultTaskOutput = (template, taskType) => {

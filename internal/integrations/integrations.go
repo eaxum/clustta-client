@@ -36,7 +36,7 @@ type Integration interface {
 
 	// Push operations
 	UpdateAssetStatus(token, apiUrl, projectID, assetID, status string) error
-	UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string, onProgress UploadProgressFunc) error
+	UploadPreview(token, apiUrl, projectID, assetID, filePath, comment, taskStatusId string, onProgress UploadProgressFunc) error
 }
 
 // AuthResult contains the result of an authentication attempt.

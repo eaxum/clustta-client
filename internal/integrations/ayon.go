@@ -5,8 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"mime"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -14,6 +18,29 @@ import (
 const (
 	ayonRequestTimeout      = 15 * time.Second
 	ayonWorkfileIDSeparator = "::"
+	ayonTasksPageSize       = 300
+	ayonTasksQuery          = `query TasksQuery($projectName: String!, $pageSize: Int!, $after: String) {
+  project(name: $projectName) {
+    tasks(first: $pageSize, after: $after) {
+      edges {
+        node {
+          id
+          name
+          label
+          taskType
+          folderId
+          status
+          assignees
+          active
+        }
+      }
+      pageInfo {
+        endCursor
+        hasNextPage
+      }
+    }
+  }
+}`
 )
 
 // AYONClient implements project and folder discovery for AYON.
@@ -60,6 +87,58 @@ type ayonStatus struct {
 	ShortName string   `json:"shortName"`
 	Color     string   `json:"color"`
 	Scope     []string `json:"scope"`
+}
+
+type ayonTask struct {
+	ID        string   `json:"id"`
+	Name      string   `json:"name"`
+	Label     string   `json:"label"`
+	TaskType  string   `json:"taskType"`
+	FolderID  string   `json:"folderId"`
+	Status    string   `json:"status"`
+	Assignees []string `json:"assignees"`
+	Active    bool     `json:"active"`
+}
+
+type ayonTasksResponse struct {
+	Data struct {
+		Project *struct {
+			Tasks struct {
+				Edges []struct {
+					Node ayonTask `json:"node"`
+				} `json:"edges"`
+				PageInfo struct {
+					EndCursor   string `json:"endCursor"`
+					HasNextPage bool   `json:"hasNextPage"`
+				} `json:"pageInfo"`
+			} `json:"tasks"`
+		} `json:"project"`
+	} `json:"data"`
+	Errors []struct {
+		Message string `json:"message"`
+	} `json:"errors"`
+}
+
+type ayonTasksVariables struct {
+	ProjectName string  `json:"projectName"`
+	PageSize    int     `json:"pageSize"`
+	After       *string `json:"after"`
+}
+
+type ayonGraphQLRequest struct {
+	Query     string             `json:"query"`
+	Variables ayonTasksVariables `json:"variables"`
+}
+
+type ayonFileResponse struct {
+	ID string `json:"id"`
+}
+
+type ayonEntityURIResponse struct {
+	URIs []struct {
+		ID  string `json:"id"`
+		URI string `json:"uri"`
+	} `json:"uris"`
 }
 
 // NewAYONClient creates an AYON integration client.
@@ -148,9 +227,33 @@ func (a *AYONClient) GetProjectCollections(token, apiURL, projectID string) ([]E
 	return result, nil
 }
 
-// AYON tasks are created lazily by the Bridge, not during folder import.
-func (a *AYONClient) GetProjectAssets(_, _, _ string) ([]ExternalAsset, error) {
-	return []ExternalAsset{}, nil
+func (a *AYONClient) GetProjectAssets(token, apiURL, projectID string) ([]ExternalAsset, error) {
+	tasks, err := a.getTasks(token, apiURL, projectID)
+	if err != nil {
+		return nil, err
+	}
+	assets := make([]ExternalAsset, 0, len(tasks))
+	for _, task := range tasks {
+		if !task.Active {
+			continue
+		}
+		name := task.TaskType
+		if name == "" {
+			name = task.Name
+		}
+		assets = append(assets, ExternalAsset{
+			ID:          task.ID,
+			ParentID:    task.FolderID,
+			Name:        name,
+			Type:        "asset",
+			Status:      task.Status,
+			Assignees:   task.Assignees,
+			AssetType:   task.TaskType,
+			AssetTypeID: task.TaskType,
+			Description: task.Label,
+		})
+	}
+	return assets, nil
 }
 
 func (a *AYONClient) GetCollectionTypes(token, apiURL, projectID string) ([]ExternalTypeInfo, error) {
@@ -216,8 +319,125 @@ func (a *AYONClient) UpdateAssetStatus(token, apiURL, projectID, assetID, status
 	return a.patch(token, apiURL, path, map[string]string{"status": status})
 }
 
-func (a *AYONClient) UploadPreview(_, _, _, _, _, _ string, _ UploadProgressFunc) error {
-	return errors.New("AYON preview uploads are not supported in the proof of concept")
+func (a *AYONClient) UploadPreview(token, apiURL, projectID, assetID, filePath, comment, taskStatusID string, onProgress UploadProgressFunc) error {
+	taskID := strings.SplitN(assetID, ayonWorkfileIDSeparator, 2)[0]
+	if projectID == "" || taskID == "" {
+		return errors.New("AYON project and task IDs are required")
+	}
+
+	fileID, err := a.uploadProjectFile(token, apiURL, projectID, filePath, onProgress)
+	if err != nil {
+		return fmt.Errorf("failed to upload AYON preview: %w", err)
+	}
+
+	activityPath := fmt.Sprintf(
+		"/api/projects/%s/tasks/%s/activities",
+		url.PathEscape(projectID),
+		url.PathEscape(taskID),
+	)
+	activity := map[string]any{
+		"activityType": "reviewable",
+		"body":         comment,
+		"files":        []string{fileID},
+	}
+	activityResponse := struct {
+		ID string `json:"id"`
+	}{}
+	if err := a.post(token, apiURL, activityPath, activity, &activityResponse); err != nil {
+		return fmt.Errorf("failed to create AYON reviewable: %w", err)
+	}
+	if taskStatusID == "" {
+		return nil
+	}
+	return a.UpdateAssetStatus(token, apiURL, projectID, taskID, taskStatusID)
+}
+
+// GetExternalEntityURL returns the AYON browser URL for a task.
+func (a *AYONClient) GetExternalEntityURL(token, apiURL, projectID, entityID string) (string, error) {
+	path := fmt.Sprintf("/api/projects/%s/uris", url.PathEscape(projectID))
+	response := ayonEntityURIResponse{}
+	payload := map[string]any{
+		"entityType": "task",
+		"ids":        []string{strings.SplitN(entityID, ayonWorkfileIDSeparator, 2)[0]},
+	}
+	if err := a.post(token, apiURL, path, payload, &response); err != nil {
+		return "", err
+	}
+	if len(response.URIs) != 1 || response.URIs[0].URI == "" {
+		return "", errors.New("AYON task did not resolve to one entity URI")
+	}
+
+	browserURL, err := url.Parse(strings.TrimSpace(apiURL))
+	if err != nil || (browserURL.Scheme != "http" && browserURL.Scheme != "https") || browserURL.Host == "" {
+		return "", errors.New("invalid AYON URL")
+	}
+	browserURL.RawQuery = ""
+	browserURL.Fragment = ""
+	browserURL.Path = strings.TrimSuffix(browserURL.Path, "/") + fmt.Sprintf(
+		"/projects/%s/browser",
+		url.PathEscape(projectID),
+	)
+	query := browserURL.Query()
+	query.Set("uri", response.URIs[0].URI)
+	browserURL.RawQuery = query.Encode()
+	return browserURL.String(), nil
+}
+
+func (a *AYONClient) uploadProjectFile(token, apiURL, projectID, filePath string, onProgress UploadProgressFunc) (string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
+
+	var body io.Reader = file
+	if onProgress != nil {
+		body = &progressReader{
+			reader:     file,
+			total:      fileInfo.Size(),
+			onProgress: onProgress,
+		}
+	}
+	path := fmt.Sprintf("/api/projects/%s/files", url.PathEscape(projectID))
+	request, err := http.NewRequest(
+		http.MethodPost,
+		strings.TrimRight(apiURL, "/")+path,
+		body,
+	)
+	if err != nil {
+		return "", err
+	}
+	contentType := mime.TypeByExtension(filepath.Ext(filePath))
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	request.Header.Set("X-Api-Key", token)
+	request.Header.Set("X-File-Name", filepath.Base(filePath))
+	request.Header.Set("Content-Type", contentType)
+	request.Header.Set("Accept", "application/json")
+	request.ContentLength = fileInfo.Size()
+
+	response, err := a.httpClient.Do(request)
+	if err != nil {
+		return "", fmt.Errorf("failed to connect to AYON: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		responseBody, _ := io.ReadAll(response.Body)
+		return "", fmt.Errorf("AYON upload failed with HTTP %d: %s", response.StatusCode, strings.TrimSpace(string(responseBody)))
+	}
+	payload := ayonFileResponse{}
+	if err := json.NewDecoder(response.Body).Decode(&payload); err != nil {
+		return "", fmt.Errorf("invalid AYON upload response: %w", err)
+	}
+	if payload.ID == "" {
+		return "", errors.New("AYON upload response did not contain a file ID")
+	}
+	return payload.ID, nil
 }
 
 func (a *AYONClient) getHierarchy(token, apiURL, projectID string) ([]ayonFolder, error) {
@@ -236,6 +456,43 @@ func (a *AYONClient) getProject(token, apiURL, projectID string) (ayonProject, e
 		return ayonProject{}, err
 	}
 	return project, nil
+}
+
+func (a *AYONClient) getTasks(token, apiURL, projectID string) ([]ayonTask, error) {
+	tasks := make([]ayonTask, 0)
+	var cursor *string
+	for {
+		payload := ayonGraphQLRequest{
+			Query: ayonTasksQuery,
+			Variables: ayonTasksVariables{
+				ProjectName: projectID,
+				PageSize:    ayonTasksPageSize,
+				After:       cursor,
+			},
+		}
+		response := ayonTasksResponse{}
+		if err := a.post(token, apiURL, "/graphql", payload, &response); err != nil {
+			return nil, err
+		}
+		if len(response.Errors) > 0 {
+			return nil, fmt.Errorf("AYON GraphQL request failed: %s", response.Errors[0].Message)
+		}
+		if response.Data.Project == nil {
+			return nil, fmt.Errorf("AYON project %q was not found", projectID)
+		}
+
+		page := response.Data.Project.Tasks
+		for _, edge := range page.Edges {
+			tasks = append(tasks, edge.Node)
+		}
+		if !page.PageInfo.HasNextPage {
+			return tasks, nil
+		}
+		if page.PageInfo.EndCursor == "" {
+			return nil, errors.New("AYON task pagination returned an empty cursor")
+		}
+		cursor = &page.PageInfo.EndCursor
+	}
 }
 
 func containsAYONScope(scopes []string, expected string) bool {
@@ -291,6 +548,36 @@ func (a *AYONClient) patch(token, apiURL, path string, payload any) error {
 	defer response.Body.Close()
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		return fmt.Errorf("AYON request failed with HTTP %d", response.StatusCode)
+	}
+	return nil
+}
+
+func (a *AYONClient) post(token, apiURL, path string, payload, target any) error {
+	body, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	request, err := http.NewRequest(
+		http.MethodPost,
+		strings.TrimRight(apiURL, "/")+path,
+		bytes.NewReader(body),
+	)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("X-Api-Key", token)
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "application/json")
+	response, err := a.httpClient.Do(request)
+	if err != nil {
+		return fmt.Errorf("failed to connect to AYON: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		return fmt.Errorf("AYON request failed with HTTP %d", response.StatusCode)
+	}
+	if err := json.NewDecoder(response.Body).Decode(target); err != nil {
+		return fmt.Errorf("invalid AYON response: %w", err)
 	}
 	return nil
 }

@@ -282,7 +282,7 @@ func (k *KitsuClient) UpdateAssetStatus(token, apiUrl, _ string, assetID, status
 
 // UploadPreview uploads a preview file to a task's comment.
 // If taskStatusId is provided, the comment will also set that status. Otherwise the current status is preserved.
-func (k *KitsuClient) UploadPreview(token, apiUrl, assetID, filePath, comment, taskStatusId string, onProgress UploadProgressFunc) error {
+func (k *KitsuClient) UploadPreview(token, apiUrl, _ string, assetID, filePath, comment, taskStatusId string, onProgress UploadProgressFunc) error {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 
 	// If no status provided, fetch the current task status to preserve it
