@@ -67,6 +67,7 @@ endif
 # Stamp release metadata before packaging.
 # Usage:
 #   make release-version VERSION=0.4.36
+#   make release-version VERSION=0.4.42-beta.1
 #   make release-version VERSION=0.4.36 RELEASE_DATE=2026-07-02
 .PHONY: release-version
 release-version:
@@ -158,7 +159,7 @@ flatpak-sources: flatpak-check
 # Tag and update the Flathub manifest
 .PHONY: flatpak-tag
 flatpak-tag: flatpak-check
-	@if [ -z "$(VERSION)" ]; then echo "Error: VERSION required. Usage: make flatpak-tag VERSION=v0.4.41-flatpak.1"; exit 1; fi
+	@if [ -z "$(VERSION)" ]; then echo "Error: VERSION required. Usage: make flatpak-tag VERSION=v0.4.42-beta.1-flatpak.1"; exit 1; fi
 	git tag $(VERSION)
 	git push origin $(VERSION)
 	@COMMIT=$$(git rev-parse $(VERSION)); \

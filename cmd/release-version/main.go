@@ -15,25 +15,29 @@ type replacement struct {
 	replace string
 }
 
+const (
+	versionPattern      = `[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?`
+	versionInputPattern = `^v?` + versionPattern + `$`
+	versionExample      = "0.4.42-beta.1"
+)
+
+var releaseVersionPattern = regexp.MustCompile(versionInputPattern)
+
 func main() {
-	versionFlag := flag.String("version", "", "release version, for example 0.4.36 or v0.4.36")
+	versionFlag := flag.String("version", "", "release version, for example 0.4.36 or 0.4.42-beta.1")
 	dateFlag := flag.String("date", time.Now().Format("2006-01-02"), "release date in YYYY-MM-DD format")
 	flag.Parse()
 
-	version := strings.TrimSpace(*versionFlag)
-	version = strings.TrimPrefix(version, "v")
-	if version == "" {
-		fatalf("version is required, for example: go run ./cmd/release-version -version 0.4.36")
-	}
-	if !regexp.MustCompile(`^\d+\.\d+\.\d+$`).MatchString(version) {
-		fatalf("version must look like 0.4.36, got %q", version)
+	version, packageVersion, err := parseReleaseVersion(*versionFlag)
+	if err != nil {
+		fatalf("%v", err)
 	}
 	if !regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`).MatchString(*dateFlag) {
 		fatalf("date must look like 2026-07-02, got %q", *dateFlag)
 	}
 
-	plistVersion := macOSBundleVersion(version)
-	msixVersion := msixPackageVersion(version)
+	plistVersion := macOSBundleVersion(packageVersion)
+	msixVersion := msixPackageVersion(packageVersion)
 	dockerVersion := version
 	flatpakReleaseTag := "v" + version
 	flatpakTag := "v" + version + "-flatpak.1"
@@ -49,12 +53,12 @@ func main() {
 		{
 			path:    "build/windows/wails.exe.manifest",
 			pattern: `(name="com\.clustta\.clustta" version=")[^"]+(")`,
-			replace: "${1}" + version + "${2}",
+			replace: "${1}" + packageVersion + "${2}",
 		},
 		{
 			path:    "build/windows/info.json",
 			pattern: `("file_version": ")[^"]+(")`,
-			replace: "${1}" + version + "${2}",
+			replace: "${1}" + packageVersion + "${2}",
 		},
 		{
 			path:    "build/windows/info.json",
@@ -64,7 +68,7 @@ func main() {
 		{
 			path:    "build/windows/nsis/wails_tools.nsh",
 			pattern: `(!define INFO_PRODUCTVERSION ")[^"]+(")`,
-			replace: "${1}" + version + "${2}",
+			replace: "${1}" + packageVersion + "${2}",
 		},
 		{
 			path:    "build/windows/Taskfile.yml",
@@ -118,17 +122,17 @@ func main() {
 		},
 		{
 			path:    "build/linux/flatpak/com.clustta.clustta.yml",
-			pattern: `(releases/download/)v[0-9]+\.[0-9]+\.[0-9]+(/clustta-)[0-9]+\.[0-9]+\.[0-9]+(-linux-amd64)`,
+			pattern: `(releases/download/)v` + versionPattern + `(/clustta-)` + versionPattern + `(-linux-amd64)`,
 			replace: "${1}" + flatpakReleaseTag + "${2}" + version + "${3}",
 		},
 		{
 			path:    "commands.txt",
-			pattern: `(clustta/clustta:)[0-9]+\.[0-9]+\.[0-9]+`,
+			pattern: `(clustta/clustta:)` + versionPattern,
 			replace: "${1}" + dockerVersion,
 		},
 		{
 			path:    "Makefile",
-			pattern: `make flatpak-tag VERSION=v[0-9]+\.[0-9]+\.[0-9]+-flatpak\.1`,
+			pattern: `make flatpak-tag VERSION=v` + versionPattern + `-flatpak\.1`,
 			replace: "make flatpak-tag VERSION=" + flatpakTag,
 		},
 	}
@@ -151,6 +155,20 @@ func main() {
 	fmt.Printf("Stamped macOS bundle version as %s\n", plistVersion)
 	fmt.Printf("Stamped MSIX package version as %s\n", msixVersion)
 	fmt.Println("Note: Flatpak source URL/SHA still need updating after the Linux release binary exists.")
+}
+
+func parseReleaseVersion(value string) (string, string, error) {
+	version := strings.TrimSpace(value)
+	if version == "" {
+		return "", "", fmt.Errorf("version is required, for example: go run ./cmd/release-version -version %s", versionExample)
+	}
+	if !releaseVersionPattern.MatchString(version) {
+		return "", "", fmt.Errorf("version must look like 0.4.36 or %s, got %q", versionExample, version)
+	}
+
+	version = strings.TrimPrefix(version, "v")
+	packageVersion := strings.SplitN(version, "-", 2)[0]
+	return version, packageVersion, nil
 }
 
 func apply(change replacement) {

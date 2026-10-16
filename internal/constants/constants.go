@@ -11,7 +11,7 @@ var USER_AGENT = fmt.Sprintf("Clustta/%s", "0.2")
 
 // fallbackVersion is used when no build-time version is injected.
 // Keep in sync with build/config.yml; release CI may override via ldflags.
-const fallbackVersion = "0.4.41"
+const fallbackVersion = "0.4.42-beta.1"
 
 // VERSION is the resolved application version (build-time injected or fallback).
 var VERSION = getVersion()
