@@ -465,9 +465,15 @@ onUnmounted(() => {
 }
 
 .general-container {
-  max-height: 520px;
+  max-height: calc(100vh - 8rem);
   gap: .5rem;
   align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.modal-container {
+  max-height: calc(100vh - 2rem);
   justify-content: flex-start;
 }
 
@@ -478,11 +484,23 @@ onUnmounted(() => {
 
 .checkpoint-create-layout {
   display: flex;
+  flex: 1;
   align-items: stretch;
   gap: .75rem;
   width: 100%;
   min-height: 0;
+  overflow-y: auto;
+  padding: .1rem .25rem .25rem;
   box-sizing: border-box;
+}
+
+.checkpoint-create-layout::-webkit-scrollbar {
+  width: 4px;
+}
+
+.checkpoint-create-layout::-webkit-scrollbar-thumb {
+  border-radius: var(--normal-radius);
+  background-color: var(--surface-4);
 }
 
 .checkpoint-create-form {
@@ -501,6 +519,25 @@ onUnmounted(() => {
   width: 100%;
   min-width: 0;
   /* background-color: forestgreen; */
+}
+
+.checkpoint-create-controls .screenshot-preview {
+  flex: 0 0 auto;
+  height: min(200px, 24vh);
+  min-height: 120px;
+  background-color: var(--surface-2);
+}
+
+.checkpoint-create-controls .screenshot-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pop-up-actions {
+  flex: 0 0 auto;
+  margin-top: 0;
 }
 
 .checkpoint-create-history {

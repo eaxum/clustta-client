@@ -99,6 +99,23 @@ const handleSyncConflict = (conflictData) => {
     modals.setModalVisibility('syncConflictModal', true);
 };
 
+const handleIntegrationPushComplete = (result) => {
+    const integrationName = result?.integration?.toUpperCase() || 'integration';
+    notificationStore.addNotification(
+        `Preview sent to ${integrationName}`,
+        `${result?.pushed || 1} asset preview uploaded successfully.`,
+        'success'
+    );
+};
+
+const handleIntegrationPushFailed = (result) => {
+    const integrationName = result?.integration?.toUpperCase() || 'integration';
+    notificationStore.errorNotification(
+        `Failed to send preview to ${integrationName}`,
+        result?.error
+    );
+};
+
 const handleAgentApprovalRequest = (payload) => {
     if (!payload || !payload.id) return;
     agentApprovalStore.enqueueRequest(payload);
@@ -322,6 +339,12 @@ if (platformStore.isWeb) {
     });
     Events.On('sync-conflict', async (message) => {
         handleSyncConflict(message.data);
+    });
+    Events.On('integration-push-complete', async (message) => {
+        handleIntegrationPushComplete(message.data);
+    });
+    Events.On('integration-push-failed', async (message) => {
+        handleIntegrationPushFailed(message.data);
     });
     Events.On('open-project-file', async (message) => {
         const filePath = message.data;

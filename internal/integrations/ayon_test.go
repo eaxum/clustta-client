@@ -75,7 +75,7 @@ func TestAYONUploadPreviewCreatesReviewableAndUpdatesStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	requests := make([]string, 0, 3)
+	requests := make([]string, 0, 4)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Header.Get("X-Api-Key") != "secret" {
 			t.Fatal("missing AYON API key header")
@@ -114,6 +114,19 @@ func TestAYONUploadPreviewCreatesReviewableAndUpdatesStatus(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusCreated)
 			_, _ = w.Write([]byte(`{"id":"activity-id"}`))
+		case "/api/projects/demo/tasks/task-id/thumbnail":
+			if r.Header.Get("Content-Type") != "image/png" {
+				t.Fatalf("unexpected thumbnail content type: %s", r.Header.Get("Content-Type"))
+			}
+			body, err := io.ReadAll(r.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(body) != "preview-data" {
+				t.Fatalf("unexpected thumbnail body: %q", string(body))
+			}
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"id":"thumbnail-id"}`))
 		case "/api/projects/demo/tasks/task-id":
 			status := map[string]string{}
 			if err := json.NewDecoder(r.Body).Decode(&status); err != nil {
@@ -152,6 +165,7 @@ func TestAYONUploadPreviewCreatesReviewableAndUpdatesStatus(t *testing.T) {
 	expected := []string{
 		"POST /api/projects/demo/files",
 		"POST /api/projects/demo/tasks/task-id/activities",
+		"POST /api/projects/demo/tasks/task-id/thumbnail",
 		"PATCH /api/projects/demo/tasks/task-id",
 	}
 	if strings.Join(requests, "|") != strings.Join(expected, "|") {

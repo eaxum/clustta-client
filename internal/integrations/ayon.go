@@ -346,6 +346,11 @@ func (a *AYONClient) UploadPreview(token, apiURL, projectID, assetID, filePath, 
 	if err := a.post(token, apiURL, activityPath, activity, &activityResponse); err != nil {
 		return fmt.Errorf("failed to create AYON reviewable: %w", err)
 	}
+	if strings.HasPrefix(mime.TypeByExtension(filepath.Ext(filePath)), "image/") {
+		if err := a.uploadTaskThumbnail(token, apiURL, projectID, taskID, filePath); err != nil {
+			return fmt.Errorf("failed to update AYON task thumbnail: %w", err)
+		}
+	}
 	if taskStatusID == "" {
 		return nil
 	}
@@ -438,6 +443,55 @@ func (a *AYONClient) uploadProjectFile(token, apiURL, projectID, filePath string
 		return "", errors.New("AYON upload response did not contain a file ID")
 	}
 	return payload.ID, nil
+}
+
+func (a *AYONClient) uploadTaskThumbnail(token, apiURL, projectID, taskID, filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+
+	path := fmt.Sprintf(
+		"/api/projects/%s/tasks/%s/thumbnail",
+		url.PathEscape(projectID),
+		url.PathEscape(taskID),
+	)
+	request, err := http.NewRequest(
+		http.MethodPost,
+		strings.TrimRight(apiURL, "/")+path,
+		file,
+	)
+	if err != nil {
+		return err
+	}
+	contentType := mime.TypeByExtension(filepath.Ext(filePath))
+	if contentType == "" {
+		contentType = "application/octet-stream"
+	}
+	request.Header.Set("X-Api-Key", token)
+	request.Header.Set("Content-Type", contentType)
+	request.Header.Set("Accept", "application/json")
+	request.ContentLength = fileInfo.Size()
+
+	response, err := a.httpClient.Do(request)
+	if err != nil {
+		return fmt.Errorf("failed to connect to AYON: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+		responseBody, _ := io.ReadAll(response.Body)
+		return fmt.Errorf(
+			"AYON thumbnail upload failed with HTTP %d: %s",
+			response.StatusCode,
+			strings.TrimSpace(string(responseBody)),
+		)
+	}
+	return nil
 }
 
 func (a *AYONClient) getHierarchy(token, apiURL, projectID string) ([]ayonFolder, error) {
