@@ -29,7 +29,7 @@ export class APIInfo {
         if (!("capabilities_by_version" in $$source)) {
             /**
              * @member
-             * @type {{ [_: string]: string[] }}
+             * @type {{ [_ in string]?: string[] }}
              */
             this["capabilities_by_version"] = {};
         }

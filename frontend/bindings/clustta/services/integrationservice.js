@@ -27,7 +27,7 @@ import * as $models from "./models.js";
  * Authenticate authenticates with an external integration.
  * Returns auth result with user info and token on success.
  * @param {string} integrationId
- * @param {{ [_: string]: string }} credentials
+ * @param {{ [_ in string]?: string }} credentials
  * @returns {$CancellablePromise<integrations$0.AuthResult>}
  */
 export function Authenticate(integrationId, credentials) {
@@ -236,7 +236,7 @@ export function ResolveOrCreateAYONWorkfile(projectPath, context) {
 /**
  * SaveStatusMappings saves status mappings to sync_options (Clustta status ID → external status ID).
  * @param {string} projectPath
- * @param {{ [_: string]: string }} statusMappings
+ * @param {{ [_ in string]?: string }} statusMappings
  * @returns {$CancellablePromise<void>}
  */
 export function SaveStatusMappings(projectPath, statusMappings) {

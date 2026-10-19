@@ -9,9 +9,6 @@ import { Create as $Create } from "@wailsio/runtime";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as models$0 from "../internal/repository/models/models.js";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
-import * as time$0 from "../../time/models.js";
 
 /**
  * AYONWorkfileContext identifies one AYON task workfile.
@@ -1054,9 +1051,9 @@ export class DeploymentResponse {
         if (!("created_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time}
+             * @type {string}
              */
-            this["created_at"] = null;
+            this["created_at"] = "0001-01-01T00:00:00.000Z";
         }
         if (!("websocket_url" in $$source)) {
             /**
@@ -1180,21 +1177,21 @@ export class DeploymentStatus {
         if (!("created_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time}
+             * @type {string}
              */
-            this["created_at"] = null;
+            this["created_at"] = "0001-01-01T00:00:00.000Z";
         }
         if (!("started_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time | null}
+             * @type {string | null}
              */
             this["started_at"] = null;
         }
         if (!("completed_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time | null}
+             * @type {string | null}
              */
             this["completed_at"] = null;
         }
@@ -1559,7 +1556,7 @@ export class ExportPreview {
         if (!("rows" in $$source)) {
             /**
              * @member
-             * @type {{ [_: string]: any }[]}
+             * @type {{ [_ in string]?: any }[]}
              */
             this["rows"] = [];
         }

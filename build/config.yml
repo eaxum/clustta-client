@@ -44,7 +44,7 @@ dev_mode:
       type: primary
 
 # File Associations
-# More information at: https://v3alpha.wails.io/guides/file-associations/
+# More information at: https://v3.wails.io/guides/file-associations/
 fileAssociations:
   - ext: clst
     name: Clustta

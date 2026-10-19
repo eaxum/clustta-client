@@ -114,7 +114,7 @@ endif
 # install dev dependencies
 .PHONY: install-dev
 install-dev:
-	go install -v github.com/wailsapp/wails/v3/cmd/wails3@latest
+	go install -v github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.32
 
 # Build the Clustta Bridge (HTTP server for addon integrations)
 .PHONY: bridge

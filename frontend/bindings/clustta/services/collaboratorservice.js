@@ -20,7 +20,7 @@ import * as $models from "./models.js";
  * @param {string} remoteUrl
  * @param {string[]} userIds
  * @param {string} role
- * @returns {$CancellablePromise<{ [_: string]: string }[]>}
+ * @returns {$CancellablePromise<{ [_ in string]?: string }[]>}
  */
 export function AddCollaborators(remoteUrl, userIds, role) {
     return $Call.ByID(1170433159, remoteUrl, userIds, role).then(/** @type {($result: any) => any} */(($result) => {
@@ -34,7 +34,7 @@ export function AddCollaborators(remoteUrl, userIds, role) {
  * @param {string} remoteUrl
  * @param {string[]} userIds
  * @param {string} role
- * @returns {$CancellablePromise<{ [_: string]: string }[]>}
+ * @returns {$CancellablePromise<{ [_ in string]?: string }[]>}
  */
 export function AddCollaboratorsWithRole(remoteUrl, userIds, role) {
     return $Call.ByID(2205027835, remoteUrl, userIds, role).then(/** @type {($result: any) => any} */(($result) => {

@@ -115,7 +115,7 @@ export class DirectoryStructure {
             /**
              * Template ID -> { name, icon, template }
              * @member
-             * @type {{ [_: string]: any }}
+             * @type {{ [_ in string]?: any }}
              */
             this["paths"] = {};
         }
@@ -861,7 +861,7 @@ export class SyncOptions {
             /**
              * External collection type → Clustta collection type
              * @member
-             * @type {{ [_: string]: TypeMapping }}
+             * @type {{ [_ in string]?: TypeMapping }}
              */
             this["collection_type_mappings"] = {};
         }
@@ -869,7 +869,7 @@ export class SyncOptions {
             /**
              * External asset type → Clustta asset type
              * @member
-             * @type {{ [_: string]: TypeMapping }}
+             * @type {{ [_ in string]?: TypeMapping }}
              */
             this["asset_type_mappings"] = {};
         }
@@ -877,7 +877,7 @@ export class SyncOptions {
             /**
              * External asset type ID → Clustta template ID
              * @member
-             * @type {{ [_: string]: string }}
+             * @type {{ [_ in string]?: string }}
              */
             this["asset_type_templates"] = {};
         }
@@ -885,7 +885,7 @@ export class SyncOptions {
             /**
              * Clustta status ID → external status ID
              * @member
-             * @type {{ [_: string]: string }}
+             * @type {{ [_ in string]?: string }}
              */
             this["status_mappings"] = {};
         }
