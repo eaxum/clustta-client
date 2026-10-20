@@ -203,11 +203,11 @@ export class App {
 /**
  * AutostartManager provides cross-platform control over whether the
  * application launches when the user logs in.
- *
+ * 
  * Registration takes effect on the next login, not immediately.
- *
+ * 
  * Platform behaviour:
- *
+ * 
  *   - macOS 13+ (bundled .app):  SMAppService.mainAppService — works for
  *     sandboxed and Mac-App-Store apps, no TCC automation prompt.
  *   - macOS (older or unbundled): a LaunchAgent plist is written to
@@ -385,16 +385,16 @@ export class EventManager {
 
 /**
  * GlobalShortcutManager manages application-wide (global) keyboard shortcuts.
- *
+ * 
  * Unlike menu accelerators or [KeyBindingManager] - which only fire while a
  * Wails window has focus - a global shortcut fires regardless of which
  * application is currently focused, as long as the Wails application is
  * running.
- *
+ * 
  * Global shortcuts are owned by the application, not by an individual window.
  * Registering the same accelerator twice within the same application is
  * reported as an error and the original binding is preserved; see [Register].
- *
+ * 
  * Shortcuts may be registered before [App.Run] is called: the binding with the
  * operating system is then deferred until the application starts.
  */

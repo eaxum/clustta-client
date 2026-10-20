@@ -51,7 +51,7 @@
   <content_rating type="oars-1.1" />
 
   <releases>
-    <release version="0.4.42-beta.1" date="2026-10-16">
+    <release version="0.4.42-beta.2" date="2026-10-20">
       <description>
         <p>Clustta 0.4.41 adds column browsing and more control over your workspace.</p>
         <ul>
@@ -64,7 +64,7 @@
         </ul>
       </description>
     </release>
-    <release version="0.4.42-beta.1" date="2026-10-16">
+    <release version="0.4.42-beta.2" date="2026-10-20">
       <description>
         <p>Clustta 0.4.40 makes asset history and dependencies easier to understand and control.</p>
         <ul>
