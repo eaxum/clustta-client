@@ -21,7 +21,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-const bridgeAPIVersion = "1"
+const (
+	bridgeAPIVersion      = "1"
+	trackJobStartProgress = 5
+	trackJobSyncProgress  = 90
+)
 
 type capabilitiesResponse struct {
 	APIVersion string   `json:"api_version"`
@@ -66,6 +70,21 @@ type checkpointRequest struct {
 	Sync               *bool  `json:"sync"`
 }
 
+type trackAssetRequest struct {
+	SourceAssetID      string `json:"sourceAssetId"`
+	SourceCheckpointID string `json:"sourceCheckpointId"`
+	FilePath           string `json:"filePath"`
+	Message            string `json:"message"`
+	PreviewPath        string `json:"previewPath"`
+	Sync               *bool  `json:"sync"`
+}
+
+type trackAssetResponse struct {
+	Asset      assetResponse      `json:"asset"`
+	Checkpoint checkpointResponse `json:"checkpoint"`
+	Created    bool               `json:"created"`
+}
+
 type statusRequest struct {
 	StatusID string `json:"statusId"`
 }
@@ -105,6 +124,7 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"project.workspace",
 			"assets.list",
 			"assets.context",
+			"assets.track",
 			"ayon.workfiles.resolve",
 			"assets.status",
 			"assets.open",
@@ -122,6 +142,136 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"jobs.cancel",
 		},
 	})
+}
+
+func V1TrackAsset(w http.ResponseWriter, r *http.Request) {
+	project, ok := requestProject(w, r)
+	if !ok {
+		return
+	}
+	var body trackAssetRequest
+	if err := decodeBody(r, &body); err != nil {
+		jsonError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if strings.TrimSpace(body.FilePath) == "" {
+		jsonError(w, http.StatusBadRequest, "filePath is required")
+		return
+	}
+	filePath, ok := validateTrackAssetPath(w, project.WorkingDirectory, body.FilePath)
+	if !ok {
+		return
+	}
+
+	checkpointService := &services.CheckpointService{}
+	sourceID, err := checkpointService.ResolveCheckpointSource(
+		project.Uri,
+		body.SourceAssetID,
+		body.SourceCheckpointID,
+	)
+	if err != nil {
+		jsonError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	syncAfterCheckpoint, err := settings.GetSyncAfterCheckpoint()
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	if body.Sync != nil {
+		syncAfterCheckpoint = *body.Sync
+	}
+
+	groupID := uuid.NewString()
+	idempotencyKey := operationKey(r, project.Id, filePath, "track-asset")
+	job := startJob("track-asset", idempotencyKey, false, func(update func(string, int)) (any, error) {
+		return runTrackAssetJob(
+			project,
+			body,
+			filePath,
+			sourceID,
+			groupID,
+			syncAfterCheckpoint,
+			update,
+		)
+	})
+	jsonResponse(w, http.StatusAccepted, job)
+}
+
+func validateTrackAssetPath(
+	w http.ResponseWriter,
+	workingDirectory string,
+	requestedPath string,
+) (string, bool) {
+	filePath := canonicalPath(requestedPath)
+	if !pathWithin(filePath, workingDirectory) {
+		jsonError(w, http.StatusBadRequest, "filePath must be inside the project working directory")
+		return "", false
+	}
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		jsonError(w, http.StatusBadRequest, "asset file is not available on disk")
+		return "", false
+	}
+	if !fileInfo.Mode().IsRegular() || fileInfo.Size() == 0 {
+		jsonError(w, http.StatusBadRequest, "asset file must be a non-empty regular file")
+		return "", false
+	}
+	return filePath, true
+}
+
+func runTrackAssetJob(
+	project repository.ProjectInfo,
+	request trackAssetRequest,
+	filePath string,
+	sourceID string,
+	groupID string,
+	syncAfterCheckpoint bool,
+	update func(string, int),
+) (trackAssetResponse, error) {
+	update("Tracking asset", trackJobStartProgress)
+	result, err := services.TrackAsset(
+		project.Uri,
+		services.TrackAssetOptions{
+			FilePath:           filePath,
+			Message:            request.Message,
+			PreviewPath:        request.PreviewPath,
+			GroupID:            groupID,
+			SourceCheckpointID: sourceID,
+		},
+		func(progress int) {
+			update("Tracking asset", progress)
+		},
+	)
+	if err != nil {
+		return trackAssetResponse{}, err
+	}
+	if err = syncTrackedAsset(project.Uri, result.Asset.Id, syncAfterCheckpoint, update); err != nil {
+		return trackAssetResponse{}, err
+	}
+	return trackAssetResponse{
+		Asset:      assetToResponse(result.Asset),
+		Checkpoint: checkpointToResponse(result.Checkpoint),
+		Created:    result.Created,
+	}, nil
+}
+
+func syncTrackedAsset(
+	projectPath string,
+	assetID string,
+	syncAfterCheckpoint bool,
+	update func(string, int),
+) error {
+	if !syncAfterCheckpoint {
+		return nil
+	}
+	update("Synchronizing asset", trackJobSyncProgress)
+	remoteURL, err := utils.ResolveProjectRemoteURL(projectPath)
+	if err != nil || remoteURL == "" {
+		return err
+	}
+	syncService := &services.SyncService{}
+	return syncService.SyncAsset(projectPath, remoteURL, assetID)
 }
 
 func V1Bootstrap(w http.ResponseWriter, r *http.Request) {

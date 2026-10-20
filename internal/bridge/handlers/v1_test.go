@@ -130,3 +130,54 @@ func TestCheckpointResponseIncludesSource(t *testing.T) {
 		t.Fatal("source selection not decoded")
 	}
 }
+
+func TestCapabilitiesIncludeAssetTracking(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest("GET", "/v1/capabilities", nil)
+	V1Capabilities(recorder, request)
+
+	var response capabilitiesResponse
+	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
+		t.Fatal(err)
+	}
+	for _, operation := range response.Operations {
+		if operation == "assets.track" {
+			return
+		}
+	}
+	t.Fatal("asset tracking capability is missing")
+}
+
+func TestTrackAssetContractIncludesCreatedResources(t *testing.T) {
+	requestBody := trackAssetRequest{}
+	if err := json.Unmarshal([]byte(`{
+		"filePath":"C:/project/hero.blend",
+		"sourceAssetId":"source-asset",
+		"sourceCheckpointId":"source-checkpoint",
+		"sync":true
+	}`), &requestBody); err != nil {
+		t.Fatal(err)
+	}
+	if requestBody.FilePath != "C:/project/hero.blend" ||
+		requestBody.SourceAssetID != "source-asset" ||
+		requestBody.SourceCheckpointID != "source-checkpoint" ||
+		requestBody.Sync == nil || !*requestBody.Sync {
+		t.Fatalf("unexpected tracking request: %#v", requestBody)
+	}
+
+	response := trackAssetResponse{
+		Asset:      assetResponse{ID: "asset-id"},
+		Checkpoint: checkpointResponse{ID: "checkpoint-id"},
+		Created:    true,
+	}
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encodedText := string(encoded)
+	if !strings.Contains(encodedText, `"asset":{"id":"asset-id"`) ||
+		!strings.Contains(encodedText, `"checkpoint":{"source_checkpoint_id":null,"id":"checkpoint-id"`) ||
+		!strings.Contains(encodedText, `"created":true`) {
+		t.Fatalf("unexpected tracking response: %s", encodedText)
+	}
+}

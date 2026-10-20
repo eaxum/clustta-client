@@ -79,6 +79,7 @@ func Start() {
 	mux.HandleFunc("GET /v1/projects", handlers.V1ListProjects)
 	mux.HandleFunc("GET /v1/projects/{projectId}/workspace", handlers.V1ProjectWorkspace)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets", handlers.V1ListAssignedAssets)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets", handlers.V1TrackAsset)
 	mux.HandleFunc("GET /v1/projects/{projectId}/statuses", handlers.V1ListStatuses)
 	mux.HandleFunc("POST /v1/projects/{projectId}/integrations/ayon/workfiles/resolve", handlers.V1ResolveAYONWorkfile)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1ListDependencies)

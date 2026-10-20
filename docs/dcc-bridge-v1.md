@@ -40,6 +40,7 @@ switches invalidate the appropriate cache automatically.
 
 ## Operations
 
+- `POST /v1/projects/{projectId}/assets`
 - `POST /v1/projects/{projectId}/integrations/ayon/workfiles/resolve`
 - `POST /v1/projects/{projectId}/assets/{assetId}/status`
 - `POST /v1/projects/{projectId}/assets/{assetId}/open`
@@ -75,6 +76,36 @@ with `create_asset` and `assign_asset` permissions when creation is required.
 
 Open focuses the tracked asset in Clustta Desktop. Reveal opens the system file
 manager with the tracked asset selected. Both return `204 No Content`.
+
+### Track an existing file
+
+Create an asset and its initial checkpoint from an existing file inside the
+project working directory:
+
+```json
+{
+  "filePath": "C:/project/assets/character.blend",
+  "message": "v0001",
+  "previewPath": "",
+  "sync": true
+}
+```
+
+The bridge resolves and validates the canonical path, creates missing collection
+folders when permitted, and assigns the asset to the active user. The active
+role requires `create_asset`, `create_checkpoint`, and `assign_asset`.
+`create_collection` is also required when the relative file path contains a
+collection that is not tracked yet.
+
+Tracking is asynchronous and returns `202 Accepted` with a job. The completed
+job result contains `asset`, `checkpoint`, and `created`. Repeating the request
+for an asset already assigned to the active user returns the existing asset and
+checkpoint with `created` set to `false`. Send an `Idempotency-Key` header so a
+retried request returns the original job.
+
+The request may also include `sourceAssetId` and `sourceCheckpointId`, using the
+same source-selection rules as checkpoint creation. A blank message is stored as
+`v0001`. Set `sync` to override the desktop sync-after-checkpoint preference.
 
 Checkpoint, status, build, and revert requests should include a unique
 `Idempotency-Key` header. These asynchronous operations return `202 Accepted`
