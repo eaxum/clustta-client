@@ -40,7 +40,7 @@ permissions:
 
 jobs:
   dispatch-from-release:
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && github.event.release.prerelease == false
     runs-on: ubuntu-latest
     steps:
       - name: Start default-branch manifest run
@@ -73,6 +73,22 @@ jobs:
           fi
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Validate stable release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ steps.meta.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          IS_DRAFT=$(gh api "repos/${REPO}/releases/tags/${TAG}" --jq '.draft')
+          IS_PRERELEASE=$(gh api "repos/${REPO}/releases/tags/${TAG}" --jq '.prerelease')
+
+          if [ "$IS_DRAFT" = "true" ] || [ "$IS_PRERELEASE" = "true" ]; then
+            echo "::error::Stable update manifests cannot target drafts or prereleases"
+            exit 1
+          fi
 
       - name: Generate latest.json
         id: gen
