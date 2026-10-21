@@ -6,13 +6,20 @@ import { fileURLToPath } from 'node:url';
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const frontendDirectory = resolve(scriptDirectory, '..');
 const repositoryDirectory = resolve(frontendDirectory, '..');
-const sourceNoticesPath = join(frontendDirectory, 'src', 'data', 'THIRD-PARTY-NOTICES.txt');
 const noticesPath = join(frontendDirectory, 'public', 'licenses', 'THIRD-PARTY-NOTICES.txt');
 const clusttaLicensePath = join(frontendDirectory, 'public', 'licenses', 'AGPL-3.0.txt');
 const licenseFilePattern = /^(license|licence|copying|notice)(\.|$)/i;
 const excludedPackages = new Set(['@clustta/web-adapters']);
 const clusttaCopyright = 'Copyright (c) 2026 Eaxum';
 const openFontLicenseSeparator = '-----------------------------------------------------------';
+
+const normalizeText = (text) => text.replace(/\r\n?/g, '\n').replace(/[ \t]+$/gm, '');
+const compareNames = (left, right) => left < right ? -1 : left > right ? 1 : 0;
+const readText = (path) => normalizeText(readFileSync(path, 'utf8'));
+const checkOnly = process.argv.includes('--check');
+const goVersion = readText(join(repositoryDirectory, 'go.mod')).match(/^go (\S+)$/m)?.[1];
+if (!goVersion) throw new Error('Missing Go version in go.mod.');
+const goEnvironment = { ...process.env, GOTOOLCHAIN: `go${goVersion}`, GOWORK: 'off', GOFLAGS: '' };
 
 const readJson = (filePath) => JSON.parse(readFileSync(filePath, 'utf8'));
 
@@ -42,7 +49,7 @@ const normalizeLicenseId = (value, licenseText) => {
 
 const readLicenseNotice = (directory) => {
   return findLicenseFiles(directory)
-    .map((filePath) => `FILE: ${filePath.split(/[\\/]/).pop()}\n\n${readFileSync(filePath, 'utf8').trim()}`)
+    .map((filePath) => `FILE: ${filePath.split(/[\\/]/).pop()}\n\n${readText(filePath).trim()}`)
     .join('\n\n');
 };
 
@@ -67,7 +74,7 @@ const collectNodePackages = () => {
     const current = pending.shift();
     if (excludedPackages.has(current.name)) continue;
     const packagePath = resolveNodePackage(current.name, current.baseDirectory);
-    if (!packagePath) continue;
+    if (!packagePath) throw new Error(`Missing ${current.name}; install frontend dependencies with yarn install --frozen-lockfile --ignore-platform first.`);
 
     const packageData = readJson(packagePath);
     const key = `${packageData.name}@${packageData.version}`;
@@ -83,7 +90,7 @@ const collectNodePackages = () => {
       notice,
     });
 
-    for (const dependencyName of Object.keys(packageData.dependencies || {})) {
+    for (const dependencyName of Object.keys({ ...packageData.dependencies, ...packageData.optionalDependencies })) {
       pending.push({ name: dependencyName, baseDirectory: packageDirectory });
     }
   }
@@ -101,10 +108,17 @@ const collectGoPackages = () => {
 
   let output;
   try {
-    output = execFileSync('go', ['list', '-deps', '-f', template, '.'], {
-      cwd: repositoryDirectory,
-      encoding: 'utf8',
-    });
+    // A fixed union includes platform-specific modules without needing native SDKs.
+    output = ['darwin', 'windows', 'linux'].flatMap((GOOS) =>
+      ['amd64', 'arm64'].map((GOARCH) => execFileSync(
+        'go', ['list', '-mod=readonly', '-tags=production', '-deps', '-f', template, '.'],
+        {
+          cwd: repositoryDirectory,
+          encoding: 'utf8',
+          env: { ...goEnvironment, GOOS, GOARCH, CGO_ENABLED: '1' },
+        },
+      )),
+    ).join('\n');
   } finally {
     rmSync(embedPlaceholder, { force: true });
     if (!distExisted) rmSync(distDirectory, { recursive: true, force: true });
@@ -127,11 +141,11 @@ const collectGoPackages = () => {
 };
 
 const collectGoStandardLibrary = () => {
-  const goRoot = execFileSync('go', ['env', 'GOROOT'], { encoding: 'utf8' }).trim();
+  const goRoot = execFileSync('go', ['env', 'GOROOT'], { cwd: repositoryDirectory, env: goEnvironment, encoding: 'utf8' }).trim();
   const notice = readLicenseNotice(goRoot);
   return {
     name: 'Go standard library',
-    version: execFileSync('go', ['env', 'GOVERSION'], { encoding: 'utf8' }).trim(),
+    version: `go${goVersion}`,
     license: normalizeLicenseId('BSD-3-Clause', notice),
     notice,
   };
@@ -207,7 +221,7 @@ const deduplicatePackages = (packages) => {
   for (const packageEntry of packages) {
     uniquePackages.set(`${packageEntry.name}@${packageEntry.version}`, packageEntry);
   }
-  return [...uniquePackages.values()].sort((left, right) => left.name.localeCompare(right.name));
+  return [...uniquePackages.values()].sort((left, right) => compareNames(`${left.name}@${left.version}`, `${right.name}@${right.version}`));
 };
 
 const createNotices = (packages, clusttaLicense) => {
@@ -232,8 +246,15 @@ const packages = deduplicatePackages([
 
 mkdirSync(dirname(noticesPath), { recursive: true });
 const notices = `${createNotices(packages, clusttaLicense)}\n`;
-writeFileSync(sourceNoticesPath, notices);
-writeFileSync(noticesPath, notices);
-writeFileSync(clusttaLicensePath, clusttaLicense);
+const outputs = [[noticesPath, normalizeText(notices)], [clusttaLicensePath, normalizeText(clusttaLicense)]];
+for (const [path, contents] of outputs) {
+  if (checkOnly) {
+    if (!existsSync(path) || readFileSync(path, 'utf8') !== contents) {
+      throw new Error(`Stale license file: ${path}. Run yarn licenses:generate and commit the result.`);
+    }
+  } else {
+    writeFileSync(path, contents);
+  }
+}
 
-console.log(`Generated notices for ${packages.length} components.`);
+console.log(`${checkOnly ? 'Checked' : 'Generated'} notices for ${packages.length} components.`);

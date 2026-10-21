@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import noticesText from '@/data/THIRD-PARTY-NOTICES.txt?raw';
+import noticesText from '../../../../public/licenses/THIRD-PARTY-NOTICES.txt?raw';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 

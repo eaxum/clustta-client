@@ -53,7 +53,7 @@ export function GetActiveAccountWithContext() {
 
 /**
  * GetAllAccounts returns all stored user accounts (basic Token for backward compatibility)
- * @returns {$CancellablePromise<{ [_ in string]?: auth_service$0.Token }>}
+ * @returns {$CancellablePromise<{ [_: string]: auth_service$0.Token }>}
  */
 export function GetAllAccounts() {
     return $Call.ByID(3398964055).then(/** @type {($result: any) => any} */(($result) => {
@@ -63,7 +63,7 @@ export function GetAllAccounts() {
 
 /**
  * GetAllAccountsWithContext returns all stored accounts with full auth context
- * @returns {$CancellablePromise<{ [_ in string]?: $models.AccountInfo }>}
+ * @returns {$CancellablePromise<{ [_: string]: $models.AccountInfo }>}
  */
 export function GetAllAccountsWithContext() {
     return $Call.ByID(2841620102).then(/** @type {($result: any) => any} */(($result) => {

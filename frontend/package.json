@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "licenses:generate": "node scripts/generate-third-party-notices.mjs",
-    "prebuild": "node scripts/generate-third-party-notices.mjs",
-    "prebuild:dev": "node scripts/generate-third-party-notices.mjs",
+    "licenses:check": "node scripts/generate-third-party-notices.mjs --check",
     "dev": "vite",
     "dev:web": "cross-env VITE_PLATFORM=web vite",
     "dev:dashboard": "cross-env VITE_PLATFORM=web VITE_API_URL=http://localhost:5000 vite --force",

@@ -153,7 +153,7 @@ export function GetCheckpoint(projectPath, checkpointId) {
  * GetCheckpointDependencyReferenceCounts returns exact-pin follower counts for an asset.
  * @param {string} projectPath
  * @param {string} assetId
- * @returns {$CancellablePromise<{ [_ in string]?: number }>}
+ * @returns {$CancellablePromise<{ [_: string]: number }>}
  */
 export function GetCheckpointDependencyReferenceCounts(projectPath, assetId) {
     return $Call.ByID(629976125, projectPath, assetId).then(/** @type {($result: any) => any} */(($result) => {

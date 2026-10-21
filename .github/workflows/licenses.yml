@@ -1,0 +1,35 @@
+name: Check third-party notices
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  notices:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --global yarn@1.22.22
+      # This sibling-repository dependency is excluded from desktop notices.
+      # It is unavailable in a standalone checkout and need not be installed.
+      - name: Omit excluded local web adapter from CI installation
+        working-directory: frontend
+        run: |
+          node --input-type=module -e "import fs from 'node:fs'; const p = JSON.parse(fs.readFileSync('package.json', 'utf8')); delete p.dependencies['@clustta/web-adapters']; fs.writeFileSync('package.json', JSON.stringify(p));"
+      - run: yarn install --frozen-lockfile --ignore-platform --ignore-scripts
+        working-directory: frontend
+      - run: yarn licenses:check
+        working-directory: frontend
