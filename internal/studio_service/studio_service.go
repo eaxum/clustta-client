@@ -139,18 +139,7 @@ func UpdateStudioInfo(studioUrl, name, url, altUrl, port string) (StudioInfo, er
 		return StudioInfo{}, err
 	}
 
-	user, err := auth_service.GetActiveUser()
-	if err != nil {
-		return StudioInfo{}, fmt.Errorf("no active user: %v", err)
-	}
-	userJson, err := json.Marshal(user)
-	if err != nil {
-		return StudioInfo{}, err
-	}
-
 	auth_service.AttachBearerToken(req)
-	req.Header.Set("UserData", string(userJson))
-	req.Header.Set("UserId", user.Id)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	req.Header.Set("Content-Type", "application/json")
 
@@ -174,17 +163,11 @@ func UpdateStudioInfo(studioUrl, name, url, altUrl, port string) (StudioInfo, er
 }
 
 func attachPrivateStudioAuth(req *http.Request) error {
-	user, err := auth_service.GetActiveUser()
+	_, err := auth_service.GetActiveUser()
 	if err != nil {
 		return fmt.Errorf("no active user: %v", err)
 	}
-	userJSON, err := json.Marshal(user)
-	if err != nil {
-		return err
-	}
 	auth_service.AttachBearerToken(req)
-	req.Header.Set("UserData", string(userJSON))
-	req.Header.Set("UserId", user.Id)
 	req.Header.Set("Clustta-Agent", constants.USER_AGENT)
 	return nil
 }

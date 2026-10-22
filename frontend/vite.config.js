@@ -235,13 +235,6 @@ export default defineConfig(async () => {
                   // Set host header to match target
                   proxyReq.setHeader('Host', url.host);
                   
-                  // Ensure custom headers are forwarded
-                  if (req.headers['userid']) {
-                    proxyReq.setHeader('UserId', req.headers['userid']);
-                  }
-                  if (req.headers['userdata']) {
-                    proxyReq.setHeader('UserData', req.headers['userdata']);
-                  }
                   if (req.headers['clustta-agent']) {
                     proxyReq.setHeader('Clustta-Agent', req.headers['clustta-agent']);
                   }

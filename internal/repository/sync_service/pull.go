@@ -565,7 +565,6 @@ func GetStudioProjects(user auth_service.User, url string, studioName string, ho
 			return GetLocalStudioProjects(studioProjectsDir, url, user)
 		}
 		req.Header.Set("Clustta-Agent", constants.USER_AGENT)
-		req.Header.Set("UserId", user.Id)
 		auth_service.AttachBearerToken(req)
 
 		client := &http.Client{}
