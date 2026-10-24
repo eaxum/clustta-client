@@ -42,6 +42,8 @@ switches invalidate the appropriate cache automatically.
 
 - `POST /v1/projects/{projectId}/assets`
 - `POST /v1/projects/{projectId}/integrations/ayon/workfiles/resolve`
+- `POST /v1/projects/{projectId}/integrations/ayon/workfiles/prepare`
+- `POST /v1/projects/{projectId}/integrations/ayon/workfiles/import`
 - `POST /v1/projects/{projectId}/assets/{assetId}/status`
 - `POST /v1/projects/{projectId}/assets/{assetId}/open`
 - `POST /v1/projects/{projectId}/assets/{assetId}/reveal`
@@ -55,16 +57,25 @@ switches invalidate the appropriate cache automatically.
 - `POST /v1/projects/{projectId}/assets/{assetId}/build`
 - `POST /v1/projects/{projectId}/assets/{assetId}/revert`
 
-The AYON workfile resolver accepts AYON project, folder, task, task type, and
-application identifiers. It returns the existing mapped workfile or creates one
-from the task type's configured template. The AYON project, folder, and task
-type must already be mapped. The active Clustta user must be a project member
-with `create_asset` and `assign_asset` permissions when creation is required.
+The AYON prepare endpoint accepts AYON project, folder hierarchy, task, task
+type, and application identifiers. It returns an existing mapped workfile or a
+validated target path for a new DCC file. It creates missing generic collections
+when permitted. It does not require a linked integration or workfile template.
 
 ```json
 {
   "ayon_project_id": "ayon-project-id",
   "folder_id": "ayon-folder-id",
+  "folder_path": "/assets/characters/hero/",
+  "folders": [
+    {
+      "id": "ayon-folder-id",
+      "parent_id": "",
+      "name": "hero",
+      "path": "/assets/characters/hero/",
+      "type": "asset"
+    }
+  ],
   "task_id": "ayon-task-id",
   "task_name": "modeling",
   "task_type_id": "modeling-type-id",
@@ -73,6 +84,25 @@ with `create_asset` and `assign_asset` permissions when creation is required.
   "extension": ".blend"
 }
 ```
+
+When `requires_import` is true, the DCC creates and saves its native file at
+`target_path`. The client then submits the same context and path to the import
+endpoint:
+
+```json
+{
+  "context": {},
+  "file_path": "C:/project/assets/characters/hero/Modeling.blend"
+}
+```
+
+Import is asynchronous. It validates the canonical path and atomically creates
+the asset, initial checkpoint, assignment, and AYON DCC mapping. The active role
+requires `create_asset`, `create_checkpoint`, and `assign_asset` permissions.
+Creating missing hierarchy also requires `create_collection`.
+
+The older resolve endpoint remains available for clients using configured AYON
+project, folder, and template mappings.
 
 Open focuses the tracked asset in Clustta Desktop. Reveal opens the system file
 manager with the tracked asset selected. Both return `204 No Content`.

@@ -89,7 +89,7 @@ export function AssetFileStatus(projectPath, assetId) {
 /**
  * @param {string} projectPath
  * @param {string[]} assetIds
- * @returns {$CancellablePromise<{ [_: string]: string }>}
+ * @returns {$CancellablePromise<{ [_ in string]?: string }>}
  */
 export function AssetFilesStatus(projectPath, assetIds) {
     return $Call.ByID(3141819454, projectPath, assetIds).then(/** @type {($result: any) => any} */(($result) => {

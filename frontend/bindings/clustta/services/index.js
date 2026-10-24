@@ -74,7 +74,10 @@ export {
 };
 
 export {
+    AYONFolderContext,
     AYONWorkfileContext,
+    AYONWorkfileImportResult,
+    AYONWorkfilePreparation,
     AYONWorkfileResult,
     AccountInfo,
     AgentKeyStatus,

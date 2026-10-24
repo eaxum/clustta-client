@@ -181,3 +181,24 @@ func TestTrackAssetContractIncludesCreatedResources(t *testing.T) {
 		t.Fatalf("unexpected tracking response: %s", encodedText)
 	}
 }
+
+func TestAYONPrepareContractIncludesFolderHierarchy(t *testing.T) {
+	var request ayonWorkfileRequest
+	if err := json.Unmarshal([]byte(`{
+		"ayon_project_id":"ayon-project",
+		"folder_id":"folder-id",
+		"folder_path":"/assets/hero/",
+		"folders":[{"id":"folder-id","name":"hero","path":"/assets/hero/","type":"asset"}],
+		"task_id":"task-id",
+		"task_name":"Modeling",
+		"task_type":"Modeling",
+		"application":"blender",
+		"extension":".blend"
+	}`), &request); err != nil {
+		t.Fatal(err)
+	}
+	context := ayonContextFromRequest(request)
+	if context.FolderPath != "/assets/hero/" || len(context.Folders) != 1 {
+		t.Fatalf("unexpected AYON context: %#v", context)
+	}
+}

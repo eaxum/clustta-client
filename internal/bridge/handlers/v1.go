@@ -126,6 +126,8 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"assets.context",
 			"assets.track",
 			"ayon.workfiles.resolve",
+			"ayon.workfiles.prepare",
+			"ayon.workfiles.import",
 			"assets.status",
 			"assets.open",
 			"assets.reveal",

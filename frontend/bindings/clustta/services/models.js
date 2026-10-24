@@ -9,9 +9,65 @@ import { Create as $Create } from "@wailsio/runtime";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore: Unused imports
 import * as models$0 from "../internal/repository/models/models.js";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore: Unused imports
-import * as time$0 from "../../time/models.js";
+
+/**
+ * AYONFolderContext identifies one folder in the selected AYON hierarchy.
+ */
+export class AYONFolderContext {
+    /**
+     * Creates a new AYONFolderContext instance.
+     * @param {Partial<AYONFolderContext>} [$$source = {}] - The source object to create the AYONFolderContext.
+     */
+    constructor($$source = {}) {
+        if (!("ID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["ID"] = "";
+        }
+        if (!("ParentID" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["ParentID"] = "";
+        }
+        if (!("Name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["Name"] = "";
+        }
+        if (!("Path" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["Path"] = "";
+        }
+        if (!("Type" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["Type"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AYONFolderContext instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AYONFolderContext}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AYONFolderContext(/** @type {Partial<AYONFolderContext>} */($$parsedSource));
+    }
+}
 
 /**
  * AYONWorkfileContext identifies one AYON task workfile.
@@ -35,6 +91,20 @@ export class AYONWorkfileContext {
              * @type {string}
              */
             this["FolderID"] = "";
+        }
+        if (!("FolderPath" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["FolderPath"] = "";
+        }
+        if (!("Folders" in $$source)) {
+            /**
+             * @member
+             * @type {AYONFolderContext[]}
+             */
+            this["Folders"] = [];
         }
         if (!("TaskID" in $$source)) {
             /**
@@ -88,8 +158,113 @@ export class AYONWorkfileContext {
      * @returns {AYONWorkfileContext}
      */
     static createFrom($$source = {}) {
+        const $$createField3_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("Folders" in $$parsedSource) {
+            $$parsedSource["Folders"] = $$createField3_0($$parsedSource["Folders"]);
+        }
         return new AYONWorkfileContext(/** @type {Partial<AYONWorkfileContext>} */($$parsedSource));
+    }
+}
+
+/**
+ * AYONWorkfileImportResult contains the imported asset and initial checkpoint.
+ */
+export class AYONWorkfileImportResult {
+    /**
+     * Creates a new AYONWorkfileImportResult instance.
+     * @param {Partial<AYONWorkfileImportResult>} [$$source = {}] - The source object to create the AYONWorkfileImportResult.
+     */
+    constructor($$source = {}) {
+        if (!("Asset" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Asset}
+             */
+            this["Asset"] = null;
+        }
+        if (!("Checkpoint" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Checkpoint}
+             */
+            this["Checkpoint"] = (new models$0.Checkpoint());
+        }
+        if (!("Created" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["Created"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AYONWorkfileImportResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AYONWorkfileImportResult}
+     */
+    static createFrom($$source = {}) {
+        const $$createField1_0 = $$createType2;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("Checkpoint" in $$parsedSource) {
+            $$parsedSource["Checkpoint"] = $$createField1_0($$parsedSource["Checkpoint"]);
+        }
+        return new AYONWorkfileImportResult(/** @type {Partial<AYONWorkfileImportResult>} */($$parsedSource));
+    }
+}
+
+/**
+ * AYONWorkfilePreparation describes how the DCC should open a workfile.
+ */
+export class AYONWorkfilePreparation {
+    /**
+     * Creates a new AYONWorkfilePreparation instance.
+     * @param {Partial<AYONWorkfilePreparation>} [$$source = {}] - The source object to create the AYONWorkfilePreparation.
+     */
+    constructor($$source = {}) {
+        if (!("Asset" in $$source)) {
+            /**
+             * @member
+             * @type {models$0.Asset | null}
+             */
+            this["Asset"] = null;
+        }
+        if (!("TargetPath" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["TargetPath"] = "";
+        }
+        if (!("RequiresImport" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["RequiresImport"] = false;
+        }
+        if (!("FileExists" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["FileExists"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new AYONWorkfilePreparation instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {AYONWorkfilePreparation}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new AYONWorkfilePreparation(/** @type {Partial<AYONWorkfilePreparation>} */($$parsedSource));
     }
 }
 
@@ -397,9 +572,9 @@ export class AssetsStates {
      * @returns {AssetsStates}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType1;
-        const $$createField1_0 = $$createType1;
-        const $$createField2_0 = $$createType1;
+        const $$createField0_0 = $$createType4;
+        const $$createField1_0 = $$createType4;
+        const $$createField2_0 = $$createType4;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("modified" in $$parsedSource) {
             $$parsedSource["modified"] = $$createField0_0($$parsedSource["modified"]);
@@ -772,13 +947,13 @@ export class CollectionChildrenState {
      * @returns {CollectionChildrenState}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType2;
-        const $$createField2_0 = $$createType2;
-        const $$createField3_0 = $$createType2;
-        const $$createField4_0 = $$createType2;
-        const $$createField5_0 = $$createType3;
-        const $$createField6_0 = $$createType4;
+        const $$createField0_0 = $$createType5;
+        const $$createField1_0 = $$createType5;
+        const $$createField2_0 = $$createType5;
+        const $$createField3_0 = $$createType5;
+        const $$createField4_0 = $$createType5;
+        const $$createField5_0 = $$createType6;
+        const $$createField6_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("modified_assets" in $$parsedSource) {
             $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
@@ -849,10 +1024,10 @@ export class CollectionItems {
      * @returns {CollectionItems}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType5;
-        const $$createField2_0 = $$createType3;
-        const $$createField3_0 = $$createType4;
+        const $$createField0_0 = $$createType5;
+        const $$createField1_0 = $$createType8;
+        const $$createField2_0 = $$createType6;
+        const $$createField3_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
@@ -1054,9 +1229,9 @@ export class DeploymentResponse {
         if (!("created_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time}
+             * @type {string}
              */
-            this["created_at"] = null;
+            this["created_at"] = "0001-01-01T00:00:00.000Z";
         }
         if (!("websocket_url" in $$source)) {
             /**
@@ -1180,21 +1355,21 @@ export class DeploymentStatus {
         if (!("created_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time}
+             * @type {string}
              */
-            this["created_at"] = null;
+            this["created_at"] = "0001-01-01T00:00:00.000Z";
         }
         if (!("started_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time | null}
+             * @type {string | null}
              */
             this["started_at"] = null;
         }
         if (!("completed_at" in $$source)) {
             /**
              * @member
-             * @type {time$0.Time | null}
+             * @type {string | null}
              */
             this["completed_at"] = null;
         }
@@ -1257,7 +1432,7 @@ export class DragOutRequest {
      * @returns {DragOutRequest}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType6;
+        const $$createField2_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("asset_ids" in $$parsedSource) {
             $$parsedSource["asset_ids"] = $$createField2_0($$parsedSource["asset_ids"]);
@@ -1383,10 +1558,10 @@ export class EntitlementBundle {
      * @returns {EntitlementBundle}
      */
     static createFrom($$source = {}) {
-        const $$createField10_0 = $$createType7;
-        const $$createField11_0 = $$createType8;
-        const $$createField12_0 = $$createType6;
-        const $$createField13_0 = $$createType6;
+        const $$createField10_0 = $$createType10;
+        const $$createField11_0 = $$createType11;
+        const $$createField12_0 = $$createType9;
+        const $$createField13_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("limits" in $$parsedSource) {
             $$parsedSource["limits"] = $$createField10_0($$parsedSource["limits"]);
@@ -1559,7 +1734,7 @@ export class ExportPreview {
         if (!("rows" in $$source)) {
             /**
              * @member
-             * @type {{ [_: string]: any }[]}
+             * @type {{ [_ in string]?: any }[]}
              */
             this["rows"] = [];
         }
@@ -1594,8 +1769,8 @@ export class ExportPreview {
      * @returns {ExportPreview}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType10;
-        const $$createField1_0 = $$createType12;
+        const $$createField0_0 = $$createType13;
+        const $$createField1_0 = $$createType15;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("columns" in $$parsedSource) {
             $$parsedSource["columns"] = $$createField0_0($$parsedSource["columns"]);
@@ -1658,8 +1833,8 @@ export class ExportRequest {
      * @returns {ExportRequest}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType6;
-        const $$createField2_0 = $$createType6;
+        const $$createField0_0 = $$createType9;
+        const $$createField2_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("asset_ids" in $$parsedSource) {
             $$parsedSource["asset_ids"] = $$createField0_0($$parsedSource["asset_ids"]);
@@ -1698,7 +1873,7 @@ export class FetchResult {
      * @returns {FetchResult}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType6;
+        const $$createField0_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("restored_asset_ids" in $$parsedSource) {
             $$parsedSource["restored_asset_ids"] = $$createField0_0($$parsedSource["restored_asset_ids"]);
@@ -1863,8 +2038,8 @@ export class ImportItems {
      * @returns {ImportItems}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType5;
+        const $$createField0_0 = $$createType5;
+        const $$createField1_0 = $$createType8;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
@@ -1906,8 +2081,8 @@ export class ItemsForCheckpoint {
      * @returns {ItemsForCheckpoint}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType2;
-        const $$createField1_0 = $$createType3;
+        const $$createField0_0 = $$createType5;
+        const $$createField1_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("modified_assets" in $$parsedSource) {
             $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
@@ -1942,7 +2117,7 @@ export class ItemsForUpdate {
      * @returns {ItemsForUpdate}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType2;
+        const $$createField0_0 = $$createType5;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("outdated_assets" in $$parsedSource) {
             $$parsedSource["outdated_assets"] = $$createField0_0($$parsedSource["outdated_assets"]);
@@ -2148,7 +2323,7 @@ export class Plan {
      * @returns {Plan}
      */
     static createFrom($$source = {}) {
-        const $$createField14_0 = $$createType6;
+        const $$createField14_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("feature_keys" in $$parsedSource) {
             $$parsedSource["feature_keys"] = $$createField14_0($$parsedSource["feature_keys"]);
@@ -2208,7 +2383,7 @@ export class PreLaunchTrustInfo {
      * @returns {PreLaunchTrustInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType6;
+        const $$createField4_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("scripts" in $$parsedSource) {
             $$parsedSource["scripts"] = $$createField4_0($$parsedSource["scripts"]);
@@ -2436,7 +2611,7 @@ export class PurgeRecursiveUntrackedItemsResult {
      * @returns {PurgeRecursiveUntrackedItemsResult}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType6;
+        const $$createField3_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("errors" in $$parsedSource) {
             $$parsedSource["errors"] = $$createField3_0($$parsedSource["errors"]);
@@ -2803,8 +2978,8 @@ export class UntrackedItems {
      * @returns {UntrackedItems}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType3;
-        const $$createField1_0 = $$createType4;
+        const $$createField0_0 = $$createType6;
+        const $$createField1_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
@@ -3119,11 +3294,11 @@ export class UserProfile {
      * @returns {UserProfile}
      */
     static createFrom($$source = {}) {
-        const $$createField8_0 = $$createType14;
-        const $$createField9_0 = $$createType14;
-        const $$createField25_0 = $$createType16;
-        const $$createField26_0 = $$createType18;
-        const $$createField27_0 = $$createType20;
+        const $$createField8_0 = $$createType17;
+        const $$createField9_0 = $$createType17;
+        const $$createField25_0 = $$createType19;
+        const $$createField26_0 = $$createType21;
+        const $$createField27_0 = $$createType23;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("country_id" in $$parsedSource) {
             $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
@@ -3310,24 +3485,27 @@ export class UserTool {
 }
 
 // Private type creation functions
-const $$createType0 = AssetStateItem.createFrom;
+const $$createType0 = AYONFolderContext.createFrom;
 const $$createType1 = $Create.Array($$createType0);
-const $$createType2 = $Create.Array($Create.Any);
-const $$createType3 = $Create.Array($Create.Any);
-const $$createType4 = $Create.Array($Create.Any);
+const $$createType2 = models$0.Checkpoint.createFrom;
+const $$createType3 = AssetStateItem.createFrom;
+const $$createType4 = $Create.Array($$createType3);
 const $$createType5 = $Create.Array($Create.Any);
 const $$createType6 = $Create.Array($Create.Any);
-const $$createType7 = EntitlementLimits.createFrom;
-const $$createType8 = EntitlementUsage.createFrom;
-const $$createType9 = ExportColumn.createFrom;
-const $$createType10 = $Create.Array($$createType9);
-const $$createType11 = $Create.Map($Create.Any, $Create.Any);
-const $$createType12 = $Create.Array($$createType11);
-const $$createType13 = NullString.createFrom;
-const $$createType14 = $Create.Nullable($$createType13);
-const $$createType15 = UserTool.createFrom;
-const $$createType16 = $Create.Array($$createType15);
-const $$createType17 = UserSkill.createFrom;
-const $$createType18 = $Create.Array($$createType17);
-const $$createType19 = UserStudio.createFrom;
-const $$createType20 = $Create.Array($$createType19);
+const $$createType7 = $Create.Array($Create.Any);
+const $$createType8 = $Create.Array($Create.Any);
+const $$createType9 = $Create.Array($Create.Any);
+const $$createType10 = EntitlementLimits.createFrom;
+const $$createType11 = EntitlementUsage.createFrom;
+const $$createType12 = ExportColumn.createFrom;
+const $$createType13 = $Create.Array($$createType12);
+const $$createType14 = $Create.Map($Create.Any, $Create.Any);
+const $$createType15 = $Create.Array($$createType14);
+const $$createType16 = NullString.createFrom;
+const $$createType17 = $Create.Nullable($$createType16);
+const $$createType18 = UserTool.createFrom;
+const $$createType19 = $Create.Array($$createType18);
+const $$createType20 = UserSkill.createFrom;
+const $$createType21 = $Create.Array($$createType20);
+const $$createType22 = UserStudio.createFrom;
+const $$createType23 = $Create.Array($$createType22);

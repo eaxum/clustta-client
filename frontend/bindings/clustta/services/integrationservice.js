@@ -27,7 +27,7 @@ import * as $models from "./models.js";
  * Authenticate authenticates with an external integration.
  * Returns auth result with user info and token on success.
  * @param {string} integrationId
- * @param {{ [_: string]: string }} credentials
+ * @param {{ [_ in string]?: string }} credentials
  * @returns {$CancellablePromise<integrations$0.AuthResult>}
  */
 export function Authenticate(integrationId, credentials) {
@@ -190,6 +190,20 @@ export function GetTypeMappings(projectPath) {
 }
 
 /**
+ * ImportAYONWorkfile tracks a DCC-created file and creates its AYON mapping.
+ * @param {string} projectPath
+ * @param {$models.AYONWorkfileContext} context
+ * @param {string} filePath
+ * @param {any} progress
+ * @returns {$CancellablePromise<$models.AYONWorkfileImportResult>}
+ */
+export function ImportAYONWorkfile(projectPath, context, filePath, progress) {
+    return $Call.ByID(3582263336, projectPath, context, filePath, progress).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType19($result);
+    }));
+}
+
+/**
  * LinkProject links a Clustta project to an external project.
  * Returns error if project already has an integration.
  * @param {string} projectPath
@@ -204,6 +218,18 @@ export function GetTypeMappings(projectPath) {
 export function LinkProject(projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId) {
     return $Call.ByID(3276450698, projectPath, integrationId, externalProjectId, externalProjectName, apiUrl, syncOptions, userId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType10($result);
+    }));
+}
+
+/**
+ * PrepareAYONWorkfile creates missing hierarchy and resolves the launch target.
+ * @param {string} projectPath
+ * @param {$models.AYONWorkfileContext} context
+ * @returns {$CancellablePromise<$models.AYONWorkfilePreparation>}
+ */
+export function PrepareAYONWorkfile(projectPath, context) {
+    return $Call.ByID(3391348704, projectPath, context).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType20($result);
     }));
 }
 
@@ -229,14 +255,14 @@ export function PushToIntegration(projectPath, assetIds, checkpointId, previewPa
  */
 export function ResolveOrCreateAYONWorkfile(projectPath, context) {
     return $Call.ByID(3573236710, projectPath, context).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType19($result);
+        return $$createType21($result);
     }));
 }
 
 /**
  * SaveStatusMappings saves status mappings to sync_options (Clustta status ID → external status ID).
  * @param {string} projectPath
- * @param {{ [_: string]: string }} statusMappings
+ * @param {{ [_ in string]?: string }} statusMappings
  * @returns {$CancellablePromise<void>}
  */
 export function SaveStatusMappings(projectPath, statusMappings) {
@@ -293,4 +319,6 @@ const $$createType15 = integrations$0.MissingType.createFrom;
 const $$createType16 = $Create.Array($$createType15);
 const $$createType17 = integrations$0.SyncPreview.createFrom;
 const $$createType18 = integrations$0.SyncOptions.createFrom;
-const $$createType19 = $models.AYONWorkfileResult.createFrom;
+const $$createType19 = $models.AYONWorkfileImportResult.createFrom;
+const $$createType20 = $models.AYONWorkfilePreparation.createFrom;
+const $$createType21 = $models.AYONWorkfileResult.createFrom;

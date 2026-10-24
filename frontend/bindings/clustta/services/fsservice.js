@@ -219,7 +219,7 @@ export function GetOSThumbnail(filePath, size) {
  * Returns a map of file paths to base64-encoded thumbnails. Empty strings for failures.
  * @param {string[]} filePaths
  * @param {number} size
- * @returns {$CancellablePromise<{ [_: string]: string }>}
+ * @returns {$CancellablePromise<{ [_ in string]?: string }>}
  */
 export function GetOSThumbnails(filePaths, size) {
     return $Call.ByID(4150854623, filePaths, size).then(/** @type {($result: any) => any} */(($result) => {
