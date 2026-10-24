@@ -117,20 +117,24 @@ project working directory:
   "filePath": "C:/project/assets/character.blend",
   "message": "v0001",
   "previewPath": "",
+  "assignToCurrentUser": false,
   "sync": true
 }
 ```
 
 The bridge resolves and validates the canonical path, creates missing collection
-folders when permitted, and assigns the asset to the active user. The active
-role requires `create_asset`, `create_checkpoint`, and `assign_asset`.
-`create_collection` is also required when the relative file path contains a
-collection that is not tracked yet.
+folders when permitted, and creates an unassigned resource by default. The
+active role requires `create_asset` and `create_checkpoint`. Set
+`assignToCurrentUser` to `true` to create an assigned task for the active user;
+this also requires `assign_asset`. `create_collection` is required when the
+relative file path contains a collection that is not tracked yet.
 
 Tracking is asynchronous and returns `202 Accepted` with a job. The completed
 job result contains `asset`, `checkpoint`, and `created`. Repeating the request
-for an asset already assigned to the active user returns the existing asset and
-checkpoint with `created` set to `false`. Send an `Idempotency-Key` header so a
+for an existing tracked asset returns the asset and checkpoint with `created`
+set to `false`. When `assignToCurrentUser` is `true`, an existing unassigned
+resource is converted to a task and assigned to the active user. An asset
+assigned to another user is rejected. Send an `Idempotency-Key` header so a
 retried request returns the original job.
 
 The request may also include `sourceAssetId` and `sourceCheckpointId`, using the

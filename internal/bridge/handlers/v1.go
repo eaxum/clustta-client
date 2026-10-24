@@ -71,12 +71,13 @@ type checkpointRequest struct {
 }
 
 type trackAssetRequest struct {
-	SourceAssetID      string `json:"sourceAssetId"`
-	SourceCheckpointID string `json:"sourceCheckpointId"`
-	FilePath           string `json:"filePath"`
-	Message            string `json:"message"`
-	PreviewPath        string `json:"previewPath"`
-	Sync               *bool  `json:"sync"`
+	SourceAssetID       string `json:"sourceAssetId"`
+	SourceCheckpointID  string `json:"sourceCheckpointId"`
+	FilePath            string `json:"filePath"`
+	Message             string `json:"message"`
+	PreviewPath         string `json:"previewPath"`
+	AssignToCurrentUser bool   `json:"assignToCurrentUser"`
+	Sync                *bool  `json:"sync"`
 }
 
 type trackAssetResponse struct {
@@ -235,11 +236,12 @@ func runTrackAssetJob(
 	result, err := services.TrackAsset(
 		project.Uri,
 		services.TrackAssetOptions{
-			FilePath:           filePath,
-			Message:            request.Message,
-			PreviewPath:        request.PreviewPath,
-			GroupID:            groupID,
-			SourceCheckpointID: sourceID,
+			FilePath:            filePath,
+			Message:             request.Message,
+			PreviewPath:         request.PreviewPath,
+			GroupID:             groupID,
+			SourceCheckpointID:  sourceID,
+			AssignToCurrentUser: request.AssignToCurrentUser,
 		},
 		func(progress int) {
 			update("Tracking asset", progress)

@@ -190,7 +190,7 @@ func (s *IntegrationService) ImportAYONWorkfile(
 		}
 		return AYONWorkfileImportResult{Asset: existing, Checkpoint: checkpoint}, nil
 	}
-	if err = authorizeTrackAssetRole(role); err != nil {
+	if err = authorizeTrackAssetRole(role, true); err != nil {
 		return AYONWorkfileImportResult{}, err
 	}
 

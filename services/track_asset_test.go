@@ -12,7 +12,7 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
-func TestTrackAssetCreatesAssignedAssetAndCheckpoint(t *testing.T) {
+func TestTrackAssetCreatesUnassignedAssetAndCheckpoint(t *testing.T) {
 	projectPath, workingDirectory := setupTrackAssetProject(t)
 	filePath := filepath.Join(workingDirectory, "characters", "hero.blend")
 	if err := os.MkdirAll(filepath.Dir(filePath), 0o755); err != nil {
@@ -29,8 +29,11 @@ func TestTrackAssetCreatesAssignedAssetAndCheckpoint(t *testing.T) {
 	if !result.Created {
 		t.Fatal("expected the asset to be created")
 	}
-	if result.Asset.AssigneeId != auth_service.OfflineUserID {
-		t.Fatalf("expected asset assignment to active user, got %q", result.Asset.AssigneeId)
+	if result.Asset.AssigneeId != "" {
+		t.Fatalf("expected asset to be unassigned, got %q", result.Asset.AssigneeId)
+	}
+	if !result.Asset.IsResource {
+		t.Fatal("expected unassigned asset to be a resource")
 	}
 	if result.Asset.CollectionPath != "/characters/" {
 		t.Fatalf("unexpected collection path %q", result.Asset.CollectionPath)
@@ -45,6 +48,68 @@ func TestTrackAssetCreatesAssignedAssetAndCheckpoint(t *testing.T) {
 	}
 	if repeated.Created || repeated.Asset.Id != result.Asset.Id || repeated.Checkpoint.Id != result.Checkpoint.Id {
 		t.Fatalf("expected existing tracked asset, got %#v", repeated)
+	}
+
+	assigned, err := trackAsset(projectPath, TrackAssetOptions{
+		FilePath:            filePath,
+		AssignToCurrentUser: true,
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if assigned.Created || assigned.Asset.AssigneeId != auth_service.OfflineUserID {
+		t.Fatalf("expected existing asset assignment to active user, got %#v", assigned)
+	}
+	if assigned.Asset.IsResource {
+		t.Fatal("expected assigned asset to be converted to a task")
+	}
+}
+
+func TestTrackAssetAssignsToCurrentUserWhenRequested(t *testing.T) {
+	projectPath, workingDirectory := setupTrackAssetProject(t)
+	filePath := createTrackAssetTestFile(t, workingDirectory, "assigned.blend")
+
+	result, err := trackAsset(projectPath, TrackAssetOptions{
+		FilePath:            filePath,
+		AssignToCurrentUser: true,
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Asset.AssigneeId != auth_service.OfflineUserID {
+		t.Fatalf("expected asset assignment to active user, got %q", result.Asset.AssigneeId)
+	}
+	if result.Asset.IsResource {
+		t.Fatal("expected assigned asset to be a task")
+	}
+}
+
+func TestTrackAssetRequiresAssignPermissionOnlyWhenRequested(t *testing.T) {
+	projectPath, workingDirectory := setupTrackAssetProject(t)
+	db, err := sqlx.Open("sqlite3", projectPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = db.Exec("UPDATE role SET assign_asset = 0 WHERE id = 'admin-role'"); err != nil {
+		db.Close()
+		t.Fatal(err)
+	}
+	if err = db.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	unassignedPath := createTrackAssetTestFile(t, workingDirectory, "unassigned.blend")
+	if _, err = trackAsset(projectPath, TrackAssetOptions{FilePath: unassignedPath}, nil); err != nil {
+		t.Fatalf("expected unassigned tracking without assign permission, got %v", err)
+	}
+
+	assignedPath := createTrackAssetTestFile(t, workingDirectory, "assigned.blend")
+	_, err = trackAsset(projectPath, TrackAssetOptions{
+		FilePath:            assignedPath,
+		AssignToCurrentUser: true,
+	}, nil)
+	if err == nil || err.Error() != "user does not have assign_asset permission" {
+		t.Fatalf("expected assign permission rejection, got %v", err)
 	}
 }
 
@@ -126,4 +191,13 @@ func createTrackAssetTestDirectory(t *testing.T) string {
 		}
 	})
 	return directory
+}
+
+func createTrackAssetTestFile(t *testing.T, workingDirectory, name string) string {
+	t.Helper()
+	filePath := filepath.Join(workingDirectory, name)
+	if err := os.WriteFile(filePath, []byte("blend-data"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return filePath
 }

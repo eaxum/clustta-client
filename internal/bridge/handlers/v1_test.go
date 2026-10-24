@@ -154,6 +154,7 @@ func TestTrackAssetContractIncludesCreatedResources(t *testing.T) {
 		"filePath":"C:/project/hero.blend",
 		"sourceAssetId":"source-asset",
 		"sourceCheckpointId":"source-checkpoint",
+		"assignToCurrentUser":true,
 		"sync":true
 	}`), &requestBody); err != nil {
 		t.Fatal(err)
@@ -161,6 +162,7 @@ func TestTrackAssetContractIncludesCreatedResources(t *testing.T) {
 	if requestBody.FilePath != "C:/project/hero.blend" ||
 		requestBody.SourceAssetID != "source-asset" ||
 		requestBody.SourceCheckpointID != "source-checkpoint" ||
+		!requestBody.AssignToCurrentUser ||
 		requestBody.Sync == nil || !*requestBody.Sync {
 		t.Fatalf("unexpected tracking request: %#v", requestBody)
 	}

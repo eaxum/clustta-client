@@ -25,11 +25,12 @@ const (
 )
 
 type TrackAssetOptions struct {
-	FilePath           string
-	Message            string
-	PreviewPath        string
-	GroupID            string
-	SourceCheckpointID string
+	FilePath            string
+	Message             string
+	PreviewPath         string
+	GroupID             string
+	SourceCheckpointID  string
+	AssignToCurrentUser bool
 }
 
 type TrackAssetResult struct {
@@ -73,7 +74,7 @@ func trackAsset(
 	if err != nil {
 		return TrackAssetResult{}, err
 	}
-	if err = authorizeTrackAssetRole(role); err != nil {
+	if err = authorizeTrackAssetRole(role, options.AssignToCurrentUser); err != nil {
 		return TrackAssetResult{}, err
 	}
 
@@ -104,12 +105,29 @@ func trackAsset(
 	extension := path.Ext(relativePath)
 	existingAsset, err := repository.GetAssetByName(tx, assetName, collectionID, extension)
 	if err == nil {
-		if existingAsset.AssigneeId != user.Id {
-			return TrackAssetResult{}, errors.New("file is already tracked and is not assigned to the active user")
+		if options.AssignToCurrentUser {
+			if existingAsset.AssigneeId != "" && existingAsset.AssigneeId != user.Id {
+				return TrackAssetResult{}, errors.New("file is already tracked and is assigned to another user")
+			}
+			if existingAsset.AssigneeId == "" {
+				if err = repository.ToggleIsTask(tx, existingAsset.Id, true); err != nil {
+					return TrackAssetResult{}, err
+				}
+				if err = repository.AssignAsset(tx, existingAsset.Id, user.Id); err != nil {
+					return TrackAssetResult{}, err
+				}
+				existingAsset, err = repository.GetAsset(tx, existingAsset.Id)
+				if err != nil {
+					return TrackAssetResult{}, err
+				}
+			}
 		}
 		checkpoint, checkpointErr := repository.GetLatestCheckpoint(tx, existingAsset.Id)
 		if checkpointErr != nil {
 			return TrackAssetResult{}, checkpointErr
+		}
+		if err = tx.Commit(); err != nil {
+			return TrackAssetResult{}, err
 		}
 		return TrackAssetResult{
 			Asset:      existingAsset,
@@ -158,7 +176,7 @@ func trackAsset(
 		assetName,
 		assetType.Id,
 		collectionID,
-		false,
+		!options.AssignToCurrentUser,
 		"",
 		absolutePath,
 		previewID,
@@ -171,8 +189,10 @@ func trackAsset(
 	); err != nil {
 		return TrackAssetResult{}, err
 	}
-	if err = repository.AssignAsset(tx, assetID, user.Id); err != nil {
-		return TrackAssetResult{}, err
+	if options.AssignToCurrentUser {
+		if err = repository.AssignAsset(tx, assetID, user.Id); err != nil {
+			return TrackAssetResult{}, err
+		}
 	}
 
 	checkpoint, err := repository.GetLatestCheckpoint(tx, assetID)
@@ -210,19 +230,21 @@ func trackAsset(
 	}, nil
 }
 
-func authorizeTrackAssetRole(role models.Role) error {
+func authorizeTrackAssetRole(role models.Role, assignToCurrentUser bool) error {
 	permissions := []struct {
 		allowed bool
 		name    string
 	}{
 		{allowed: role.CreateAsset, name: "create_asset"},
 		{allowed: role.CreateCheckpoint, name: "create_checkpoint"},
-		{allowed: role.AssignAsset, name: "assign_asset"},
 	}
 	for _, permission := range permissions {
 		if !permission.allowed {
 			return fmt.Errorf("user does not have %s permission", permission.name)
 		}
+	}
+	if assignToCurrentUser && !role.AssignAsset {
+		return errors.New("user does not have assign_asset permission")
 	}
 	return nil
 }
