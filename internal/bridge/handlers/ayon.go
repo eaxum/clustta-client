@@ -11,6 +11,7 @@ type ayonWorkfileRequest struct {
 	AYONProjectID string              `json:"ayon_project_id"`
 	FolderID      string              `json:"folder_id"`
 	FolderPath    string              `json:"folder_path"`
+	WorkfilePath  string              `json:"workfile_path"`
 	Folders       []ayonFolderRequest `json:"folders"`
 	TaskID        string              `json:"task_id"`
 	TaskName      string              `json:"task_name"`
@@ -185,16 +186,17 @@ func ayonContextFromRequest(body ayonWorkfileRequest) services.AYONWorkfileConte
 		})
 	}
 	return services.AYONWorkfileContext{
-		ProjectID:   body.AYONProjectID,
-		FolderID:    body.FolderID,
-		FolderPath:  body.FolderPath,
-		Folders:     folders,
-		TaskID:      body.TaskID,
-		TaskName:    body.TaskName,
-		TaskTypeID:  body.TaskTypeID,
-		TaskType:    body.TaskType,
-		Application: body.Application,
-		Extension:   body.Extension,
+		ProjectID:    body.AYONProjectID,
+		FolderID:     body.FolderID,
+		FolderPath:   body.FolderPath,
+		WorkfilePath: body.WorkfilePath,
+		Folders:      folders,
+		TaskID:       body.TaskID,
+		TaskName:     body.TaskName,
+		TaskTypeID:   body.TaskTypeID,
+		TaskType:     body.TaskType,
+		Application:  body.Application,
+		Extension:    body.Extension,
 	}
 }
 

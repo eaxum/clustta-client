@@ -37,16 +37,17 @@ var (
 
 // AYONWorkfileContext identifies one AYON task workfile.
 type AYONWorkfileContext struct {
-	ProjectID   string
-	FolderID    string
-	FolderPath  string
-	Folders     []AYONFolderContext
-	TaskID      string
-	TaskName    string
-	TaskTypeID  string
-	TaskType    string
-	Application string
-	Extension   string
+	ProjectID    string
+	FolderID     string
+	FolderPath   string
+	WorkfilePath string
+	Folders      []AYONFolderContext
+	TaskID       string
+	TaskName     string
+	TaskTypeID   string
+	TaskType     string
+	Application  string
+	Extension    string
 }
 
 // AYONFolderContext identifies one folder in the selected AYON hierarchy.
@@ -103,6 +104,9 @@ func (s *IntegrationService) PrepareAYONWorkfile(projectPath string, context AYO
 		return AYONWorkfilePreparation{}, err
 	}
 	if found {
+		if err = validateAYONAssetPath(existing, context.WorkfilePath); err != nil {
+			return AYONWorkfilePreparation{}, err
+		}
 		if err = tx.Commit(); err != nil {
 			return AYONWorkfilePreparation{}, err
 		}
@@ -181,6 +185,9 @@ func (s *IntegrationService) ImportAYONWorkfile(
 		return AYONWorkfileImportResult{}, err
 	}
 	if found {
+		if err = validateAYONAssetPath(existing, filePath); err != nil {
+			return AYONWorkfileImportResult{}, err
+		}
 		checkpoint, checkpointErr := repository.GetLatestCheckpoint(tx, existing.Id)
 		if checkpointErr != nil {
 			return AYONWorkfileImportResult{}, checkpointErr
@@ -227,6 +234,7 @@ func (s *IntegrationService) ImportAYONWorkfile(
 	}
 	assetID := uuid.NewString()
 	checkpointGroupID := uuid.NewString()
+	assetName := strings.TrimSuffix(filepath.Base(targetPath), filepath.Ext(targetPath))
 	callback := func(current, total int, _, _ string) {
 		if progress != nil && total > 0 {
 			progress(trackChunkProgressStart + current*trackChunkProgressRange/total)
@@ -235,7 +243,7 @@ func (s *IntegrationService) ImportAYONWorkfile(
 	if err = repository.CreateAssetFast(
 		tx,
 		assetID,
-		context.TaskName,
+		assetName,
 		assetType.Id,
 		collection.Id,
 		false,
@@ -498,8 +506,20 @@ func resolveMappedAYONAssetForIntegration(
 		return models.Asset{}, false, err
 	}
 	asset, err := repository.GetAsset(tx, mapping.AssetId)
+	if errors.Is(err, error_service.ErrAssetNotFound) {
+		if err = repository.DeleteAssetMapping(tx, mapping.Id); err != nil {
+			return models.Asset{}, false, err
+		}
+		return models.Asset{}, false, nil
+	}
 	if err != nil {
 		return models.Asset{}, false, err
+	}
+	if asset.Trashed {
+		if err = repository.DeleteAssetMapping(tx, mapping.Id); err != nil {
+			return models.Asset{}, false, err
+		}
+		return models.Asset{}, false, nil
 	}
 	if asset.AssigneeId != "" && asset.AssigneeId != userID {
 		return models.Asset{}, false, fmt.Errorf("%w: workfile is assigned to another user", ErrAYONPermissionDenied)
@@ -569,6 +589,17 @@ func validateAYONPreparationContext(context AYONWorkfileContext) error {
 }
 
 func ayonTargetPaths(workingDirectory string, context AYONWorkfileContext) (string, string, error) {
+	if strings.TrimSpace(context.WorkfilePath) != "" {
+		relativePath, targetPath, err := trackAssetPaths(
+			workingDirectory,
+			context.WorkfilePath,
+		)
+		if err != nil {
+			return "", "", err
+		}
+		return targetPath, relativePath, nil
+	}
+
 	folderPath := normalizeAYONFolderPath(context.FolderPath)
 	if folderPath == "/" {
 		return "", "", errors.New("AYON workfiles cannot be created at the project root")
@@ -581,6 +612,16 @@ func ayonTargetPaths(workingDirectory string, context AYONWorkfileContext) (stri
 		return "", "", err
 	}
 	return resolvedTargetPath, resolvedRelativePath, nil
+}
+
+func validateAYONAssetPath(asset models.Asset, workfilePath string) error {
+	if strings.TrimSpace(workfilePath) == "" {
+		return nil
+	}
+	if canonicalTrackPath(asset.GetFilePath()) == canonicalTrackPath(workfilePath) {
+		return nil
+	}
+	return errors.New("AYON workfile path does not match the existing Clustta asset")
 }
 
 func normalizeAYONFolderPath(folderPath string) string {

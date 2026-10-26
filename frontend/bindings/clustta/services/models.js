@@ -99,6 +99,13 @@ export class AYONWorkfileContext {
              */
             this["FolderPath"] = "";
         }
+        if (!("WorkfilePath" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["WorkfilePath"] = "";
+        }
         if (!("Folders" in $$source)) {
             /**
              * @member
@@ -158,10 +165,10 @@ export class AYONWorkfileContext {
      * @returns {AYONWorkfileContext}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType1;
+        const $$createField4_0 = $$createType1;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("Folders" in $$parsedSource) {
-            $$parsedSource["Folders"] = $$createField3_0($$parsedSource["Folders"]);
+            $$parsedSource["Folders"] = $$createField4_0($$parsedSource["Folders"]);
         }
         return new AYONWorkfileContext(/** @type {Partial<AYONWorkfileContext>} */($$parsedSource));
     }

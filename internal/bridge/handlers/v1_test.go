@@ -190,6 +190,7 @@ func TestAYONPrepareContractIncludesFolderHierarchy(t *testing.T) {
 		"ayon_project_id":"ayon-project",
 		"folder_id":"folder-id",
 		"folder_path":"/assets/hero/",
+		"workfile_path":"C:/project/assets/hero/Hero_Modeling.blend",
 		"folders":[{"id":"folder-id","name":"hero","path":"/assets/hero/","type":"asset"}],
 		"task_id":"task-id",
 		"task_name":"Modeling",
@@ -200,7 +201,9 @@ func TestAYONPrepareContractIncludesFolderHierarchy(t *testing.T) {
 		t.Fatal(err)
 	}
 	context := ayonContextFromRequest(request)
-	if context.FolderPath != "/assets/hero/" || len(context.Folders) != 1 {
+	if context.FolderPath != "/assets/hero/" ||
+		context.WorkfilePath != "C:/project/assets/hero/Hero_Modeling.blend" ||
+		len(context.Folders) != 1 {
 		t.Fatalf("unexpected AYON context: %#v", context)
 	}
 }

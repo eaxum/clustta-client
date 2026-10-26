@@ -58,15 +58,18 @@ switches invalidate the appropriate cache automatically.
 - `POST /v1/projects/{projectId}/assets/{assetId}/revert`
 
 The AYON prepare endpoint accepts AYON project, folder hierarchy, task, task
-type, and application identifiers. It returns an existing mapped workfile or a
-validated target path for a new DCC file. It creates missing generic collections
-when permitted. It does not require a linked integration or workfile template.
+type, application identifiers, and an optional AYON-resolved workfile path. It
+returns an existing mapped workfile or a validated target path for a new DCC
+file. The requested path must resolve inside the Clustta project working
+directory. It creates missing generic collections when permitted and does not
+require a linked integration or Clustta workfile template.
 
 ```json
 {
   "ayon_project_id": "ayon-project-id",
   "folder_id": "ayon-folder-id",
   "folder_path": "/assets/characters/hero/",
+  "workfile_path": "C:/project/assets/characters/hero/Hero_Modeling.blend",
   "folders": [
     {
       "id": "ayon-folder-id",
