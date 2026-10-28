@@ -3,6 +3,7 @@ package services
 import (
 	"clustta/internal/auth_service"
 	"clustta/internal/error_service"
+	"clustta/internal/repository"
 	"clustta/internal/repository/sync_service"
 	"clustta/internal/repository/sync_service/update"
 	"clustta/internal/settings"
@@ -14,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path"
 	"path/filepath"
@@ -233,6 +235,12 @@ func (s *SyncService) CloneProject(projectUri, studioName, workingDir string, sy
 	select {
 	case progressChan <- progress:
 	case <-ctx.Done():
+	}
+	projectInfo, infoErr := repository.GetProjectInfo(projectPath, user)
+	if infoErr == nil {
+		registerProjectInIndex(projectInfo, studioName)
+	} else {
+		log.Printf("Failed to index cloned project %s: %v", projectPath, infoErr)
 	}
 	return nil
 }

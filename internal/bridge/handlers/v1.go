@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,6 +12,7 @@ import (
 
 	"clustta/internal/auth_service"
 	"clustta/internal/error_service"
+	"clustta/internal/project_index"
 	"clustta/internal/repository"
 	"clustta/internal/repository/models"
 	"clustta/internal/settings"
@@ -47,8 +49,13 @@ type workspaceResponse struct {
 }
 
 type contextResponse struct {
+	Studio  string             `json:"studio"`
 	Project dccProjectResponse `json:"project"`
-	Asset   assetResponse      `json:"asset"`
+	Asset   *assetResponse     `json:"asset"`
+}
+
+type getLatestRequest struct {
+	AllowModified bool `json:"allow_modified"`
 }
 
 type dccProjectResponse struct {
@@ -102,6 +109,27 @@ type dependencyRequest struct {
 	AssetCheckpointTagID string `json:"asset_checkpoint_tag_id"`
 }
 
+type dependencyResponse struct {
+	models.AssetDependencyEdge
+	Dependency assetResponse `json:"dependency"`
+}
+
+type dependencyReference struct {
+	FilePath string `json:"file_path"`
+	Kind     string `json:"kind"`
+}
+
+type importDependenciesRequest struct {
+	DependencyTypeID string                `json:"dependency_type_id"`
+	References       []dependencyReference `json:"references"`
+}
+
+type importDependenciesResult struct {
+	Added      []string `json:"added"`
+	Existing   []string `json:"existing"`
+	Unresolved []string `json:"unresolved"`
+}
+
 type dependencySelectorRequest struct {
 	ResolutionMode       string `json:"resolution_mode"`
 	CheckpointID         string `json:"checkpoint_id"`
@@ -133,9 +161,12 @@ func V1Capabilities(w http.ResponseWriter, _ *http.Request) {
 			"assets.open",
 			"assets.reveal",
 			"assets.dependencies",
+			"assets.dependencies.import",
 			"assets.dependency_selectors",
 			"assets.build_plan",
 			"assets.build",
+			"assets.sync",
+			"assets.get_latest",
 			"checkpoints.list",
 			"checkpoints.create",
 			"checkpoints.sources",
@@ -420,36 +451,167 @@ func V1ResolveContext(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	studio, err := studioForRequest(r)
+	entry, project, canonicalFile, found, err := resolveContextProject(filePath)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	projects, err := getNamedStudioProjects(studio, false)
+	if !found {
+		jsonError(w, http.StatusNotFound, "file is not inside a tracked Clustta project")
+		return
+	}
+
+	asset, found, err := findAssetByFilePath(
+		project.Uri,
+		project.WorkingDirectory,
+		canonicalFile,
+	)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+	response := contextResponse{
+		Studio:  entry.StudioName,
+		Project: projectToDCCResponse(project),
+	}
+	if found {
+		assetResponse := assetToResponse(asset)
+		response.Asset = &assetResponse
+	}
+	jsonResponse(w, http.StatusOK, response)
+}
 
-	for _, project := range projects {
-		if !pathWithin(filePath, project.WorkingDirectory) {
-			continue
+func resolveContextProject(
+	filePath string,
+) (projectindex.Entry, repository.ProjectInfo, string, bool, error) {
+	entry, canonicalFile, found, err := projectindex.ResolveCanonical(filePath)
+	if err != nil {
+		return projectindex.Entry{}, repository.ProjectInfo{}, "", false, err
+	}
+	if !found {
+		if err = projectindex.EnsureLocalProjects(); err != nil {
+			return projectindex.Entry{}, repository.ProjectInfo{}, "", false, err
 		}
-		asset, found, findErr := findAssetByFilePath(project.Uri, filePath)
-		if findErr != nil {
-			jsonError(w, http.StatusInternalServerError, findErr.Error())
-			return
-		}
-		if found {
-			jsonResponse(w, http.StatusOK, contextResponse{
-				Project: projectToDCCResponse(project),
-				Asset:   assetToResponse(asset),
-			})
-			return
+		entry, canonicalFile, found, err = projectindex.ResolveCanonical(canonicalFile)
+		if err != nil || !found {
+			return projectindex.Entry{}, repository.ProjectInfo{}, canonicalFile, found, err
 		}
 	}
 
-	jsonError(w, http.StatusNotFound, "file is not a tracked Clustta asset")
+	user, err := auth_service.GetActiveUser()
+	if err != nil {
+		return projectindex.Entry{}, repository.ProjectInfo{}, canonicalFile, false, err
+	}
+	if _, err = os.Stat(entry.DatabasePath); os.IsNotExist(err) {
+		if removeErr := projectindex.RemoveProject(entry.ProjectID); removeErr != nil {
+			log.Printf("Failed to remove missing project index entry: %v", removeErr)
+		}
+		return projectindex.Entry{}, repository.ProjectInfo{}, canonicalFile, false, nil
+	}
+	project, err := repository.GetProjectInfo(entry.DatabasePath, user)
+	if err != nil {
+		return projectindex.Entry{}, repository.ProjectInfo{}, canonicalFile, false, err
+	}
+	projectWorkingDirectory := canonicalPath(project.WorkingDirectory)
+	if !pathWithinCanonical(canonicalFile, projectWorkingDirectory) {
+		if removeErr := projectindex.RemoveProject(entry.ProjectID); removeErr != nil {
+			log.Printf("Failed to remove stale project index entry: %v", removeErr)
+		}
+		return projectindex.Entry{}, repository.ProjectInfo{}, canonicalFile, false, nil
+	}
+	if project.Id != entry.ProjectID ||
+		!sameCanonicalPath(projectWorkingDirectory, entry.WorkingDirectory) {
+		if project.Id != entry.ProjectID {
+			if removeErr := projectindex.RemoveProject(entry.ProjectID); removeErr != nil {
+				log.Printf("Failed to remove replaced project index entry: %v", removeErr)
+			}
+		}
+		entry.ProjectID = project.Id
+		entry.ProjectName = project.Name
+		entry.WorkingDirectory = projectWorkingDirectory
+		if upsertErr := projectindex.Upsert(entry); upsertErr != nil {
+			log.Printf("Failed to repair project index entry: %v", upsertErr)
+		}
+	}
+	project.Uri = entry.DatabasePath
+	project.WorkingDirectory = projectWorkingDirectory
+	project.IsDownloaded = true
+	project.IsTracked = true
+	return entry, project, canonicalFile, true, nil
+}
+
+func V1SyncAsset(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	idempotencyKey := operationKey(r, project.Id, asset.Id, "sync")
+	job := startJob("sync", idempotencyKey, true, func(update func(string, int)) (any, error) {
+		update("Synchronizing asset", 10)
+		remoteURL, err := utils.ResolveProjectRemoteURL(project.Uri)
+		if err != nil {
+			return nil, err
+		}
+		if remoteURL == "" {
+			return nil, errors.New("project does not have a remote Studio")
+		}
+		syncService := &services.SyncService{}
+		if err = syncService.SyncAsset(project.Uri, remoteURL, asset.Id); err != nil {
+			return nil, err
+		}
+		update("Asset synchronized", 100)
+		return map[string]string{"asset_id": asset.Id}, nil
+	})
+	jsonResponse(w, http.StatusAccepted, job)
+}
+
+func V1GetLatestAsset(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	body := getLatestRequest{}
+	if err := decodeBody(r, &body); err != nil {
+		jsonError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	idempotencyKey := operationKey(r, project.Id, asset.Id, "get-latest")
+	job := startJob("get-latest", idempotencyKey, true, func(update func(string, int)) (any, error) {
+		remoteURL, err := utils.ResolveProjectRemoteURL(project.Uri)
+		if err != nil {
+			return nil, err
+		}
+		if remoteURL == "" {
+			return nil, errors.New("project does not have a remote Studio")
+		}
+		update("Refreshing project metadata", 10)
+		syncService := &services.SyncService{}
+		if err = syncService.UpdateProject(project.Uri, remoteURL); err != nil {
+			return nil, err
+		}
+		update("Resolving dependencies", 35)
+		assetService := &services.AssetService{}
+		plan, err := assetService.ResolveDependencyBuildPlan(project.Uri, asset.Id)
+		if err != nil {
+			return nil, err
+		}
+		if len(plan.Conflicts) != 0 {
+			return nil, errors.New("dependency plan contains conflicts")
+		}
+		update("Restoring latest files", 50)
+		result, err := services.ExecuteDependencyBuildPlanDirect(
+			project.Uri,
+			remoteURL,
+			asset.Id,
+			plan.Fingerprint,
+			body.AllowModified,
+		)
+		if err != nil {
+			return nil, err
+		}
+		return result, nil
+	})
+	jsonResponse(w, http.StatusAccepted, job)
 }
 
 func V1ListAssignedAssets(w http.ResponseWriter, r *http.Request) {
@@ -524,7 +686,110 @@ func V1ListDependencies(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	jsonResponse(w, http.StatusOK, edges)
+	result := make([]dependencyResponse, 0, len(edges))
+	for _, edge := range edges {
+		dependency, dependencyErr := assetService.GetAssetByID(project.Uri, edge.DependencyId)
+		if dependencyErr != nil {
+			jsonError(w, http.StatusInternalServerError, dependencyErr.Error())
+			return
+		}
+		result = append(result, dependencyResponse{
+			AssetDependencyEdge: edge,
+			Dependency:          assetToResponse(dependency),
+		})
+	}
+	jsonResponse(w, http.StatusOK, result)
+}
+
+func V1ListDependencyTypes(w http.ResponseWriter, r *http.Request) {
+	project, ok := requestProject(w, r)
+	if !ok {
+		return
+	}
+	dependencyTypeService := &services.DependencyTypeService{}
+	dependencyTypes, err := dependencyTypeService.GetDependencyTypes(project.Uri)
+	if err != nil {
+		jsonError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	jsonResponse(w, http.StatusOK, dependencyTypes)
+}
+
+func V1ImportDependencies(w http.ResponseWriter, r *http.Request) {
+	project, asset, ok := requestAsset(w, r)
+	if !ok {
+		return
+	}
+	body := importDependenciesRequest{}
+	if err := decodeBody(r, &body); err != nil {
+		jsonError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
+	if body.DependencyTypeID == "" {
+		jsonError(w, http.StatusBadRequest, "dependency_type_id is required")
+		return
+	}
+	if len(body.References) == 0 {
+		jsonError(w, http.StatusBadRequest, "at least one reference is required")
+		return
+	}
+
+	idempotencyKey := operationKey(r, project.Id, asset.Id, "import-dependencies")
+	job := startJob("import-dependencies", idempotencyKey, false, func(update func(string, int)) (any, error) {
+		assetService := &services.AssetService{}
+		edges, err := assetService.GetAssetDependencyEdges(project.Uri, asset.Id)
+		if err != nil {
+			return nil, err
+		}
+		existing := make(map[string]bool, len(edges))
+		for _, edge := range edges {
+			existing[edge.DependencyId] = true
+		}
+		result := importDependenciesResult{
+			Added:      []string{},
+			Existing:   []string{},
+			Unresolved: []string{},
+		}
+		for index, reference := range body.References {
+			update("Recording Blender references", 5+(index*90/len(body.References)))
+			filePath := canonicalPath(reference.FilePath)
+			if !pathWithin(filePath, project.WorkingDirectory) {
+				result.Unresolved = append(result.Unresolved, reference.FilePath)
+				continue
+			}
+			dependency, found, findErr := findAssetByFilePath(
+				project.Uri,
+				project.WorkingDirectory,
+				filePath,
+			)
+			if findErr != nil {
+				return nil, findErr
+			}
+			if !found || dependency.Id == asset.Id {
+				result.Unresolved = append(result.Unresolved, reference.FilePath)
+				continue
+			}
+			if existing[dependency.Id] {
+				result.Existing = append(result.Existing, dependency.Id)
+				continue
+			}
+			if _, err = assetService.AddAssetDependencyWithSelector(
+				project.Uri,
+				asset.Id,
+				dependency.Id,
+				body.DependencyTypeID,
+				repository.DependencyResolutionFloating,
+				"",
+				"",
+			); err != nil {
+				return nil, err
+			}
+			existing[dependency.Id] = true
+			result.Added = append(result.Added, dependency.Id)
+		}
+		return result, nil
+	})
+	jsonResponse(w, http.StatusAccepted, job)
 }
 
 func V1CreateDependency(w http.ResponseWriter, r *http.Request) {
@@ -1028,7 +1293,11 @@ func projectToDCCResponse(project repository.ProjectInfo) dccProjectResponse {
 	}
 }
 
-func findAssetByFilePath(projectPath, filePath string) (models.Asset, bool, error) {
+func findAssetByFilePath(
+	projectPath string,
+	workingDirectory string,
+	filePath string,
+) (models.Asset, bool, error) {
 	dbConn, err := sqlx.Connect("sqlite3", projectPath)
 	if err != nil {
 		return models.Asset{}, false, err
@@ -1040,6 +1309,21 @@ func findAssetByFilePath(projectPath, filePath string) (models.Asset, bool, erro
 		return models.Asset{}, false, err
 	}
 	defer tx.Rollback()
+	assetPath, extension, relativeErr := assetLookupPath(workingDirectory, filePath)
+	if relativeErr == nil {
+		assetID, directFound, directErr := repository.GetAssetIDByPath(
+			tx,
+			assetPath,
+			extension,
+		)
+		if directErr != nil {
+			return models.Asset{}, false, directErr
+		}
+		if directFound {
+			asset, getErr := repository.GetAsset(tx, assetID)
+			return asset, getErr == nil, getErr
+		}
+	}
 
 	assets, err := repository.GetAssets(tx, false)
 	if err != nil {
@@ -1052,6 +1336,16 @@ func findAssetByFilePath(projectPath, filePath string) (models.Asset, bool, erro
 		}
 	}
 	return models.Asset{}, false, nil
+}
+
+func assetLookupPath(workingDirectory, filePath string) (string, string, error) {
+	relativePath, err := filepath.Rel(workingDirectory, filePath)
+	if err != nil {
+		return "", "", err
+	}
+	extension := filepath.Ext(relativePath)
+	assetPath := strings.TrimSuffix(filepath.ToSlash(relativePath), extension)
+	return "/" + strings.TrimPrefix(assetPath, "/"), extension, nil
 }
 
 func assetHasCheckpoint(asset models.Asset, checkpointID string) bool {
@@ -1095,7 +1389,11 @@ func assetDeepLink(studio, projectID, assetID string) string {
 func pathWithin(filePath, rootPath string) bool {
 	fileCanonical := canonicalPath(filePath)
 	rootCanonical := canonicalPath(rootPath)
-	relative, err := filepath.Rel(rootCanonical, fileCanonical)
+	return pathWithinCanonical(fileCanonical, rootCanonical)
+}
+
+func pathWithinCanonical(filePath, rootPath string) bool {
+	relative, err := filepath.Rel(rootPath, filePath)
 	if err != nil {
 		return false
 	}
@@ -1105,10 +1403,14 @@ func pathWithin(filePath, rootPath string) bool {
 func samePath(firstPath, secondPath string) bool {
 	first := canonicalPath(firstPath)
 	second := canonicalPath(secondPath)
+	return sameCanonicalPath(first, second)
+}
+
+func sameCanonicalPath(firstPath, secondPath string) bool {
 	if runtime.GOOS == "windows" {
-		return strings.EqualFold(first, second)
+		return strings.EqualFold(firstPath, secondPath)
 	}
-	return first == second
+	return firstPath == secondPath
 }
 
 func canonicalPath(filePath string) string {

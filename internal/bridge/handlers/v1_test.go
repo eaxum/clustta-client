@@ -63,6 +63,18 @@ func TestSamePathCleansSegments(t *testing.T) {
 	}
 }
 
+func TestAssetLookupPathUsesProjectRelativePath(t *testing.T) {
+	workingDirectory := filepath.Join("C:", "Project")
+	filePath := filepath.Join(workingDirectory, "Assets", "Hero.blend")
+	assetPath, extension, err := assetLookupPath(workingDirectory, filePath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if assetPath != "/Assets/Hero" || extension != ".blend" {
+		t.Fatalf("unexpected lookup path %q and extension %q", assetPath, extension)
+	}
+}
+
 func TestAssetDeepLink(t *testing.T) {
 	deepLink, err := url.Parse(assetDeepLink("My Studio", "project-id", "asset-id"))
 	if err != nil {
@@ -131,6 +143,35 @@ func TestCheckpointResponseIncludesSource(t *testing.T) {
 	}
 }
 
+func TestContextResponseAllowsUntrackedProjectFile(t *testing.T) {
+	response := contextResponse{Studio: "Studio", Project: dccProjectResponse{ID: "project-id"}}
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(encoded), `"asset":null`) {
+		t.Fatalf("untracked context must contain a null asset: %s", encoded)
+	}
+}
+
+func TestDependencyResponseIncludesReferencedAsset(t *testing.T) {
+	response := dependencyResponse{
+		AssetDependencyEdge: models.AssetDependencyEdge{
+			AssetDependency: models.AssetDependency{DependencyId: "dependency-id"},
+		},
+		Dependency: assetResponse{ID: "dependency-id", FilePath: "C:/Project/Rig.blend"},
+	}
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	encodedText := string(encoded)
+	if !strings.Contains(encodedText, `"dependency":{"id":"dependency-id"`) ||
+		!strings.Contains(encodedText, `"file_path":"C:/Project/Rig.blend"`) {
+		t.Fatalf("dependency asset is missing: %s", encodedText)
+	}
+}
+
 func TestCapabilitiesIncludeAssetTracking(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/v1/capabilities", nil)
@@ -140,12 +181,22 @@ func TestCapabilitiesIncludeAssetTracking(t *testing.T) {
 	if err := json.Unmarshal(recorder.Body.Bytes(), &response); err != nil {
 		t.Fatal(err)
 	}
+	required := map[string]bool{
+		"assets.track":               false,
+		"assets.sync":                false,
+		"assets.get_latest":          false,
+		"assets.dependencies.import": false,
+	}
 	for _, operation := range response.Operations {
-		if operation == "assets.track" {
-			return
+		if _, ok := required[operation]; ok {
+			required[operation] = true
 		}
 	}
-	t.Fatal("asset tracking capability is missing")
+	for operation, found := range required {
+		if !found {
+			t.Fatalf("%s capability is missing", operation)
+		}
+	}
 }
 
 func TestTrackAssetContractIncludesCreatedResources(t *testing.T) {

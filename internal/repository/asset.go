@@ -603,6 +603,27 @@ func GetAssetByPath(tx *sqlx.Tx, assetPath, extension string) (models.Asset, err
 	return asset, nil
 }
 
+func GetAssetIDByPath(
+	tx *sqlx.Tx,
+	assetPath string,
+	extension string,
+) (string, bool, error) {
+	var assetID string
+	err := tx.Get(
+		&assetID,
+		"SELECT id FROM full_asset WHERE asset_path = ? AND extension = ? AND trashed = 0",
+		assetPath,
+		extension,
+	)
+	if err == sql.ErrNoRows {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	return assetID, true, nil
+}
+
 func GetAssets(tx *sqlx.Tx, withDeleted bool) ([]models.Asset, error) {
 	assets := []models.Asset{}
 	queryWhereClause := ""

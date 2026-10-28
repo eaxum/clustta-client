@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"clustta/internal/auth_service"
 	"clustta/internal/custom_thumbnail"
+	"clustta/internal/project_index"
 	"clustta/internal/settings"
 	"clustta/internal/system_icon"
 	"clustta/internal/system_thumbnail"
@@ -21,6 +22,7 @@ import (
 	_ "image/png"
 	"io"
 	"io/fs"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -397,7 +399,13 @@ func (f *FSService) DeleteFile(path string) error {
 	if err := validatePath(path); err != nil {
 		return err
 	}
-	return os.Remove(path)
+	if err := os.Remove(path); err != nil {
+		return err
+	}
+	if err := projectindex.RemoveDatabasePath(path); err != nil {
+		log.Printf("Failed to remove deleted project from index: %v", err)
+	}
+	return nil
 }
 
 // TempDir returns the system's temporary directory path.

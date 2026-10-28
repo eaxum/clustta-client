@@ -26,6 +26,7 @@ cached studio and project catalog.
 - `GET /v1/projects/{projectId}/assets?ext=.blend`
 - `GET /v1/projects/{projectId}/statuses`
 - `GET /v1/projects/{projectId}/assets/{assetId}/dependencies`
+- `GET /v1/projects/{projectId}/dependency-types`
 - `GET /v1/projects/{projectId}/assets/{assetId}/dependency-options/{dependencyId}`
 - `GET /v1/projects/{projectId}/assets/{assetId}/checkpoint-tags`
 - `GET /v1/projects/{projectId}/assets/{assetId}/checkpoints`
@@ -38,6 +39,30 @@ case-insensitive.
 Project metadata is cached by active account and studio. Account and studio
 switches invalidate the appropriate cache automatically.
 
+Context resolution uses a persistent, account-specific local project index. The
+index maps canonical working directories to project IDs, Studio names, and
+local `.clst` database paths. Resolution selects the most specific containing
+working directory without fetching Studio project catalogs or relying on the
+Studio currently displayed in Clustta Desktop.
+
+The index is loaded into memory when the Bridge starts and persisted under the
+Clustta application-data `project-indexes` directory. Successful project create,
+download, upload, open, working-directory update, and local removal operations
+update it. Existing installations are backfilled from local Personal and shared
+Studio `.clst` files without contacting remote Studios. Account switches replace
+the in-memory index.
+
+After selecting a project, the Bridge validates the indexed database metadata
+and performs a direct project-relative asset lookup. Special linked or pending
+paths retain a compatibility scan. `asset` is null when the file is inside the
+project but is not tracked, allowing a DCC to offer an explicit tracking action.
+A path outside every indexed local project returns `404 Not Found`.
+
+Checksum-derived file status is cached in memory by normalized path, file
+identity, size, nanosecond modification time, and checkpoint set. Repeated
+context requests for an unchanged file do not rehash it. A changed file or
+checkpoint set invalidates the cached status before the response is returned.
+
 ## Operations
 
 - `POST /v1/projects/{projectId}/assets`
@@ -49,12 +74,15 @@ switches invalidate the appropriate cache automatically.
 - `POST /v1/projects/{projectId}/assets/{assetId}/reveal`
 - `POST /v1/projects/{projectId}/assets/{assetId}/checkpoints`
 - `POST /v1/projects/{projectId}/assets/{assetId}/dependencies`
+- `POST /v1/projects/{projectId}/assets/{assetId}/dependencies/import`
 - `POST /v1/projects/{projectId}/assets/{assetId}/dependencies/{edgeId}/selector`
 - `POST /v1/projects/{projectId}/checkpoint-groups/{groupId}/tags`
 - `POST /v1/projects/{projectId}/checkpoints/{checkpointId}/tags`
 - `POST /v1/projects/{projectId}/checkpoints/{checkpointId}/tags/{tagId}`
 - `DELETE /v1/projects/{projectId}/checkpoint-tags/{tagId}`
 - `POST /v1/projects/{projectId}/assets/{assetId}/build`
+- `POST /v1/projects/{projectId}/assets/{assetId}/sync`
+- `POST /v1/projects/{projectId}/assets/{assetId}/get-latest`
 - `POST /v1/projects/{projectId}/assets/{assetId}/revert`
 
 The AYON prepare endpoint accepts AYON project, folder hierarchy, task, task
@@ -144,9 +172,9 @@ The request may also include `sourceAssetId` and `sourceCheckpointId`, using the
 same source-selection rules as checkpoint creation. A blank message is stored as
 `v0001`. Set `sync` to override the desktop sync-after-checkpoint preference.
 
-Checkpoint, status, build, and revert requests should include a unique
-`Idempotency-Key` header. These asynchronous operations return `202 Accepted`
-with a job object.
+Checkpoint, status, build, revert, sync, Get Latest, and dependency import
+requests should include a unique `Idempotency-Key` header. These asynchronous
+operations return `202 Accepted` with a job object.
 
 Checkpoint requests accept:
 
@@ -166,10 +194,23 @@ trimmed and stored as provided.
 The bridge verifies that `filePath` is the tracked asset path. Integration
 publishing and comment forwarding happen in the bridge.
 
+Asset sync pushes the current asset, its checkpoints, chunks, previews, and
+related metadata to the configured Studio. Get Latest first refreshes project
+metadata, resolves a new dependency build plan, and restores that exact plan.
+Both operations are asynchronous. Get Latest rejects locally modified files
+unless `allow_modified` is true after explicit DCC confirmation.
+
 ## Dependency selectors
 
 Dependency responses are edge records containing `resolution_mode`, selector
-references, the currently resolved checkpoint, and `resolution_status`.
+references, the currently resolved checkpoint, `resolution_status`, and a
+`dependency` object with the referenced asset's current path and file state.
+
+The dependency import endpoint accepts a dependency type and direct DCC file
+references. The Bridge canonicalizes every path, rejects references outside the
+project, resolves tracked assets, skips existing edges idempotently, and returns
+added, existing, and unresolved references. DCC-provided `kind` values are
+descriptive and are not trusted for path or asset resolution.
 
 Create a floating dependency with:
 

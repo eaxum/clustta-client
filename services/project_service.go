@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -80,6 +81,7 @@ func (p *ProjectService) createProject(projectUri, studioName, workingDir, templ
 		return projectInfo, err
 	}
 	projectInfo.WorkingDirectory = workingDir
+	registerProjectInIndex(projectInfo, studioName)
 	return projectInfo, nil
 }
 
@@ -611,6 +613,7 @@ func (p *ProjectService) GetStudioProjects(url, name, hostingMode, studioId stri
 	if err != nil {
 		return projects, err
 	}
+	registerProjectsInIndex(projects, name)
 	return projects, nil
 }
 
@@ -748,7 +751,21 @@ func (p *ProjectService) UpdateWorkingDirectory(projectUri, studioName, newWorki
 	if err != nil {
 		return err
 	}
-	return repository.UpdateProjectWorkingDirectory(projectUri, studioName, newWorkingDir, user)
+	if err = repository.UpdateProjectWorkingDirectory(projectUri, studioName, newWorkingDir, user); err != nil {
+		return err
+	}
+	projectPath, pathErr := localProjectDatabasePath(projectUri, studioName)
+	if pathErr != nil {
+		log.Printf("Failed to locate updated project for indexing: %v", pathErr)
+		return nil
+	}
+	projectInfo, infoErr := repository.GetProjectInfo(projectPath, user)
+	if infoErr == nil {
+		registerProjectInIndex(projectInfo, studioName)
+	} else {
+		log.Printf("Failed to index updated project %s: %v", projectPath, infoErr)
+	}
+	return nil
 }
 
 func (p *ProjectService) Rename(projectUri, studioName, newName string) error {
@@ -756,7 +773,27 @@ func (p *ProjectService) Rename(projectUri, studioName, newName string) error {
 	if err != nil {
 		return err
 	}
-	return repository.RenameProject(projectUri, studioName, newName, user)
+	if err = repository.RenameProject(projectUri, studioName, newName, user); err != nil {
+		return err
+	}
+	newProjectURI := ""
+	if utils.IsValidURL(projectUri) {
+		newProjectURI = strings.TrimSuffix(projectUri, path.Base(projectUri)) + newName
+	} else {
+		newProjectURI = filepath.Join(filepath.Dir(projectUri), newName+".clst")
+	}
+	projectPath, pathErr := localProjectDatabasePath(newProjectURI, studioName)
+	if pathErr != nil {
+		log.Printf("Failed to locate renamed project for indexing: %v", pathErr)
+		return nil
+	}
+	projectInfo, infoErr := repository.GetProjectInfo(projectPath, user)
+	if infoErr == nil {
+		registerProjectInIndex(projectInfo, studioName)
+	} else {
+		log.Printf("Failed to index renamed project %s: %v", projectPath, infoErr)
+	}
+	return nil
 }
 
 func normalizeExtensions(extensions []string) []string {
@@ -1003,7 +1040,7 @@ func (p *ProjectService) InspectClusttaFile(filePath string) (ClusttaFileInfo, e
 		workingDir = localWorkingDir
 	}
 
-	return ClusttaFileInfo{
+	result := ClusttaFileInfo{
 		Id:                    projectId,
 		Name:                  projectName,
 		StudioName:            studioName,
@@ -1012,7 +1049,14 @@ func (p *ProjectService) InspectClusttaFile(filePath string) (ClusttaFileInfo, e
 		LocalWorkingDirectory: localWorkingDir,
 		FilePath:              absPath,
 		Valid:                 true,
-	}, nil
+	}
+	registerProjectInIndex(repository.ProjectInfo{
+		Id:               projectId,
+		Name:             projectName,
+		Uri:              absPath,
+		WorkingDirectory: workingDir,
+	}, studioName)
+	return result, nil
 }
 
 // isInProjectsDirectory checks if a file path is inside Clustta's known project directories.
@@ -1128,6 +1172,7 @@ func (p *ProjectService) UploadProject(sourceClstPath, studioName, workingDir, p
 	projectInfo.Remote = remoteProjectUrl
 	projectInfo.IsDownloaded = true
 	projectInfo.WorkingDirectory = workingDir
+	registerProjectInIndex(projectInfo, studioName)
 
 	return projectInfo, nil
 }

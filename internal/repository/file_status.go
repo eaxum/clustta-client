@@ -2,6 +2,10 @@ package repository
 
 import (
 	"os"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"sync"
 
 	"clustta/internal/repository/models"
 	"clustta/internal/utils"
@@ -10,7 +14,30 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const fileStatusCacheLimit = 1024
+
+type fileStatusCacheEntry struct {
+	fileInfo            os.FileInfo
+	fileSize            int64
+	modifiedAt          int64
+	checkpointSignature string
+	status              string
+}
+
+var fileStatusCache = struct {
+	sync.RWMutex
+	entries map[string]fileStatusCacheEntry
+}{entries: map[string]fileStatusCacheEntry{}}
+
 func GetAssetFileStatus(asset *models.Asset, checkpoints []models.Checkpoint) (string, error) {
+	return getAssetFileStatus(asset, checkpoints, utils.GenerateXXHashChecksum)
+}
+
+func getAssetFileStatus(
+	asset *models.Asset,
+	checkpoints []models.Checkpoint,
+	generateChecksum func(string) (string, error),
+) (string, error) {
 	filePath := asset.GetFilePath()
 	if asset.IsLink && utils.IsValidPointer(asset.Pointer) {
 		return "normal", nil
@@ -19,32 +46,101 @@ func GetAssetFileStatus(asset *models.Asset, checkpoints []models.Checkpoint) (s
 		return "missing", nil
 	}
 
-	_, err := os.Stat(filePath)
-	isMissing := os.IsNotExist(err)
-
-	// isMissing := !utils.FileExists(filePath)
-
-	if isMissing && len(checkpoints) == 0 {
-		return "missing", nil
-	} else if isMissing && len(checkpoints) != 0 {
+	fileInfo, err := os.Stat(filePath)
+	if os.IsNotExist(err) {
+		if len(checkpoints) == 0 {
+			return "missing", nil
+		}
 		return "fetchable", nil
 	}
-
-	fileHash, err := utils.GenerateXXHashChecksum(filePath)
 	if err != nil {
 		return "", err
 	}
-	for i, checkpoint := range checkpoints {
-		if fileHash == checkpoint.XXHashChecksum {
-			if i == 0 {
-				return "normal", nil
-			} else {
-				return "outdated", nil
 
-			}
-		}
+	cacheKey := fileStatusCacheKey(filePath)
+	checkpointSignature := fileStatusCheckpointSignature(checkpoints)
+	if status, found := cachedFileStatus(
+		cacheKey,
+		fileInfo,
+		fileInfo.ModTime().UnixNano(),
+		checkpointSignature,
+	); found {
+		return status, nil
 	}
-	return "modified", nil
+
+	fileHash, err := generateChecksum(filePath)
+	if err != nil {
+		return "", err
+	}
+	status := "modified"
+	for i, checkpoint := range checkpoints {
+		if fileHash != checkpoint.XXHashChecksum {
+			continue
+		}
+		status = "outdated"
+		if i == 0 {
+			status = "normal"
+		}
+		break
+	}
+	storeFileStatus(cacheKey, fileStatusCacheEntry{
+		fileInfo:            fileInfo,
+		fileSize:            fileInfo.Size(),
+		modifiedAt:          fileInfo.ModTime().UnixNano(),
+		checkpointSignature: checkpointSignature,
+		status:              status,
+	})
+	return status, nil
+}
+
+func fileStatusCacheKey(filePath string) string {
+	cleanPath, err := filepath.Abs(filepath.Clean(filePath))
+	if err != nil {
+		cleanPath = filepath.Clean(filePath)
+	}
+	if runtime.GOOS == "windows" {
+		return strings.ToLower(cleanPath)
+	}
+	return cleanPath
+}
+
+func fileStatusCheckpointSignature(checkpoints []models.Checkpoint) string {
+	var signature strings.Builder
+	for _, checkpoint := range checkpoints {
+		signature.WriteString(checkpoint.Id)
+		signature.WriteByte(0)
+		signature.WriteString(checkpoint.XXHashChecksum)
+		signature.WriteByte(0)
+	}
+	return signature.String()
+}
+
+func cachedFileStatus(
+	cacheKey string,
+	fileInfo os.FileInfo,
+	modifiedAt int64,
+	checkpointSignature string,
+) (string, bool) {
+	fileStatusCache.RLock()
+	defer fileStatusCache.RUnlock()
+	entry, found := fileStatusCache.entries[cacheKey]
+	if !found || !os.SameFile(entry.fileInfo, fileInfo) ||
+		entry.fileSize != fileInfo.Size() ||
+		entry.modifiedAt != modifiedAt ||
+		entry.checkpointSignature != checkpointSignature {
+		return "", false
+	}
+	return entry.status, true
+}
+
+func storeFileStatus(cacheKey string, entry fileStatusCacheEntry) {
+	fileStatusCache.Lock()
+	defer fileStatusCache.Unlock()
+	_, exists := fileStatusCache.entries[cacheKey]
+	if !exists && len(fileStatusCache.entries) >= fileStatusCacheLimit {
+		fileStatusCache.entries = map[string]fileStatusCacheEntry{}
+	}
+	fileStatusCache.entries[cacheKey] = entry
 }
 
 func GetAssetState(tx *sqlx.Tx, assetId string) (string, error) {

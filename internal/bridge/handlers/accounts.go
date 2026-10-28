@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"clustta/internal/auth_service"
+	"clustta/internal/project_index"
 )
 
 // accountResponse is the JSON shape returned for each account.
@@ -74,6 +75,7 @@ func SwitchAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	invalidateStudioCache()
 	invalidateProjectCache()
+	projectindex.Reset()
 
 	jsonResponse(w, http.StatusOK, map[string]string{"status": "ok"})
 }

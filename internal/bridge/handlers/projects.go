@@ -2,14 +2,18 @@ package handlers
 
 import (
 	"errors"
+	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
 	"clustta/internal/auth_service"
+	"clustta/internal/project_index"
 	"clustta/internal/repository"
 	"clustta/internal/repository/sync_service"
 	"clustta/internal/settings"
+	"clustta/internal/utils"
 )
 
 var errProjectNotFound = errors.New("project not found")
@@ -197,6 +201,7 @@ func getNamedStudioProjects(
 		projects:  append([]repository.ProjectInfo(nil), projects...),
 	}
 	projectCacheMu.Unlock()
+	indexLocalProjects(studioName, projects)
 	return append([]repository.ProjectInfo(nil), projects...), nil
 }
 
@@ -218,6 +223,9 @@ func invalidateProjectCache() {
 
 // WarmDCCCache prepares project context before a DCC requests it.
 func WarmDCCCache() {
+	if err := projectindex.EnsureLocalProjects(); err != nil {
+		log.Printf("Failed to build local project index: %v", err)
+	}
 	_, _ = getStudioProjects(false)
 }
 
@@ -225,6 +233,27 @@ func WarmDCCCache() {
 func ResetDCCCache() {
 	invalidateStudioCache()
 	invalidateProjectCache()
+	projectindex.Reset()
+}
+
+func indexLocalProjects(studioName string, projects []repository.ProjectInfo) {
+	entries := make([]projectindex.Entry, 0, len(projects))
+	for _, project := range projects {
+		if !project.IsDownloaded || utils.IsValidURL(project.Uri) ||
+			strings.TrimSpace(project.WorkingDirectory) == "" {
+			continue
+		}
+		entries = append(entries, projectindex.Entry{
+			ProjectID:        project.Id,
+			ProjectName:      project.Name,
+			StudioName:       studioName,
+			DatabasePath:     project.Uri,
+			WorkingDirectory: project.WorkingDirectory,
+		})
+	}
+	if err := projectindex.UpsertMany(entries); err != nil {
+		log.Printf("Failed to update project index for %s: %v", studioName, err)
+	}
 }
 
 func resolveProject(

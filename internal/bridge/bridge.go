@@ -5,11 +5,13 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 
 	"clustta/internal/bridge/handlers"
@@ -19,29 +21,39 @@ const bridgePort = "1173"
 
 var server *http.Server
 var bridgeToken string
+var serverMu sync.Mutex
 
 // Start launches the bridge HTTP server in the background (non-blocking).
 // Safe to call multiple times; does nothing if the server is already running.
 func Start() {
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
 	if server != nil {
+		if err := writeBridgeToken(bridgeToken); err != nil {
+			log.Printf("Failed to restore bridge token: %v", err)
+		}
 		return
 	}
 
-	// Generate a random auth token and write it to a known file
+	address := "127.0.0.1:" + bridgePort
+	listener, err := net.Listen("tcp", address)
+	if err != nil {
+		log.Printf("Failed to start Clustta Bridge on %s: %v", address, err)
+		return
+	}
+
 	tokenBytes := make([]byte, 32)
 	if _, err := rand.Read(tokenBytes); err != nil {
+		listener.Close()
 		log.Printf("Failed to generate bridge token: %v", err)
 		return
 	}
 	bridgeToken = hex.EncodeToString(tokenBytes)
 
-	tokenPath, err := getBridgeTokenPath()
-	if err != nil {
-		log.Printf("Failed to get bridge token path: %v", err)
-		return
-	}
-	os.MkdirAll(filepath.Dir(tokenPath), 0700)
-	if err := os.WriteFile(tokenPath, []byte(bridgeToken), 0600); err != nil {
+	if err := writeBridgeToken(bridgeToken); err != nil {
+		listener.Close()
+		bridgeToken = ""
 		log.Printf("Failed to write bridge token: %v", err)
 		return
 	}
@@ -85,7 +97,9 @@ func Start() {
 	mux.HandleFunc("POST /v1/projects/{projectId}/integrations/ayon/workfiles/prepare", handlers.V1PrepareAYONWorkfile)
 	mux.HandleFunc("POST /v1/projects/{projectId}/integrations/ayon/workfiles/import", handlers.V1ImportAYONWorkfile)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1ListDependencies)
+	mux.HandleFunc("GET /v1/projects/{projectId}/dependency-types", handlers.V1ListDependencyTypes)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/dependencies", handlers.V1CreateDependency)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/dependencies/import", handlers.V1ImportDependencies)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/dependencies/{edgeId}/selector", handlers.V1UpdateDependencySelector)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/dependency-options/{dependencyId}", handlers.V1DependencySelectorOptions)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/checkpoint-tags", handlers.V1ListCheckpointTags)
@@ -100,23 +114,26 @@ func Start() {
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/reveal", handlers.V1RevealAsset)
 	mux.HandleFunc("GET /v1/projects/{projectId}/assets/{assetId}/build-plan", handlers.V1DependencyBuildPlan)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/build", handlers.V1BuildAsset)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/sync", handlers.V1SyncAsset)
+	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/get-latest", handlers.V1GetLatestAsset)
 	mux.HandleFunc("POST /v1/projects/{projectId}/assets/{assetId}/revert", handlers.V1RevertAsset)
 	mux.HandleFunc("GET /v1/jobs/{jobId}", handlers.V1GetJob)
 	mux.HandleFunc("POST /v1/jobs/{jobId}/cancel", handlers.V1CancelJob)
 
-	handler := corsMiddleware(mux)
+	handler := corsMiddleware(mux, bridgeToken)
 
 	server = &http.Server{
-		Addr:         "127.0.0.1:" + bridgePort,
+		Addr:         address,
 		Handler:      handler,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  60 * time.Second,
 	}
+	activeServer := server
 
 	go func() {
-		log.Printf("Clustta Bridge listening on 127.0.0.1:%s", bridgePort)
-		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		log.Printf("Clustta Bridge listening on %s", address)
+		if err := activeServer.Serve(listener); err != nil && err != http.ErrServerClosed {
 			log.Printf("Bridge server error: %v", err)
 		}
 	}()
@@ -125,25 +142,61 @@ func Start() {
 
 // Stop gracefully shuts down the bridge server.
 func Stop() {
+	serverMu.Lock()
+	defer serverMu.Unlock()
+
 	if server == nil {
 		return
 	}
+	activeServer := server
+	activeToken := bridgeToken
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	if err := server.Shutdown(ctx); err != nil {
+	if err := activeServer.Shutdown(ctx); err != nil {
 		log.Printf("Bridge shutdown error: %v", err)
+		if closeErr := activeServer.Close(); closeErr != nil {
+			log.Printf("Bridge close error: %v", closeErr)
+		}
 	}
 	server = nil
 
-	// Clean up token file
-	if tokenPath, err := getBridgeTokenPath(); err == nil {
-		os.Remove(tokenPath)
+	if err := removeBridgeToken(activeToken); err != nil {
+		log.Printf("Failed to remove bridge token: %v", err)
 	}
 	bridgeToken = ""
 	handlers.ResetDCCCache()
 
 	log.Println("Clustta Bridge stopped.")
+}
+
+func writeBridgeToken(token string) error {
+	tokenPath, err := getBridgeTokenPath()
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(tokenPath), 0700); err != nil {
+		return err
+	}
+	return os.WriteFile(tokenPath, []byte(token), 0600)
+}
+
+func removeBridgeToken(token string) error {
+	tokenPath, err := getBridgeTokenPath()
+	if err != nil {
+		return err
+	}
+	storedToken, err := os.ReadFile(tokenPath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if string(storedToken) != token {
+		return nil
+	}
+	return os.Remove(tokenPath)
 }
 
 // getBridgeTokenPath returns the path for the bridge auth token file.
@@ -171,7 +224,7 @@ func getBridgeTokenPath() (string, error) {
 }
 
 // corsMiddleware validates the bridge auth token and sets CORS headers.
-func corsMiddleware(next http.Handler) http.Handler {
+func corsMiddleware(next http.Handler, expectedToken string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
@@ -189,7 +242,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 		if r.URL.Path != "/health" {
 			auth := r.Header.Get("Authorization")
 			token := strings.TrimPrefix(auth, "Bearer ")
-			if token == "" || token != bridgeToken {
+			if token == "" || token != expectedToken {
 				http.Error(w, `{"error":"unauthorized"}`, http.StatusUnauthorized)
 				return
 			}
