@@ -398,18 +398,6 @@ const selectedAssetsCanMove = computed(() => {
 const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'fetchable'));
 
 const visiblePanes = computed(() => {
-  if (stage.activeStage === 'browser') {
-    if (!collectionStore.selectedCollection && !assetStore.selectedAsset && !projectStore.selectedUntrackedItem) {
-      if (!stage.markedItems.length) {
-        let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
-        const activePane = settingsItems.value[index]?.tab_name || 'projectDetails';
-        panes.setPaneVisibility(activePane, true);
-      } 
-    } else if (stage.selectedItem && stage.markedItems.length === 1) {
-      let index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
-      panes.setPaneVisibility(settingsItems.value[index]?.tab_name, true);
-    }
-  }
   return Object.entries(panes.detailPanes)
     .filter(([name, isVisible]) => isVisible)
     .map(([name]) => ({ name, component: paneComponents[name] }));
@@ -664,7 +652,10 @@ const emitBatchItemUpdates = (itemUpdates) => {
 // Filters the detail pane tabs.
 const filterList = (selectedTab) => {
   const activePaneContext = settingsItems.value.find((item) => item.name === selectedTab);
+  if (!activePaneContext) return;
+
   activeTabIndex.value = settingsItems.value.indexOf(activePaneContext);
+  panes.setPaneVisibility(activePaneContext.tab_name, true);
 };
 
 // Frees up collection space by deleting contents.
