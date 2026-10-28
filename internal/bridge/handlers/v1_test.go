@@ -172,6 +172,27 @@ func TestDependencyResponseIncludesReferencedAsset(t *testing.T) {
 	}
 }
 
+func TestDependencyRequestsDoNotExposeDependencyType(t *testing.T) {
+	requests := []any{
+		dependencyRequest{
+			DependencyID:   "dependency-id",
+			ResolutionMode: repository.DependencyResolutionFloating,
+		},
+		importDependenciesRequest{
+			References: []dependencyReference{{FilePath: "C:/Project/Rig.blend"}},
+		},
+	}
+	for _, request := range requests {
+		encoded, err := json.Marshal(request)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if strings.Contains(string(encoded), "dependency_type_id") {
+			t.Fatalf("dependency type is exposed in request: %s", encoded)
+		}
+	}
+}
+
 func TestCapabilitiesIncludeAssetTracking(t *testing.T) {
 	recorder := httptest.NewRecorder()
 	request := httptest.NewRequest("GET", "/v1/capabilities", nil)

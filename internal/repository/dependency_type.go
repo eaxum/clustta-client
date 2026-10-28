@@ -11,6 +11,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+const LinkedDependencyTypeName = "linked"
+
 func CreateDependencyType(tx *sqlx.Tx, id string, name string) (models.DependencyType, error) {
 	assetDependencyType := models.DependencyType{}
 	params := map[string]interface{}{

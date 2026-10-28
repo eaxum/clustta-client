@@ -285,7 +285,7 @@ func initData(tx *sqlx.Tx) error {
 	if err != nil {
 		return err
 	}
-	_, err = GetOrCreateDependencyType(tx, "linked")
+	_, err = GetOrCreateDependencyType(tx, LinkedDependencyTypeName)
 	if err != nil {
 		return err
 	}

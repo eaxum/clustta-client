@@ -18,7 +18,6 @@ const (
 	dependencyStrategyAllToEach = "all_to_each"
 	dependencyStrategySibling   = "same_name_sibling"
 	dependencyModePaired        = "paired"
-	linkedDependencyType        = "linked"
 )
 
 type dependencyPair struct {
@@ -448,7 +447,7 @@ func dependencyTypeForPlan(projectPath string, adding bool) (string, error) {
 	if !adding {
 		return "", nil
 	}
-	return dependencyTypeID(projectPath, linkedDependencyType)
+	return dependencyTypeID(projectPath, repository.LinkedDependencyTypeName)
 }
 
 func dependencyTypeID(projectPath, name string) (string, error) {

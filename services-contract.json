@@ -71,6 +71,39 @@
       }
     ]
   },
+  "ActivityService": {
+    "file": "services/activity_service.go",
+    "methods": [
+      {
+        "name": "Cancel",
+        "params": [
+          "operationID:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ClearFinished",
+        "params": null,
+        "returns": null
+      },
+      {
+        "name": "Dismiss",
+        "params": [
+          "operationID:string"
+        ],
+        "returns": null
+      },
+      {
+        "name": "List",
+        "params": null,
+        "returns": [
+          "activity.Snapshot"
+        ]
+      }
+    ]
+  },
   "AgentService": {
     "file": "services/agent_service.go",
     "methods": [
@@ -319,8 +352,7 @@
         "params": [
           "projectPath:string",
           "assetId:string",
-          "dependencyId:string",
-          "dependencyTypeId:string"
+          "dependencyId:string"
         ],
         "returns": [
           "models.AssetDependencyEdge",
@@ -333,7 +365,6 @@
           "projectPath:string",
           "assetId:string",
           "dependencyId:string",
-          "dependencyTypeId:string",
           "resolutionMode:string",
           "checkpointId:string",
           "assetCheckpointTagId:string"
@@ -348,8 +379,7 @@
         "params": [
           "projectPath:string",
           "assetId:string",
-          "dependencyId:string",
-          "dependencyTypeId:string"
+          "dependencyId:string"
         ],
         "returns": [
           "models.AssetDependency",
@@ -818,17 +848,6 @@
         ]
       },
       {
-        "name": "ResolveDependencyGraphPlan",
-        "params": [
-          "projectPath:string",
-          "assetId:string"
-        ],
-        "returns": [
-          "models.DependencyGraphPlan",
-          "error"
-        ]
-      },
-      {
         "name": "ResolveDependencyBuildPlan",
         "params": [
           "projectPath:string",
@@ -836,6 +855,17 @@
         ],
         "returns": [
           "models.DependencyBuildPlan",
+          "error"
+        ]
+      },
+      {
+        "name": "ResolveDependencyGraphPlan",
+        "params": [
+          "projectPath:string",
+          "assetId:string"
+        ],
+        "returns": [
+          "models.DependencyGraphPlan",
           "error"
         ]
       },
@@ -2108,6 +2138,29 @@
       }
     ]
   },
+  "DragOutService": {
+    "file": "services/drag_out_service.go",
+    "methods": [
+      {
+        "name": "Available",
+        "params": null,
+        "returns": [
+          "bool"
+        ]
+      },
+      {
+        "name": "StartDrag",
+        "params": [
+          "ctx:context.Context",
+          "request:DragOutRequest"
+        ],
+        "returns": [
+          "string",
+          "error"
+        ]
+      }
+    ]
+  },
   "EntitlementService": {
     "file": "services/entitlement_service.go",
     "methods": [
@@ -2697,7 +2750,7 @@
     ]
   },
   "IntegrationService": {
-    "file": "services/integration_service.go",
+    "file": "services/ayon_integration_service.go",
     "methods": [
       {
         "name": "Authenticate",
@@ -2838,6 +2891,19 @@
         ]
       },
       {
+        "name": "ImportAYONWorkfile",
+        "params": [
+          "projectPath:string",
+          "context:AYONWorkfileContext",
+          "filePath:string",
+          "progress:func"
+        ],
+        "returns": [
+          "AYONWorkfileImportResult",
+          "error"
+        ]
+      },
+      {
         "name": "LinkProject",
         "params": [
           "projectPath:string",
@@ -2854,6 +2920,17 @@
         ]
       },
       {
+        "name": "PrepareAYONWorkfile",
+        "params": [
+          "projectPath:string",
+          "context:AYONWorkfileContext"
+        ],
+        "returns": [
+          "AYONWorkfilePreparation",
+          "error"
+        ]
+      },
+      {
         "name": "PushToIntegration",
         "params": [
           "projectPath:string",
@@ -2863,6 +2940,17 @@
           "message:string"
         ],
         "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "ResolveOrCreateAYONWorkfile",
+        "params": [
+          "projectPath:string",
+          "context:AYONWorkfileContext"
+        ],
+        "returns": [
+          "AYONWorkfileResult",
           "error"
         ]
       },
@@ -3704,6 +3792,22 @@
         ]
       },
       {
+        "name": "GetInterfaceFont",
+        "params": null,
+        "returns": [
+          "string",
+          "error"
+        ]
+      },
+      {
+        "name": "GetInterfaceTextSize",
+        "params": null,
+        "returns": [
+          "int",
+          "error"
+        ]
+      },
+      {
         "name": "GetLanguage",
         "params": null,
         "returns": [
@@ -3760,6 +3864,14 @@
         "params": null,
         "returns": [
           "bool",
+          "error"
+        ]
+      },
+      {
+        "name": "GetMotionPreference",
+        "params": null,
+        "returns": [
+          "string",
           "error"
         ]
       },
@@ -4076,6 +4188,24 @@
         ]
       },
       {
+        "name": "SetInterfaceFont",
+        "params": [
+          "font:string"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetInterfaceTextSize",
+        "params": [
+          "size:int"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
         "name": "SetLanguage",
         "params": [
           "language:string"
@@ -4106,6 +4236,15 @@
         "name": "SetMinimizeOnClose",
         "params": [
           "enabled:bool"
+        ],
+        "returns": [
+          "error"
+        ]
+      },
+      {
+        "name": "SetMotionPreference",
+        "params": [
+          "preference:string"
         ],
         "returns": [
           "error"

@@ -18,11 +18,10 @@ import * as $models from "./models.js";
  * @param {string} projectPath
  * @param {string} assetId
  * @param {string} dependencyId
- * @param {string} dependencyTypeId
  * @returns {$CancellablePromise<models$0.AssetDependencyEdge>}
  */
-export function AddAssetDependency(projectPath, assetId, dependencyId, dependencyTypeId) {
-    return $Call.ByID(1782495003, projectPath, assetId, dependencyId, dependencyTypeId).then(/** @type {($result: any) => any} */(($result) => {
+export function AddAssetDependency(projectPath, assetId, dependencyId) {
+    return $Call.ByID(1782495003, projectPath, assetId, dependencyId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
@@ -32,14 +31,13 @@ export function AddAssetDependency(projectPath, assetId, dependencyId, dependenc
  * @param {string} projectPath
  * @param {string} assetId
  * @param {string} dependencyId
- * @param {string} dependencyTypeId
  * @param {string} resolutionMode
  * @param {string} checkpointId
  * @param {string} assetCheckpointTagId
  * @returns {$CancellablePromise<models$0.AssetDependencyEdge>}
  */
-export function AddAssetDependencyWithSelector(projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, assetCheckpointTagId) {
-    return $Call.ByID(1128916658, projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, assetCheckpointTagId).then(/** @type {($result: any) => any} */(($result) => {
+export function AddAssetDependencyWithSelector(projectPath, assetId, dependencyId, resolutionMode, checkpointId, assetCheckpointTagId) {
+    return $Call.ByID(1128916658, projectPath, assetId, dependencyId, resolutionMode, checkpointId, assetCheckpointTagId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType0($result);
     }));
 }
@@ -48,11 +46,10 @@ export function AddAssetDependencyWithSelector(projectPath, assetId, dependencyI
  * @param {string} projectPath
  * @param {string} assetId
  * @param {string} dependencyId
- * @param {string} dependencyTypeId
  * @returns {$CancellablePromise<models$0.AssetDependency>}
  */
-export function AddCollectionDependency(projectPath, assetId, dependencyId, dependencyTypeId) {
-    return $Call.ByID(2670356863, projectPath, assetId, dependencyId, dependencyTypeId).then(/** @type {($result: any) => any} */(($result) => {
+export function AddCollectionDependency(projectPath, assetId, dependencyId) {
+    return $Call.ByID(2670356863, projectPath, assetId, dependencyId).then(/** @type {($result: any) => any} */(($result) => {
         return $$createType1($result);
     }));
 }

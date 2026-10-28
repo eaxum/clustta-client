@@ -206,18 +206,19 @@ Dependency responses are edge records containing `resolution_mode`, selector
 references, the currently resolved checkpoint, `resolution_status`, and a
 `dependency` object with the referenced asset's current path and file state.
 
-The dependency import endpoint accepts a dependency type and direct DCC file
-references. The Bridge canonicalizes every path, rejects references outside the
-project, resolves tracked assets, skips existing edges idempotently, and returns
-added, existing, and unresolved references. DCC-provided `kind` values are
-descriptive and are not trusted for path or asset resolution.
+Dependency creation and import always use the project's `linked` dependency
+type; callers do not supply a dependency type. The import endpoint accepts
+direct DCC file references. The Bridge canonicalizes every path, rejects
+references outside the project, resolves tracked assets, skips existing edges
+idempotently, and returns added, existing, and unresolved references.
+DCC-provided `kind` values are descriptive and are not trusted for path or asset
+resolution.
 
 Create a floating dependency with:
 
 ```json
 {
   "dependency_id": "boy-asset-id",
-  "dependency_type_id": "reference-type-id",
   "resolution_mode": "floating"
 }
 ```

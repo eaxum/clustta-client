@@ -1847,7 +1847,7 @@ func (t *AssetService) ResolveDependencyBuildPlan(projectPath, assetId string) (
 	return plan, nil
 }
 
-func (t *AssetService) AddCollectionDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependency, error) {
+func (t *AssetService) AddCollectionDependency(projectPath, assetId, dependencyId string) (models.AssetDependency, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return models.AssetDependency{}, err
@@ -1861,7 +1861,11 @@ func (t *AssetService) AddCollectionDependency(projectPath, assetId, dependencyI
 	if err := authorizeAssetActionTx(tx, assetActionManageDependencies, []string{assetId}); err != nil {
 		return models.AssetDependency{}, err
 	}
-	collectionDependency, err := repository.AddCollectionDependency(tx, "", assetId, dependencyId, dependencyTypeId)
+	dependencyTypeID, err := linkedDependencyTypeID(tx)
+	if err != nil {
+		return models.AssetDependency{}, err
+	}
+	collectionDependency, err := repository.AddCollectionDependency(tx, "", assetId, dependencyId, dependencyTypeID)
 	if err != nil {
 		return models.AssetDependency{}, err
 	}
@@ -1895,12 +1899,11 @@ func (t *AssetService) RemoveCollectionDependency(projectPath, assetId, dependen
 	}
 	return nil
 }
-func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId, dependencyTypeId string) (models.AssetDependencyEdge, error) {
+func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId string) (models.AssetDependencyEdge, error) {
 	return t.AddAssetDependencyWithSelector(
 		projectPath,
 		assetId,
 		dependencyId,
-		dependencyTypeId,
 		repository.DependencyResolutionFloating,
 		"",
 		"",
@@ -1909,7 +1912,7 @@ func (t *AssetService) AddAssetDependency(projectPath, assetId, dependencyId, de
 
 // AddAssetDependencyWithSelector creates a selector-aware dependency edge.
 func (t *AssetService) AddAssetDependencyWithSelector(
-	projectPath, assetId, dependencyId, dependencyTypeId, resolutionMode, checkpointId, assetCheckpointTagId string,
+	projectPath, assetId, dependencyId, resolutionMode, checkpointId, assetCheckpointTagId string,
 ) (models.AssetDependencyEdge, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -1924,13 +1927,17 @@ func (t *AssetService) AddAssetDependencyWithSelector(
 	if err := authorizeAssetActionTx(tx, assetActionManageDependencies, []string{assetId}); err != nil {
 		return models.AssetDependencyEdge{}, err
 	}
+	dependencyTypeID, err := linkedDependencyTypeID(tx)
+	if err != nil {
+		return models.AssetDependencyEdge{}, err
+	}
 
 	assetDependency, err := repository.AddDependencyWithSelector(
 		tx,
 		"",
 		assetId,
 		dependencyId,
-		dependencyTypeId,
+		dependencyTypeID,
 		resolutionMode,
 		optionalString(checkpointId),
 		optionalString(assetCheckpointTagId),
@@ -1943,6 +1950,14 @@ func (t *AssetService) AddAssetDependencyWithSelector(
 		return models.AssetDependencyEdge{}, err
 	}
 	return assetDependency, nil
+}
+
+func linkedDependencyTypeID(tx *sqlx.Tx) (string, error) {
+	dependencyType, err := repository.GetDependencyTypeByName(tx, repository.LinkedDependencyTypeName)
+	if err != nil {
+		return "", err
+	}
+	return dependencyType.Id, nil
 }
 
 // GetAssetDependencyEdges returns selector-aware dependency edges.

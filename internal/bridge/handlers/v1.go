@@ -103,7 +103,6 @@ type revertRequest struct {
 
 type dependencyRequest struct {
 	DependencyID         string `json:"dependency_id"`
-	DependencyTypeID     string `json:"dependency_type_id"`
 	ResolutionMode       string `json:"resolution_mode"`
 	CheckpointID         string `json:"checkpoint_id"`
 	AssetCheckpointTagID string `json:"asset_checkpoint_tag_id"`
@@ -120,8 +119,7 @@ type dependencyReference struct {
 }
 
 type importDependenciesRequest struct {
-	DependencyTypeID string                `json:"dependency_type_id"`
-	References       []dependencyReference `json:"references"`
+	References []dependencyReference `json:"references"`
 }
 
 type importDependenciesResult struct {
@@ -725,10 +723,6 @@ func V1ImportDependencies(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if body.DependencyTypeID == "" {
-		jsonError(w, http.StatusBadRequest, "dependency_type_id is required")
-		return
-	}
 	if len(body.References) == 0 {
 		jsonError(w, http.StatusBadRequest, "at least one reference is required")
 		return
@@ -777,7 +771,6 @@ func V1ImportDependencies(w http.ResponseWriter, r *http.Request) {
 				project.Uri,
 				asset.Id,
 				dependency.Id,
-				body.DependencyTypeID,
 				repository.DependencyResolutionFloating,
 				"",
 				"",
@@ -802,8 +795,8 @@ func V1CreateDependency(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	if request.DependencyID == "" || request.DependencyTypeID == "" || request.ResolutionMode == "" {
-		jsonError(w, http.StatusBadRequest, "dependency_id, dependency_type_id, and resolution_mode are required")
+	if request.DependencyID == "" || request.ResolutionMode == "" {
+		jsonError(w, http.StatusBadRequest, "dependency_id and resolution_mode are required")
 		return
 	}
 
@@ -812,7 +805,6 @@ func V1CreateDependency(w http.ResponseWriter, r *http.Request) {
 		project.Uri,
 		asset.Id,
 		request.DependencyID,
-		request.DependencyTypeID,
 		request.ResolutionMode,
 		request.CheckpointID,
 		request.AssetCheckpointTagID,
