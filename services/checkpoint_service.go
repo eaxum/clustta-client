@@ -241,6 +241,59 @@ func (c *CheckpointService) AddCheckpoint(projectPath string, assetPaths, extens
 
 // AddCheckpointWithSource freezes one source reference for all checkpoints in the batch.
 func (c *CheckpointService) AddCheckpointWithSource(projectPath string, assetPaths, extensions []string, message, previewPath, groupId string, useAsThumbnail, sendToIntegration bool, sourceCheckpointId string) ([]models.Checkpoint, error) {
+	return c.addCheckpointWithSourceFile(
+		projectPath,
+		assetPaths,
+		extensions,
+		"",
+		message,
+		previewPath,
+		groupId,
+		useAsThumbnail,
+		sendToIntegration,
+		sourceCheckpointId,
+	)
+}
+
+// AddCheckpointFromFileWithSource checkpoints one asset from a Bridge-owned stable snapshot.
+func (c *CheckpointService) AddCheckpointFromFileWithSource(
+	projectPath string,
+	assetPath string,
+	extension string,
+	contentPath string,
+	message string,
+	previewPath string,
+	groupId string,
+	useAsThumbnail bool,
+	sendToIntegration bool,
+	sourceCheckpointId string,
+) ([]models.Checkpoint, error) {
+	return c.addCheckpointWithSourceFile(
+		projectPath,
+		[]string{assetPath},
+		[]string{extension},
+		contentPath,
+		message,
+		previewPath,
+		groupId,
+		useAsThumbnail,
+		sendToIntegration,
+		sourceCheckpointId,
+	)
+}
+
+func (c *CheckpointService) addCheckpointWithSourceFile(
+	projectPath string,
+	assetPaths []string,
+	extensions []string,
+	contentPath string,
+	message string,
+	previewPath string,
+	groupId string,
+	useAsThumbnail bool,
+	sendToIntegration bool,
+	sourceCheckpointId string,
+) ([]models.Checkpoint, error) {
 	releaseTransfer, admissionErr := transfer.Exclusive(projectPath)
 	if admissionErr != nil {
 		return nil, admissionErr
@@ -259,6 +312,9 @@ func (c *CheckpointService) AddCheckpointWithSource(projectPath string, assetPat
 	}
 	if len(assetPaths) != len(extensions) {
 		return nil, errors.New("asset paths and extensions must have the same length")
+	}
+	if contentPath != "" && len(assetPaths) != 1 {
+		return nil, errors.New("a custom content path requires exactly one asset")
 	}
 	authorId := user.Id
 
@@ -307,6 +363,10 @@ func (c *CheckpointService) AddCheckpointWithSource(projectPath string, assetPat
 			app.Event.Emit("progress-update", progress)
 		}
 
+		checkpointContentPath := asset.GetFilePath()
+		if contentPath != "" {
+			checkpointContentPath = contentPath
+		}
 		checkpoint, err := repository.CreateCheckpoint(
 			tx,
 			asset.Id,
@@ -315,7 +375,7 @@ func (c *CheckpointService) AddCheckpointWithSource(projectPath string, assetPat
 			"",
 			0,
 			0,
-			asset.GetFilePath(),
+			checkpointContentPath,
 			authorId,
 			previewId,
 			groupId,
@@ -776,6 +836,15 @@ func (c *CheckpointService) GetTimeline(projectPath string) ([]repository.Compat
 // Revert reverts multiple assets to their latest checkpoints.
 // Downloads missing chunks if needed and supports cancellation.
 func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []string) (FetchResult, error) {
+	return c.revert(projectPath, remoteUrl, assetIds, true)
+}
+
+// RevertUnmodified restores latest checkpoints without overwriting modified files.
+func (c *CheckpointService) RevertUnmodified(projectPath, remoteUrl string, assetIds []string) (FetchResult, error) {
+	return c.revert(projectPath, remoteUrl, assetIds, false)
+}
+
+func (c *CheckpointService) revert(projectPath, remoteUrl string, assetIds []string, allowModified bool) (FetchResult, error) {
 	action, err := beginTransfer(context.Background(), projectPath, "fetch", "Fetching assets")
 	if err != nil {
 		return FetchResult{}, err
@@ -784,12 +853,12 @@ func (c *CheckpointService) Revert(projectPath, remoteUrl string, assetIds []str
 		action.finish(err)
 		return FetchResult{}, err
 	}
-	result, err := c.revertAssets(action, remoteUrl, assetIds)
+	result, err := c.revertAssets(action, remoteUrl, assetIds, allowModified)
 	action.finish(err)
 	return result, err
 }
 
-func (c *CheckpointService) revertAssets(action *transferAction, remoteUrl string, assetIds []string) (FetchResult, error) {
+func (c *CheckpointService) revertAssets(action *transferAction, remoteUrl string, assetIds []string, allowModified bool) (FetchResult, error) {
 	uniqueIDs := make([]string, 0, len(assetIds))
 	seenIDs := map[string]bool{}
 	for _, id := range assetIds {
@@ -824,6 +893,9 @@ func (c *CheckpointService) revertAssets(action *transferAction, remoteUrl strin
 	for _, assetID := range assetIds {
 		asset, err := repository.GetAsset(tx, assetID)
 		if err != nil {
+			return result, err
+		}
+		if err := validateRestoreFileStatus(asset.FileStatus, allowModified); err != nil {
 			return result, err
 		}
 		state, err := captureTransferFile(asset.GetFilePath())
@@ -936,6 +1008,13 @@ func (c *CheckpointService) revertAssets(action *transferAction, remoteUrl strin
 		action.restored(result.RestoredAssetIds)
 	}
 	return result, nil
+}
+
+func validateRestoreFileStatus(fileStatus string, allowModified bool) error {
+	if fileStatus == "modified" && !allowModified {
+		return errors.New("asset has local modifications; confirm overwrite and retry with allow_modified")
+	}
+	return nil
 }
 
 type dependencyBuildProgress struct {

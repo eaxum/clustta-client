@@ -7,6 +7,7 @@ import (
 
 	"clustta/internal/auth_service"
 	"clustta/internal/repository"
+	"clustta/internal/utils"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/zalando/go-keyring"
@@ -81,6 +82,33 @@ func TestTrackAssetAssignsToCurrentUserWhenRequested(t *testing.T) {
 	}
 	if result.Asset.IsResource {
 		t.Fatal("expected assigned asset to be a task")
+	}
+}
+
+func TestTrackAssetUsesStableContentPath(t *testing.T) {
+	projectPath, workingDirectory := setupTrackAssetProject(t)
+	filePath := createTrackAssetTestFile(t, workingDirectory, "stable.blend")
+	snapshotPath := filepath.Join(t.TempDir(), "snapshot.blend")
+	if err := os.WriteFile(snapshotPath, []byte("snapshot-content"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := trackAsset(projectPath, TrackAssetOptions{
+		FilePath:    filePath,
+		ContentPath: snapshotPath,
+	}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedChecksum, err := utils.GenerateXXHashChecksum(snapshotPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Checkpoint.XXHashChecksum != expectedChecksum {
+		t.Fatalf("expected snapshot checksum %q, got %q", expectedChecksum, result.Checkpoint.XXHashChecksum)
+	}
+	if result.Asset.GetFilePath() != filePath {
+		t.Fatalf("expected tracked path %q, got %q", filePath, result.Asset.GetFilePath())
 	}
 }
 

@@ -26,6 +26,7 @@ const (
 
 type TrackAssetOptions struct {
 	FilePath            string
+	ContentPath         string
 	Message             string
 	PreviewPath         string
 	GroupID             string
@@ -170,6 +171,10 @@ func trackAsset(
 		}
 		progress(trackChunkProgressStart + current*trackChunkProgressRange/total)
 	}
+	contentPath := options.ContentPath
+	if contentPath == "" {
+		contentPath = absolutePath
+	}
 	if err = repository.CreateAssetFast(
 		tx,
 		assetID,
@@ -178,7 +183,7 @@ func trackAsset(
 		collectionID,
 		!options.AssignToCurrentUser,
 		"",
-		absolutePath,
+		contentPath,
 		previewID,
 		user.Id,
 		message,

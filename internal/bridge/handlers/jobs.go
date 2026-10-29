@@ -26,6 +26,8 @@ type jobResponse struct {
 	Message     string `json:"message,omitempty"`
 	Progress    int    `json:"progress"`
 	Error       string `json:"error,omitempty"`
+	ErrorCode   string `json:"error_code,omitempty"`
+	Retryable   bool   `json:"retryable,omitempty"`
 	Result      any    `json:"result,omitempty"`
 	Cancellable bool   `json:"cancellable"`
 	CreatedAt   string `json:"created_at"`
@@ -114,6 +116,10 @@ func runJob(jobID string, operation jobOperation) {
 	}
 	if err != nil {
 		job.Error = err.Error()
+		if errors.Is(err, errSourceFileChanged) {
+			job.ErrorCode = "source_file_changed"
+			job.Retryable = true
+		}
 		setJobStatus(job, jobFailed)
 		return
 	}

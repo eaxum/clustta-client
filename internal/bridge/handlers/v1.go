@@ -215,7 +215,10 @@ func V1TrackAsset(w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupID := uuid.NewString()
-	idempotencyKey := operationKey(r, project.Id, filePath, "track-asset")
+	idempotencyKey, ok := requiredOperationKey(w, r, project.Id, filePath, "track-asset")
+	if !ok {
+		return
+	}
 	job := startJob("track-asset", idempotencyKey, false, func(update func(string, int)) (any, error) {
 		return runTrackAssetJob(
 			project,
@@ -262,10 +265,16 @@ func runTrackAssetJob(
 	update func(string, int),
 ) (trackAssetResponse, error) {
 	update("Tracking asset", trackJobStartProgress)
+	snapshotPath, err := createStableFileSnapshot(filePath)
+	if err != nil {
+		return trackAssetResponse{}, err
+	}
+	defer os.Remove(snapshotPath)
 	result, err := services.TrackAsset(
 		project.Uri,
 		services.TrackAssetOptions{
 			FilePath:            filePath,
+			ContentPath:         snapshotPath,
 			Message:             request.Message,
 			PreviewPath:         request.PreviewPath,
 			GroupID:             groupID,
@@ -465,6 +474,10 @@ func V1ResolveContext(w http.ResponseWriter, r *http.Request) {
 		canonicalFile,
 	)
 	if err != nil {
+		if errors.Is(err, error_service.ErrNotUnauthorized) {
+			jsonError(w, http.StatusForbidden, "asset is outside the active user's visible scope")
+			return
+		}
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -543,7 +556,10 @@ func V1SyncAsset(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	idempotencyKey := operationKey(r, project.Id, asset.Id, "sync")
+	idempotencyKey, ok := requiredOperationKey(w, r, project.Id, asset.Id, "sync")
+	if !ok {
+		return
+	}
 	job := startJob("sync", idempotencyKey, true, func(update func(string, int)) (any, error) {
 		update("Synchronizing asset", 10)
 		remoteURL, err := utils.ResolveProjectRemoteURL(project.Uri)
@@ -579,7 +595,10 @@ func V1GetLatestAsset(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
-	idempotencyKey := operationKey(r, project.Id, asset.Id, "get-latest")
+	idempotencyKey, ok := requiredOperationKey(w, r, project.Id, asset.Id, "get-latest")
+	if !ok {
+		return
+	}
 	job := startJob("get-latest", idempotencyKey, true, func(update func(string, int)) (any, error) {
 		remoteURL, err := utils.ResolveProjectRemoteURL(project.Uri)
 		if err != nil {
@@ -593,23 +612,15 @@ func V1GetLatestAsset(w http.ResponseWriter, r *http.Request) {
 		if err = syncService.UpdateProject(project.Uri, remoteURL); err != nil {
 			return nil, err
 		}
-		update("Resolving dependencies", 35)
-		assetService := &services.AssetService{}
-		plan, err := assetService.ResolveDependencyBuildPlan(project.Uri, asset.Id)
-		if err != nil {
-			return nil, err
+		update("Restoring latest asset", 50)
+		checkpointService := &services.CheckpointService{}
+		assetIDs := []string{asset.Id}
+		var result services.FetchResult
+		if body.AllowModified {
+			result, err = checkpointService.Revert(project.Uri, remoteURL, assetIDs)
+		} else {
+			result, err = checkpointService.RevertUnmodified(project.Uri, remoteURL, assetIDs)
 		}
-		if len(plan.Conflicts) != 0 {
-			return nil, errors.New("dependency plan contains conflicts")
-		}
-		update("Restoring latest files", 50)
-		result, err := services.ExecuteDependencyBuildPlanDirect(
-			project.Uri,
-			remoteURL,
-			asset.Id,
-			plan.Fingerprint,
-			body.AllowModified,
-		)
 		if err != nil {
 			return nil, err
 		}
@@ -942,7 +953,7 @@ func dependencyMutationError(w http.ResponseWriter, err error) {
 }
 
 func V1ListCheckpoints(w http.ResponseWriter, r *http.Request) {
-	project, ok := requestProject(w, r)
+	project, asset, ok := requestAsset(w, r)
 	if !ok {
 		return
 	}
@@ -959,12 +970,7 @@ func V1ListCheckpoints(w http.ResponseWriter, r *http.Request) {
 	}
 	defer tx.Rollback()
 
-	assetID := r.PathValue("assetId")
-	if _, err = repository.GetSimpleAsset(tx, assetID); err != nil {
-		jsonError(w, http.StatusNotFound, err.Error())
-		return
-	}
-	checkpoints, err := repository.GetCheckpoints(tx, assetID, false)
+	checkpoints, err := repository.GetCheckpoints(tx, asset.Id, false)
 	if err != nil {
 		jsonError(w, http.StatusInternalServerError, err.Error())
 		return
@@ -1017,14 +1023,23 @@ func V1CreateCheckpoint(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	idempotencyKey := operationKey(r, project.Id, asset.Id, "checkpoint")
+	idempotencyKey, ok := requiredOperationKey(w, r, project.Id, asset.Id, "checkpoint")
+	if !ok {
+		return
+	}
 	job := startJob("checkpoint", idempotencyKey, false, func(update func(string, int)) (any, error) {
 		update("Creating checkpoint", 20)
+		snapshotPath, snapshotErr := createStableFileSnapshot(asset.GetFilePath())
+		if snapshotErr != nil {
+			return nil, snapshotErr
+		}
+		defer os.Remove(snapshotPath)
 		checkpointService := &services.CheckpointService{}
-		checkpoints, addErr := checkpointService.AddCheckpointWithSource(
+		checkpoints, addErr := checkpointService.AddCheckpointFromFileWithSource(
 			project.Uri,
-			[]string{asset.AssetPath},
-			[]string{asset.Extension},
+			asset.AssetPath,
+			asset.Extension,
+			snapshotPath,
 			body.Message,
 			body.PreviewPath,
 			uuid.NewString(),
@@ -1087,7 +1102,10 @@ func V1ChangeStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idempotencyKey := operationKey(r, project.Id, asset.Id, "status:"+body.StatusID)
+	idempotencyKey, ok := requiredOperationKey(w, r, project.Id, asset.Id, "status:"+body.StatusID)
+	if !ok {
+		return
+	}
 	job := startJob("status", idempotencyKey, false, func(update func(string, int)) (any, error) {
 		update("Updating status", 25)
 		assetService := &services.AssetService{}
@@ -1293,8 +1311,12 @@ func requestAsset(
 	}
 
 	assetService := &services.AssetService{}
-	asset, err := assetService.GetAssetByID(project.Uri, r.PathValue("assetId"))
+	asset, err := assetService.GetVisibleAssetByID(project.Uri, r.PathValue("assetId"))
 	if err != nil {
+		if errors.Is(err, error_service.ErrNotUnauthorized) {
+			jsonError(w, http.StatusForbidden, "asset is outside the active user's visible scope")
+			return repository.ProjectInfo{}, models.Asset{}, false
+		}
 		jsonError(w, http.StatusNotFound, err.Error())
 		return repository.ProjectInfo{}, models.Asset{}, false
 	}
@@ -1352,8 +1374,7 @@ func findAssetByFilePath(
 			return models.Asset{}, false, directErr
 		}
 		if directFound {
-			asset, getErr := repository.GetAsset(tx, assetID)
-			return asset, getErr == nil, getErr
+			return visibleAssetByID(projectPath, assetID)
 		}
 	}
 
@@ -1363,11 +1384,16 @@ func findAssetByFilePath(
 	}
 	for _, asset := range assets {
 		if samePath(asset.GetFilePath(), filePath) {
-			resolvedAsset, getErr := repository.GetAsset(tx, asset.Id)
-			return resolvedAsset, getErr == nil, getErr
+			return visibleAssetByID(projectPath, asset.Id)
 		}
 	}
 	return models.Asset{}, false, nil
+}
+
+func visibleAssetByID(projectPath, assetID string) (models.Asset, bool, error) {
+	assetService := &services.AssetService{}
+	asset, err := assetService.GetVisibleAssetByID(projectPath, assetID)
+	return asset, err == nil, err
 }
 
 func assetLookupPath(workingDirectory, filePath string) (string, string, error) {
@@ -1404,6 +1430,21 @@ func operationKey(r *http.Request, projectID, assetID, operation string) string 
 		return ""
 	}
 	return strings.Join([]string{projectID, assetID, operation, key}, ":")
+}
+
+func requiredOperationKey(
+	w http.ResponseWriter,
+	r *http.Request,
+	projectID string,
+	assetID string,
+	operation string,
+) (string, bool) {
+	key := operationKey(r, projectID, assetID, operation)
+	if key == "" {
+		jsonError(w, http.StatusBadRequest, "Idempotency-Key header is required")
+		return "", false
+	}
+	return key, true
 }
 
 func assetDeepLink(studio, projectID, assetID string) string {

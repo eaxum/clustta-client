@@ -34,6 +34,30 @@ func TestStartJobReusesIdempotencyKey(t *testing.T) {
 	t.Fatal("job did not complete")
 }
 
+func TestFailedJobMarksChangedSourceRetryable(t *testing.T) {
+	resetJobsForTest()
+	job := startJob("checkpoint", "changed-source", false, func(func(string, int)) (any, error) {
+		return nil, errSourceFileChanged
+	})
+
+	deadline := time.Now().Add(time.Second)
+	for time.Now().Before(deadline) {
+		current, err := getJob(job.ID)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if current.Status != jobFailed {
+			time.Sleep(time.Millisecond)
+			continue
+		}
+		if current.ErrorCode != "source_file_changed" || !current.Retryable {
+			t.Fatalf("unexpected job error %#v", current)
+		}
+		return
+	}
+	t.Fatal("job did not fail")
+}
+
 func TestCancelRejectsNonCancellableJob(t *testing.T) {
 	resetJobsForTest()
 	job := startJob("checkpoint", "", false, func(func(string, int)) (any, error) {

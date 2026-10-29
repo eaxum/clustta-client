@@ -282,6 +282,38 @@ func (t *AssetService) GetAssetByID(projectPath, assetId string) (models.Asset, 
 	return repository.GetAsset(tx, assetId)
 }
 
+// GetVisibleAssetByID returns an asset only when it is visible to the active user.
+func (t *AssetService) GetVisibleAssetByID(projectPath, assetId string) (models.Asset, error) {
+	dbConn, err := utils.OpenDb(projectPath)
+	if err != nil {
+		return models.Asset{}, err
+	}
+	defer dbConn.Close()
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return models.Asset{}, err
+	}
+	defer tx.Rollback()
+
+	user, role, err := activeAssetRole(tx)
+	if err != nil {
+		return models.Asset{}, err
+	}
+	if role.Name == "admin" || role.ViewAsset {
+		return repository.GetAsset(tx, assetId)
+	}
+	assets, err := repository.GetUserAssetsMinimal(tx, user.Id)
+	if err != nil {
+		return models.Asset{}, err
+	}
+	for _, asset := range assets {
+		if asset.Id == assetId {
+			return repository.GetAsset(tx, assetId)
+		}
+	}
+	return models.Asset{}, error_service.ErrNotUnauthorized
+}
+
 // GetAssetByPath retrieves an asset by its asset_path and extension.
 // Returns the asset or an error if not found.
 func (t *AssetService) GetAssetByPath(projectPath, assetPath, extension string) (models.Asset, error) {

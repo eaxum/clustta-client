@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
@@ -217,6 +218,34 @@ func TestCapabilitiesIncludeAssetTracking(t *testing.T) {
 		if !found {
 			t.Fatalf("%s capability is missing", operation)
 		}
+	}
+	if response.APIVersion != bridgeAPIVersion {
+		t.Fatalf("unexpected API version %q", response.APIVersion)
+	}
+}
+
+func TestRequiredOperationKeyRejectsMissingHeader(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/projects/project/assets/asset/sync", nil)
+
+	key, ok := requiredOperationKey(recorder, request, "project", "asset", "sync")
+	if ok || key != "" {
+		t.Fatal("expected missing idempotency key to be rejected")
+	}
+	if recorder.Code != http.StatusBadRequest ||
+		!strings.Contains(recorder.Body.String(), "Idempotency-Key header is required") {
+		t.Fatalf("unexpected response: %d %s", recorder.Code, recorder.Body.String())
+	}
+}
+
+func TestRequiredOperationKeyScopesClientKey(t *testing.T) {
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodPost, "/v1/projects/project/assets/asset/sync", nil)
+	request.Header.Set("Idempotency-Key", "request-id")
+
+	key, ok := requiredOperationKey(recorder, request, "project", "asset", "sync")
+	if !ok || key != "project:asset:sync:request-id" {
+		t.Fatalf("unexpected operation key %q", key)
 	}
 }
 

@@ -16,6 +16,9 @@ currently displayed in Clustta Desktop.
 - `GET /v1/context?filePath=<absolute-path>`
 - `GET /v1/projects`
 
+Capabilities report the Bridge API version and available operations. Plugins
+must check `operations` before enabling actions.
+
 Bootstrap returns the API version, accounts, studios, local projects, active
 account, and active studio in one request. Add `?refresh=true` to refresh the
 cached studio and project catalog.
@@ -172,9 +175,16 @@ The request may also include `sourceAssetId` and `sourceCheckpointId`, using the
 same source-selection rules as checkpoint creation. A blank message is stored as
 `v0001`. Set `sync` to override the desktop sync-after-checkpoint preference.
 
-Checkpoint, status, build, revert, sync, Get Latest, and dependency import
-requests should include a unique `Idempotency-Key` header. These asynchronous
-operations return `202 Accepted` with a job object.
+Before Track or Checkpoint reads host-owned content, the Bridge creates a
+verified temporary snapshot with the same extension and modification time. If
+the source changes while the snapshot is created, the job fails with
+`error_code: "source_file_changed"` and `retryable: true`. The temporary file is
+removed after ingestion.
+
+Track, Checkpoint, Status, Sync, and Get Latest requests require a unique
+`Idempotency-Key` header. A missing header returns `400 Bad Request`. Other
+asynchronous mutation clients should also send a key so safe retries return the
+original job.
 
 Checkpoint requests accept:
 
@@ -195,10 +205,12 @@ The bridge verifies that `filePath` is the tracked asset path. Integration
 publishing and comment forwarding happen in the bridge.
 
 Asset sync pushes the current asset, its checkpoints, chunks, previews, and
-related metadata to the configured Studio. Get Latest first refreshes project
-metadata, resolves a new dependency build plan, and restores that exact plan.
-Both operations are asynchronous. Get Latest rejects locally modified files
-unless `allow_modified` is true after explicit DCC confirmation.
+related metadata to the configured Studio. Get Latest refreshes project
+metadata and restores only the selected asset's latest permitted checkpoint.
+It never resolves or restores dependencies. Dependency restoration remains an
+explicit Build operation. Both operations are asynchronous. Get Latest rejects
+locally modified files unless `allow_modified` is true after explicit host
+confirmation.
 
 ## Dependency selectors
 
