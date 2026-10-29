@@ -106,7 +106,7 @@
 
       </div>
       <div v-else class="details-pane-container absolute-pane">
-        <div v-if="!noHeaders.includes(panes.activeModal)" class="pane-header-tabs">
+        <div v-if="activePaneContext && !noHeaders.includes(activePaneContext.tab_name)" class="pane-header-tabs">
           <PaneHeaderTabs :iconsOnly="false" :useSelected="true" :selectedTab="selectedSettingsContext" :dataTypes="settingsItems" @filter="filterList" />
 					<div class="menu-divider"></div>
         </div>
@@ -237,7 +237,7 @@ const untrackedDetailPanes = [
 ];
 
 // refs
-const activeTabIndex = ref(0);
+const activePaneName = ref('');
 const defaultStatus = ref('TODO');
 const detailsPaneRoot = ref(null);
 const collectionType = ref(collectionStore.getCollectionTypesNames[0]);
@@ -308,25 +308,41 @@ const projectUsers = computed(() => {
   }));
 });
 
-const selectedSettingsContext = computed(() => {
-  const index = activeTabIndex.value < 0 ? 0 : activeTabIndex.value;
-  const activePaneContext = settingsItems.value?.find((item) => item.tab_name === panes.activeModal);
-  return activePaneContext?.name || settingsItems.value[index]?.name;
+const selectedPaneItem = computed(() => {
+  if (stage.markedItems.length !== 1) return null;
+
+  const selectedItemId = stage.markedItems[0];
+  const selectedItem = stage.selectedItems.find((item) => item.id === selectedItemId);
+  if (selectedItem) return selectedItem;
+  if (stage.selectedItem?.id === selectedItemId) return stage.selectedItem;
+  return null;
 });
 
 const settingsItems = computed(() => {
-  const itemType = stage.selectedItem?.type;
   const isRemote = projectStore.activeProject?.has_remote;
   if (!stage.markedItems.length) {
     return isRemote ? projectDetailPanes : projectDetailPanes.filter(p => !remoteOnlyTabs.includes(p.tab_name));
   }
-  if (itemType === 'asset') {
-    const panes = stage.selectedItem?.is_link ? linkDetailPanes : assetDetailPanes;
-    return isRemote ? panes : panes.filter(p => !remoteOnlyTabs.includes(p.tab_name));
+  if (stage.markedItems.length > 1) return [];
+
+  const selectedItem = selectedPaneItem.value;
+  const itemType = selectedItem?.type || selectedItem?.item_type;
+  if (itemType === 'asset' || itemType === 'resource') {
+    const availablePanes = selectedItem?.is_link ? linkDetailPanes : assetDetailPanes;
+    return isRemote ? availablePanes : availablePanes.filter(p => !remoteOnlyTabs.includes(p.tab_name));
   }
   if (itemType === 'collection') return collectionDetailPanes;
-  return untrackedDetailPanes;
+  if (['untracked_asset', 'untracked_collection', 'file', 'folder'].includes(itemType)) return untrackedDetailPanes;
+  return [];
 });
+
+const activePaneContext = computed(() => {
+  return settingsItems.value.find((item) => item.tab_name === activePaneName.value)
+    || settingsItems.value[0]
+    || null;
+});
+
+const selectedSettingsContext = computed(() => activePaneContext.value?.name || '');
 
 // Determines whether the squash button should be shown.
 const squashEnabled = computed(() => {
@@ -398,9 +414,12 @@ const selectedAssetsCanMove = computed(() => {
 const assetsOnDisk = computed(() => stage.selectedItems.filter((item) => item.type === 'asset').some((item) => item.file_status !== 'fetchable'));
 
 const visiblePanes = computed(() => {
-  return Object.entries(panes.detailPanes)
-    .filter(([name, isVisible]) => isVisible)
-    .map(([name]) => ({ name, component: paneComponents[name] }));
+  const activePane = activePaneContext.value;
+  if (!activePane) return [];
+
+  const component = paneComponents[activePane.tab_name];
+  if (!component) return [];
+  return [{ name: activePane.tab_name, component }];
 });
 
 // methods
@@ -654,8 +673,7 @@ const filterList = (selectedTab) => {
   const activePaneContext = settingsItems.value.find((item) => item.name === selectedTab);
   if (!activePaneContext) return;
 
-  activeTabIndex.value = settingsItems.value.indexOf(activePaneContext);
-  panes.setPaneVisibility(activePaneContext.tab_name, true);
+  activePaneName.value = activePaneContext.tab_name;
 };
 
 // Frees up collection space by deleting contents.
@@ -1004,23 +1022,26 @@ const viewDependencies = () => filterList('Dependencies');
 const viewChanges = () => filterList('Changes');
 
 // watchers
-watch(() => settingsItems.value, (newItems, oldItems) => {
-  const previousTabName = oldItems?.[activeTabIndex.value]?.tab_name;
-  let nextTabIndex = 0;
-  if (previousTabName) {
-    const matchIndex = newItems.findIndex((item) => item.tab_name === previousTabName);
-    if (matchIndex !== -1) nextTabIndex = matchIndex;
-  }
-  activeTabIndex.value = nextTabIndex;
-  const nextPane = newItems[nextTabIndex]?.tab_name;
-  if (nextPane) panes.setPaneVisibility(nextPane, true);
-});
+watch(() => settingsItems.value, (newItems) => {
+  if (!newItems.length) return;
+  if (newItems.some((item) => item.tab_name === activePaneName.value)) return;
+  activePaneName.value = newItems[0].tab_name;
+}, { immediate: true });
+
+watch(() => panes.activeModal, (paneName) => {
+  if (!settingsItems.value.some((item) => item.tab_name === paneName)) return;
+  activePaneName.value = paneName;
+}, { immediate: true });
+
+watch(() => activePaneContext.value?.tab_name, (paneName) => {
+  if (!paneName || panes.activeModal === paneName) return;
+  panes.setPaneVisibility(paneName, true);
+}, { immediate: true });
 
 watchEffect(() => { if (detailsPaneRoot.value) menu.clickOutsideMask = detailsPaneRoot.value; });
 
 // lifecycle hooks
 onMounted(() => {
-  panes.setPaneVisibility('projectDetails', true);
   emitter.on('view-details', viewDetails);
   emitter.on('view-checkpoints', viewCheckpoints);
   emitter.on('view-dependencies', viewDependencies);
@@ -1028,7 +1049,6 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  panes.setPaneVisibility('projectDetails', true);
   emitter.off('view-details', viewDetails);
   emitter.off('view-checkpoints', viewCheckpoints);
   emitter.off('view-dependencies', viewDependencies);

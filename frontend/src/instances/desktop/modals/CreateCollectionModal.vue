@@ -198,6 +198,19 @@ const closeModal = () => {
   modals.setModalVisibility('createCollectionModal', false);
 };
 
+// Selects a newly created collection using the standard browser selection state.
+const selectCreatedCollection = (collection) => {
+  const selectedCollection = { ...collection, type: 'collection' };
+  stage.markedItems = [selectedCollection.id];
+  stage.selectedItems = [selectedCollection];
+  stage.markedAssets = [];
+  stage.markedCollections = [selectedCollection.id];
+  stage.markedResources = [];
+  stage.firstSelectedItemId = selectedCollection.id;
+  stage.lastSelectedItemId = '';
+  stage.selectItem(selectedCollection, 'collection', true);
+};
+
 // Creates collections based on current mode.
 const createCollections = async () => {
   isAwaitingResponse.value = true;
@@ -232,17 +245,16 @@ const createCollectionAndMove = async () => {
   const selectedCollectionType = collectionStore.collectionTypes.find(item => item.name === collectionType.value);
   CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionType.id, parentIdValue, '', isShared.value)
     .then(async data => {
-      const newCollection = data;
+      const newCollection = { ...data, type: 'collection' };
       collectionStore.selectedCollection = newCollection;
       isAwaitingResponse.value = false;
       await moveIntoFolder(newCollection.id);
+      selectCreatedCollection(newCollection);
       closeModal();
       notificationStore.addNotification(t('notifications.collectionCreated', { name: collectionName.value }), '', 'success');
       if (parentIdValue && !(parentIdValue in stage.expandedCollections)) {
         stage.expandCollection(parent);
       }
-      stage.firstSelectedItemId = newCollection.id;
-      stage.markedItems = [newCollection.id];
       emitter.emit('refresh-browser');
     })
     .catch((error) => {
@@ -265,12 +277,9 @@ const createSingleCollection = async () => {
   await CollectionService.CreateCollection(projectStore.activeProject.uri, collectionName.value, '', selectedCollectionTypeId.value, parentId.value, '', isShared.value)
     .then(async data => {
       if (!isMultiple.value) {
-        const newCollection = data;
-        collectionStore.selectedCollection = newCollection;
-        stage.selectedItem = newCollection;
+        const newCollection = { ...data, type: 'collection' };
+        selectCreatedCollection(newCollection);
         notificationStore.addNotification(t('notifications.collectionCreated', { name: collectionName.value }), '', 'success');
-        stage.firstSelectedItemId = newCollection.id;
-        stage.markedItems = [newCollection.id];
       }
     })
     .catch((error) => {

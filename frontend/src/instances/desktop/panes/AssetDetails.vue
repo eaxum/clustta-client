@@ -1,6 +1,6 @@
 <template>
   
-  <div class="general-pane-root">
+  <div v-if="assetStore.selectedAsset" class="general-pane-root">
     <div class="general-pane-container">
 
       <div v-if="showAssetThumbnail" class="collection-thumb-container asset-thumb-preview">

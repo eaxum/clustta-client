@@ -1,9 +1,9 @@
 <template>
-  <div v-if="debugging" class="general-pane-header">
+  <div v-if="debugging && untrackedItem" class="general-pane-header">
     <HeaderArea :title="utils.capitalizeStr(projectStore.selectedUntrackedItem?.name)" :notModal="true" :icon="getAppIcon(itemIcon)" />
   </div>
 
-  <div v-if="debugging" class="general-pane-root">
+  <div v-if="debugging && untrackedItem" class="general-pane-root">
     <div class="general-pane-container">
       <div class="pane-parameter-section">
         <div class="action-bar">
