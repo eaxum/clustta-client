@@ -557,6 +557,12 @@ func V1SyncAsset(w http.ResponseWriter, r *http.Request) {
 		if err = syncService.SyncAsset(project.Uri, remoteURL, asset.Id); err != nil {
 			return nil, err
 		}
+		emitAssetDataChanged(
+			project,
+			asset.Id,
+			services.ProjectChangeAssetState,
+			services.ProjectChangeSync,
+		)
 		update("Asset synchronized", 100)
 		return map[string]string{"asset_id": asset.Id}, nil
 	})
@@ -1029,6 +1035,12 @@ func V1CreateCheckpoint(w http.ResponseWriter, r *http.Request) {
 		if addErr != nil {
 			return nil, addErr
 		}
+		emitAssetDataChanged(
+			project,
+			asset.Id,
+			services.ProjectChangeAssetState,
+			services.ProjectChangeCheckpoints,
+		)
 		if syncAfterCheckpoint {
 			update("Synchronizing checkpoint", 70)
 			remoteURL, resolveErr := utils.ResolveProjectRemoteURL(project.Uri)
@@ -1040,6 +1052,12 @@ func V1CreateCheckpoint(w http.ResponseWriter, r *http.Request) {
 				if syncErr := syncService.SyncAsset(project.Uri, remoteURL, asset.Id); syncErr != nil {
 					return nil, syncErr
 				}
+				emitAssetDataChanged(
+					project,
+					asset.Id,
+					services.ProjectChangeAssetState,
+					services.ProjectChangeSync,
+				)
 			}
 		}
 		return checkpoints, nil
@@ -1073,7 +1091,16 @@ func V1ChangeStatus(w http.ResponseWriter, r *http.Request) {
 	job := startJob("status", idempotencyKey, false, func(update func(string, int)) (any, error) {
 		update("Updating status", 25)
 		assetService := &services.AssetService{}
-		return assetService.ChangeStatus(project.Uri, []string{asset.Id}, body.StatusID)
+		result, changeErr := assetService.ChangeStatus(
+			project.Uri,
+			[]string{asset.Id},
+			body.StatusID,
+		)
+		if changeErr != nil {
+			return nil, changeErr
+		}
+		emitAssetDataChanged(project, asset.Id, services.ProjectChangeStatus)
+		return result, nil
 	})
 	jsonResponse(w, http.StatusAccepted, job)
 }
@@ -1283,6 +1310,19 @@ func projectToDCCResponse(project repository.ProjectInfo) dccProjectResponse {
 		IsTracked:        project.IsTracked,
 		HasRemote:        project.HasRemote,
 	}
+}
+
+func emitAssetDataChanged(
+	project repository.ProjectInfo,
+	assetID string,
+	changes ...string,
+) {
+	services.EmitProjectDataChanged(services.ProjectDataChange{
+		ProjectID:  project.Id,
+		ProjectURI: project.Uri,
+		AssetIDs:   []string{assetID},
+		Changes:    changes,
+	})
 }
 
 func findAssetByFilePath(

@@ -14,6 +14,7 @@ import { useAgentApprovalStore } from '@/stores/agentApproval';
 import { Events } from "@wailsio/runtime";
 import emitter from '@/lib/mitt';
 import { pullData, updateProject } from '@/lib/sync';
+import { isActiveProjectChange, projectDataChangedEvent } from '@/lib/projectDataChanges';
 
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
@@ -87,6 +88,15 @@ const disableMenu = () => {
 
 const handleProgressUpdate = (progressData) => {
     notificationStore.updateProgress(progressData);
+};
+
+const handleProjectDataChanged = (change) => {
+    const activeProject = projectStore.activeProject;
+    if (!isActiveProjectChange(change, activeProject)) return;
+    emitter.emit('refresh-browser', {
+        assetIds: change.asset_ids || [],
+        changes: change.changes || [],
+    });
 };
 
 const handleSyncConflict = (conflictData) => {
@@ -333,12 +343,16 @@ const handleDeepLink = async (rawUrl) => {
 if (platformStore.isWeb) {
     emitter.on('progress-update', handleProgressUpdate);
     emitter.on('sync-conflict', handleSyncConflict);
+    emitter.on(projectDataChangedEvent, handleProjectDataChanged);
 } else {
     Events.On('progress-update', async (message) => {
         handleProgressUpdate(message.data);
     });
     Events.On('sync-conflict', async (message) => {
         handleSyncConflict(message.data);
+    });
+    Events.On(projectDataChangedEvent, async (message) => {
+        handleProjectDataChanged(message.data);
     });
     Events.On('integration-push-complete', async (message) => {
         handleIntegrationPushComplete(message.data);
