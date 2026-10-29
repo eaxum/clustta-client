@@ -14,6 +14,7 @@ export const getToolLogo = (toolName) => {
   // Map common software names to file extensions
   const toolToExtension = {
     'blender': 'blend',
+    'freecad': 'fcstd',
     'maya': 'ma',
     'after effects': 'aep',
     'photoshop': 'psd',
