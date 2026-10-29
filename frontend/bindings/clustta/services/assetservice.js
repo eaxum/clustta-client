@@ -461,6 +461,16 @@ export function GetUntrackedFiles(projectPath, projectWorkingDir, ignoreList) {
 }
 
 /**
+ * GetVisibleAssetByID returns an asset only when it is visible to the active user.
+ * @param {string} projectPath
+ * @param {string} assetId
+ * @returns {$CancellablePromise<models$0.Asset>}
+ */
+export function GetVisibleAssetByID(projectPath, assetId) {
+    return $Call.ByID(1835482955, projectPath, assetId);
+}
+
+/**
  * MoveAssetsToCollection moves one or more assets to a different collection.
  * Updates the database and moves the physical files if they exist on disk.
  * Checks for name+extension conflicts in the target collection before moving.

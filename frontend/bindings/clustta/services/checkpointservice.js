@@ -37,6 +37,26 @@ export function AddCheckpoint(projectPath, assetPaths, extensions, message, prev
 }
 
 /**
+ * AddCheckpointFromFileWithSource checkpoints one asset from a Bridge-owned stable snapshot.
+ * @param {string} projectPath
+ * @param {string} assetPath
+ * @param {string} extension
+ * @param {string} contentPath
+ * @param {string} message
+ * @param {string} previewPath
+ * @param {string} groupId
+ * @param {boolean} useAsThumbnail
+ * @param {boolean} sendToIntegration
+ * @param {string} sourceCheckpointId
+ * @returns {$CancellablePromise<models$0.Checkpoint[]>}
+ */
+export function AddCheckpointFromFileWithSource(projectPath, assetPath, extension, contentPath, message, previewPath, groupId, useAsThumbnail, sendToIntegration, sourceCheckpointId) {
+    return $Call.ByID(1325060689, projectPath, assetPath, extension, contentPath, message, previewPath, groupId, useAsThumbnail, sendToIntegration, sourceCheckpointId).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType1($result);
+    }));
+}
+
+/**
  * AddCheckpointWithSource freezes one source reference for all checkpoints in the batch.
  * @param {string} projectPath
  * @param {string[]} assetPaths
@@ -269,6 +289,19 @@ export function RevertProject(projectPath, remoteUrl, checkpointTime) {
  */
 export function RevertToCheckpoint(projectPath, remoteUrl, assetId, checkpointId) {
     return $Call.ByID(1668596852, projectPath, remoteUrl, assetId, checkpointId);
+}
+
+/**
+ * RevertUnmodified restores latest checkpoints without overwriting modified files.
+ * @param {string} projectPath
+ * @param {string} remoteUrl
+ * @param {string[]} assetIds
+ * @returns {$CancellablePromise<$models.FetchResult>}
+ */
+export function RevertUnmodified(projectPath, remoteUrl, assetIds) {
+    return $Call.ByID(2347537687, projectPath, remoteUrl, assetIds).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType9($result);
+    }));
 }
 
 /**
