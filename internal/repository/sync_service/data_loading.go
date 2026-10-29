@@ -1017,8 +1017,8 @@ func LoadChangedData(tx *sqlx.Tx) (ProjectData, error) {
 	return userData, nil
 }
 
-// LoadAssetData loads a single asset (asset) and its unsynced checkpoints from the database.
-// Only includes rows where synced = 0. Does not include dependencies.
+// LoadAssetData loads an asset, its unsynced checkpoints, and unsynced ancestor collections.
+// Only includes rows required for a valid asset sync. Does not include asset dependencies.
 func LoadAssetData(tx *sqlx.Tx, assetId string) (ProjectData, error) {
 	data := ProjectData{}
 
@@ -1037,6 +1037,29 @@ func LoadAssetData(tx *sqlx.Tx, assetId string) (ProjectData, error) {
 		return data, err
 	}
 	data.AssetCheckpoints = checkpoints
+
+	collections := []models.Collection{}
+	err = tx.Select(&collections, `
+		WITH RECURSIVE ancestors(id, depth) AS (
+			SELECT collection_id, 0
+			FROM asset
+			WHERE id = ?
+			UNION ALL
+			SELECT collection.parent_id, ancestors.depth + 1
+			FROM collection
+			JOIN ancestors ON collection.id = ancestors.id
+			WHERE collection.parent_id != ''
+		)
+		SELECT collection.*
+		FROM collection
+		JOIN ancestors ON collection.id = ancestors.id
+		WHERE collection.synced = 0
+		ORDER BY ancestors.depth DESC
+	`, assetId)
+	if err != nil && err != sql.ErrNoRows {
+		return data, err
+	}
+	data.Collections = collections
 
 	return data, nil
 }

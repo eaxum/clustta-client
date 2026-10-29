@@ -20,6 +20,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/jmoiron/sqlx"
 	kzstd "github.com/klauspost/compress/zstd"
 	"google.golang.org/protobuf/proto"
 )
@@ -419,6 +420,7 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 	pdData := repositorypb.ProjectData{
 		Assets:           repository.ToPbAssets(data.Assets),
 		AssetCheckpoints: repository.ToPbCheckpoints(data.AssetCheckpoints),
+		Collections:      repository.ToPbCollections(data.Collections),
 	}
 
 	dataByte, err := proto.Marshal(&pdData)
@@ -449,19 +451,8 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 
 	switch response.StatusCode {
 	case 200:
-		// Mark only the specific rows as synced
-		syncTargets := map[string][]string{}
-		for _, t := range data.Assets {
-			syncTargets["asset"] = append(syncTargets["asset"], t.Id)
-		}
-		for _, cp := range data.AssetCheckpoints {
-			syncTargets["asset_checkpoint"] = append(syncTargets["asset_checkpoint"], cp.Id)
-		}
-		for table, ids := range syncTargets {
-			err = utils.SetRowsSynced(tx, table, ids)
-			if err != nil {
-				return err
-			}
+		if err = markAssetDataSynced(tx, data); err != nil {
+			return err
 		}
 		if metadataOnlyStorage {
 			if err = repository.ClearSyncedChunkCache(tx); err != nil {
@@ -494,4 +485,26 @@ func PushAssetData(projectPath, remoteUrl, userId, assetId string, callback func
 		}
 		return errors.New(string(body))
 	}
+}
+
+func markAssetDataSynced(tx *sqlx.Tx, data ProjectData) error {
+	syncTargets := map[string][]string{}
+	for _, asset := range data.Assets {
+		syncTargets["asset"] = append(syncTargets["asset"], asset.Id)
+	}
+	for _, checkpoint := range data.AssetCheckpoints {
+		syncTargets["asset_checkpoint"] = append(
+			syncTargets["asset_checkpoint"],
+			checkpoint.Id,
+		)
+	}
+	for _, collection := range data.Collections {
+		syncTargets["collection"] = append(syncTargets["collection"], collection.Id)
+	}
+	for table, ids := range syncTargets {
+		if err := utils.SetRowsSynced(tx, table, ids); err != nil {
+			return err
+		}
+	}
+	return nil
 }
