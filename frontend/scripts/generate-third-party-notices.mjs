@@ -156,6 +156,10 @@ const collectFontPackages = () => {
     join(frontendDirectory, 'src', 'assets', 'fonts', 'Inter', 'OFL.txt'),
     'utf8',
   ).trim();
+  const jetBrainsMonoLicense = readFileSync(
+    join(frontendDirectory, 'src', 'assets', 'fonts', 'JetBrainsMono', 'OFL.txt'),
+    'utf8',
+  ).trim();
   const soraLicense = readFileSync(
     join(frontendDirectory, 'src', 'assets', 'fonts', 'Sora', 'OFL.txt'),
     'utf8',
@@ -182,6 +186,12 @@ const collectFontPackages = () => {
       version: 'bundled font',
       license: 'OFL-1.1',
       notice: interLicense,
+    },
+    {
+      name: 'JetBrains Mono',
+      version: 'bundled font',
+      license: 'OFL-1.1',
+      notice: jetBrainsMonoLicense,
     },
     {
       name: 'Sora',

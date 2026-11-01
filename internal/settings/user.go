@@ -236,13 +236,14 @@ const (
 	viewModeKanban  = "kanban"
 	viewModeList    = "list"
 
-	motionPreferenceSystem = "system"
-	motionPreferenceOn     = "on"
-	motionPreferenceOff    = "off"
-	interfaceFontSora      = "sora"
-	interfaceFontInter     = "inter"
-	interfaceFontSourGummy = "sour-gummy"
-	defaultInterfaceFont   = interfaceFontSora
+	motionPreferenceSystem     = "system"
+	motionPreferenceOn         = "on"
+	motionPreferenceOff        = "off"
+	interfaceFontSora          = "sora"
+	interfaceFontInter         = "inter"
+	interfaceFontJetBrainsMono = "jetbrains-mono"
+	interfaceFontSourGummy     = "sour-gummy"
+	defaultInterfaceFont       = interfaceFontSora
 
 	defaultInterfaceTextSize = 13
 	minimumInterfaceTextSize = 13
@@ -515,7 +516,10 @@ func SetInterfaceFont(font string) error {
 }
 
 func isValidInterfaceFont(font string) bool {
-	return font == interfaceFontSora || font == interfaceFontInter || font == interfaceFontSourGummy
+	return font == interfaceFontSora ||
+		font == interfaceFontInter ||
+		font == interfaceFontJetBrainsMono ||
+		font == interfaceFontSourGummy
 }
 
 // GetInterfaceTextSize returns the interface text size in pixels.

@@ -5,7 +5,12 @@ const DEFAULT_INTERFACE_TEXT_SIZE = 13;
 const MINIMUM_INTERFACE_TEXT_SIZE = 13;
 const MAXIMUM_INTERFACE_TEXT_SIZE = 15;
 const DEFAULT_INTERFACE_FONT = 'sora';
-const INTERFACE_FONTS = Object.freeze(['sora', 'inter', 'sour-gummy']);
+const INTERFACE_FONTS = Object.freeze([
+  'sora',
+  'inter',
+  'jetbrains-mono',
+  'sour-gummy',
+]);
 
 const isValidInterfaceTextSize = (size) => (
   Number.isInteger(size)

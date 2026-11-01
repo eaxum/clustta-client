@@ -86,6 +86,7 @@ const INTERFACE_TEXT_SIZES = [
 const INTERFACE_FONTS = [
   { id: 'sora', name: 'Sora', selectionValue: 'sora' },
   { id: 'inter', name: 'Inter', selectionValue: 'inter' },
+  { id: 'jetbrains-mono', name: 'JetBrains Mono', selectionValue: 'jetbrains-mono' },
   { id: 'sour-gummy', name: 'Sour Gummy', selectionValue: 'sour-gummy' },
 ];
 

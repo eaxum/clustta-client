@@ -10,6 +10,7 @@ func TestIsValidInterfaceFont(t *testing.T) {
 	}{
 		{name: "default", font: defaultInterfaceFont, valid: true},
 		{name: "inter", font: interfaceFontInter, valid: true},
+		{name: "jetbrains mono", font: interfaceFontJetBrainsMono, valid: true},
 		{name: "sour gummy", font: interfaceFontSourGummy, valid: true},
 		{name: "empty", font: "", valid: false},
 		{name: "unknown", font: "unknown", valid: false},

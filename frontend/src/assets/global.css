@@ -17,6 +17,22 @@
 }
 
 @font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/JetBrainsMono/JetBrainsMono-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 800;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('./fonts/JetBrainsMono/JetBrainsMono-Italic-VariableFont_wght.ttf') format('truetype');
+  font-weight: 100 800;
+  font-display: swap;
+  font-style: italic;
+}
+
+@font-face {
   font-family: 'Sora';
   src: url('./fonts/Sora/Sora-VariableFont_wght.ttf') format('truetype');
   font-weight: 100 800;
@@ -199,6 +215,10 @@
 
 :root[data-interface-font="inter"] {
   --font-family-interface: 'Inter', sans-serif;
+}
+
+:root[data-interface-font="jetbrains-mono"] {
+  --font-family-interface: 'JetBrains Mono', monospace;
 }
 
 :root[data-interface-font="sour-gummy"] {
