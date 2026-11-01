@@ -29,6 +29,8 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // stores
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useCollectionStore } from '@/stores/collections';
+import { useCommonStore } from '@/stores/common';
 import { useIconStore } from '@/stores/icons';
 import { useIntegrationStore } from '@/stores/integrations';
 import { useExportStore } from '@/stores/exports';
@@ -36,6 +38,8 @@ import { usePlatformStore } from '@/stores/platform';
 import { useStageStore } from '@/stores/stages';
 
 const iconStore = useIconStore();
+const collectionStore = useCollectionStore();
+const commonStore = useCommonStore();
 const integrationStore = useIntegrationStore();
 const exportStore = useExportStore();
 const modals = useDesktopModalStore();
@@ -71,7 +75,7 @@ const syncIntegrationLabel = computed(() => {
 // Clears all item selections and resets selection state.
 const clearSelection = () => {
 	stage.markedItems = [];
-	stage.selectedItem = [];
+	stage.selectedItem = null;
 	stage.selectedItems = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
@@ -88,7 +92,9 @@ const createAsset = () => {
 const createCollection = () => {
 	if (creationBlocked.value || !canCreateCollection.value) return;
 	if (!stage.groupItems) clearSelection();
-	modals.setModalVisibility('createCollectionModal', true);
+	const createInCurrentCollection = commonStore.navigatorMode || commonStore.viewMode === 'columns';
+	const parentId = createInCurrentCollection ? collectionStore.navigatedCollection?.id : '';
+	modals.openCreateCollectionModal(parentId);
 };
 
 // Opens the add web link modal.

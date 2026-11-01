@@ -141,15 +141,7 @@ const isValueChanged = computed(() => {
 });
 
 // Returns the parent ID for the new collection.
-const parentId = computed(() => {
-  if (stage.selectedItem && stage.selectedItem.type === 'collection') {
-    return stage.selectedItem?.id;
-  } else if (collectionStore.navigatedCollection) {
-    return collectionStore.navigatedCollection.id;
-  } else {
-    return '';
-  }
-});
+const parentId = computed(() => modals.createCollectionParentId);
 
 // Returns the selected collection type ID.
 const selectedCollectionTypeId = computed(() => {
@@ -195,7 +187,7 @@ const changeAssetCollection = async (assetIds, collectionId) => {
 
 // Closes the modal.
 const closeModal = () => {
-  modals.setModalVisibility('createCollectionModal', false);
+  modals.closeCreateCollectionModal();
 };
 
 // Selects a newly created collection using the standard browser selection state.

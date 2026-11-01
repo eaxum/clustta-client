@@ -252,7 +252,7 @@ const copyDeepLink = async () => {
 const createCollection = () => {
   if (!canCreateCollection.value) return;
   stage.expandCollection(collectionStore.selectedCollection);
-  modals.setModalVisibility('createCollectionModal', true);
+  modals.openCreateCollectionModal(collectionStore.selectedCollection.id);
   menu.hideContextMenu();
 };
 

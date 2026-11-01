@@ -148,7 +148,7 @@ const copyDirectoryPath = async () => {
 
 // Opens the create collection modal.
 const createCollection = () => {
-  modals.setModalVisibility('createCollectionModal', true);
+  modals.openCreateCollectionModal();
   menu.hideContextMenu();
 };
 

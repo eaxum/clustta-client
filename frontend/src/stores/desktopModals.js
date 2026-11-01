@@ -124,6 +124,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
 
     activeModal: null,
     modalMaskVisible: false,
+    createCollectionParentId: "",
 
     // Image viewer payload (thumbnail src + title + source file) for imageViewerModal.
     imageViewer: { src: "", title: "", filePath: "", extension: "" },
@@ -154,6 +155,7 @@ export const useDesktopModalStore = defineStore("desktopModals", {
       }
       this.activeModal = null;
       this.modalMaskVisible = false;
+      this.createCollectionParentId = "";
     },
     isAnyModalActive() {
       return Object.values(this.modalStates).some((isVisible) => isVisible);
@@ -167,6 +169,14 @@ export const useDesktopModalStore = defineStore("desktopModals", {
     openDependencyBuildPlan(rootAssetId, plan) {
       this.dependencyBuildPlan = { rootAssetId, plan };
       this.setModalVisibility("dependencyBuildPlanModal", true);
+    },
+    openCreateCollectionModal(parentId = "") {
+      this.createCollectionParentId = parentId || "";
+      this.setModalVisibility("createCollectionModal", true);
+    },
+    closeCreateCollectionModal() {
+      this.setModalVisibility("createCollectionModal", false);
+      this.createCollectionParentId = "";
     },
   },
 });

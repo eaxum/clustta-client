@@ -387,7 +387,7 @@ const clearSearch = async () => { commonStore.viewSearchQuery = ""; await hardRe
 // Clears all item selections and resets selection state.
 const clearSelection = () => {
 	stage.markedItems = [];
-	stage.selectedItem = [];
+	stage.selectedItem = null;
 	stage.selectedItems = [];
 	stage.firstSelectedItemId = '';
 	stage.lastSelectedItemId = '';
@@ -414,7 +414,9 @@ const createAsset = () => {
 const createCollection = () => {
 	if (!canCreateInWorkspace.value || !canCreateCollectionHere()) return;
 	if (!stage.groupItems) clearSelection();
-	modals.setModalVisibility('createCollectionModal', true);
+	const createInCurrentCollection = commonStore.navigatorMode || columnsView.value;
+	const parentId = createInCurrentCollection ? collectionStore.navigatedCollection?.id : '';
+	modals.openCreateCollectionModal(parentId);
 };
 
 // Opens the add web link modal.
