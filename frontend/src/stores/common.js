@@ -11,6 +11,7 @@ const VIEW_MODE_GRID = 'grid';
 const VIEW_MODE_KANBAN = 'kanban';
 const VIEW_MODE_LIST = 'list';
 const VALID_VIEW_MODES = new Set([VIEW_MODE_LIST, VIEW_MODE_GRID, VIEW_MODE_KANBAN, VIEW_MODE_COLUMNS]);
+const GRID_MIN_WIDTH = 240;
 
 let defaultViewMode = VIEW_MODE_LIST;
 await SettingsService.GetDefaultViewMode()
@@ -57,6 +58,7 @@ export const useCommonStore = defineStore("common", {
     sortBy: 'name',
     sortOrder: 'asc',
     gridSize: 200,
+    gridMinWidth: GRID_MIN_WIDTH,
     listItemHeight: 42,
     listItemGap: 2,
 

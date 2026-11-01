@@ -448,7 +448,7 @@ const collectionMeta = computed(() => {
 
 // Returns the grid styles for the collection item.
 const gridStyles = computed(() => ({
-  minWidth: commonStore.gridSize + 'px',
+  minWidth: commonStore.gridMinWidth + 'px',
 }));
 
 // Checks if the user is assigned to this collection.

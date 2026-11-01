@@ -138,8 +138,8 @@
             </div>
           </div>
           
-          <!-- File state section (absolute positioned, always visible) -->
-          <div v-if="!isEditing" class="asset-item-grid-file-state-absolute">
+          <!-- File state section -->
+          <div v-if="!isEditing" class="asset-item-grid-file-state">
 
             <div v-if="isPending" class="file-state">
               <ActionButton class="pending-clock" :icon="getAppIcon('clock')"
@@ -517,7 +517,7 @@ const remoteNameChangeTooltip = computed(() => {
 
 // Returns the grid styles for the asset item.
 const gridStyles = computed(() => ({
-  minWidth: commonStore.gridSize + 'px',
+  minWidth: commonStore.gridMinWidth + 'px',
   height: commonStore.gridSize + 'px',
 }));
 
@@ -1239,7 +1239,6 @@ onBeforeUnmount(() => {
   flex-direction: column;
   width: 100%;
   box-sizing: border-box;
-  gap: .3rem;
   height: 32px;
   transition: all 0.2s ease-out;
 }
@@ -1251,7 +1250,7 @@ onBeforeUnmount(() => {
 .asset-item-grid-slide-container {
   display: flex;
   flex-direction: column;
-  width: 80%;
+  width: 100%;
   box-sizing: border-box;
   gap: .3rem;
   flex: 1;
@@ -1261,11 +1260,6 @@ onBeforeUnmount(() => {
 
 .asset-item-grid-slide-container:has(.rename-input-grid) {
   width: 100%;
-}
-
-.asset-item-grid:hover .asset-item-grid-slide-container {
-  width: 100%;
-  /* transition: all 0.2s ease-out; */
 }
 
 .asset-item-grid-meta-row {
@@ -1278,6 +1272,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
   box-sizing: border-box;
   overflow: hidden;
+  padding-right: 2.5rem;
 }
 
 .asset-item-grid-actions-row {
@@ -1285,13 +1280,13 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: .5rem;
+  padding-right: 2.5rem;
   width: 100%;
   min-height: 32px;
   height: 32px;
   flex-shrink: 0;
   box-sizing: border-box;
   overflow: hidden;
-  width: 80%;
 }
 
 .asset-item-grid:hover .asset-item-grid-actions-row {
@@ -1323,7 +1318,7 @@ onBeforeUnmount(() => {
   flex-shrink: 0;
 }
 
-.asset-item-grid-file-state-absolute {
+.asset-item-grid-file-state {
   position: absolute;
   bottom: 0;
   right: 0;

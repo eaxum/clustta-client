@@ -61,7 +61,7 @@ const dragTimer = ref(null);
 const gridStyles = computed(() => ({
   display: 'grid',
   boxSizing: 'border-box',
-  gridTemplateColumns: `repeat(auto-fill, minmax(${commonStore.gridSize}px, 1fr))`,
+  gridTemplateColumns: `repeat(auto-fill, minmax(${commonStore.gridMinWidth}px, 1fr))`,
   gap: '8px',
   width: '100%'
 }));

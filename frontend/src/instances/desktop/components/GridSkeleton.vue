@@ -4,7 +4,7 @@
       :style="{
         animationDelay: `${(skeleton - 1) * 0.2}s`,
         animationDuration: `${animationDuration}s`,
-        minWidth: `${gridSize}px`,
+        minWidth: `${gridMinWidth}px`,
         height: `${gridSize}px`
       }">
       <div class="grid-skeleton-item">
@@ -41,11 +41,12 @@ const containerRef = ref(null);
 const containerHeight = ref(500); // fallback value
 
 const gridSize = computed(() => commonStore.gridSize);
+const gridMinWidth = computed(() => commonStore.gridMinWidth);
 
 const gridStyles = computed(() => ({
   display: 'grid',
   boxSizing: 'border-box',
-  gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize.value}px, 1fr))`,
+  gridTemplateColumns: `repeat(auto-fill, minmax(${gridMinWidth.value}px, 1fr))`,
   gap: '10px',
   width: '100%',
 }));
@@ -53,7 +54,7 @@ const gridStyles = computed(() => ({
 const skeletonArray = computed(() => {
   if (props.height && containerHeight.value && gridSize.value) {
     // Calculate how many items can fit in the container
-    const itemsPerRow = Math.floor((containerRef.value?.clientWidth || 800) / (gridSize.value + 10));
+    const itemsPerRow = Math.floor((containerRef.value?.clientWidth || 800) / (gridMinWidth.value + 10));
     const rowsNeeded = Math.ceil((props.height || containerHeight.value) / (gridSize.value + 10));
     const itemCount = Math.max(1, itemsPerRow * rowsNeeded);
     return Array.from({ length: itemCount }, (_, i) => i + 1);
