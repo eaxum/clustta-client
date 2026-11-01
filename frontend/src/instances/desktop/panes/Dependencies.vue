@@ -89,7 +89,6 @@ import { useCollectionStore } from '@/stores/collections';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
 import { useMenu } from '@/stores/menu';
-import { useDependencyStore } from '@/stores/dependency';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 
 // components
@@ -111,7 +110,6 @@ const collectionStore = useCollectionStore();
 const projectStore = useProjectStore();
 const iconStore = useIconStore();
 const menu = useMenu();
-const dependencyStore = useDependencyStore();
 const modals = useDesktopModalStore();
 
 // i18n
@@ -474,13 +472,6 @@ const addDependency = async (dependencyId, itemType, selector = null) => {
   if (!canManageDependencies.value) return;
   const asset = assetStore.selectedAsset;
   let selectedAssetDependencies;
-  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked")?.id;
-  
-  if (!dependencyTypeID) {
-    notificationStore.errorNotification(t('notifications.errorAddingDependency'), "Default dependency type not found");
-    return;
-  }
-
   if (itemType === "asset") {
     selectedAssetDependencies = asset.dependencies || [];
     
@@ -497,7 +488,6 @@ const addDependency = async (dependencyId, itemType, selector = null) => {
       projectStore.activeProject.uri,
       asset.id,
       dependencyId,
-      dependencyTypeID,
       resolutionMode,
       checkpointId,
       assetCheckpointTagId,
@@ -533,7 +523,7 @@ const addDependency = async (dependencyId, itemType, selector = null) => {
       return;
     }
     
-    await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
+    await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then((response) => {
         notificationStore.addNotification(t('notifications.dependencyAdded'), "", "success");
         

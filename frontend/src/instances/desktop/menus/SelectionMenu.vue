@@ -125,7 +125,6 @@ import { AssetService, CheckpointService, CollectionService, FSService, SyncServ
 // stores
 import { useAssetStore } from '@/stores/assets';
 import { useCollectionStore } from '@/stores/collections';
-import { useDependencyStore } from '@/stores/dependency';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
@@ -139,7 +138,6 @@ import { useUserStore } from '@/stores/users';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
-const dependencyStore = useDependencyStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const modals = useDesktopModalStore();
@@ -258,8 +256,7 @@ const getAppIcon = (iconName) => iconStore.getAppIcon(iconName);
 
 // Adds a collection dependency to an asset.
 const addCollectionDependency = async (asset, dependencyId) => {
-  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-  await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
+  await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId)
     .then(() => {
       if (!asset.collection_dependencies) asset.collection_dependencies = [];
       asset.collection_dependencies.push(dependencyId);
@@ -270,8 +267,7 @@ const addCollectionDependency = async (asset, dependencyId) => {
 
 // Adds an asset dependency to an asset.
 const addAssetDependency = async (asset, dependencyId) => {
-  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
-  await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
+  await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId)
     .then(() => {
       if (!asset.dependencies) asset.dependencies = [];
       asset.dependencies.push(dependencyId);

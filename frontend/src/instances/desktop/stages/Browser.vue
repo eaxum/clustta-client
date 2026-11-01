@@ -84,7 +84,6 @@ import { useAssetStore } from '@/stores/assets';
 import { useBrowserTreeStore } from '@/stores/browserTree';
 import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
-import { useDependencyStore } from '@/stores/dependency';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useDndStore } from '@/stores/dnd';
 import { useIconStore } from '@/stores/icons';
@@ -107,7 +106,6 @@ const assetStore = useAssetStore();
 const browserTreeStore = useBrowserTreeStore();
 const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
-const dependencyStore = useDependencyStore();
 const dndStore = useDndStore();
 const iconStore = useIconStore();
 const menu = useMenu();
@@ -326,9 +324,9 @@ const getRecursiveUntrackedAssets = async (collectionId, collectionFolderPath) =
 };
 
 // Adds an collection dependency to a asset. Returns true on success.
-const addCollectionDependency = async (assetId, dependencyId, dependencyTypeId) => {
+const addCollectionDependency = async (assetId, dependencyId) => {
 	try {
-		await AssetService.AddCollectionDependency(projectStore.activeProject.uri, assetId, dependencyId, dependencyTypeId);
+		await AssetService.AddCollectionDependency(projectStore.activeProject.uri, assetId, dependencyId);
 		notificationStore.addNotification(t('stages.dependencyAdded'), "", "success");
 		return true;
 	} catch (error) {
@@ -339,9 +337,9 @@ const addCollectionDependency = async (assetId, dependencyId, dependencyTypeId) 
 };
 
 // Adds a asset dependency between two assets. Returns true on success.
-const addDependency = async (assetId, dependencyId, dependencyTypeId) => {
+const addDependency = async (assetId, dependencyId) => {
 	try {
-		await AssetService.AddAssetDependency(projectStore.activeProject.uri, assetId, dependencyId, dependencyTypeId);
+		await AssetService.AddAssetDependency(projectStore.activeProject.uri, assetId, dependencyId);
 		notificationStore.addNotification(t('stages.dependencyAdded'), "", "success");
 		return true;
 	} catch (error) {
@@ -932,16 +930,15 @@ const onDragStop = async (event) => {
 						renameOperations.push({ oldPath: draggedCollection.file_path, newPath });
 					}
 				} else if (targetCollection?.asset_type_id) {
-					let dependencyTypeId = dependencyStore.dependency_types.find(item => item.name === "linked").id;
 					dependencyUpdates.assetId = dndStore.targetItemId;
 					if (draggedCollection.collection_type_id) {
-						const success = await addCollectionDependency(dndStore.targetItemId, draggedCollection.id, dependencyTypeId);
+						const success = await addCollectionDependency(dndStore.targetItemId, draggedCollection.id);
 						if (success) dependencyUpdates.collectionDependencies.push(draggedCollection.id);
 					} else if (draggedCollection.asset_type_id) {
-						const success = await addDependency(dndStore.targetItemId, draggedCollection.id, dependencyTypeId);
+						const success = await addDependency(dndStore.targetItemId, draggedCollection.id);
 						if (success) dependencyUpdates.dependencies.push(draggedCollection.id);
 					} else if (!draggedCollection.item_type) {
-						const success = await addDependency(dndStore.targetItemId, draggedCollection.id, dependencyTypeId);
+						const success = await addDependency(dndStore.targetItemId, draggedCollection.id);
 						if (success) dependencyUpdates.dependencies.push(draggedCollection.id);
 					}
 				} else if (targetCollection?.type === 'untracked_collection') {

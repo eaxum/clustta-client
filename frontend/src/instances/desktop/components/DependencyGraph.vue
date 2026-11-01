@@ -82,7 +82,6 @@ import { useCommonStore } from '@/stores/common';
 import { useCollectionStore } from '@/stores/collections';
 import { useAssetStore } from '@/stores/assets';
 import { useNotificationStore } from '@/stores/notifications';
-import { useDependencyStore } from '@/stores/dependency';
 import { useMenu } from '@/stores/menu';
 import { useIconStore } from '@/stores/icons';
 import { useProjectStore } from '@/stores/projects';
@@ -100,7 +99,6 @@ import PageState from '@/instances/common/components/PageState.vue';
 
 // states
 const notificationStore = useNotificationStore();
-const dependencyStore = useDependencyStore();
 const commonStore = useCommonStore();
 const collectionStore = useCollectionStore();
 const assetStore = useAssetStore();
@@ -581,9 +579,8 @@ const addDependency = async (dependencyId, itemType) => {
   const asset = graphRootAsset.value;
   const allDependencies = [...sidebarAssets.value, ...sidebarCollections.value];
 
-  let dependencyTypeID = dependencyStore.dependency_types.find(item => item.name === "linked").id;
   if (itemType === "asset") {
-    await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
+    await AssetService.AddAssetDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then( async(response) => {
         notificationStore.addNotification(t('components.dependencyGraph.dependencyAdded'), "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
@@ -601,7 +598,7 @@ const addDependency = async (dependencyId, itemType) => {
         notificationStore.errorNotification(t('components.dependencyGraph.errorAddingDependencies'), error);
       });
   } else {
-    await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId, dependencyTypeID)
+    await AssetService.AddCollectionDependency(projectStore.activeProject.uri, asset.id, dependencyId)
       .then( async(response) => {
         notificationStore.addNotification(t('components.dependencyGraph.dependencyAdded'), "", "success");
         const addedDependency = allDependencies.find((newDependency) => newDependency.id === dependencyId);
