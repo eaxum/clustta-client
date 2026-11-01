@@ -12,12 +12,33 @@
 </template>
 
 <script setup>
-import noticesText from '../../../../public/licenses/THIRD-PARTY-NOTICES.txt?raw';
+import { onMounted, ref } from 'vue';
 import HeaderArea from '@/instances/common/components/HeaderArea.vue';
 import { useDesktopModalStore } from '@/stores/desktopModals';
 
+const LICENSE_NOTICES_PATH = 'licenses/THIRD-PARTY-NOTICES.txt';
+const LICENSE_NOTICES_LOADING_MESSAGE = 'Loading third-party notices...';
+const LICENSE_NOTICES_ERROR_MESSAGE = 'Third-party notices could not be loaded.';
+
 const modals = useDesktopModalStore();
+const noticesText = ref(LICENSE_NOTICES_LOADING_MESSAGE);
 const closeModal = () => modals.disableAllModals();
+
+const loadNotices = async () => {
+  try {
+    const noticesUrl = `${import.meta.env.BASE_URL}${LICENSE_NOTICES_PATH}`;
+    const response = await fetch(noticesUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to load third-party notices: ${response.status}`);
+    }
+    noticesText.value = await response.text();
+  } catch (error) {
+    console.error(LICENSE_NOTICES_ERROR_MESSAGE, error);
+    noticesText.value = LICENSE_NOTICES_ERROR_MESSAGE;
+  }
+};
+
+onMounted(loadNotices);
 </script>
 
 <style scoped>
@@ -69,7 +90,7 @@ const closeModal = () => modals.disableAllModals();
   padding: 1rem;
   overflow: hidden;
   overflow-y: scroll;
-  border-radius: var(--small-radius);
+  border-radius: 10px 10px 18px 18px;
   color: var(--text);
   background-color: var(--surface-3);
   font-size: 12px;
