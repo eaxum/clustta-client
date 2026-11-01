@@ -388,6 +388,7 @@ export const useProjectStore = defineStore("projects", {
       }
     },
     async gotoProject(project) {
+      const isSameProject = this.activeProject?.uri === project.uri;
       await this.setActiveProject(project);
       const commonStore = useCommonStore();
       const collectionStore = useCollectionStore();
@@ -418,12 +419,28 @@ export const useProjectStore = defineStore("projects", {
 
       commonStore.navigatorMode = false;
       collectionStore.navigatedCollection = null;
-      collectionStore.selectedCollection = null;
-      assetStore.selectedAsset = null;
+
+      if (!isSameProject) {
+        stage.markedItems = [];
+        stage.selectedItems = [];
+        stage.selectedItem = null;
+        stage.markedAssets = [];
+        stage.markedCollections = [];
+        stage.markedResources = [];
+        stage.firstSelectedAssetId = "";
+        stage.lastSelectedAssetId = "";
+        stage.firstSelectedCollectionId = "";
+        stage.lastSelectedCollectionId = "";
+        stage.firstSelectedItemId = "";
+        stage.lastSelectedItemId = "";
+        collectionStore.selectedCollection = null;
+        assetStore.selectedAsset = null;
+        this.selectedUntrackedItem = null;
+        panes.setPaneVisibility("projectDetails", true);
+      }
 
       stage.expandedCollections = {};
       stage.setStageVisibility("browser", true);
-      panes.setPaneVisibility("projectDetails", true);
       const studioName = this.getSelectedStudioName;
       SettingsService.AddRecentProject(studioName, project.id).then(
         (recentProjects) => {
