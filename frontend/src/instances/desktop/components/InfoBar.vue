@@ -53,7 +53,7 @@
 
 
 
-        <ActionButton :icon="getAppIcon(bridgeEnabled ? 'brick-cancel' : 'brick')" v-tooltip="bridgeEnabled ? $t('components.infoBar.clickToStopBridge') : $t('components.infoBar.clickToStartBridge')" :buttonFunction="toggleBridge" />
+        <ActionButton :icon="getAppIcon(bridgeEnabled ? 'plug' : 'plug-cancel')" v-tooltip="bridgeEnabled ? $t('components.infoBar.clickToStopBridge') : $t('components.infoBar.clickToStartBridge')" :buttonFunction="toggleBridge" />
 
         <ActionButton :icon="getAppIcon('console')" v-tooltip="debugModeEnabled ? $t('components.infoBar.closeConsole') : $t('components.infoBar.openConsole')" :buttonFunction="toggleDebugConsole" />
 

@@ -159,7 +159,7 @@ func (a *AYONClient) GetInfo() IntegrationInfo {
 		ID:          a.ID(),
 		Name:        a.Name(),
 		Description: "Production workflow with Clustta-backed workfiles",
-		Icon:        "plug",
+		Icon:        "ayon",
 		AuthType:    "token",
 	}
 }

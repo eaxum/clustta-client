@@ -40,7 +40,7 @@ export const userSettingsPages = [
   { id: 'behavior', nameKey: 'settings.behaviour', icon: 'cog', group: 'preferences', component: UserBehavior },
   { id: 'directories', nameKey: 'settings.directories', icon: 'explorer', group: 'files', component: Directories },
   { id: 'projecttemplates', nameKey: 'settings.projectTemplates', icon: 'briefcase', group: 'files', component: ProjectTemplates },
-  { id: 'userintegrations', nameKey: 'settings.integrations', icon: 'plug', group: 'connections', component: UserIntegrations },
+  { id: 'userintegrations', nameKey: 'settings.integrations', icon: 'jigsaw', group: 'connections', component: UserIntegrations },
   { id: 'experimental', nameKey: 'settings.experimentalFeatures', icon: 'skull', group: 'system', component: UserExperimental },
   { id: 'helpabout', nameKey: 'settings.resourcesSupport', icon: 'help', group: 'system', component: UserHelpAbout },
 ];
@@ -60,7 +60,7 @@ export const studioSettingsPages = [
   { id: 'studioprojects', nameKey: 'settings.projectStorage', icon: 'briefcase', group: 'management', component: ProjectStorage },
   { id: 'studiocollaborators', nameKey: 'settings.studioCollaborators', icon: 'person', group: 'management', component: StudioCollaborators },
   { id: 'auditlogs', nameKey: 'settings.auditLogs', icon: 'file', group: 'management', badgeKey: 'settings.comingSoon', component: StudioAuditLogs },
-  { id: 'studiointegrations', nameKey: 'settings.studioIntegrations', icon: 'plug', group: 'connections', component: StudioIntegrations },
+  { id: 'studiointegrations', nameKey: 'settings.studioIntegrations', icon: 'jigsaw', group: 'connections', component: StudioIntegrations },
 ];
 
 export const getAvailableStudioSettingsPages = ({ canCollaborate, isCloudHosted }) => {
@@ -89,7 +89,7 @@ export const projectSettingsPages = [
   { id: 'tags', nameKey: 'settings.tags', icon: 'tag', group: 'configuration', component: Tags },
   { id: 'ignorelist', nameKey: 'settings.ignoreList', icon: 'file-watch', group: 'files', component: IgnoreList },
   { id: 'hooks', nameKey: 'settings.launchHooks', icon: 'hook', group: 'files', component: Hooks },
-  { id: 'integrations', nameKey: 'settings.integrations', icon: 'plug', group: 'connections', component: ProjectIntegrations },
+  { id: 'integrations', nameKey: 'settings.integrations', icon: 'jigsaw', group: 'connections', component: ProjectIntegrations },
   { id: 'advanced', nameKey: 'settings.advanced', icon: 'skull', group: 'system', component: Advanced },
 ];
 

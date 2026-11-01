@@ -83,7 +83,7 @@ const integrationItems = computed(() => [
   })),
   {
     id: 'connect-integration',
-    icon: getAppIcon('plug'),
+    icon: getAppIcon('jigsaw'),
     label: t('settings.connectIntegration'),
     description: t('settings.connectIntegrationDescription'),
     connected: false,
@@ -102,13 +102,13 @@ const agentItems = computed(() => [
 const pluginItems = computed(() => [
   {
     id: 'bridge',
-    icon: getAppIcon('brick'),
+    icon: getAppIcon('plug'),
     label: bridgeEnabled.value ? t('settings.disableBridge') : t('settings.enableBridge'),
     description: t('settings.bridgeEnabledDescription'),
   },
   {
     id: 'download-plugins',
-    icon: getAppIcon('download'),
+    icon: getAppIcon('brick'),
     label: t('settings.downloadPlugins'),
     description: t('settings.downloadPluginsDescription'),
   },
