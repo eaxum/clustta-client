@@ -199,7 +199,7 @@ export function GetIconScheme() {
 
 /**
  * GetIgnoreListPresets retrieves all user-defined ignore list presets.
- * @returns {$CancellablePromise<{ [_ in string]?: string[] }>}
+ * @returns {$CancellablePromise<{ [_: string]: string[] }>}
  */
 export function GetIgnoreListPresets() {
     return $Call.ByID(4182633768).then(/** @type {($result: any) => any} */(($result) => {

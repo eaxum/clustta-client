@@ -232,38 +232,25 @@ func main() {
 		fsServiceInstance.SetApp(app)
 	}
 
-	menu := application.NewMenu()
+	if runtime.GOOS == "darwin" {
+		menu := application.NewMenu()
 
-	openURLDefault := func(url string) {
-		var cmd string
-		var args []string
-
-		switch runtime.GOOS {
-		case "windows":
-			cmd = "cmd"
-			args = []string{"/c", "start", url}
-		case "darwin":
-			cmd = "open"
-			args = []string{url}
-		default:
-			cmd = "xdg-open"
-			args = []string{url}
+		openURLDefault := func(url string) {
+			exec.Command("open", url).Start()
 		}
 
-		exec.Command(cmd, args...).Start()
+		fileMenu := menu.AddSubmenu("File")
+		fileMenu.Add("Quit").SetAccelerator("Cmd+Q").OnClick(func(ctx *application.Context) {
+			app.Quit()
+		})
+
+		helpMenu := menu.AddSubmenu("Help")
+		helpMenu.Add("Learn More").OnClick(func(ctx *application.Context) {
+			openURLDefault("https://docs.clustta.com")
+		})
+
+		app.Menu.SetApplicationMenu(menu)
 	}
-
-	fileMenu := menu.AddSubmenu("File")
-	fileMenu.Add("Quit").SetAccelerator("Cmd+Q").OnClick(func(ctx *application.Context) {
-		app.Quit()
-	})
-
-	helpMenu := menu.AddSubmenu("Help")
-	helpMenu.Add("Learn More").OnClick(func(ctx *application.Context) {
-		openURLDefault("https://docs.clustta.com")
-	})
-
-	app.Menu.SetApplicationMenu(menu)
 
 	frameless := runtime.GOOS != "darwin"
 
