@@ -80,6 +80,18 @@
   <releases>
     <release version="0.4.42" date="2026-11-03">
       <description>
+        <p>Clustta 0.4.42 adds AYON integration and improves DCC workflows.</p>
+        <ul>
+          <li>Connect AYON, link projects, and import production folders and tasks</li>
+          <li>Use Clustta checkpoints with AYON workfiles and send previews back to AYON</li>
+          <li>Manage files, checkpoints, sync, versions, and dependencies through supported DCC integrations</li>
+          <li>Create safer checkpoints from stable source copies</li>
+          <li>Choose JetBrains Mono and benefit from navigation, sync, and reliability fixes</li>
+        </ul>
+      </description>
+    </release>
+    <release version="0.4.41" date="2026-10-15">
+      <description>
         <p>Clustta 0.4.41 adds column browsing and more control over your workspace.</p>
         <ul>
           <li>Browse project hierarchies across side-by-side columns</li>
@@ -91,7 +103,7 @@
         </ul>
       </description>
     </release>
-    <release version="0.4.42" date="2026-11-03">
+    <release version="0.4.40" date="2026-09-21">
       <description>
         <p>Clustta 0.4.40 makes asset history and dependencies easier to understand and control.</p>
         <ul>
