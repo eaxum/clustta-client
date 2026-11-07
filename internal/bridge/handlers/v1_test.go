@@ -155,6 +155,102 @@ func TestContextResponseAllowsUntrackedProjectFile(t *testing.T) {
 	}
 }
 
+func TestBuildKitsuShotContext(t *testing.T) {
+	sequenceMapping := models.IntegrationCollectionMapping{
+		ExternalId:       "sequence-id",
+		ExternalParentId: "episode-id",
+		ExternalType:     "sequence",
+	}
+	context := buildKitsuContext(
+		models.Asset{Id: "clustta-asset-id"},
+		models.IntegrationProject{ExternalProjectId: "project-id"},
+		models.IntegrationAssetMapping{
+			ExternalId:   "task-id",
+			ExternalType: "Animation",
+		},
+		models.IntegrationCollectionMapping{
+			ExternalId:       "shot-id",
+			ExternalParentId: "sequence-id",
+			ExternalType:     "shot",
+		},
+		&sequenceMapping,
+	)
+
+	if context.Version != kitsuContextVersion ||
+		context.ClusttaAssetID != "clustta-asset-id" ||
+		context.ProjectID != "project-id" ||
+		context.Category != "SHOT" ||
+		context.EpisodeID != "episode-id" ||
+		context.SequenceID != "sequence-id" ||
+		context.ShotID != "shot-id" ||
+		context.TaskID != "task-id" ||
+		context.TaskTypeName != "Animation" {
+		t.Fatalf("unexpected Kitsu context: %#v", context)
+	}
+}
+
+func TestContextResponseIncludesKitsuContext(t *testing.T) {
+	response := contextResponse{
+		KitsuContext: &kitsuContextResponse{
+			Version:        kitsuContextVersion,
+			ClusttaAssetID: "clustta-asset-id",
+			ProjectID:      "project-id",
+			Category:       "SHOT",
+			ShotID:         "shot-id",
+			TaskID:         "task-id",
+			TaskTypeName:   "Animation",
+		},
+	}
+
+	encoded, err := json.Marshal(response)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, expected := range []string{
+		`"kitsu_context"`,
+		`"clustta_asset_id":"clustta-asset-id"`,
+		`"task_type_name":"Animation"`,
+	} {
+		if !strings.Contains(string(encoded), expected) {
+			t.Fatalf("expected %s in response: %s", expected, encoded)
+		}
+	}
+}
+
+func TestBuildKitsuAssetContext(t *testing.T) {
+	context := buildKitsuContext(
+		models.Asset{Id: "clustta-asset-id"},
+		models.IntegrationProject{ExternalProjectId: "project-id"},
+		models.IntegrationAssetMapping{},
+		models.IntegrationCollectionMapping{
+			ExternalId:       "asset-id",
+			ExternalParentId: "asset-type-character-id",
+			ExternalType:     "Character",
+		},
+		nil,
+	)
+
+	if context.Category != "ASSET" ||
+		context.AssetID != "asset-id" ||
+		context.AssetTypeID != "character-id" {
+		t.Fatalf("unexpected Kitsu asset context: %#v", context)
+	}
+}
+
+func TestSelectKitsuAssetMappingUsesCurrentAssetType(t *testing.T) {
+	mapping, found := selectKitsuAssetMapping(
+		[]models.IntegrationAssetMapping{
+			{IntegrationId: "kitsu", ExternalId: "modeling", ExternalType: "Modeling"},
+			{IntegrationId: "kitsu", ExternalId: "rigging", ExternalType: "Rigging"},
+		},
+		"rigging",
+	)
+
+	if !found || mapping.ExternalId != "rigging" {
+		t.Fatalf("unexpected Kitsu asset mapping: %#v", mapping)
+	}
+}
+
 func TestDependencyResponseIncludesReferencedAsset(t *testing.T) {
 	response := dependencyResponse{
 		AssetDependencyEdge: models.AssetDependencyEdge{

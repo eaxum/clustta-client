@@ -61,6 +61,27 @@ paths retain a compatibility scan. `asset` is null when the file is inside the
 project but is not tracked, allowing a DCC to offer an explicit tracking action.
 A path outside every indexed local project returns `404 Not Found`.
 
+For a tracked asset mapped to a Kitsu task, the response also contains an
+optional `kitsu_context`. This is identifier-only handoff data for DCC clients;
+it contains no Kitsu credentials and does not authorize Kitsu operations.
+
+```json
+{
+  "version": 1,
+  "clustta_asset_id": "clustta-asset-id",
+  "project_id": "kitsu-project-id",
+  "category": "SHOT",
+  "episode_id": "kitsu-episode-id",
+  "sequence_id": "kitsu-sequence-id",
+  "shot_id": "kitsu-shot-id",
+  "task_id": "kitsu-task-id",
+  "task_type_name": "Animation"
+}
+```
+
+`kitsu_context` is omitted when the project is not linked to Kitsu or the
+current asset has no Kitsu mapping.
+
 Checksum-derived file status is cached in memory by normalized path, file
 identity, size, nanosecond modification time, and checkpoint set. Repeated
 context requests for an unchanged file do not rehash it. A changed file or

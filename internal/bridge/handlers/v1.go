@@ -25,6 +25,7 @@ import (
 
 const (
 	bridgeAPIVersion      = "1"
+	kitsuContextVersion   = 1
 	trackJobStartProgress = 5
 	trackJobSyncProgress  = 90
 )
@@ -49,9 +50,25 @@ type workspaceResponse struct {
 }
 
 type contextResponse struct {
-	Studio  string             `json:"studio"`
-	Project dccProjectResponse `json:"project"`
-	Asset   *assetResponse     `json:"asset"`
+	Studio       string                `json:"studio"`
+	Project      dccProjectResponse    `json:"project"`
+	Asset        *assetResponse        `json:"asset"`
+	KitsuContext *kitsuContextResponse `json:"kitsu_context,omitempty"`
+}
+
+type kitsuContextResponse struct {
+	Version        int    `json:"version"`
+	ClusttaAssetID string `json:"clustta_asset_id"`
+	ProjectID      string `json:"project_id"`
+	Category       string `json:"category"`
+	EpisodeID      string `json:"episode_id,omitempty"`
+	SequenceID     string `json:"sequence_id,omitempty"`
+	ShotID         string `json:"shot_id,omitempty"`
+	AssetTypeID    string `json:"asset_type_id,omitempty"`
+	AssetID        string `json:"asset_id,omitempty"`
+	EditID         string `json:"edit_id,omitempty"`
+	TaskID         string `json:"task_id,omitempty"`
+	TaskTypeName   string `json:"task_type_name,omitempty"`
 }
 
 type getLatestRequest struct {
@@ -488,8 +505,196 @@ func V1ResolveContext(w http.ResponseWriter, r *http.Request) {
 	if found {
 		assetResponse := assetToResponse(asset)
 		response.Asset = &assetResponse
+		response.KitsuContext, err = resolveKitsuContext(project.Uri, asset)
+		if err != nil {
+			jsonError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 	}
 	jsonResponse(w, http.StatusOK, response)
+}
+
+func resolveKitsuContext(
+	projectPath string,
+	asset models.Asset,
+) (*kitsuContextResponse, error) {
+	dbConn, err := sqlx.Connect("sqlite3", projectPath)
+	if err != nil {
+		return nil, err
+	}
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	integrationProjects, err := repository.GetIntegrationProjects(tx)
+	if err != nil {
+		return nil, err
+	}
+	integrationProject, found := activeKitsuIntegration(integrationProjects)
+	if !found {
+		return nil, nil
+	}
+
+	assetMappings, err := repository.GetAssetMappingsByAssetId(tx, asset.Id)
+	if err != nil {
+		return nil, err
+	}
+	assetMapping, found := selectKitsuAssetMapping(
+		assetMappings,
+		asset.AssetTypeName,
+	)
+	if !found {
+		return nil, nil
+	}
+
+	collectionMappings, err := repository.GetCollectionMappings(tx, "kitsu")
+	if err != nil {
+		return nil, err
+	}
+	collectionMapping, found := mappedKitsuCollection(
+		collectionMappings,
+		asset.CollectionId,
+	)
+	if !found {
+		return nil, nil
+	}
+
+	var parentMapping *models.IntegrationCollectionMapping
+	if collectionMapping.ExternalParentId != "" {
+		if parent, parentFound := parentKitsuCollection(
+			collectionMappings,
+			collectionMapping.ExternalParentId,
+		); parentFound {
+			parentMapping = &parent
+		}
+	}
+
+	return buildKitsuContext(
+		asset,
+		integrationProject,
+		assetMapping,
+		collectionMapping,
+		parentMapping,
+	), nil
+}
+
+func activeKitsuIntegration(
+	integrations []models.IntegrationProject,
+) (models.IntegrationProject, bool) {
+	for _, integration := range integrations {
+		if integration.Enabled && integration.IntegrationId == "kitsu" {
+			return integration, true
+		}
+	}
+	return models.IntegrationProject{}, false
+}
+
+func selectKitsuAssetMapping(
+	mappings []models.IntegrationAssetMapping,
+	assetTypeName string,
+) (models.IntegrationAssetMapping, bool) {
+	kitsuMappings := make([]models.IntegrationAssetMapping, 0, len(mappings))
+	for _, mapping := range mappings {
+		if mapping.IntegrationId == "kitsu" {
+			kitsuMappings = append(kitsuMappings, mapping)
+		}
+	}
+	if len(kitsuMappings) == 1 {
+		return kitsuMappings[0], true
+	}
+
+	assetTypeName = strings.TrimSpace(assetTypeName)
+	for _, mapping := range kitsuMappings {
+		if strings.EqualFold(strings.TrimSpace(mapping.ExternalType), assetTypeName) {
+			return mapping, true
+		}
+	}
+	return models.IntegrationAssetMapping{}, false
+}
+
+func mappedKitsuCollection(
+	mappings []models.IntegrationCollectionMapping,
+	collectionID string,
+) (models.IntegrationCollectionMapping, bool) {
+	for _, mapping := range mappings {
+		if mapping.CollectionId == collectionID {
+			return mapping, true
+		}
+	}
+	return models.IntegrationCollectionMapping{}, false
+}
+
+func parentKitsuCollection(
+	mappings []models.IntegrationCollectionMapping,
+	externalID string,
+) (models.IntegrationCollectionMapping, bool) {
+	for _, mapping := range mappings {
+		if mapping.ExternalId == externalID {
+			return mapping, true
+		}
+	}
+	return models.IntegrationCollectionMapping{}, false
+}
+
+func buildKitsuContext(
+	asset models.Asset,
+	integration models.IntegrationProject,
+	assetMapping models.IntegrationAssetMapping,
+	collectionMapping models.IntegrationCollectionMapping,
+	parentMapping *models.IntegrationCollectionMapping,
+) *kitsuContextResponse {
+	context := &kitsuContextResponse{
+		Version:        kitsuContextVersion,
+		ClusttaAssetID: asset.Id,
+		ProjectID:      integration.ExternalProjectId,
+		TaskID:         assetMapping.ExternalId,
+		TaskTypeName:   assetMapping.ExternalType,
+	}
+
+	switch strings.ToLower(strings.TrimSpace(collectionMapping.ExternalType)) {
+	case "shot":
+		context.Category = "SHOT"
+		context.ShotID = collectionMapping.ExternalId
+		context.SequenceID = collectionMapping.ExternalParentId
+		if parentMapping != nil {
+			context.EpisodeID = externalParentEntityID(
+				parentMapping.ExternalParentId,
+				integration.ExternalProjectId,
+			)
+		}
+	case "sequence":
+		context.Category = "SEQ"
+		context.SequenceID = collectionMapping.ExternalId
+		context.EpisodeID = externalParentEntityID(
+			collectionMapping.ExternalParentId,
+			integration.ExternalProjectId,
+		)
+	case "edit":
+		context.Category = "EDIT"
+		context.EditID = collectionMapping.ExternalId
+	default:
+		context.Category = "ASSET"
+		context.AssetID = collectionMapping.ExternalId
+		const assetTypePrefix = "asset-type-"
+		if strings.HasPrefix(collectionMapping.ExternalParentId, assetTypePrefix) {
+			context.AssetTypeID = strings.TrimPrefix(
+				collectionMapping.ExternalParentId,
+				assetTypePrefix,
+			)
+		}
+	}
+	return context
+}
+
+func externalParentEntityID(parentID, projectID string) string {
+	if parentID == projectID {
+		return ""
+	}
+	return parentID
 }
 
 func resolveContextProject(
