@@ -24,7 +24,11 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
-const kitsuCategoryMetadataKey = "category"
+const (
+	editDirectoryPathID      = "edit"
+	editDirectoryPlaceholder = "<Edit>"
+	kitsuCategoryMetadataKey = "category"
+)
 
 // IntegrationService handles external integration operations (Kitsu, etc.)
 // Exposed to frontend via Wails bindings.
@@ -319,25 +323,7 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		syncOptions.AssetTypeMappings = make(map[string]integrations.TypeMapping)
 	}
 
-	// Apply default directory structure if none configured
-	if len(syncOptions.DirectoryStructure.Paths) == 0 {
-		syncOptions.DirectoryStructure = integrations.DirectoryStructure{
-			Preset: "3d-animation",
-			Style:  "lowercase",
-			Paths: map[string]interface{}{
-				"asset": map[string]interface{}{
-					"name":     "Assets",
-					"icon":     "package",
-					"template": "Assets/<CollectionType>/<Category>/<Asset>/<AssetType><TemplateExtension>",
-				},
-				"shot": map[string]interface{}{
-					"name":     "Shots",
-					"icon":     "clapperboard",
-					"template": "Episodes/<Episode>/<Sequence>/<Shot>/<AssetType><TemplateExtension>",
-				},
-			},
-		}
-	}
+	syncOptions.DirectoryStructure = withDefaultDirectoryPaths(syncOptions.DirectoryStructure)
 
 	// Fetch external hierarchy
 	externalCollections, err := integration.GetProjectCollections(token, integrationProject.ApiUrl, integrationProject.ExternalProjectId)
@@ -580,6 +566,63 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 	return preview, nil
 }
 
+func withDefaultDirectoryPaths(directoryStructure integrations.DirectoryStructure) integrations.DirectoryStructure {
+	if len(directoryStructure.Paths) == 0 {
+		return defaultDirectoryStructure()
+	}
+	if hasEditDirectoryPath(directoryStructure.Paths) {
+		return directoryStructure
+	}
+
+	directoryStructure.Paths[editDirectoryPathID] = defaultEditDirectoryPath()
+	return directoryStructure
+}
+
+func defaultDirectoryStructure() integrations.DirectoryStructure {
+	return integrations.DirectoryStructure{
+		Preset: "3d-animation",
+		Style:  "lowercase",
+		Paths: map[string]interface{}{
+			"asset": map[string]interface{}{
+				"name":     "Assets",
+				"icon":     "package",
+				"template": "Assets/<CollectionType>/<Category>/<Asset>/<AssetType><TemplateExtension>",
+			},
+			"shot": map[string]interface{}{
+				"name":     "Shots",
+				"icon":     "clapperboard",
+				"template": "Episodes/<Episode>/<Sequence>/<Shot>/<AssetType><TemplateExtension>",
+			},
+			editDirectoryPathID: defaultEditDirectoryPath(),
+		},
+	}
+}
+
+func defaultEditDirectoryPath() map[string]interface{} {
+	return map[string]interface{}{
+		"name":     "Edits",
+		"icon":     "film-strip",
+		"template": "Edits/<Edit>/<OutputName><TemplateExtension>",
+	}
+}
+
+func hasEditDirectoryPath(paths map[string]interface{}) bool {
+	if _, exists := paths[editDirectoryPathID]; exists {
+		return true
+	}
+	for _, pathData := range paths {
+		data, ok := pathData.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		template, ok := data["template"].(string)
+		if ok && strings.Contains(template, editDirectoryPlaceholder) {
+			return true
+		}
+	}
+	return false
+}
+
 // resolveCollectionPath resolves the path for an collection using DirectoryStructure templates.
 // Falls back to raw hierarchy path if no matching template is found.
 func resolveCollectionPath(collection integrations.ExternalCollection, collectionByID map[string]integrations.ExternalCollection, dirStructure integrations.DirectoryStructure) string {
@@ -699,12 +742,20 @@ func findMatchingPathConfig(collectionType string, dirStructure integrations.Dir
 	}
 
 	collectionTypeLower := strings.ToLower(collectionType)
+	if collectionTypeLower == editDirectoryPathID {
+		if pathData, exists := dirStructure.Paths[editDirectoryPathID]; exists {
+			if data, ok := pathData.(map[string]interface{}); ok {
+				return data
+			}
+		}
+	}
 
 	// Standard collection types and their variable names (matching frontend format)
 	standardTypes := map[string]string{
 		"episode":  "<Episode>",
 		"sequence": "<Sequence>",
 		"shot":     "<Shot>",
+		"edit":     editDirectoryPlaceholder,
 	}
 
 	// Check if this is a standard type
@@ -747,6 +798,7 @@ func resolveTemplateVariables(template string, collection integrations.ExternalC
 		"episode":  "<Episode>",
 		"sequence": "<Sequence>",
 		"shot":     "<Shot>",
+		"edit":     editDirectoryPlaceholder,
 	}
 
 	// Truncate template at the collection's variable level
@@ -779,7 +831,7 @@ func resolveTemplateVariables(template string, collection integrations.ExternalC
 	}
 
 	// For assets, resolve <Asset> and <CollectionType>
-	if collectionTypeLower != "episode" && collectionTypeLower != "sequence" && collectionTypeLower != "shot" {
+	if collectionTypeLower != "episode" && collectionTypeLower != "sequence" && collectionTypeLower != "shot" && collectionTypeLower != "edit" {
 		// This is an asset - resolve <Asset> with collection name
 		result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(collection.Name, style))
 		// Resolve <CollectionType> with collection type (like "Character", "Prop")
@@ -801,6 +853,7 @@ func resolveAssetTemplateVariables(template string, parentCollection integration
 		"episode":  "<Episode>",
 		"sequence": "<Sequence>",
 		"shot":     "<Shot>",
+		"edit":     editDirectoryPlaceholder,
 	}
 
 	hierarchy := buildCollectionHierarchy(parentCollection, collectionByID)
@@ -812,6 +865,7 @@ func resolveAssetTemplateVariables(template string, parentCollection integration
 	}
 
 	result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(parentCollection.Name, style))
+	result = strings.ReplaceAll(result, editDirectoryPlaceholder, applyNamingStyle(parentCollection.Name, style))
 	result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(parentCollection.Type, style))
 	result = replaceCategoryVariable(result, parentCollection, style)
 	assetType := asset.AssetType
@@ -955,6 +1009,7 @@ func resolveAssetTemplateVariablesWithoutOutput(template string, parentCollectio
 		"episode":  "<Episode>",
 		"sequence": "<Sequence>",
 		"shot":     "<Shot>",
+		"edit":     editDirectoryPlaceholder,
 	}
 
 	hierarchy := buildCollectionHierarchy(parentCollection, collectionByID)
@@ -966,6 +1021,7 @@ func resolveAssetTemplateVariablesWithoutOutput(template string, parentCollectio
 	}
 
 	result = strings.ReplaceAll(result, "<Asset>", applyNamingStyle(parentCollection.Name, style))
+	result = strings.ReplaceAll(result, editDirectoryPlaceholder, applyNamingStyle(parentCollection.Name, style))
 	result = strings.ReplaceAll(result, "<CollectionType>", applyNamingStyle(parentCollection.Type, style))
 	result = replaceCategoryVariable(result, parentCollection, style)
 	assetType := fallbackAssetTaskType(asset)

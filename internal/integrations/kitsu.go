@@ -202,6 +202,12 @@ func (k *KitsuClient) GetProjectCollections(token, apiUrl, projectID string) ([]
 	}
 	collections = append(collections, shots...)
 
+	edits, err := k.getEdits(token, apiUrl, projectID)
+	if err != nil {
+		return nil, err
+	}
+	collections = append(collections, edits...)
+
 	// Fetch assets (3D models, rigs, etc.)
 	assets, err := k.getAssets(token, apiUrl, projectID, assetTypeMap)
 	if err != nil {
@@ -335,7 +341,7 @@ func (k *KitsuClient) UploadPreview(token, apiUrl, _ string, assetID, filePath, 
 }
 
 // GetCollectionTypes fetches all collection types (asset types) from Kitsu.
-// Kitsu has built-in collection types: Episode, Sequence, Shot plus user-defined asset types.
+// Kitsu has built-in collection types plus user-defined asset types.
 func (k *KitsuClient) GetCollectionTypes(token, apiUrl, projectID string) ([]ExternalTypeInfo, error) {
 	apiUrl = strings.TrimSuffix(apiUrl, "/")
 	types := []ExternalTypeInfo{}
@@ -345,6 +351,7 @@ func (k *KitsuClient) GetCollectionTypes(token, apiUrl, projectID string) ([]Ext
 		{ID: "episode", Name: "Episode"},
 		{ID: "sequence", Name: "Sequence"},
 		{ID: "shot", Name: "Shot"},
+		{ID: "edit", Name: "Edit"},
 	}
 	types = append(types, builtinTypes...)
 
@@ -651,6 +658,36 @@ func (k *KitsuClient) getShots(token, apiUrl, projectID string) ([]ExternalColle
 	return collections, nil
 }
 
+func (k *KitsuClient) getEdits(token, apiUrl, projectID string) ([]ExternalCollection, error) {
+	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/edits")
+	if err != nil {
+		return nil, err
+	}
+
+	var kitsuEdits []kitsuEdit
+	if err := json.Unmarshal(data, &kitsuEdits); err != nil {
+		return nil, err
+	}
+
+	collections := make([]ExternalCollection, 0, len(kitsuEdits))
+	for _, edit := range kitsuEdits {
+		parentID := edit.EpisodeID
+		if parentID == "" {
+			parentID = edit.ParentID
+		}
+		collections = append(collections, ExternalCollection{
+			ID:        edit.ID,
+			ParentID:  parentID,
+			Name:      edit.Name,
+			Type:      "edit",
+			Path:      edit.Name,
+			Metadata:  edit.Data,
+			HasAssets: true,
+		})
+	}
+	return collections, nil
+}
+
 func (k *KitsuClient) getAssets(token, apiUrl, projectID string, assetTypeMap map[string]string) ([]ExternalCollection, error) {
 	data, err := k.get(token, apiUrl+"/api/data/projects/"+projectID+"/assets")
 	if err != nil {
@@ -728,6 +765,14 @@ type kitsuAsset struct {
 	AssetTypeID   string                 `json:"entity_type_id"`
 	AssetTypeName string                 `json:"asset_type_name"`
 	Data          map[string]interface{} `json:"data"`
+}
+
+type kitsuEdit struct {
+	ID        string                 `json:"id"`
+	Name      string                 `json:"name"`
+	EpisodeID string                 `json:"episode_id"`
+	ParentID  string                 `json:"parent_id"`
+	Data      map[string]interface{} `json:"data"`
 }
 
 type kitsuTask struct {

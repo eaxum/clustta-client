@@ -17,10 +17,15 @@ const shotTemplate = {
   id: 'shot',
   template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>',
 };
+const editTemplate = {
+  id: 'edit',
+  template: 'Edits/<Edit>/<OutputName><TemplateExtension>',
+};
 
-test('directory mapping identifies asset and shot templates', () => {
+test('directory mapping identifies asset, shot, and edit templates', () => {
   assert.equal(inferDirectoryTemplateEntity(assetTemplate.id, assetTemplate.template), 'asset');
   assert.equal(inferDirectoryTemplateEntity(shotTemplate.id, shotTemplate.template), 'shot');
+  assert.equal(inferDirectoryTemplateEntity(editTemplate.id, editTemplate.template), 'edit');
 });
 
 test('generic task types are available to asset and shot templates', () => {
@@ -43,9 +48,25 @@ test('entity-scoped task types only appear on matching templates', () => {
   assert.deepEqual(filterTaskTypesForTemplate(shotTemplate, taskTypes), [shotTask, genericTask]);
 });
 
+test('edit-scoped task types only appear on edit templates', () => {
+  const editTask = { name: 'Edit', for_entity: 'edit' };
+  const shotTask = { name: 'Animation', for_entity: 'shot' };
+  const taskTypes = [editTask, shotTask];
+
+  assert.deepEqual(filterTaskTypesForTemplate(editTemplate, taskTypes), [editTask]);
+});
+
 test('task output defaults use the matching entity placeholder', () => {
   assert.equal(getDefaultTaskOutput(assetTemplate, 'Modeling'), '<Asset>-modeling');
   assert.equal(getDefaultTaskOutput(shotTemplate, 'Animation'), '<Shot>-animation');
+  assert.equal(getDefaultTaskOutput(editTemplate, 'Edit'), '<Edit>-edit');
+});
+
+test('edit directory preview uses the edit entity name', () => {
+  const values = getDirectoryTemplatePreviewValues(editTemplate);
+
+  assert.equal(values.Edit, 'director-cut');
+  assert.equal(values.OutputName, 'director-cut-edit');
 });
 
 test('directory mapping previews use matching task output examples', () => {

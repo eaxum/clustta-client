@@ -154,6 +154,88 @@ func TestResolveCollectionPathTrimsHierarchyNames(t *testing.T) {
 	}
 }
 
+func TestResolveEditPathsWithOptionalEpisode(t *testing.T) {
+	directoryStructure := integrations.DirectoryStructure{
+		Style: "lowercase",
+		Paths: map[string]interface{}{
+			"edit": map[string]interface{}{
+				"template": "Episodes/<Episode>/Edits/<Edit>/<OutputName><TemplateExtension>",
+			},
+		},
+	}
+	episode := integrations.ExternalCollection{
+		ID:   "episode",
+		Name: "EP01",
+		Type: "episode",
+	}
+	edit := integrations.ExternalCollection{
+		ID:       "edit",
+		ParentID: episode.ID,
+		Name:     "Director Cut",
+		Type:     "edit",
+	}
+	collections := map[string]integrations.ExternalCollection{
+		episode.ID: episode,
+		edit.ID:    edit,
+	}
+
+	path := resolveCollectionPath(edit, collections, directoryStructure)
+
+	if path != "/Episodes/ep01/Edits/director cut/" {
+		t.Fatalf("unexpected edit path %q", path)
+	}
+}
+
+func TestResolveEditTaskOutput(t *testing.T) {
+	directoryStructure := integrations.DirectoryStructure{
+		Style: "kebab-case",
+		Paths: map[string]interface{}{
+			"edit": map[string]interface{}{
+				"template": "Edits/<Edit>/<OutputName><TemplateExtension>",
+				"task_outputs": map[string]interface{}{
+					"Edit": "<Edit>-master",
+				},
+			},
+		},
+	}
+	parent := integrations.ExternalCollection{Name: "Director Cut", Type: "edit"}
+	asset := integrations.ExternalAsset{Name: "Edit", AssetType: "Edit"}
+
+	path := resolveAssetParentPathFromTemplate("/Edits/director-cut/", parent, asset, nil, directoryStructure, ".blend")
+	name := resolveAssetNameFromTemplate("Edit", parent, asset, nil, directoryStructure, ".blend")
+
+	if path != "/Edits/director-cut/" {
+		t.Fatalf("unexpected edit task parent path %q", path)
+	}
+	if name != "director-cut-master" {
+		t.Fatalf("unexpected edit task name %q", name)
+	}
+}
+
+func TestWithDefaultDirectoryPathsAddsEditWithoutReplacingCustomPaths(t *testing.T) {
+	directoryStructure := integrations.DirectoryStructure{
+		Preset: "custom",
+		Style:  "uppercase",
+		Paths: map[string]interface{}{
+			"asset": map[string]interface{}{
+				"template": "Custom/<Asset>/<OutputName><TemplateExtension>",
+			},
+		},
+	}
+
+	result := withDefaultDirectoryPaths(directoryStructure)
+
+	if result.Preset != "custom" || result.Style != "uppercase" {
+		t.Fatalf("custom directory settings changed: %#v", result)
+	}
+	if !reflect.DeepEqual(result.Paths["asset"], directoryStructure.Paths["asset"]) {
+		t.Fatal("custom asset path was replaced")
+	}
+	if _, exists := result.Paths[editDirectoryPathID]; !exists {
+		t.Fatal("expected default edit path")
+	}
+}
+
 func TestResolveCollectionPathTrimsAssetAndCategoryNames(t *testing.T) {
 	directoryStructure := integrations.DirectoryStructure{
 		Style: "kebab-case",

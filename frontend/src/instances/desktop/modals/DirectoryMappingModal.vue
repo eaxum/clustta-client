@@ -137,12 +137,31 @@ const iconStore = useIconStore();
 const integrationStore = useIntegrationStore();
 const notificationStore = useNotificationStore();
 
-// refs
-const activeTemplateId = ref(null);
-const customTemplates = ref([
+const createEditTemplate = () => ({
+  id: 'edit',
+  name: 'Edits',
+  icon: 'film-strip',
+  template: 'Edits/<Edit>/<OutputName><TemplateExtension>',
+  task_outputs: {},
+  task_output_enabled: {},
+});
+
+const createDefaultTemplates = () => [
   { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Category>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
   { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
-]);
+  createEditTemplate(),
+];
+
+const withEditTemplate = (templates) => {
+  const hasEditTemplate = templates.some(template => {
+    return template.id === 'edit' || template.template.includes('<Edit>');
+  });
+  return hasEditTemplate ? templates : [...templates, createEditTemplate()];
+};
+
+// refs
+const activeTemplateId = ref(null);
+const customTemplates = ref(createDefaultTemplates());
 const expandedTaskOutputs = ref({});
 const isLoading = ref(false);
 const isSaving = ref(false);
@@ -178,6 +197,7 @@ const placeholders = computed(() => [
   { key: '<Episode>', label: 'Episode', icon: 'film-reel' },
   { key: '<Sequence>', label: 'Sequence', icon: 'film-strip' },
   { key: '<Shot>', label: 'Shot', icon: 'clapboard' },
+  { key: '<Edit>', label: 'Edit', icon: 'film-strip' },
   { key: '<Asset>', label: 'Asset', icon: 'cube' },
   { key: '<CollectionType>', label: 'CollectionType', icon: 'folder' },
   { key: '<Category>', label: 'Category', icon: 'folder' },
@@ -218,11 +238,7 @@ const addTemplate = () => {
 const applyPreset = (preset) => {
   selectedPreset.value = preset;
   if (preset === '3d-animation') {
-    // Reset to default templates
-    customTemplates.value = [
-      { id: 'asset', name: 'Assets', icon: 'package', template: 'Assets/<CollectionType>/<Category>/<Asset>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
-      { id: 'shot', name: 'Shots', icon: 'clapperboard', template: 'Episodes/<Episode>/<Sequence>/<Shot>/<OutputName><TemplateExtension>', task_outputs: {}, task_output_enabled: {} },
-    ];
+    customTemplates.value = createDefaultTemplates();
   }
 };
 
@@ -399,6 +415,7 @@ onMounted(async () => {
         }));
       }
     }
+    customTemplates.value = withEditTemplate(customTemplates.value);
     originalSnapshot.value = serializeState();
   } catch (error) {
     console.error('Failed to load directory structure:', error);
