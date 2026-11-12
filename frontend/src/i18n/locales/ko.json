@@ -2322,7 +2322,7 @@
     "openInBrowser": "브라우저에서 열기",
     "unlinkAssetTooltip": "{integration} 연결 해제",
     "unlinkAssetTitle": "에셋과 {integration}의 연결을 해제하시겠습니까?",
-    "unlinkAssetMessage": "현재 선택한 에셋 유형의 {integration} 연결을 제거합니다. 에셋 자체는 삭제되지 않습니다.",
+    "unlinkAssetMessage": "선택한 에셋의 모든 {integration} 연결을 제거합니다. 에셋 자체는 삭제되지 않습니다.",
     "unlinkAsset": "에셋 연결 해제",
     "assetUnlinked": "에셋과 {integration}의 연결을 해제했습니다.",
     "assetUnlinkFailed": "에셋과 {integration}의 연결을 해제하지 못했습니다."

@@ -153,7 +153,7 @@ func (s *IntegrationService) GetAssetIntegrationDetails(projectPath, assetID str
 	return details, nil
 }
 
-// UnlinkAsset removes the mapping matching the asset's current type.
+// UnlinkAsset removes all integration mappings for an asset.
 func (s *IntegrationService) UnlinkAsset(projectPath, assetID string) error {
 	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
 		return err
@@ -170,12 +170,40 @@ func (s *IntegrationService) UnlinkAsset(projectPath, assetID string) error {
 	}
 	defer tx.Rollback()
 
-	mapping, err := s.selectAssetMappingForCurrentType(tx, assetID)
+	if err := repository.DeleteAssetMappingsByAssetID(tx, assetID); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
+// UnlinkAssets removes all integration mappings for the selected assets.
+func (s *IntegrationService) UnlinkAssets(projectPath string, assetIDs []string) error {
+	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
+		return err
+	}
+	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
 		return err
 	}
-	if err := repository.DeleteAssetMapping(tx, mapping.Id); err != nil {
+	defer dbConn.Close()
+
+	tx, err := dbConn.Beginx()
+	if err != nil {
 		return err
+	}
+	defer tx.Rollback()
+
+	seen := make(map[string]bool)
+	for _, assetID := range assetIDs {
+		assetID = strings.TrimSpace(assetID)
+		if assetID == "" || seen[assetID] {
+			continue
+		}
+		seen[assetID] = true
+		if err := repository.DeleteAssetMappingsByAssetID(tx, assetID); err != nil {
+			return err
+		}
 	}
 
 	return tx.Commit()
@@ -285,8 +313,8 @@ func (s *IntegrationService) UnlinkProject(projectPath string) error {
 	return tx.Commit()
 }
 
-// GetSyncPreview fetches the external hierarchy and classifies every enabled item.
-// Items are marked for creation, linking to a local match, or no action.
+// GetSyncPreview fetches the external hierarchy and reconciles project mappings.
+// Items are classified for creation, linking, repair, update, or no action.
 func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrations.SyncPreview, error) {
 	dbConn, err := utils.OpenDb(projectPath)
 	if err != nil {
@@ -356,16 +384,6 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		templateByID[t.Id] = t
 	}
 
-	// Build lookup maps for existing mappings (by external ID)
-	existingCollectionMap := make(map[string]models.IntegrationCollectionMapping)
-	for _, m := range existingCollections {
-		existingCollectionMap[m.ExternalId] = m
-	}
-	existingAssetMap := make(map[string]models.IntegrationAssetMapping)
-	for _, m := range existingAssets {
-		existingAssetMap[m.ExternalId] = m
-	}
-
 	// Build collection ID → collection map for path building
 	collectionByID := make(map[string]integrations.ExternalCollection)
 	for _, e := range externalCollections {
@@ -378,12 +396,20 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		path := resolveCollectionPath(collection, collectionByID, syncOptions.DirectoryStructure)
 		collectionPaths[collection.ID] = path
 	}
+	reconciliation := reconcileMappings(
+		externalCollections,
+		collectionPaths,
+		externalAssets,
+		existingCollections,
+		existingAssets,
+	)
 
 	// Build the full sync preview.
 	preview := integrations.SyncPreview{
 		IntegrationID: integrationProject.IntegrationId,
 		Collections:   []integrations.SyncCollection{},
 		Assets:        []integrations.SyncAsset{},
+		MappingIssues: reconciliation.issues,
 		MissingTypes:  []integrations.MissingType{},
 	}
 
@@ -401,12 +427,29 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		fullPath := collectionPaths[collection.ID]
 		action := "create"
 		collectionID := ""
-		if mapping, exists := existingCollectionMap[collection.ID]; exists {
-			action = "skip"
+		mappingID := ""
+		mappingStatus := ""
+		if mapping, exists := reconciliation.collectionMappings[collection.ID]; exists {
+			mappingStatus = reconciliation.collectionStatuses[collection.ID]
+			action = mappingAction(mappingStatus)
 			collectionID = mapping.CollectionId
+			mappingID = mapping.Id
 		} else if existingCollection, lookupErr := repository.GetCollectionByPath(tx, fullPath); lookupErr == nil && existingCollection.Id != "" {
 			action = "link"
 			collectionID = existingCollection.Id
+			issue, remainingIssues, found := consumeUniqueMappingIssue(
+				reconciliation.issues,
+				"collection",
+				collectionID,
+				collection.Type,
+			)
+			if found {
+				action = "relink"
+				mappingID = issue.MappingID
+				mappingStatus = mappingStatusRepairable
+				reconciliation.collectionStatuses[collection.ID] = mappingStatusRepairable
+				reconciliation.issues = remainingIssues
+			}
 		}
 
 		// Get type mapping
@@ -432,6 +475,9 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			ExternalPath:       fullPath,
 			CollectionPath:     fullPath,
 			Action:             action,
+			MappingID:          mappingID,
+			ObsoleteMappingIDs: reconciliation.obsoleteCollectionMappingIDs[collection.ID],
+			MappingStatus:      mappingStatus,
 			CollectionID:       collectionID,
 			CollectionTypeName: collectionTypeName,
 			CollectionTypeIcon: collectionTypeIcon,
@@ -474,9 +520,17 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 
 		action := "create"
 		assetID := ""
-		if mapping, exists := existingAssetMap[asset.ID]; exists {
-			action = "skip"
+		mappingID := ""
+		mappingStatus := ""
+		if mapping, exists := reconciliation.assetMappings[asset.ID]; exists {
+			mappingStatus = reconciliation.assetStatuses[asset.ID]
+			if mappingStatus == mappingStatusLinked && mapping.ExternalName != assetName {
+				mappingStatus = mappingStatusChanged
+				reconciliation.assetStatuses[asset.ID] = mappingStatusChanged
+			}
+			action = mappingAction(mappingStatus)
 			assetID = mapping.AssetId
+			mappingID = mapping.Id
 		} else if parentPath != "" {
 			parentCollection, err := repository.GetCollectionByPath(tx, parentPath)
 			if err == nil && parentCollection.Id != "" {
@@ -484,6 +538,19 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 				if err == nil && existingAsset.Id != "" {
 					action = "link"
 					assetID = existingAsset.Id
+					issue, remainingIssues, found := consumeUniqueMappingIssue(
+						reconciliation.issues,
+						"asset",
+						assetID,
+						asset.AssetType,
+					)
+					if found {
+						action = "relink"
+						mappingID = issue.MappingID
+						mappingStatus = mappingStatusRepairable
+						reconciliation.assetStatuses[asset.ID] = mappingStatusRepairable
+						reconciliation.issues = remainingIssues
+					}
 				}
 			}
 		}
@@ -503,24 +570,29 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		}
 
 		preview.Assets = append(preview.Assets, integrations.SyncAsset{
-			TempID:            asset.ID,
-			ExternalID:        asset.ID,
-			ExternalName:      assetName,
-			ExternalParentID:  asset.ParentID,
-			ExternalType:      asset.AssetType,
-			ExternalTypeID:    asset.AssetTypeID,
-			ExternalStatus:    asset.Status,
-			ExternalAssignees: asset.Assignees,
-			CollectionPath:    parentPath,
-			Action:            action,
-			AssetID:           assetID,
-			AssetTypeName:     assetTypeName,
-			AssetTypeIcon:     assetTypeIcon,
-			Selected:          action != "skip",
-			TemplateID:        templateID,
-			TemplateExtension: templateExtension,
+			TempID:             asset.ID,
+			ExternalID:         asset.ID,
+			ExternalName:       assetName,
+			ExternalParentID:   asset.ParentID,
+			ExternalType:       asset.AssetType,
+			ExternalTypeID:     asset.AssetTypeID,
+			ExternalStatus:     asset.Status,
+			ExternalAssignees:  asset.Assignees,
+			CollectionPath:     parentPath,
+			Action:             action,
+			MappingID:          mappingID,
+			ObsoleteMappingIDs: reconciliation.obsoleteAssetMappingIDs[asset.ID],
+			MappingStatus:      mappingStatus,
+			AssetID:            assetID,
+			AssetTypeName:      assetTypeName,
+			AssetTypeIcon:      assetTypeIcon,
+			Selected:           action != "skip",
+			TemplateID:         templateID,
+			TemplateExtension:  templateExtension,
 		})
 	}
+	preview.MappingIssues = reconciliation.issues
+	applyMappingIssueStatuses(&preview)
 
 	// Build missing types list
 	collectionIcons := constants.CollectionTypeIcons
@@ -558,6 +630,11 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		CollectionsToLink:   countCollectionActions(preview.Collections, "link"),
 		AssetsToCreate:      countAssetActions(preview.Assets, "create"),
 		AssetsToLink:        countAssetActions(preview.Assets, "link"),
+		LinkedMappings:      countMappingStatuses(reconciliation, mappingStatusLinked),
+		ChangedMappings:     countMappingStatuses(reconciliation, mappingStatusChanged),
+		RepairableMappings:  countMappingStatuses(reconciliation, mappingStatusRepairable),
+		MissingMappings:     countMappingIssues(reconciliation.issues, mappingStatusMissing),
+		AmbiguousMappings:   countMappingIssues(reconciliation.issues, mappingStatusAmbiguous),
 	}
 
 	// Generate unified PreviewItems from collections and assets
@@ -1169,6 +1246,7 @@ func buildPreviewItems(collections []integrations.SyncCollection, assets []integ
 			TypeName:       c.CollectionTypeName,
 			TypeIcon:       c.CollectionTypeIcon,
 			Action:         c.Action,
+			MappingStatus:  c.MappingStatus,
 			Selected:       c.Selected,
 			IsVirtual:      false,
 			HasChildren:    false, // Will be updated below
@@ -1198,6 +1276,7 @@ func buildPreviewItems(collections []integrations.SyncCollection, assets []integ
 			TypeName:          a.AssetTypeName,
 			TypeIcon:          a.AssetTypeIcon,
 			Action:            a.Action,
+			MappingStatus:     a.MappingStatus,
 			Selected:          a.Selected,
 			IsVirtual:         false,
 			HasChildren:       false,
@@ -1375,6 +1454,8 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 			collectionsToCreate++
 		} else if c.Action == "link" {
 			collectionsToLink++
+		} else if c.Action == "update" || c.Action == "relink" {
+			collectionsToLink++
 		}
 	}
 	assetsToCreate := 0
@@ -1386,6 +1467,8 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 			}
 			assetsToCreate++
 		} else if a.Action == "link" {
+			assetsToLink++
+		} else if a.Action == "update" || a.Action == "relink" {
 			assetsToLink++
 		}
 	}
@@ -1453,6 +1536,39 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	})
 
 	for _, coll := range collections {
+		if coll.Action == "update" || coll.Action == "relink" {
+			if coll.MappingID == "" {
+				return errors.New("mapping ID is required to update a collection mapping")
+			}
+			existingMapping, mappingErr := repository.GetCollectionMapping(tx, coll.MappingID)
+			if mappingErr != nil {
+				return mappingErr
+			}
+			if existingMapping.IntegrationId != integrationProject.IntegrationId || existingMapping.CollectionId != coll.CollectionID {
+				return errors.New("collection mapping does not match the linked integration")
+			}
+			if err := deleteObsoleteCollectionMappings(
+				tx,
+				coll.ObsoleteMappingIDs,
+				integrationProject.IntegrationId,
+				coll.CollectionID,
+				coll.MappingID,
+			); err != nil {
+				return err
+			}
+			err = repository.UpdateCollectionMapping(tx, coll.MappingID, map[string]interface{}{
+				"external_id":        coll.ExternalID,
+				"external_type":      coll.ExternalType,
+				"external_name":      coll.ExternalName,
+				"external_parent_id": coll.ExternalParentID,
+				"external_path":      coll.ExternalPath,
+				"synced_at":          syncedAt,
+			})
+			if err != nil {
+				return err
+			}
+			continue
+		}
 		if coll.Action != "create" && coll.Action != "link" {
 			continue
 		}
@@ -1485,6 +1601,44 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 
 	// Phase 3b: Create mappings for assets
 	for _, asset := range assets {
+		assigneesJSON, marshalErr := json.Marshal(asset.ExternalAssignees)
+		if marshalErr != nil {
+			return marshalErr
+		}
+		if asset.Action == "update" || asset.Action == "relink" {
+			if asset.MappingID == "" {
+				return errors.New("mapping ID is required to update an asset mapping")
+			}
+			existingMapping, mappingErr := repository.GetAssetMapping(tx, asset.MappingID)
+			if mappingErr != nil {
+				return mappingErr
+			}
+			if existingMapping.IntegrationId != integrationProject.IntegrationId || existingMapping.AssetId != asset.AssetID {
+				return errors.New("asset mapping does not match the linked integration")
+			}
+			if err := deleteObsoleteAssetMappings(
+				tx,
+				asset.ObsoleteMappingIDs,
+				integrationProject.IntegrationId,
+				asset.AssetID,
+				asset.MappingID,
+			); err != nil {
+				return err
+			}
+			err = repository.UpdateAssetMapping(tx, asset.MappingID, map[string]interface{}{
+				"external_id":        asset.ExternalID,
+				"external_name":      asset.ExternalName,
+				"external_parent_id": asset.ExternalParentID,
+				"external_type":      asset.ExternalType,
+				"external_status":    asset.ExternalStatus,
+				"external_assignees": string(assigneesJSON),
+				"synced_at":          syncedAt,
+			})
+			if err != nil {
+				return err
+			}
+			continue
+		}
 		if asset.Action != "create" && asset.Action != "link" {
 			continue
 		}
@@ -1494,11 +1648,6 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 		}
 		if assetID == "" {
 			continue
-		}
-
-		assigneesStr := "[]"
-		if len(asset.ExternalAssignees) > 0 {
-			assigneesStr = "[\"" + strings.Join(asset.ExternalAssignees, "\",\"") + "\"]"
 		}
 
 		mappingID := uuid.New().String()
@@ -1511,7 +1660,7 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 			asset.ExternalParentID,
 			asset.ExternalType,
 			asset.ExternalStatus,
-			assigneesStr,
+			string(assigneesJSON),
 			"{}",
 			assetID,
 			syncedAt,
@@ -1545,6 +1694,60 @@ func (s *IntegrationService) ExecuteSync(projectPath string, collectionsJSON str
 	})
 
 	return tx.Commit()
+}
+
+func deleteObsoleteCollectionMappings(
+	tx *sqlx.Tx,
+	mappingIDs []string,
+	integrationID string,
+	collectionID string,
+	activeMappingID string,
+) error {
+	seen := make(map[string]bool)
+	for _, mappingID := range mappingIDs {
+		if mappingID == "" || mappingID == activeMappingID || seen[mappingID] {
+			continue
+		}
+		seen[mappingID] = true
+		mapping, err := repository.GetCollectionMapping(tx, mappingID)
+		if err != nil {
+			return err
+		}
+		if mapping.IntegrationId != integrationID || mapping.CollectionId != collectionID {
+			return errors.New("obsolete collection mapping does not match the linked integration")
+		}
+		if err := repository.DeleteCollectionMapping(tx, mappingID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func deleteObsoleteAssetMappings(
+	tx *sqlx.Tx,
+	mappingIDs []string,
+	integrationID string,
+	assetID string,
+	activeMappingID string,
+) error {
+	seen := make(map[string]bool)
+	for _, mappingID := range mappingIDs {
+		if mappingID == "" || mappingID == activeMappingID || seen[mappingID] {
+			continue
+		}
+		seen[mappingID] = true
+		mapping, err := repository.GetAssetMapping(tx, mappingID)
+		if err != nil {
+			return err
+		}
+		if mapping.IntegrationId != integrationID || mapping.AssetId != assetID {
+			return errors.New("obsolete asset mapping does not match the linked integration")
+		}
+		if err := repository.DeleteAssetMapping(tx, mappingID); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Available icons for collection types

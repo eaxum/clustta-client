@@ -345,7 +345,7 @@ func DeleteAssetMapping(tx *sqlx.Tx, id string) error {
 	return base_service.Delete(tx, "integration_asset_mapping", id)
 }
 
-func deleteAssetMappingsByAssetID(tx *sqlx.Tx, assetID string) error {
+func DeleteAssetMappingsByAssetID(tx *sqlx.Tx, assetID string) error {
 	query := `DELETE FROM integration_asset_mapping WHERE asset_id = ?`
 	_, err := tx.Exec(query, assetID)
 	return err

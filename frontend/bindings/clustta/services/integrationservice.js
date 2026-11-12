@@ -165,8 +165,8 @@ export function GetMissingTypes(projectPath, token) {
 }
 
 /**
- * GetSyncPreview fetches the external hierarchy and classifies every enabled item.
- * Items are marked for creation, linking to a local match, or no action.
+ * GetSyncPreview fetches the external hierarchy and reconciles project mappings.
+ * Items are classified for creation, linking, repair, update, or no action.
  * @param {string} projectPath
  * @param {string} token
  * @returns {$CancellablePromise<integrations$0.SyncPreview>}
@@ -280,13 +280,23 @@ export function SaveTypeMappings(projectPath, syncOptions) {
 }
 
 /**
- * UnlinkAsset removes the mapping matching the asset's current type.
+ * UnlinkAsset removes all integration mappings for an asset.
  * @param {string} projectPath
  * @param {string} assetID
  * @returns {$CancellablePromise<void>}
  */
 export function UnlinkAsset(projectPath, assetID) {
     return $Call.ByID(406403022, projectPath, assetID);
+}
+
+/**
+ * UnlinkAssets removes all integration mappings for the selected assets.
+ * @param {string} projectPath
+ * @param {string[]} assetIDs
+ * @returns {$CancellablePromise<void>}
+ */
+export function UnlinkAssets(projectPath, assetIDs) {
+    return $Call.ByID(3742547591, projectPath, assetIDs);
 }
 
 /**

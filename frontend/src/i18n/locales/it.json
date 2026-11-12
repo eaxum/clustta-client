@@ -2308,7 +2308,7 @@
     "openInBrowser": "Apri nel browser",
     "unlinkAssetTooltip": "Scollega da {integration}",
     "unlinkAssetTitle": "Scollegare l'asset da {integration}?",
-    "unlinkAssetMessage": "Questa operazione rimuove il collegamento a {integration} per il tipo di asset attualmente selezionato. L'asset non verrà eliminato.",
+    "unlinkAssetMessage": "Questa operazione rimuove tutti i collegamenti a {integration} per l'asset selezionato. L'asset non verrà eliminato.",
     "unlinkAsset": "Scollega asset",
     "assetUnlinked": "Asset scollegato da {integration}.",
     "assetUnlinkFailed": "Impossibile scollegare l'asset da {integration}."

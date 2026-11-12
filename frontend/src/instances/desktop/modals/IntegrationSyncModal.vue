@@ -23,7 +23,8 @@
           <div class="preview-summary">
             <span>{{ $t('kitsu.newCount', { count: selectedCreateCount }) }}</span>
             <span>{{ $t('kitsu.linkCount', { count: selectedLinkCount }) }}</span>
-            <span>{{ $t('kitsu.noActionCount', { count: noActionCount }) }}</span>
+            <span>{{ $t('kitsu.repairCount', { count: selectedRepairCount }) }}</span>
+            <span>{{ $t('kitsu.linkedCount', { count: mappingSummary.linked_mappings || 0 }) }}</span>
           </div>
           <div class="preview-actions">
             <button type="button" @click="selectAll">{{ $t('kitsu.selectAll') }}</button>
@@ -35,6 +36,13 @@
         </div>
 
         <div class="preview-divider"></div>
+
+        <div v-if="hasMappingNotices" class="mapping-summary">
+          <span v-if="mappingSummary.changed_mappings">{{ $t('kitsu.changedCount', { count: mappingSummary.changed_mappings }) }}</span>
+          <span v-if="mappingSummary.repairable_mappings">{{ $t('kitsu.repairableCount', { count: mappingSummary.repairable_mappings }) }}</span>
+          <span v-if="mappingSummary.missing_mappings" class="mapping-warning">{{ $t('kitsu.missingCount', { count: mappingSummary.missing_mappings }) }}</span>
+          <span v-if="mappingSummary.ambiguous_mappings" class="mapping-warning">{{ $t('kitsu.ambiguousCount', { count: mappingSummary.ambiguous_mappings }) }}</span>
+        </div>
 
         <!-- Tree View -->
         <div class="sync-preview-scroll">
@@ -144,7 +152,16 @@ const selectedCreateCount = computed(() => countSelectedActions('create'));
 
 const selectedLinkCount = computed(() => countSelectedActions('link'));
 
-const noActionCount = computed(() => allTreeItems.value.filter(item => item.action === 'skip').length);
+const selectedRepairCount = computed(() => countSelectedActions('update') + countSelectedActions('relink'));
+
+const mappingSummary = computed(() => integrationStore.syncPreview?.summary || {});
+
+const hasMappingNotices = computed(() => {
+  return (mappingSummary.value.changed_mappings || 0)
+    + (mappingSummary.value.repairable_mappings || 0)
+    + (mappingSummary.value.missing_mappings || 0)
+    + (mappingSummary.value.ambiguous_mappings || 0) > 0;
+});
 
 const missingTypes = computed(() => integrationStore.syncPreview?.missing_types || []);
 
@@ -211,7 +228,7 @@ const flattenTree = (items) => {
   return flattened;
 };
 
-const isActionable = (item) => item.action === 'create' || item.action === 'link';
+const isActionable = (item) => ['create', 'link', 'update', 'relink'].includes(item.action);
 
 const itemNeedsMissingType = (item) => {
   const externalTypes = item.external_types || [item.external_type];
@@ -456,6 +473,18 @@ onMounted(() => {
   height: 1px;
   background-color: var(--surface-3);
   flex-shrink: 0;
+}
+
+.mapping-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mapping-warning {
+  color: var(--warning);
 }
 
 .sync-summary {

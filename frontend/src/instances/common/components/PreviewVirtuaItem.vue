@@ -67,7 +67,7 @@ const selectableDescendantKeys = computed(() => getSelectableKeys(props.item));
 
 // Returns whether this item is selected.
 const isItemSelected = computed(() => {
-  if (props.item.action === 'virtual') {
+  if (props.item.type === 'collection') {
     return selectableDescendantKeys.value.length > 0
       && selectableDescendantKeys.value.every(key => props.selectedItems.has(key));
   }
@@ -76,12 +76,12 @@ const isItemSelected = computed(() => {
 });
 
 const isItemIndeterminate = computed(() => {
-  if (props.item.action !== 'virtual' || isItemSelected.value) return false;
+  if (props.item.type !== 'collection' || isItemSelected.value) return false;
   return selectableDescendantKeys.value.some(key => props.selectedItems.has(key));
 });
 
 const isItemSelectable = computed(() => {
-  if (props.item.action === 'virtual') return selectableDescendantKeys.value.length > 0;
+  if (props.item.type === 'collection') return selectableDescendantKeys.value.length > 0;
   return props.canSelectItem(props.item);
 });
 

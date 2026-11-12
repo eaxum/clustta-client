@@ -9,6 +9,7 @@ export {
     ExternalStatusInfo,
     ExternalTypeInfo,
     IntegrationInfo,
+    MappingIssue,
     MissingType,
     PreviewItem,
     SyncAsset,

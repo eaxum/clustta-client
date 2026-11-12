@@ -14,9 +14,9 @@
       <span class="preview-type-label">{{ isVirtual ? 'Folder' : typeName }}</span>
     </div>
 
-    <span v-if="!isVirtual" class="action-badge" :class="`action-${collection.action}`">{{ actionLabel }}</span>
+    <span v-if="attentionAction !== 'virtual'" class="action-badge" :class="`action-${attentionAction}`">{{ actionLabel }}</span>
     <CheckBox :modelValue="isSelected" :indeterminate="isIndeterminate"
-      :disabled="!isSelectable || (!isVirtual && !isActionable)"
+      :disabled="!isSelectable"
       :ariaLabel="`${isSelected ? 'Exclude' : 'Include'} ${collection.name}`"
       @update:modelValue="emit('toggle-selection')" />
 
@@ -75,15 +75,21 @@ const typeName = computed(() => {
   return utils.capitalizeStr(props.collection.external_type || 'Collection');
 });
 
-const isActionable = computed(() => props.collection.action === 'create' || props.collection.action === 'link');
+const attentionAction = computed(() => {
+  return props.collection.attention_action || props.collection.action;
+});
 
 const actionLabel = computed(() => {
   const labels = {
     create: t('kitsu.actionNew'),
     link: t('kitsu.actionLink'),
+    update: t('kitsu.actionUpdate'),
+    relink: t('kitsu.actionRelink'),
+    missing: t('kitsu.actionMissing'),
+    ambiguous: t('kitsu.actionAmbiguous'),
     skip: t('kitsu.actionNone'),
   };
-  return labels[props.collection.action] || t('kitsu.actionNone');
+  return labels[attentionAction.value] || t('kitsu.actionNone');
 });
 
 // methods
@@ -205,6 +211,18 @@ const toggleExpand = () => {
 .action-link {
   color: #60a5fa;
   background-color: rgba(59, 130, 246, 0.15);
+}
+
+.action-update,
+.action-relink {
+  color: #fbbf24;
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+.action-missing,
+.action-ambiguous {
+  color: var(--warning);
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
 }
 
 .action-skip {

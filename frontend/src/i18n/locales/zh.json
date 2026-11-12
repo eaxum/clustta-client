@@ -2308,7 +2308,7 @@
     "openInBrowser": "在浏览器中打开",
     "unlinkAssetTooltip": "取消与 {integration} 的链接",
     "unlinkAssetTitle": "取消资产与 {integration} 的链接？",
-    "unlinkAssetMessage": "这将删除当前所选资产类型与 {integration} 的链接。资产本身不会被删除。",
+    "unlinkAssetMessage": "这将删除所选资产的所有 {integration} 链接。资产本身不会被删除。",
     "unlinkAsset": "取消资产链接",
     "assetUnlinked": "资产已与 {integration} 取消链接。",
     "assetUnlinkFailed": "无法取消资产与 {integration} 的链接。"

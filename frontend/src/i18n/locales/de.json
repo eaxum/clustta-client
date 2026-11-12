@@ -2309,7 +2309,7 @@
     "openInBrowser": "Im Browser öffnen",
     "unlinkAssetTooltip": "Von {integration} trennen",
     "unlinkAssetTitle": "Asset von {integration} trennen?",
-    "unlinkAssetMessage": "Dadurch wird die {integration}-Verknüpfung für den aktuell ausgewählten Asset-Typ entfernt. Das Asset selbst wird nicht gelöscht.",
+    "unlinkAssetMessage": "Dadurch werden alle {integration}-Verknüpfungen für das ausgewählte Asset entfernt. Das Asset selbst wird nicht gelöscht.",
     "unlinkAsset": "Asset trennen",
     "assetUnlinked": "Asset wurde von {integration} getrennt.",
     "assetUnlinkFailed": "Asset konnte nicht von {integration} getrennt werden."

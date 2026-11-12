@@ -49,6 +49,9 @@
       <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="getAppIcon('broom')" :showLabel="true" :fullWidth="true"
         :label="$t('components.detailsPane.freeUpSpace')" shortcut="freeUpSpace" :buttonFunction="prepFreeUpSpacePopUpModal" />
 
+      <ActionButton v-if="selectedAssetsCanClearIntegration" :icon="getAppIcon('plug-cancel')" :showLabel="true"
+        :fullWidth="true" :label="$t('kitsu.clearSelectedAssets')" :buttonFunction="confirmClearAssetIntegrations" />
+
       <span v-if="selectedAssetsCanDelete" class="menu-divider"></span>
 
       <ActionButton v-if="selectedAssetsCanDelete" :icon="getAppIcon('trash')" :showLabel="true" :fullWidth="true"
@@ -120,7 +123,7 @@ import { canSquash } from '@/utils/squash';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // services
-import { AssetService, CheckpointService, CollectionService, FSService, SyncService } from "@/services";
+import { AssetService, CheckpointService, CollectionService, FSService, IntegrationService, SyncService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -205,6 +208,9 @@ const selectedAssetsCanUpdate = computed(() => canActOnAssets('update_asset', se
 const selectedAssetsCanDelete = computed(() => canActOnAssets('delete_asset', selectedAssets.value));
 const selectedAssetsCanAssign = computed(() => canActOnAssets('assign_asset', selectedAssets.value));
 const selectedAssetsCanUnassign = computed(() => canActOnAssets('unassign_asset', selectedAssets.value));
+const selectedAssetsCanClearIntegration = computed(() => {
+  return selectedAssets.value.length > 0 && userStore.canDo('manage_integrations');
+});
 const mixedSelectionCanDelete = computed(() => {
   return selectedAssets.value.length === 0 || selectedAssetsCanDelete.value;
 });
@@ -298,6 +304,31 @@ const clearSelection = () => {
   stage.lastSelectedItemId = '';
   assetStore.selectedAsset = null;
   collectionStore.selectedCollection = null;
+};
+
+const confirmClearAssetIntegrations = () => {
+  const assetIDs = selectedAssets.value.map(asset => asset.id);
+  if (!assetIDs.length || !projectStore.activeProject?.uri) return;
+
+  menu.hideContextMenu();
+  trayStates.popUpModalTitle = t('kitsu.clearSelectedAssetsTitle', { count: assetIDs.length });
+  trayStates.popUpModalMessage = t('kitsu.clearSelectedAssetsMessage', { count: assetIDs.length });
+  trayStates.popUpModalIcon = 'plug-cancel';
+  trayStates.popUpModalButtons = [t('common.cancel'), t('kitsu.clearSelectedAssets')];
+  trayStates.popUpModalFunction = async () => {
+    try {
+      await IntegrationService.UnlinkAssets(projectStore.activeProject.uri, assetIDs);
+      modals.disableAllModals();
+      notificationStore.addNotification(
+        t('kitsu.selectedAssetsCleared', { count: assetIDs.length }),
+        '',
+        'success',
+      );
+    } catch (error) {
+      notificationStore.errorNotification(t('kitsu.selectedAssetsClearFailed'), error);
+    }
+  };
+  modals.setModalVisibility('popUpModal', true);
 };
 
 // Closes all modals.

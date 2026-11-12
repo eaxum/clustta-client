@@ -77,7 +77,13 @@ export const useIntegrationStore = defineStore('integrations', {
 
       const items = [];
       const groupedAssets = new Map();
-      const actionPriority = { create: 3, link: 2, skip: 1, virtual: 0 };
+      const actionPriority = { ambiguous: 7, missing: 6, relink: 5, update: 4, create: 3, link: 2, skip: 1, virtual: 0 };
+      const getAttentionAction = (item) => {
+        if (item.mapping_status === 'missing' || item.mapping_status === 'ambiguous') {
+          return item.mapping_status;
+        }
+        return item.action;
+      };
       const sortAlphabetically = (values) => [...values].sort((left, right) => {
         return String(left.name || '').localeCompare(String(right.name || ''), undefined, {
           numeric: true,
@@ -111,6 +117,9 @@ export const useIntegrationStore = defineStore('integrations', {
           if ((actionPriority[item.action] || 0) > (actionPriority[existing.action] || 0)) {
             existing.action = item.action;
           }
+          if ((actionPriority[getAttentionAction(item)] || 0) > (actionPriority[getAttentionAction(existing)] || 0)) {
+            existing.mapping_status = item.mapping_status;
+          }
           continue;
         }
 
@@ -139,9 +148,16 @@ export const useIntegrationStore = defineStore('integrations', {
       // Recursively build tree structure
       const buildNode = (item) => {
         const children = sortAlphabetically(childrenMap.get(item.collection_path) || []);
+        const childNodes = children.map(buildNode);
         const itemType = item.item_type === 'asset' ? 'asset' : 'collection';
         const selectableIds = item.selectable_ids
           || (item.action !== 'skip' && item.external_id ? [item.external_id] : []);
+        let attentionAction = getAttentionAction(item);
+        for (const child of childNodes) {
+          if ((actionPriority[child.attention_action] || 0) > (actionPriority[attentionAction] || 0)) {
+            attentionAction = child.attention_action;
+          }
+        }
         return {
           id: item.id,
           type: itemType,
@@ -159,13 +175,15 @@ export const useIntegrationStore = defineStore('integrations', {
           collection_path: item.collection_path,
           parent_path: item.parent_path,
           action: item.action,
+          attention_action: attentionAction,
+          mapping_status: item.mapping_status,
           selected: item.selected,
           selection_keys: selectableIds.map(id => `${itemType}:${id}`),
           is_virtual: item.is_virtual,
           has_children: item.has_children,
           template_id: item.template_id,
           template_extension: item.template_extension,
-          children: children.map(buildNode),
+          children: childNodes,
         };
       };
 

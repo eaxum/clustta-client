@@ -60,6 +60,9 @@
             @click="prepManageTags($event)" v-tooltip="$t('components.detailsPane.manageTagsTooltip')" />
           <ActionButton v-if="!platformStore.isWeb && assetsOnDisk" :icon="getAppIcon('broom')" :label="$t('components.detailsPane.freeUpSpace')"
             :buttonFunction="prepFreeUpSpacePopUpModal" v-tooltip="$t('components.detailsPane.freeUpSpaceAssetTooltip')" />
+          <ActionButton v-if="selectedAssetsCanClearIntegration" :icon="getAppIcon('plug-cancel')"
+            :label="$t('kitsu.clearSelectedAssets')" :buttonFunction="confirmClearAssetIntegrations"
+            v-tooltip="$t('kitsu.clearSelectedAssetsTooltip')" />
           <ActionButton v-if="selectedAssetsCanDelete" :icon="getAppIcon('trash')" :label="$t('components.detailsPane.deleteSelectedAssets')"
             :buttonFunction="deleteMultipleAssets" v-tooltip="$t('components.detailsPane.deleteSelectedAssetsTooltip')" />
         </div>
@@ -148,7 +151,7 @@ import ProjectDetails from "@/instances/desktop/panes/ProjectDetails.vue";
 import UntrackedItemDetails from "@/instances/desktop/panes/UntrackedItemDetails.vue";
 
 // services
-import { AssetService, CheckpointService, CollectionService, FSService, SyncService, TrashService } from "@/services";
+import { AssetService, CheckpointService, CollectionService, FSService, IntegrationService, SyncService, TrashService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -377,6 +380,9 @@ const selectedAssetsCanDelete = computed(() => canActOnAssets('delete_asset', se
 const selectedAssetsCanAssign = computed(() => canActOnAssets('assign_asset', selectedAssets.value));
 const selectedAssetsCanUnassign = computed(() => canActOnAssets('unassign_asset', selectedAssets.value));
 const selectedAssetsCanChangeStatus = computed(() => canActOnAssets('change_status', selectedAssets.value));
+const selectedAssetsCanClearIntegration = computed(() => {
+  return selectedAssets.value.length > 0 && userStore.canDo('manage_integrations');
+});
 const mixedSelectionCanDelete = computed(() => {
   return selectedAssets.value.length === 0 || selectedAssetsCanDelete.value;
 });
@@ -577,6 +583,30 @@ const clearSelection = () => {
   stage.lastSelectedItemId = '';
   assetStore.selectedAsset = null;
   collectionStore.selectedCollection = null;
+};
+
+const confirmClearAssetIntegrations = () => {
+  const assetIDs = selectedAssets.value.map(asset => asset.id);
+  if (!assetIDs.length || !projectStore.activeProject?.uri) return;
+
+  trayStates.popUpModalTitle = t('kitsu.clearSelectedAssetsTitle', { count: assetIDs.length });
+  trayStates.popUpModalMessage = t('kitsu.clearSelectedAssetsMessage', { count: assetIDs.length });
+  trayStates.popUpModalIcon = 'plug-cancel';
+  trayStates.popUpModalButtons = [t('common.cancel'), t('kitsu.clearSelectedAssets')];
+  trayStates.popUpModalFunction = async () => {
+    try {
+      await IntegrationService.UnlinkAssets(projectStore.activeProject.uri, assetIDs);
+      modals.disableAllModals();
+      notificationStore.addNotification(
+        t('kitsu.selectedAssetsCleared', { count: assetIDs.length }),
+        '',
+        'success',
+      );
+    } catch (error) {
+      notificationStore.errorNotification(t('kitsu.selectedAssetsClearFailed'), error);
+    }
+  };
+  modals.setModalVisibility('popUpModal', true);
 };
 
 // Closes all modals.

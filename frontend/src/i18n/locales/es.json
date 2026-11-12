@@ -2309,7 +2309,7 @@
     "openInBrowser": "Abrir en el navegador",
     "unlinkAssetTooltip": "Desvincular de {integration}",
     "unlinkAssetTitle": "¿Desvincular el recurso de {integration}?",
-    "unlinkAssetMessage": "Esto elimina el vínculo de {integration} para el tipo de recurso seleccionado actualmente. El recurso no se eliminará.",
+    "unlinkAssetMessage": "Esto elimina todos los vínculos de {integration} del recurso seleccionado. El recurso no se eliminará.",
     "unlinkAsset": "Desvincular recurso",
     "assetUnlinked": "Recurso desvinculado de {integration}.",
     "assetUnlinkFailed": "No se pudo desvincular el recurso de {integration}."

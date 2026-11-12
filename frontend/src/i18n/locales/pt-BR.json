@@ -2308,7 +2308,7 @@
     "openInBrowser": "Abrir no navegador",
     "unlinkAssetTooltip": "Desvincular do {integration}",
     "unlinkAssetTitle": "Desvincular o asset do {integration}?",
-    "unlinkAssetMessage": "Isso remove o vínculo com o {integration} para o tipo de asset selecionado atualmente. O asset não será excluído.",
+    "unlinkAssetMessage": "Isso remove todos os vínculos com o {integration} do asset selecionado. O asset não será excluído.",
     "unlinkAsset": "Desvincular asset",
     "assetUnlinked": "Asset desvinculado do {integration}.",
     "assetUnlinkFailed": "Não foi possível desvincular o asset do {integration}."

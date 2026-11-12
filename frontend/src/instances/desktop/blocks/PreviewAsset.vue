@@ -12,7 +12,7 @@
     <div class="preview-meta">
       <span v-for="taskType in taskTypes" :key="taskType" class="preview-type-label">{{ taskType }}</span>
     </div>
-    <span class="action-badge" :class="`action-${asset.action}`">{{ actionLabel }}</span>
+    <span class="action-badge" :class="`action-${attentionAction}`">{{ actionLabel }}</span>
     <CheckBox :modelValue="isSelected" :disabled="!isActionable || !isSelectable"
       :ariaLabel="`${isSelected ? 'Exclude' : 'Include'} ${asset.name}`"
       @update:modelValue="emit('toggle-selection')" />
@@ -67,15 +67,23 @@ const taskTypes = computed(() => {
   return [...new Set(types.filter(Boolean).map(type => utils.capitalizeStr(type)))];
 });
 
-const isActionable = computed(() => props.asset.action === 'create' || props.asset.action === 'link');
+const isActionable = computed(() => ['create', 'link', 'update', 'relink'].includes(props.asset.action));
+
+const attentionAction = computed(() => {
+  return props.asset.attention_action || props.asset.action;
+});
 
 const actionLabel = computed(() => {
   const labels = {
     create: t('kitsu.actionNew'),
     link: t('kitsu.actionLink'),
+    update: t('kitsu.actionUpdate'),
+    relink: t('kitsu.actionRelink'),
+    missing: t('kitsu.actionMissing'),
+    ambiguous: t('kitsu.actionAmbiguous'),
     skip: t('kitsu.actionNone'),
   };
-  return labels[props.asset.action] || t('kitsu.actionNone');
+  return labels[attentionAction.value] || t('kitsu.actionNone');
 });
 
 // methods
@@ -191,6 +199,18 @@ onMounted(() => {
 .action-link {
   color: #60a5fa;
   background-color: rgba(59, 130, 246, 0.15);
+}
+
+.action-update,
+.action-relink {
+  color: #fbbf24;
+  background-color: rgba(245, 158, 11, 0.15);
+}
+
+.action-missing,
+.action-ambiguous {
+  color: var(--warning);
+  background-color: color-mix(in srgb, var(--warning) 15%, transparent);
 }
 
 .action-skip {
