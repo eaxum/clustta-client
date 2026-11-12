@@ -30,8 +30,8 @@
 
 				<div v-if="userStore.canDo('create_asset')" class="actions-divider" ></div>
 				
-				<ActionButton :isDisabled="revertButtonDisabled" :buttonFunction="prepDiscardAll" :icon="getAppIcon('revert')"
-					:useOutline="true" :useBackground="false" :useDanger="true" v-tooltip="revertButtonTooltip" />
+				<ActionButton :isDisabled="discardButtonDisabled" :buttonFunction="prepDiscardAll" :icon="getAppIcon('revert')"
+					:useOutline="true" :useBackground="false" :useDanger="true" v-tooltip="discardButtonTooltip" />
 
 				<ActionButton :isDisabled="syncButtonDisabled" :buttonFunction="syncProject" :icon="getAppIcon(getCloudIcon)"
 					:useOutline="true" :color="cloudIconColor" :isLoading="isSyncing" :label="cloudIconLabel"
@@ -202,19 +202,19 @@ const unSynced = computed(() => { return projectStore.getActiveProject?.is_unsyn
 const offline = computed(() => { return projectStore.getActiveProject?.is_offline });
 const loginRequired = computed(() => !userStore.isUserAuthenticated && !accountStore.isOfflineMode);
 
-const revertButtonDisabled = computed(() => {
+const discardButtonDisabled = computed(() => {
 	return !!notificationStore.getProgress.running || 
 	       stage.operationActive || 
 	       !projectStore.getActiveProject?.is_downloaded ||
 	       !unSynced.value;
 });
 
-const revertButtonTooltip = computed(() => {
+const discardButtonTooltip = computed(() => {
 	if (projectStore.serverIsBusy) return t('components.headerBar.serverBusy');
 	if (stage.operationActive) return t('components.headerBar.operationInProgress');
 	if (!projectStore.getActiveProject?.is_downloaded) return t('components.headerBar.projectNotDownloaded');
-	if (!unSynced.value) return t('components.headerBar.noChangesToRevert');
-	return t('components.headerBar.revertLocalChanges');
+	if (!unSynced.value) return t('components.headerBar.noChangesToDiscard');
+	return t('panes.discardAllChanges');
 });
 
 const syncButtonDisabled = computed(() => {
@@ -272,7 +272,7 @@ const revertChanges = async () => {
 
 // Shows the discard-all confirmation modal.
 const prepDiscardAll = () => {
-	if (revertButtonDisabled.value) return;
+	if (discardButtonDisabled.value) return;
 
 	trayStates.popUpModalIcon = 'revert';
 	trayStates.popUpModalTitle = t('panes.discardAllChanges');
