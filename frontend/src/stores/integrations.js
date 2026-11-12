@@ -77,7 +77,8 @@ export const useIntegrationStore = defineStore('integrations', {
 
       const items = [];
       const groupedAssets = new Map();
-      const actionPriority = { ambiguous: 7, missing: 6, relink: 5, update: 4, create: 3, link: 2, skip: 1, virtual: 0 };
+      const operationPriority = { relink: 5, update: 4, create: 3, link: 2, skip: 1, virtual: 0 };
+      const attentionPriority = { ambiguous: 7, missing: 6, ...operationPriority };
       const getAttentionAction = (item) => {
         if (item.mapping_status === 'missing' || item.mapping_status === 'ambiguous') {
           return item.mapping_status;
@@ -114,10 +115,10 @@ export const useIntegrationStore = defineStore('integrations', {
             existing.selectable_ids.push(item.external_id);
           }
           existing.selected = existing.selected || item.selected;
-          if ((actionPriority[item.action] || 0) > (actionPriority[existing.action] || 0)) {
+          if ((operationPriority[item.action] || 0) > (operationPriority[existing.action] || 0)) {
             existing.action = item.action;
           }
-          if ((actionPriority[getAttentionAction(item)] || 0) > (actionPriority[getAttentionAction(existing)] || 0)) {
+          if ((attentionPriority[getAttentionAction(item)] || 0) > (attentionPriority[getAttentionAction(existing)] || 0)) {
             existing.mapping_status = item.mapping_status;
           }
           continue;
@@ -154,7 +155,7 @@ export const useIntegrationStore = defineStore('integrations', {
           || (item.action !== 'skip' && item.external_id ? [item.external_id] : []);
         let attentionAction = getAttentionAction(item);
         for (const child of childNodes) {
-          if ((actionPriority[child.attention_action] || 0) > (actionPriority[attentionAction] || 0)) {
+          if ((attentionPriority[child.attention_action] || 0) > (attentionPriority[attentionAction] || 0)) {
             attentionAction = child.attention_action;
           }
         }

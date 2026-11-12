@@ -93,42 +93,71 @@ func TestReconcileMappingsMarksMetadataChanges(t *testing.T) {
 }
 
 func TestConsumeUniqueMappingIssueUsesLocalItemAndType(t *testing.T) {
-	issues := []integrations.MappingIssue{
-		{ItemType: "asset", MappingID: "mapping", LocalID: "local", ExternalType: "Lighting", Status: mappingStatusMissing},
-		{ItemType: "asset", MappingID: "other", LocalID: "other", ExternalType: "Lighting", Status: mappingStatusMissing},
+	issues := []*mappingIssue{
+		{itemType: "asset", mappingID: "mapping", localID: "local", externalType: "Lighting", status: mappingStatusMissing},
+		{itemType: "asset", mappingID: "other", localID: "other", externalType: "Lighting", status: mappingStatusMissing},
 	}
 
-	issue, remaining, found := consumeUniqueMappingIssue(issues, "asset", "local", "lighting")
+	reconciliation := mappingReconciliation{issuesByLocalType: make(map[string][]*mappingIssue)}
+	for _, issue := range issues {
+		reconciliation.addIssue(issue)
+	}
+	issue, found := reconciliation.consumeUniqueIssue("asset", "local", "lighting")
 
-	if !found || issue.MappingID != "mapping" {
+	if !found || issue.mappingID != "mapping" {
 		t.Fatalf("expected the matching issue, got %#v", issue)
 	}
-	if len(remaining) != 1 || remaining[0].MappingID != "other" {
-		t.Fatalf("expected the unrelated issue to remain, got %#v", remaining)
+	if countMappingIssues(reconciliation.issues, mappingStatusMissing) != 1 {
+		t.Fatalf("expected the unrelated issue to remain unresolved, got %#v", reconciliation.issues)
 	}
 }
 
 func TestApplyMappingIssueStatusesMarksExistingPreviewItems(t *testing.T) {
 	preview := integrations.SyncPreview{
 		Assets: []integrations.SyncAsset{
-			{AssetID: "local-asset", Action: "skip", MappingStatus: mappingStatusLinked},
+			{AssetID: "local-asset", ExternalType: "Lighting", Action: "skip", MappingStatus: mappingStatusLinked},
+			{AssetID: "local-asset", ExternalType: "FX", Action: "skip", MappingStatus: mappingStatusLinked},
 		},
 		Collections: []integrations.SyncCollection{
-			{CollectionID: "local-collection", Action: "skip", MappingStatus: mappingStatusLinked},
-		},
-		MappingIssues: []integrations.MappingIssue{
-			{ItemType: "asset", LocalID: "local-asset", Status: mappingStatusMissing},
-			{ItemType: "collection", LocalID: "local-collection", Status: mappingStatusAmbiguous},
+			{CollectionID: "local-collection", ExternalType: "shot", Action: "skip", MappingStatus: mappingStatusLinked},
 		},
 	}
+	issues := []*mappingIssue{
+		{itemType: "asset", localID: "local-asset", externalType: "Lighting", status: mappingStatusMissing},
+		{itemType: "collection", localID: "local-collection", externalType: "shot", status: mappingStatusAmbiguous},
+	}
 
-	applyMappingIssueStatuses(&preview)
+	applyMappingIssueStatuses(&preview, issues)
 
 	if preview.Assets[0].MappingStatus != mappingStatusMissing {
 		t.Fatalf("expected missing asset status, got %q", preview.Assets[0].MappingStatus)
 	}
 	if preview.Collections[0].MappingStatus != mappingStatusAmbiguous {
 		t.Fatalf("expected ambiguous collection status, got %q", preview.Collections[0].MappingStatus)
+	}
+	if preview.Assets[1].MappingStatus != mappingStatusLinked {
+		t.Fatalf("expected unrelated asset type to remain linked, got %q", preview.Assets[1].MappingStatus)
+	}
+}
+
+func TestReconcileMappingsDoesNotCleanUpDuplicateWithMultipleLiveMatches(t *testing.T) {
+	externalAssets := []integrations.ExternalAsset{
+		{ID: "current-a", ParentID: "parent", AssetType: "Lighting"},
+		{ID: "current-b", ParentID: "parent", AssetType: "Lighting"},
+	}
+	existingAssets := []models.IntegrationAssetMapping{
+		{Id: "current-map-a", ExternalId: "current-a", ExternalParentId: "parent", ExternalType: "Lighting", AssetId: "local-asset"},
+		{Id: "current-map-b", ExternalId: "current-b", ExternalParentId: "parent", ExternalType: "Lighting", AssetId: "local-asset"},
+		{Id: "stale-map", ExternalId: "old", ExternalParentId: "parent", ExternalType: "Lighting", AssetId: "local-asset"},
+	}
+
+	result := reconcileMappings(nil, nil, externalAssets, nil, existingAssets)
+
+	if len(result.obsoleteAssetMappingIDs) != 0 {
+		t.Fatalf("expected no automatic cleanup for ambiguous live matches, got %#v", result.obsoleteAssetMappingIDs)
+	}
+	if countMappingIssues(result.issues, mappingStatusAmbiguous) != 1 {
+		t.Fatalf("expected the stale mapping to remain ambiguous, got %#v", result.issues)
 	}
 }
 

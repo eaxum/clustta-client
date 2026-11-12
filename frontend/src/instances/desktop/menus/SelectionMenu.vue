@@ -113,6 +113,7 @@
 // imports
 import { computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useClearAssetIntegrations } from '@/composables/useClearAssetIntegrations';
 import emitter from '@/lib/mitt';
 import { getRelativePath } from '@/lib/pathlib';
 import { addIgnoredItem } from '@/lib/untracked';
@@ -123,7 +124,7 @@ import { canSquash } from '@/utils/squash';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 
 // services
-import { AssetService, CheckpointService, CollectionService, FSService, IntegrationService, SyncService } from "@/services";
+import { AssetService, CheckpointService, CollectionService, FSService, SyncService } from "@/services";
 
 // stores
 import { useAssetStore } from '@/stores/assets';
@@ -152,6 +153,7 @@ const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const { t } = useI18n();
+const { confirmClearAssetIntegrations: confirmClearSelectedAssetIntegrations } = useClearAssetIntegrations();
 
 // refs
 const selectionMenu = ref(null);
@@ -308,27 +310,8 @@ const clearSelection = () => {
 
 const confirmClearAssetIntegrations = () => {
   const assetIDs = selectedAssets.value.map(asset => asset.id);
-  if (!assetIDs.length || !projectStore.activeProject?.uri) return;
-
   menu.hideContextMenu();
-  trayStates.popUpModalTitle = t('kitsu.clearSelectedAssetsTitle', { count: assetIDs.length });
-  trayStates.popUpModalMessage = t('kitsu.clearSelectedAssetsMessage', { count: assetIDs.length });
-  trayStates.popUpModalIcon = 'plug-cancel';
-  trayStates.popUpModalButtons = [t('common.cancel'), t('kitsu.clearSelectedAssets')];
-  trayStates.popUpModalFunction = async () => {
-    try {
-      await IntegrationService.UnlinkAssets(projectStore.activeProject.uri, assetIDs);
-      modals.disableAllModals();
-      notificationStore.addNotification(
-        t('kitsu.selectedAssetsCleared', { count: assetIDs.length }),
-        '',
-        'success',
-      );
-    } catch (error) {
-      notificationStore.errorNotification(t('kitsu.selectedAssetsClearFailed'), error);
-    }
-  };
-  modals.setModalVisibility('popUpModal', true);
+  confirmClearSelectedAssetIntegrations(assetIDs);
 };
 
 // Closes all modals.

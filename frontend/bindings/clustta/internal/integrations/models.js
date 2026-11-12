@@ -357,86 +357,6 @@ export class IntegrationInfo {
 }
 
 /**
- * MappingIssue describes a mapping that cannot be resolved automatically.
- */
-export class MappingIssue {
-    /**
-     * Creates a new MappingIssue instance.
-     * @param {Partial<MappingIssue>} [$$source = {}] - The source object to create the MappingIssue.
-     */
-    constructor($$source = {}) {
-        if (!("item_type" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["item_type"] = "";
-        }
-        if (!("mapping_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["mapping_id"] = "";
-        }
-        if (!("local_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["local_id"] = "";
-        }
-        if (!("external_id" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["external_id"] = "";
-        }
-        if (!("external_name" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["external_name"] = "";
-        }
-        if (!("external_type" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["external_type"] = "";
-        }
-        if (!("status" in $$source)) {
-            /**
-             * @member
-             * @type {string}
-             */
-            this["status"] = "";
-        }
-        if (!("candidate_count" in $$source)) {
-            /**
-             * @member
-             * @type {number}
-             */
-            this["candidate_count"] = 0;
-        }
-
-        Object.assign(this, $$source);
-    }
-
-    /**
-     * Creates a new MappingIssue instance from a string or object.
-     * @param {any} [$$source = {}]
-     * @returns {MappingIssue}
-     */
-    static createFrom($$source = {}) {
-        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
-        return new MappingIssue(/** @type {Partial<MappingIssue>} */($$parsedSource));
-    }
-}
-
-/**
  * MissingType represents an external type that doesn't exist in Clustta.
  */
 export class MissingType {
@@ -1116,13 +1036,6 @@ export class SyncPreview {
              */
             this["assets"] = [];
         }
-        if (!("mapping_issues" in $$source)) {
-            /**
-             * @member
-             * @type {MappingIssue[]}
-             */
-            this["mapping_issues"] = [];
-        }
         if (!("missing_types" in $$source)) {
             /**
              * @member
@@ -1151,8 +1064,7 @@ export class SyncPreview {
         const $$createField2_0 = $$createType9;
         const $$createField3_0 = $$createType11;
         const $$createField4_0 = $$createType13;
-        const $$createField5_0 = $$createType15;
-        const $$createField6_0 = $$createType16;
+        const $$createField5_0 = $$createType14;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("preview_items" in $$parsedSource) {
             $$parsedSource["preview_items"] = $$createField1_0($$parsedSource["preview_items"]);
@@ -1163,14 +1075,11 @@ export class SyncPreview {
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField3_0($$parsedSource["assets"]);
         }
-        if ("mapping_issues" in $$parsedSource) {
-            $$parsedSource["mapping_issues"] = $$createField4_0($$parsedSource["mapping_issues"]);
-        }
         if ("missing_types" in $$parsedSource) {
-            $$parsedSource["missing_types"] = $$createField5_0($$parsedSource["missing_types"]);
+            $$parsedSource["missing_types"] = $$createField4_0($$parsedSource["missing_types"]);
         }
         if ("summary" in $$parsedSource) {
-            $$parsedSource["summary"] = $$createField6_0($$parsedSource["summary"]);
+            $$parsedSource["summary"] = $$createField5_0($$parsedSource["summary"]);
         }
         return new SyncPreview(/** @type {Partial<SyncPreview>} */($$parsedSource));
     }
@@ -1354,8 +1263,6 @@ const $$createType8 = SyncCollection.createFrom;
 const $$createType9 = $Create.Array($$createType8);
 const $$createType10 = SyncAsset.createFrom;
 const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = MappingIssue.createFrom;
+const $$createType12 = MissingType.createFrom;
 const $$createType13 = $Create.Array($$createType12);
-const $$createType14 = MissingType.createFrom;
-const $$createType15 = $Create.Array($$createType14);
-const $$createType16 = SyncPreviewSummary.createFrom;
+const $$createType14 = SyncPreviewSummary.createFrom;

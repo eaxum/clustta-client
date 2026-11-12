@@ -155,26 +155,7 @@ func (s *IntegrationService) GetAssetIntegrationDetails(projectPath, assetID str
 
 // UnlinkAsset removes all integration mappings for an asset.
 func (s *IntegrationService) UnlinkAsset(projectPath, assetID string) error {
-	if err := requireProjectPermissionForPath(projectPath, permissionManageIntegrations); err != nil {
-		return err
-	}
-	dbConn, err := utils.OpenDb(projectPath)
-	if err != nil {
-		return err
-	}
-	defer dbConn.Close()
-
-	tx, err := dbConn.Beginx()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if err := repository.DeleteAssetMappingsByAssetID(tx, assetID); err != nil {
-		return err
-	}
-
-	return tx.Commit()
+	return s.UnlinkAssets(projectPath, []string{assetID})
 }
 
 // UnlinkAssets removes all integration mappings for the selected assets.
@@ -194,13 +175,13 @@ func (s *IntegrationService) UnlinkAssets(projectPath string, assetIDs []string)
 	}
 	defer tx.Rollback()
 
-	seen := make(map[string]bool)
+	seen := make(map[string]struct{})
 	for _, assetID := range assetIDs {
 		assetID = strings.TrimSpace(assetID)
-		if assetID == "" || seen[assetID] {
+		if _, exists := seen[assetID]; assetID == "" || exists {
 			continue
 		}
-		seen[assetID] = true
+		seen[assetID] = struct{}{}
 		if err := repository.DeleteAssetMappingsByAssetID(tx, assetID); err != nil {
 			return err
 		}
@@ -409,7 +390,6 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		IntegrationID: integrationProject.IntegrationId,
 		Collections:   []integrations.SyncCollection{},
 		Assets:        []integrations.SyncAsset{},
-		MappingIssues: reconciliation.issues,
 		MissingTypes:  []integrations.MissingType{},
 	}
 
@@ -437,18 +417,16 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 		} else if existingCollection, lookupErr := repository.GetCollectionByPath(tx, fullPath); lookupErr == nil && existingCollection.Id != "" {
 			action = "link"
 			collectionID = existingCollection.Id
-			issue, remainingIssues, found := consumeUniqueMappingIssue(
-				reconciliation.issues,
+			issue, found := reconciliation.consumeUniqueIssue(
 				"collection",
 				collectionID,
 				collection.Type,
 			)
 			if found {
 				action = "relink"
-				mappingID = issue.MappingID
+				mappingID = issue.mappingID
 				mappingStatus = mappingStatusRepairable
 				reconciliation.collectionStatuses[collection.ID] = mappingStatusRepairable
-				reconciliation.issues = remainingIssues
 			}
 		}
 
@@ -538,18 +516,16 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 				if err == nil && existingAsset.Id != "" {
 					action = "link"
 					assetID = existingAsset.Id
-					issue, remainingIssues, found := consumeUniqueMappingIssue(
-						reconciliation.issues,
+					issue, found := reconciliation.consumeUniqueIssue(
 						"asset",
 						assetID,
 						asset.AssetType,
 					)
 					if found {
 						action = "relink"
-						mappingID = issue.MappingID
+						mappingID = issue.mappingID
 						mappingStatus = mappingStatusRepairable
 						reconciliation.assetStatuses[asset.ID] = mappingStatusRepairable
-						reconciliation.issues = remainingIssues
 					}
 				}
 			}
@@ -591,8 +567,7 @@ func (s *IntegrationService) GetSyncPreview(projectPath, token string) (integrat
 			TemplateExtension:  templateExtension,
 		})
 	}
-	preview.MappingIssues = reconciliation.issues
-	applyMappingIssueStatuses(&preview)
+	applyMappingIssueStatuses(&preview, reconciliation.issues)
 
 	// Build missing types list
 	collectionIcons := constants.CollectionTypeIcons

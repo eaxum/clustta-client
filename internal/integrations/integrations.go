@@ -107,21 +107,8 @@ type SyncPreview struct {
 	PreviewItems  []PreviewItem      `json:"preview_items"` // Unified list of all items (collections, assets, virtual folders)
 	Collections   []SyncCollection   `json:"collections"`   // Deprecated: use PreviewItems
 	Assets        []SyncAsset        `json:"assets"`        // Deprecated: use PreviewItems
-	MappingIssues []MappingIssue     `json:"mapping_issues"`
 	MissingTypes  []MissingType      `json:"missing_types"`
 	Summary       SyncPreviewSummary `json:"summary"`
-}
-
-// MappingIssue describes a mapping that cannot be resolved automatically.
-type MappingIssue struct {
-	ItemType       string `json:"item_type"`
-	MappingID      string `json:"mapping_id"`
-	LocalID        string `json:"local_id"`
-	ExternalID     string `json:"external_id"`
-	ExternalName   string `json:"external_name"`
-	ExternalType   string `json:"external_type"`
-	Status         string `json:"status"`
-	CandidateCount int    `json:"candidate_count"`
 }
 
 // PreviewItem represents a unified item in the sync preview (collection, asset, or virtual folder).

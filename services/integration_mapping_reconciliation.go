@@ -23,7 +23,17 @@ type mappingReconciliation struct {
 	assetMappings                map[string]models.IntegrationAssetMapping
 	assetStatuses                map[string]string
 	obsoleteAssetMappingIDs      map[string][]string
-	issues                       []integrations.MappingIssue
+	issues                       []*mappingIssue
+	issuesByLocalType            map[string][]*mappingIssue
+}
+
+type mappingIssue struct {
+	itemType     string
+	mappingID    string
+	localID      string
+	externalType string
+	status       string
+	resolved     bool
 }
 
 func reconcileMappings(
@@ -40,7 +50,8 @@ func reconcileMappings(
 		assetMappings:                make(map[string]models.IntegrationAssetMapping),
 		assetStatuses:                make(map[string]string),
 		obsoleteAssetMappingIDs:      make(map[string][]string),
-		issues:                       []integrations.MappingIssue{},
+		issues:                       []*mappingIssue{},
+		issuesByLocalType:            make(map[string][]*mappingIssue),
 	}
 
 	collectionByID := make(map[string]integrations.ExternalCollection)
@@ -53,7 +64,7 @@ func reconcileMappings(
 	}
 
 	staleCollections := make([]models.IntegrationCollectionMapping, 0)
-	exactCollectionsByLocalType := make(map[string]string)
+	exactCollectionsByLocalType := make(map[string][]string)
 	for _, mapping := range existingCollections {
 		collection, exists := collectionByID[mapping.ExternalId]
 		if !exists {
@@ -61,7 +72,8 @@ func reconcileMappings(
 			continue
 		}
 		result.collectionMappings[collection.ID] = mapping
-		exactCollectionsByLocalType[localTypeKey(mapping.CollectionId, collection.Type)] = collection.ID
+		key := localTypeKey(mapping.CollectionId, collection.Type)
+		exactCollectionsByLocalType[key] = append(exactCollectionsByLocalType[key], collection.ID)
 		status := mappingStatusLinked
 		if collectionMappingChanged(mapping, collection, collectionPaths[collection.ID]) {
 			status = mappingStatusChanged
@@ -74,11 +86,16 @@ func reconcileMappings(
 	}
 	remainingStaleCollections := make([]models.IntegrationCollectionMapping, 0, len(staleCollections))
 	for _, mapping := range staleCollections {
-		externalID, exists := exactCollectionsByLocalType[localTypeKey(mapping.CollectionId, mapping.ExternalType)]
-		if !exists {
+		externalIDs := exactCollectionsByLocalType[localTypeKey(mapping.CollectionId, mapping.ExternalType)]
+		if len(externalIDs) > 1 {
+			result.addIssue(collectionMappingIssue(mapping, mappingStatusAmbiguous))
+			continue
+		}
+		if len(externalIDs) == 0 {
 			remainingStaleCollections = append(remainingStaleCollections, mapping)
 			continue
 		}
+		externalID := externalIDs[0]
 		result.collectionStatuses[externalID] = mappingStatusRepairable
 		result.obsoleteCollectionMappingIDs[externalID] = append(result.obsoleteCollectionMappingIDs[externalID], mapping.Id)
 		resolvedParentIDs[mapping.ExternalId] = externalID
@@ -117,11 +134,11 @@ func reconcileMappings(
 		if len(candidates) > 0 {
 			status = mappingStatusAmbiguous
 		}
-		result.issues = append(result.issues, collectionMappingIssue(mapping, status, len(candidates)))
+		result.addIssue(collectionMappingIssue(mapping, status))
 	}
 
 	staleAssets := make([]models.IntegrationAssetMapping, 0)
-	exactAssetsByLocalType := make(map[string]string)
+	exactAssetsByLocalType := make(map[string][]string)
 	for _, mapping := range existingAssets {
 		asset, exists := assetByID[mapping.ExternalId]
 		if !exists {
@@ -129,7 +146,8 @@ func reconcileMappings(
 			continue
 		}
 		result.assetMappings[asset.ID] = mapping
-		exactAssetsByLocalType[localTypeKey(mapping.AssetId, asset.AssetType)] = asset.ID
+		key := localTypeKey(mapping.AssetId, asset.AssetType)
+		exactAssetsByLocalType[key] = append(exactAssetsByLocalType[key], asset.ID)
 		status := mappingStatusLinked
 		if assetMappingChanged(mapping, asset) {
 			status = mappingStatusChanged
@@ -138,11 +156,16 @@ func reconcileMappings(
 	}
 	remainingStaleAssets := make([]models.IntegrationAssetMapping, 0, len(staleAssets))
 	for _, mapping := range staleAssets {
-		externalID, exists := exactAssetsByLocalType[localTypeKey(mapping.AssetId, mapping.ExternalType)]
-		if !exists {
+		externalIDs := exactAssetsByLocalType[localTypeKey(mapping.AssetId, mapping.ExternalType)]
+		if len(externalIDs) > 1 {
+			result.addIssue(assetMappingIssue(mapping, mappingStatusAmbiguous))
+			continue
+		}
+		if len(externalIDs) == 0 {
 			remainingStaleAssets = append(remainingStaleAssets, mapping)
 			continue
 		}
+		externalID := externalIDs[0]
 		result.assetStatuses[externalID] = mappingStatusRepairable
 		result.obsoleteAssetMappingIDs[externalID] = append(result.obsoleteAssetMappingIDs[externalID], mapping.Id)
 	}
@@ -183,7 +206,7 @@ func reconcileMappings(
 		if len(candidates) > 0 {
 			status = mappingStatusAmbiguous
 		}
-		result.issues = append(result.issues, assetMappingIssue(mapping, status, len(candidates)))
+		result.addIssue(assetMappingIssue(mapping, status))
 	}
 
 	return result
@@ -241,97 +264,87 @@ func countMappingStatuses(reconciliation mappingReconciliation, status string) i
 	return count
 }
 
-func countMappingIssues(issues []integrations.MappingIssue, status string) int {
+func countMappingIssues(issues []*mappingIssue, status string) int {
 	count := 0
 	for _, issue := range issues {
-		if issue.Status == status {
+		if !issue.resolved && issue.status == status {
 			count++
 		}
 	}
 	return count
 }
 
-func consumeUniqueMappingIssue(
-	issues []integrations.MappingIssue,
-	itemType string,
-	localID string,
-	externalType string,
-) (integrations.MappingIssue, []integrations.MappingIssue, bool) {
-	matchingIndex := -1
-	for index, issue := range issues {
-		if issue.ItemType != itemType || issue.LocalID != localID {
-			continue
-		}
-		if !strings.EqualFold(strings.TrimSpace(issue.ExternalType), strings.TrimSpace(externalType)) {
-			continue
-		}
-		if matchingIndex != -1 {
-			return integrations.MappingIssue{}, issues, false
-		}
-		matchingIndex = index
-	}
-	if matchingIndex == -1 {
-		return integrations.MappingIssue{}, issues, false
-	}
-
-	issue := issues[matchingIndex]
-	remaining := make([]integrations.MappingIssue, 0, len(issues)-1)
-	remaining = append(remaining, issues[:matchingIndex]...)
-	remaining = append(remaining, issues[matchingIndex+1:]...)
-	return issue, remaining, true
+func (reconciliation *mappingReconciliation) addIssue(issue *mappingIssue) {
+	reconciliation.issues = append(reconciliation.issues, issue)
+	key := mappingIssueKey(issue.itemType, issue.localID, issue.externalType)
+	reconciliation.issuesByLocalType[key] = append(reconciliation.issuesByLocalType[key], issue)
 }
 
-func applyMappingIssueStatuses(preview *integrations.SyncPreview) {
+func (reconciliation *mappingReconciliation) consumeUniqueIssue(itemType, localID, externalType string) (*mappingIssue, bool) {
+	key := mappingIssueKey(itemType, localID, externalType)
+	issues := reconciliation.issuesByLocalType[key]
+	if len(issues) != 1 || issues[0].resolved {
+		return nil, false
+	}
+	issues[0].resolved = true
+	return issues[0], true
+}
+
+func mappingIssueKey(itemType, localID, externalType string) string {
+	return itemType + "|" + localTypeKey(localID, externalType)
+}
+
+func applyMappingIssueStatuses(preview *integrations.SyncPreview, issues []*mappingIssue) {
 	collectionStatuses := make(map[string]string)
 	assetStatuses := make(map[string]string)
-	for _, issue := range preview.MappingIssues {
+	for _, issue := range issues {
+		if issue.resolved {
+			continue
+		}
 		statuses := assetStatuses
-		if issue.ItemType == "collection" {
+		if issue.itemType == "collection" {
 			statuses = collectionStatuses
 		}
-		existingStatus := statuses[issue.LocalID]
+		key := localTypeKey(issue.localID, issue.externalType)
+		existingStatus := statuses[key]
 		if existingStatus == mappingStatusAmbiguous {
 			continue
 		}
-		statuses[issue.LocalID] = issue.Status
+		statuses[key] = issue.status
 	}
 
 	for index := range preview.Collections {
-		status := collectionStatuses[preview.Collections[index].CollectionID]
+		item := &preview.Collections[index]
+		status := collectionStatuses[localTypeKey(item.CollectionID, item.ExternalType)]
 		if status != "" {
-			preview.Collections[index].MappingStatus = status
+			item.MappingStatus = status
 		}
 	}
 	for index := range preview.Assets {
-		status := assetStatuses[preview.Assets[index].AssetID]
+		item := &preview.Assets[index]
+		status := assetStatuses[localTypeKey(item.AssetID, item.ExternalType)]
 		if status != "" {
-			preview.Assets[index].MappingStatus = status
+			item.MappingStatus = status
 		}
 	}
 }
 
-func collectionMappingIssue(mapping models.IntegrationCollectionMapping, status string, candidateCount int) integrations.MappingIssue {
-	return integrations.MappingIssue{
-		ItemType:       "collection",
-		MappingID:      mapping.Id,
-		LocalID:        mapping.CollectionId,
-		ExternalID:     mapping.ExternalId,
-		ExternalName:   mapping.ExternalName,
-		ExternalType:   mapping.ExternalType,
-		Status:         status,
-		CandidateCount: candidateCount,
+func collectionMappingIssue(mapping models.IntegrationCollectionMapping, status string) *mappingIssue {
+	return &mappingIssue{
+		itemType:     "collection",
+		mappingID:    mapping.Id,
+		localID:      mapping.CollectionId,
+		externalType: mapping.ExternalType,
+		status:       status,
 	}
 }
 
-func assetMappingIssue(mapping models.IntegrationAssetMapping, status string, candidateCount int) integrations.MappingIssue {
-	return integrations.MappingIssue{
-		ItemType:       "asset",
-		MappingID:      mapping.Id,
-		LocalID:        mapping.AssetId,
-		ExternalID:     mapping.ExternalId,
-		ExternalName:   mapping.ExternalName,
-		ExternalType:   mapping.ExternalType,
-		Status:         status,
-		CandidateCount: candidateCount,
+func assetMappingIssue(mapping models.IntegrationAssetMapping, status string) *mappingIssue {
+	return &mappingIssue{
+		itemType:     "asset",
+		mappingID:    mapping.Id,
+		localID:      mapping.AssetId,
+		externalType: mapping.ExternalType,
+		status:       status,
 	}
 }
