@@ -98,28 +98,24 @@ func UpdateIntegrationProject(tx *sqlx.Tx, id string, params map[string]interfac
 	return err
 }
 
-// DeleteIntegrationProject removes the integration link and all mappings.
+// DeleteIntegrationProject removes the integration link and all project mappings.
 func DeleteIntegrationProject(tx *sqlx.Tx, id string) error {
-	// Get integration to know the integration_id for cleanup
 	integration := models.IntegrationProject{}
 	err := base_service.Get(tx, "integration_project", id, &integration)
 	if err != nil {
 		return err
 	}
 
-	// Delete all collection mappings for this integration
-	err = deleteCollectionMappingsByIntegration(tx, integration.IntegrationId)
+	err = deleteAllCollectionMappings(tx)
 	if err != nil {
 		return err
 	}
 
-	// Delete all asset mappings for this integration
-	err = deleteAssetMappingsByIntegration(tx, integration.IntegrationId)
+	err = deleteAllAssetMappings(tx)
 	if err != nil {
 		return err
 	}
 
-	// Delete the integration project itself
 	return base_service.Delete(tx, "integration_project", id)
 }
 
@@ -219,10 +215,14 @@ func DeleteCollectionMapping(tx *sqlx.Tx, id string) error {
 	return base_service.Delete(tx, "integration_collection_mapping", id)
 }
 
-// deleteCollectionMappingsByIntegration deletes all collection mappings for an integration.
-func deleteCollectionMappingsByIntegration(tx *sqlx.Tx, integrationId string) error {
-	query := `DELETE FROM integration_collection_mapping WHERE integration_id = ?`
-	_, err := tx.Exec(query, integrationId)
+func deleteCollectionMappingsByCollectionID(tx *sqlx.Tx, collectionID string) error {
+	query := `DELETE FROM integration_collection_mapping WHERE collection_id = ?`
+	_, err := tx.Exec(query, collectionID)
+	return err
+}
+
+func deleteAllCollectionMappings(tx *sqlx.Tx) error {
+	_, err := tx.Exec(`DELETE FROM integration_collection_mapping`)
 	return err
 }
 
@@ -345,9 +345,13 @@ func DeleteAssetMapping(tx *sqlx.Tx, id string) error {
 	return base_service.Delete(tx, "integration_asset_mapping", id)
 }
 
-// deleteAssetMappingsByIntegration deletes all asset mappings for an integration.
-func deleteAssetMappingsByIntegration(tx *sqlx.Tx, integrationId string) error {
-	query := `DELETE FROM integration_asset_mapping WHERE integration_id = ?`
-	_, err := tx.Exec(query, integrationId)
+func deleteAssetMappingsByAssetID(tx *sqlx.Tx, assetID string) error {
+	query := `DELETE FROM integration_asset_mapping WHERE asset_id = ?`
+	_, err := tx.Exec(query, assetID)
+	return err
+}
+
+func deleteAllAssetMappings(tx *sqlx.Tx) error {
+	_, err := tx.Exec(`DELETE FROM integration_asset_mapping`)
 	return err
 }

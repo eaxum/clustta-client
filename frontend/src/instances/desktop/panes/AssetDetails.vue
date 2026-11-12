@@ -67,7 +67,7 @@
               {{ $t('kitsu.notLinked') }}
             </div>
             <div v-else class="pane-parameter-actions">
-              <ActionButton v-if="assetIntegrationDetails.external_url" :icon="getAppIcon('website')" :label="showInIntegrationLabel" :showLabel="true" v-tooltip="showInIntegrationLabel" :buttonFunction="openIntegrationLink" />
+              <ActionButton v-if="assetIntegrationDetails.external_url" :icon="showInIntegrationIcon" :label="showInIntegrationLabel" :showLabel="true" v-tooltip="showInIntegrationLabel" :buttonFunction="openIntegrationLink" />
               <ActionButton v-if="userStore.canDo('manage_integrations')" :icon="getAppIcon('plug-cancel')" v-tooltip="$t('kitsu.unlinkAssetTooltip', { integration: assetIntegrationDetails.integration_name })" :buttonFunction="confirmUnlinkIntegration" />
             </div>
           </div>
@@ -320,6 +320,15 @@ const canEditAssetDetails = computed(() => {
 const showInIntegrationLabel = computed(() => {
   const integrationName = assetIntegrationDetails.value?.integration_name || 'integration';
   return `Show in ${integrationName}`;
+});
+
+const showInIntegrationIcon = computed(() => {
+  const integrationID = assetIntegrationDetails.value?.integration_id;
+  const providerIcons = {
+    ayon: 'ayon',
+    kitsu: 'kitsu',
+  };
+  return getAppIcon(providerIcons[integrationID] || 'website');
 });
 
 const singleAsset = computed(() => {

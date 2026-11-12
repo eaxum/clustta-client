@@ -1637,6 +1637,9 @@ func DeleteAsset(tx *sqlx.Tx, assetId string, removeFromDir bool, recycle bool) 
 	if err != nil {
 		return err
 	}
+	if err := deleteAssetMappingsByAssetID(tx, assetId); err != nil {
+		return err
+	}
 	if recycle {
 		err = base_service.MarkAsDeleted(tx, "asset", assetId)
 		if err != nil {

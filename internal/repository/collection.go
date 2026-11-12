@@ -923,6 +923,9 @@ func DeleteCollection(tx *sqlx.Tx, collectionId string, removeFromDir bool, recy
 	if err != nil {
 		return err
 	}
+	if err := deleteCollectionMappingsByCollectionID(tx, collectionId); err != nil {
+		return err
+	}
 	if recycle {
 		err = base_service.MarkAsDeleted(tx, "collection", collectionId)
 		if err != nil {
