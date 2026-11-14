@@ -76,7 +76,7 @@ const getAppIcon = (iconName) => {
 };
 
 // imports
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 // services
@@ -201,24 +201,31 @@ const projectListRef = ref(null);
 const showTopGradient = ref(false);
 const showBottomGradient = ref(false);
 const showCenterGradient = ref(false);
+const SCROLL_TOLERANCE_PX = 1;
+let resizeObserver = null;
 
 
 onMounted(() => {
-  handleScroll();
+	handleScroll();
+	resizeObserver = new ResizeObserver(handleScroll);
+	resizeObserver.observe(projectListRef.value);
+});
+
+onUnmounted(() => {
+	resizeObserver?.disconnect();
 });
 
 const handleScroll = () => {
-  if (projectListRef.value) {
-    const element = projectListRef.value;
-    const hasTopOverflow = element.scrollTop > 0;
-    
-    const hasBottomOverflow = element.scrollTop + element.clientHeight < element.scrollHeight - 10;
-    
-    showTopGradient.value = hasTopOverflow;
-    showBottomGradient.value = hasBottomOverflow;
-    
-    showCenterGradient.value = hasTopOverflow && hasBottomOverflow;
-  }
+	const element = projectListRef.value;
+	if (!element) return;
+
+	const hasTopOverflow = element.scrollTop > SCROLL_TOLERANCE_PX;
+	const remainingScroll = element.scrollHeight - element.clientHeight - element.scrollTop;
+	const hasBottomOverflow = remainingScroll > SCROLL_TOLERANCE_PX;
+
+	showTopGradient.value = hasTopOverflow;
+	showBottomGradient.value = hasBottomOverflow;
+	showCenterGradient.value = hasTopOverflow && hasBottomOverflow;
 };
 </script>
 
@@ -396,17 +403,17 @@ const handleScroll = () => {
 
 /* Gradient overlay elements */
 .top-gradient {
-	background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, transparent 10%);
+	background: linear-gradient(to bottom, var(--surface-2) 0%, transparent 10%);
 }
 
 .bottom-gradient {
-	background: linear-gradient(to top, rgba(255, 255, 255, 0.1) 0%, transparent 10%);
+	background: linear-gradient(to top, var(--surface-2) 0%, transparent 10%);
 }
 
 .center-gradient {
 	background: 
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.1) 0%, transparent 10%),
-        linear-gradient(to top, rgba(255, 255, 255, 0.1) 0%, transparent 10%);
+		linear-gradient(to bottom, var(--surface-2) 0%, transparent 10%),
+		linear-gradient(to top, var(--surface-2) 0%, transparent 10%);
 
 }
 
