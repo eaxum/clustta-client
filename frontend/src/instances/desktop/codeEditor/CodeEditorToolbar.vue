@@ -1,37 +1,53 @@
 <template>
   <div class="code-editor-toolbar">
     <ActionButton
-      :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
-      :buttonFunction="toggleDetailsPane"
-      v-tooltip="panes.showDetailsPane ? 'Hide details' : 'Show details'"
+      :icon="getAppIcon(fileState.icon)"
+      :isInactive="true"
+      :useAlert="fileState.alert"
+      :useDanger="fileState.danger"
+      :noFilter="fileState.noFilter"
+      v-tooltip="fileState.label"
     />
     <div class="toolbar-divider"></div>
     <ActionButton :label="'File'" :showLabel="true" :showIcon="false" @click="showFileMenu" />
     <ActionButton :label="'Edit'" :showLabel="true" :showIcon="false" @click="showEditMenu" />
-    <ActionButton :label="'View'" :showLabel="true" :showIcon="false" @click="showViewMenu" />
     <div class="toolbar-spacer"></div>
     <ActionButton
-      :icon="getAppIcon('circle-check')"
-      :isDisabled="!codeEditor.activeDocument?.dirty"
-      :buttonFunction="saveActive"
-      v-tooltip="'Save'"
+      :icon="panes.showDetailsPane ? getAppIcon('collapse-right') : getAppIcon('collapse-left')"
+      :buttonFunction="toggleDetailsPane"
+      v-tooltip="panes.showDetailsPane ? 'Hide details' : 'Show details'"
     />
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useCodeEditorStore } from '@/stores/codeEditor';
 import { useIconStore } from '@/stores/icons';
 import { useMenu } from '@/stores/menu';
 import { usePaneStore } from '@/stores/panes';
-import { useStageStore } from '@/stores/stages';
 
 const codeEditor = useCodeEditorStore();
 const iconStore = useIconStore();
 const menu = useMenu();
 const panes = usePaneStore();
-const stage = useStageStore();
+
+const fileState = computed(() => {
+  const asset = codeEditor.activeDocument?.asset;
+  if (!asset) return { icon: 'checkpoint-stone', label: 'Checkpoint state unavailable' };
+  if (asset.type === 'untracked_asset') {
+    return { icon: 'plus-stone', label: 'Not checkpointed', danger: true, noFilter: true };
+  }
+  const states = {
+    fetchable: { icon: 'fetch', label: 'Checkpoint available to fetch' },
+    missing: { icon: 'alert', label: 'File missing', danger: true, noFilter: true },
+    modified: { icon: 'plus-stone', label: 'File has uncheckpointed changes', alert: true, noFilter: true },
+    normal: { icon: 'circle-check-go', label: 'Latest checkpoint', noFilter: true },
+    outdated: { icon: 'circle-check', label: 'File is not at the latest checkpoint', alert: true, noFilter: true },
+  };
+  return states[asset.file_status] || { icon: 'checkpoint-stone', label: 'Checkpoint state unavailable' };
+});
 
 const getAppIcon = (name) => iconStore.getAppIcon(name);
 const toggleDetailsPane = () => { panes.showDetailsPane = !panes.showDetailsPane; };
@@ -57,10 +73,6 @@ const showEditMenu = (event) => menu.showCodeEditorMenu(event, [
   { id: 'find', label: 'Find', icon: 'search', action: () => window.dispatchEvent(new CustomEvent('code-editor-command', { detail: 'find' })) },
 ], { anchor: true, position: 'bottom' });
 
-const showViewMenu = (event) => menu.showCodeEditorMenu(event, [
-  { id: 'explorer', label: codeEditor.explorerVisible ? 'Hide Explorer' : 'Show Explorer', icon: 'collapse-left', action: () => { codeEditor.explorerVisible = !codeEditor.explorerVisible; } },
-  { id: 'browser', label: 'Return to Browser', icon: 'four-squares', action: () => stage.setStageVisibility('browser', true) },
-], { anchor: true, position: 'bottom' });
 </script>
 
 <style scoped>

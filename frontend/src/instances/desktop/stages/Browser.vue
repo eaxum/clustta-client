@@ -1640,9 +1640,7 @@ watch(() => commonStore.viewMode, (viewMode) => {
 // lifecycle hooks
 
 onMounted(async () => {
-	commonStore.resetFilters();
 	dndStore.lockUI = true;
-	commonStore.activeWorkspace = 'Project';
 	commonStore.snapshotWorkspace();
 	panes.showDetailsPane = screenWidth.value >= 1000;
 	window.addEventListener('resize', updateScreenWidth);
@@ -1702,6 +1700,7 @@ onBeforeUnmount(() => {
 	height: 100%;
 	width: 100%;
 	height: max-content;
+	padding: 0 .4rem;
 }
 
 .browser-root-container {

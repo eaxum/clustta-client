@@ -19,7 +19,7 @@ export const usePaneStore = defineStore("panes", {
 
     activeModal: null,
     modalMaskVisible: false,
-    enabledPanes: ['browser', 'projects'],
+    enabledPanes: ['browser', 'codeEditor', 'projects'],
     showDetailsPane: false,
   }),
   getters: {},

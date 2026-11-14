@@ -12,6 +12,7 @@
         @click="codeEditor.openDocument(file.path, null, true)"
         @dblclick="openPinned(file)"
       >
+        <img class="explorer-file-icon" :src="getCodeFileIcon(file)" alt="">
         <span class="file-name">{{ file.name }}</span>
         <span v-if="file.line" class="file-line">{{ file.line }}</span>
       </button>
@@ -24,6 +25,7 @@ import { onMounted } from 'vue';
 import CodeSearchPanel from '@/instances/desktop/codeEditor/CodeSearchPanel.vue';
 import { useCodeEditorStore } from '@/stores/codeEditor';
 import { useProjectStore } from '@/stores/projects';
+import { getCodeFileIcon } from '@/lib/codeFileIcons';
 
 const codeEditor = useCodeEditorStore();
 const projectStore = useProjectStore();
@@ -43,31 +45,41 @@ onMounted(() => {
   flex: 0 0 240px;
   flex-direction: column;
   min-width: 180px;
-  background-color: var(--surface-1);
+  padding: .35rem;
+  background-color: var(--surface-2);
   border-radius: var(--normal-radius);
-  border-top-left-radius: var(--very-large-radius);
+  color: var(--text);
+  font-family: var(--font-family-interface);
 }
 
 .explorer-title {
-  padding: .35rem .75rem;
-  color: var(--text-soft);
+  padding: .5rem .65rem .35rem;
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
 }
 
 .explorer-files {
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
   overflow: auto;
 }
 
 .explorer-file {
   display: flex;
   width: 100%;
-  padding: .38rem .75rem;
+  align-items: center;
+  gap: .5rem;
+  padding: .42rem .6rem;
   border: 0;
+  border-radius: var(--normal-radius);
   background: transparent;
   color: var(--text);
   cursor: pointer;
+  font-family: inherit;
+  font-size: var(--font-size-interface);
   text-align: left;
 }
 
@@ -76,7 +88,20 @@ onMounted(() => {
   background-color: var(--selected-soft);
 }
 
+.explorer-file:focus-visible {
+  outline: var(--solid-line);
+  outline-offset: -1px;
+}
+
+.explorer-file-icon {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+}
+
 .file-name {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

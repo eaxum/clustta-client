@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia';
-import { FSService } from '@/services';
+import { AssetService, FSService } from '@/services';
 import { useStageStore } from '@/stores/stages';
 import { canActOnAsset } from '@/lib/permissions';
+import { useProjectStore } from '@/stores/projects';
 import { useUserStore } from '@/stores/users';
 
 const normalizedPath = (path) => path?.replace(/\\/g, '/').toLowerCase();
@@ -25,6 +26,7 @@ export const useCodeEditorStore = defineStore('codeEditor', {
     async openDocument(path, asset = null, preview = true) {
       const existing = this.documents.find((document) => pathsMatch(document.path, path));
       if (existing) {
+        if (asset) existing.asset = asset;
         if (!preview) existing.preview = false;
         this.activateDocument(path);
         return existing;
@@ -49,6 +51,7 @@ export const useCodeEditorStore = defineStore('codeEditor', {
         savedContent: document.content,
         externalChanged: false,
         saveError: '',
+        viewState: null,
       };
       this.documents.push(openDocument);
       this.activateDocument(openDocument.path);
@@ -75,6 +78,19 @@ export const useCodeEditorStore = defineStore('codeEditor', {
       if (document.dirty) document.preview = false;
     },
 
+    async refreshAssetState(document) {
+      const asset = document?.asset;
+      if (!asset?.id || asset.type === 'untracked_asset') return;
+      try {
+        asset.file_status = await AssetService.GetAssetState(
+          useProjectStore().activeProject.uri,
+          asset.id,
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    },
+
     async saveDocument(path = this.activePath) {
       const document = this.documents.find((item) => pathsMatch(item.path, path));
       if (!document || !document.dirty) return document;
@@ -91,6 +107,7 @@ export const useCodeEditorStore = defineStore('codeEditor', {
           externalChanged: false,
           saveError: '',
         });
+        await this.refreshAssetState(document);
         return document;
       } catch (error) {
         document.saveError = error.message || String(error);
@@ -122,6 +139,7 @@ export const useCodeEditorStore = defineStore('codeEditor', {
         externalIdentity: '',
         savedContent: changed.content,
       });
+      await this.refreshAssetState(document);
     },
 
     async reloadDocument(path = this.activePath) {

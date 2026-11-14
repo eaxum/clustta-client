@@ -3,7 +3,6 @@
     <div ref="tabBar" class="tab-bar">
       <div ref="selectionIndicator" class="selection-indicator" :class="{
         'selection-indicator-ready': isIndicatorReady,
-        'selection-indicator-fading': isIndicatorFading,
         'selection-indicator-teleporting': isIndicatorTeleporting,
       }"
         :style="indicatorStyle" aria-hidden="true"></div>
@@ -11,7 +10,7 @@
       <TransitionGroup name="tab-list">
         <div v-for="(workspace, index) in workspaceTabs" ref="workspaceTabElements" :key="workspace.name"
           :data-workspace-name="workspace.name" class="tab"
-          :class="{ 'active': isActiveTab(workspace), 'dragging': draggedTabIndex === index, 'right-tab-split': rightTabPosition(index), 'left-tab-split': leftTabPosition(index) }"
+          :class="{ 'active': isActiveTab(workspace), 'dragging': draggedTabIndex === index }"
           @mousedown="startDrag($event, index)" @click="setWorkspace(workspace.name)" :style="getTabStyle(index)">
 
           <div class="workspace-tab-meta">
@@ -38,35 +37,39 @@
         </div>
       </TransitionGroup>
 
-      <div class="tab-divider" v-if="codeEditor.documents.length"></div>
-
       <TransitionGroup name="tab-list">
         <div
-          v-for="document in codeEditor.documents"
+          v-for="(document, documentIndex) in codeEditor.documents"
           :key="document.path"
           :data-tab-key="document.path"
           class="tab source-tab"
-          :class="{ active: isActiveDocument(document), preview: document.preview }"
+          :class="{
+            active: isActiveDocument(document),
+            preview: document.preview,
+            'source-tab-first': documentIndex === 0,
+          }"
           @click="codeEditor.activateDocument(document.path)"
           @dblclick="codeEditor.pinDocument(document.path)"
         >
           <div class="workspace-tab-meta">
-            <span class="file-type-badge">{{ document.name.split('.').pop().slice(0, 3).toUpperCase() }}</span>
+            <img class="code-file-icon" :src="getCodeFileIcon(document)" alt="">
             <span class="tab-title">{{ document.name }}</span>
-            <button
+            <ActionButton
               v-if="document.dirty"
               class="document-dirty"
-              type="button"
-              aria-label="Close modified file"
-              @click.stop="showDirtyCloseMenu($event, document)"
-            >●</button>
-            <button
+              :icon="getAppIcon('dot-big')"
+              :useAlert="true"
+              :noFilter="true"
+              :buttonFunction="(event) => showDirtyCloseMenu(event, document)"
+              v-tooltip="'Modified'"
+            />
+            <ActionButton
               v-else
               class="document-close"
-              type="button"
-              aria-label="Close file"
-              @click.stop="codeEditor.closeDocument(document.path)"
-            >×</button>
+              :icon="getAppIcon('close')"
+              :buttonFunction="() => codeEditor.closeDocument(document.path)"
+              v-tooltip="'Close'"
+            />
           </div>
         </div>
       </TransitionGroup>
@@ -101,6 +104,7 @@ import { useDesktopModalStore } from '@/stores/desktopModals';
 import { useCodeEditorStore } from '@/stores/codeEditor';
 import { useStageStore } from '@/stores/stages';
 import { useMenu } from '@/stores/menu';
+import { getCodeFileIcon } from '@/lib/codeFileIcons';
 
 
 
@@ -195,14 +199,6 @@ const showDirtyCloseMenu = (event, document) => menu.showCodeEditorMenu(event, [
   },
 ], { anchor: true, position: 'bottom' });
 
-const rightTabPosition = (index) => {
-  return activeWorkspaceIndex.value + 1 < index;
-};
-
-const leftTabPosition = (index) => {
-  return activeWorkspaceIndex.value > index + 1;
-};
-
 const activeTabIndex = ref(0)
 const draggedTabIndex = ref(null)
 const mouseOffset = ref({ x: 0, y: 0 })
@@ -210,7 +206,6 @@ const dragPosition = ref({ x: 0, y: 0 })
 const tabRects = ref([]);
 const indicatorStyle = ref({ opacity: 0 });
 const isIndicatorReady = ref(false);
-const isIndicatorFading = ref(false);
 const isIndicatorTeleporting = ref(false);
 const tabBar = ref(null);
 const selectionIndicator = ref(null);
@@ -237,12 +232,6 @@ const getIndicatorTransitionDuration = () => {
   return Math.max(0, ...durations);
 };
 
-const waitForIndicatorTransition = () => {
-  return new Promise((resolve) => {
-    window.setTimeout(resolve, getIndicatorTransitionDuration());
-  });
-};
-
 const waitForAnimationFrame = () => {
   return new Promise((resolve) => {
     window.requestAnimationFrame(resolve);
@@ -253,7 +242,8 @@ const updateSelectionIndicator = () => {
   if (!tabBar.value) return;
 
   const activeKey = stage.activeStage === 'codeEditor' ? codeEditor.activePath : activeWorkspace.value;
-  const selectedElement = Array.from(tabBar.value.querySelectorAll('.tab')).find((element) => {
+  const tabElements = Array.from(tabBar.value.querySelectorAll('.tab'));
+  const selectedElement = tabElements.find((element) => {
     return element.dataset.tabKey === activeKey || element.dataset.workspaceName === activeKey;
   });
 
@@ -272,9 +262,7 @@ const updateSelectionIndicator = () => {
     opacity: 1,
     transform: `translate3d(${selectedBounds.left - tabBarBounds.left}px, ${selectedBounds.top - tabBarBounds.top}px, 0)`,
   };
-  visibleIndicatorIndex = workspaceTabs.value.findIndex((workspace) => {
-    return workspace.name === activeWorkspace.value;
-  });
+  visibleIndicatorIndex = tabElements.indexOf(selectedElement);
 };
 
 const scheduleSelectionIndicatorUpdate = async () => {
@@ -284,47 +272,32 @@ const scheduleSelectionIndicatorUpdate = async () => {
 
 const transitionSelectionIndicator = async () => {
   const navigationId = ++indicatorNavigationId;
-  isIndicatorFading.value = false;
   isIndicatorTeleporting.value = false;
   await nextTick();
   if (navigationId !== indicatorNavigationId) return;
 
-  const targetIndex = workspaceTabs.value.findIndex((workspace) => {
-    return workspace.name === activeWorkspace.value;
-  });
+  const activeKey = stage.activeStage === 'codeEditor' ? codeEditor.activePath : activeWorkspace.value;
+  const tabElements = Array.from(tabBar.value.querySelectorAll('.tab'));
+  const targetIndex = tabElements.findIndex((element) => (
+    element.dataset.tabKey === activeKey || element.dataset.workspaceName === activeKey
+  ));
   const tabDistance = Math.abs(targetIndex - visibleIndicatorIndex);
 
-  if (
-    visibleIndicatorIndex === null ||
-    targetIndex < 0 ||
-    tabDistance <= DISTANT_TAB_THRESHOLD ||
-    getIndicatorTransitionDuration() === 0
-  ) {
+  if (visibleIndicatorIndex === null || targetIndex < 0 || getIndicatorTransitionDuration() === 0) {
     updateSelectionIndicator();
     return;
   }
 
-  isIndicatorFading.value = true;
-  indicatorStyle.value = { ...indicatorStyle.value, opacity: 0 };
-  await nextTick();
-  await waitForIndicatorTransition();
-  if (navigationId !== indicatorNavigationId) return;
+  if (tabDistance > DISTANT_TAB_THRESHOLD) {
+    isIndicatorTeleporting.value = true;
+    await nextTick();
+    updateSelectionIndicator();
+    await waitForAnimationFrame();
+    isIndicatorTeleporting.value = false;
+    return;
+  }
 
-  isIndicatorTeleporting.value = true;
   updateSelectionIndicator();
-  indicatorStyle.value = { ...indicatorStyle.value, opacity: 0 };
-  await nextTick();
-  await waitForAnimationFrame();
-  await waitForAnimationFrame();
-  if (navigationId !== indicatorNavigationId) return;
-
-  isIndicatorTeleporting.value = false;
-  indicatorStyle.value = { ...indicatorStyle.value, opacity: 1 };
-  await nextTick();
-  await waitForIndicatorTransition();
-  if (navigationId !== indicatorNavigationId) return;
-
-  isIndicatorFading.value = false;
 };
 
 
@@ -333,11 +306,11 @@ const setWorkspace = (workspaceName) => {
   if (commonStore.activeWorkspace === workspaceName && stage.activeStage === 'browser') {
     return;
   }
-  stage.setStageVisibility('browser', true);
-  
+  const browserIsActive = stage.activeStage === 'browser';
   if (workspaceName === 'Project') {
     setDefaultWorkspace();
-    refreshWorkspace();
+    stage.setStageVisibility('browser', true);
+    if (browserIsActive) refreshWorkspace();
     return
   }
   const workspace = commonStore.workspaces.find((item) => item.name === workspaceName);
@@ -352,7 +325,8 @@ const setWorkspace = (workspaceName) => {
   }
   
   commonStore.setActiveWorkspace(workspace);
-  refreshWorkspace();
+  stage.setStageVisibility('browser', true);
+  if (browserIsActive) refreshWorkspace();
 };
 
 const deleteWorkspace = async (workspaceName) => {
@@ -453,10 +427,11 @@ const updateTabRects = () => {
   })
 }
 
-watch(activeWorkspace, transitionSelectionIndicator);
 watch(workspaceTabs, scheduleSelectionIndicatorUpdate, { deep: true });
-watch(() => codeEditor.activePath, scheduleSelectionIndicatorUpdate);
-watch(() => stage.activeStage, scheduleSelectionIndicatorUpdate);
+watch(
+  () => [stage.activeStage, activeWorkspace.value, codeEditor.activePath],
+  transitionSelectionIndicator,
+);
 watch(() => codeEditor.documents.length, scheduleSelectionIndicatorUpdate);
 
 onMounted(async () => {
@@ -600,51 +575,28 @@ const getTabStyle = (index) => {
   scrollbar-width: none;
 }
 
-.tab-divider {
-  flex: 0 0 1px;
-  height: 18px;
-  background-color: var(--surface-4);
-}
-
 .source-tab.preview .tab-title {
   font-style: italic;
 }
 
-.file-type-badge {
+.code-file-icon {
   flex: 0 0 auto;
-  margin-right: .45rem;
-  color: var(--selected);
-  font-size: 10px;
-  font-weight: 600;
+  width: 16px;
+  height: 16px;
+  margin-right: .5rem;
 }
 
 .document-dirty,
 .document-close {
-  flex: 0 0 auto;
-  color: var(--text);
+  position: absolute;
+  right: .4rem;
+  opacity: 0;
 }
 
-.document-dirty {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.document-close {
-  width: 20px;
-  height: 20px;
-  padding: 0;
-  border: 0;
-  border-radius: var(--small-radius);
-  background: transparent;
-  cursor: pointer;
-  font-size: 18px;
-  line-height: 18px;
-}
-
-.document-close:hover {
-  background-color: var(--surface-4);
+.source-tab:hover .document-close,
+.source-tab.active .document-close,
+.source-tab .document-dirty {
+  opacity: 1;
 }
 
 .selection-indicator {
@@ -665,10 +617,6 @@ const getTabStyle = (index) => {
     opacity var(--motion-duration-layout) ease-out;
 }
 
-.selection-indicator-fading {
-  transition: opacity var(--motion-duration-fast) ease-out;
-}
-
 .selection-indicator-teleporting {
   transition: none;
 }
@@ -677,8 +625,9 @@ const getTabStyle = (index) => {
   color: var(--text);
   display: flex;
   align-items: center;
+  flex: 0 1 200px;
   width: 200px;
-  min-width: 100px;
+  min-width: 120px;
   max-width: 200px;
   height: 32px;
   /* height: 100%; */
@@ -689,65 +638,35 @@ const getTabStyle = (index) => {
   opacity: .4;
 }
 
-/* after active tab */
-
-.right-tab-split::after {
+.tab::after {
   content: "";
   position: absolute;
+  right: -4px;
+  width: 1px;
+  height: 16px;
   background-color: var(--surface-4);
-  left: -4px;
-  height: 16px;
-  width: 1.5px;
 }
 
-.right-tab-split:hover+.tab::after {
-  content: "";
-  position: absolute;
+.tab:hover::after,
+.tab.active::after,
+.tab:has(+ .tab:hover)::after,
+.tab:has(+ .tab.active)::after {
   background-color: transparent;
-  left: -4px;
-  height: 16px;
-  width: 1.5px;
 }
 
-.right-tab-split:hover::after {
+.source-tab-first::before {
   content: "";
   position: absolute;
-  background-color: transparent;
   left: -4px;
-  height: 16px;
-  width: 1.5px;
-}
-
-/* before active tab */
-
-.left-tab-split::before {
-  content: "";
-  position: absolute;
+  width: 1px;
+  height: 18px;
   background-color: var(--surface-4);
-  right: -4px;
-  height: 16px;
-  width: 1.5px;
 }
 
-.tab:has(+ .left-tab-split:hover)::before {
-  content: "";
-  position: absolute;
+.source-tab-first:hover::before,
+.source-tab-first.active::before {
   background-color: transparent;
-  right: -4px;
-  height: 16px;
-  width: 1.5px;
 }
-
-.left-tab-split:hover::before {
-  content: "";
-  position: absolute;
-  background-color: transparent;
-  right: -4px;
-  height: 16px;
-  width: 1.5px;
-}
-
-/* end */
 
 .tab:hover {
   color: var(--text);
@@ -768,6 +687,7 @@ const getTabStyle = (index) => {
   padding-left: 1rem;
   align-items: center;
   justify-content: space-between;
+  min-width: 0;
   left: -50%;
   transform: translateX(50%);
 
@@ -832,6 +752,8 @@ const getTabStyle = (index) => {
 
 .tab-title {
   flex: 1;
+  min-width: 0;
+  padding-right: 1.5rem;
   font-size: 14px;
   white-space: nowrap;
   overflow: hidden;

@@ -17,7 +17,7 @@
 						v-show="!panelMaximized"
 						ref="mainAreaContainer"
 						class="main-area"
-						:class="{ 'main-area-expanded-radius': !['browser', 'projects'].includes(stage.activeStage) }"
+						:class="{ 'main-area-expanded-radius': !['browser', 'codeEditor', 'projects'].includes(stage.activeStage) }"
 					>
 						<CenterStage />
 					</div>
