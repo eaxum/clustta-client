@@ -1,7 +1,11 @@
 <template>
   <div ref="popUpMenu" class="filter-menu-container">
 
-    <ActionButton v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
+    <ActionButton v-if="canOpenInCodeEditor && !settingsStore.openTextFilesInClustta" :icon="getAppIcon('code-bracket')" :showLabel="true" :fullWidth="true"
+      :label="$t('common.openInClustta')" :buttonFunction="openInCodeEditor" />
+    <ActionButton v-else-if="canOpenInCodeEditor" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
+      :label="$t('common.openExternally')" :buttonFunction="launchAssetWithCommand" />
+    <ActionButton v-else-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true"
       :label="$t('common.openWith')" :buttonFunction="launchAssetWithCommand" />
 
     <span v-if="!platformStore.isWeb && userStore.canDo('pull_chunk') && !isWebLinkAsset" class="menu-divider"></span>
@@ -115,6 +119,8 @@ import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
 import { useStudioStore } from '@/stores/studio';
+import { useCodeEditorStore } from '@/stores/codeEditor';
+import { useSettingsStore } from '@/stores/settings';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -130,11 +136,14 @@ const stage = useStageStore();
 const trayStates = useTrayStates();
 const userStore = useUserStore();
 const studioStore = useStudioStore();
+const codeEditor = useCodeEditorStore();
+const settingsStore = useSettingsStore();
 const { t } = useI18n();
 const { showLabel } = useRevealLabel();
 
 // refs
 const popUpMenu = ref(null);
+const canOpenInCodeEditor = ref(false);
 
 // props
 const props = defineProps({
@@ -506,6 +515,12 @@ const launchAssetWithCommand = async () => {
   menu.hideContextMenu();
 };
 
+const openInCodeEditor = async () => {
+  const selectedAsset = assetStore.selectedAsset;
+  await codeEditor.openDocument(selectedAsset.pointer || selectedAsset.file_path, selectedAsset, true);
+  menu.hideContextMenu();
+};
+
 // Shows the move to collection sub-menu.
 const moveToCollection = () => {
   if (!canUpdateAsset.value) return;
@@ -588,9 +603,14 @@ const revealInExplorer = async () => {
 };
 
 // lifecycle hooks
-onMounted(() => {
+onMounted(async () => {
   menu.popUpMenuWidth = popUpMenu.value.getBoundingClientRect().width;
   menu.popUpMenu = popUpMenu.value;
+  const selectedAsset = assetStore.selectedAsset;
+  const filePath = selectedAsset?.pointer || selectedAsset?.file_path;
+  if (!filePath || !await FSService.Exists(filePath)) return;
+  const classification = await FSService.ClassifyCodeFile(filePath);
+  canOpenInCodeEditor.value = classification.text;
 });
 
 onBeforeUnmount(() => {

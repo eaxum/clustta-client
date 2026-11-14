@@ -7,7 +7,7 @@
 
 <script setup>
 // imports
-import { computed, ref, onMounted, onUnmounted } from 'vue';
+import { computed, defineAsyncComponent, ref, onMounted, onUnmounted } from 'vue';
 
 // state imports
 import { useMenu } from '@/stores/menu';
@@ -33,10 +33,13 @@ import ProjectSettings from '@/instances/desktop/stages/ProjectSettings.vue'
 import StudioSettings from '@/instances/desktop/stages/StudioSettings.vue'
 import ContextMenu from '@/instances/desktop/menus/ContextMenu.vue'
 
+const CodeEditorStage = defineAsyncComponent(() => import('@/instances/desktop/stages/CodeEditorStage.vue'));
+
 const pageComponents = {
 	projects: Projects,
 	dashboard: Dashboard,
 	browser: Browser,
+	codeEditor: CodeEditorStage,
 	trash: TrashList,
 	account: UserProfile,
 	settings: Settings,
@@ -44,7 +47,7 @@ const pageComponents = {
 	studioSettings: StudioSettings,
 };
 
-const projectDatabaseStages = new Set(['browser', 'projectSettings', 'trash']);
+const projectDatabaseStages = new Set(['browser', 'codeEditor', 'projectSettings', 'trash']);
 
 const visibleStages = computed(() => {
 	const stages = Object.entries(stage.stages)

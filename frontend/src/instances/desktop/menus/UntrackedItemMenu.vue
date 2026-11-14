@@ -2,8 +2,14 @@
   <div ref="popUpMenu" class="filter-menu-container">
 
     <!-- Launch -->
+    <ActionButton v-if="canOpenInCodeEditor && !settingsStore.openTextFilesInClustta"
+      :icon="getAppIcon('code-bracket')" :showLabel="true" :fullWidth="true" :label="$t('common.openInClustta')"
+      :buttonFunction="openInCodeEditor" />
+    <ActionButton v-else-if="canOpenInCodeEditor"
+      :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true" :label="$t('common.openExternally')"
+      :buttonFunction="launchAssetWithCommand" />
     <ActionButton
-      v-if="userStore.canDo('pull_chunk') && isUntrackedAsset"
+      v-else-if="userStore.canDo('pull_chunk') && isUntrackedAsset"
       :icon="getAppIcon('launch')" :showLabel="true" :fullWidth="true" :label="$t('common.openWith')"
       :buttonFunction="launchAssetWithCommand" />
 
@@ -72,6 +78,8 @@ import { useStageStore } from '@/stores/stages';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUntrackedItemStore } from '@/stores/untracked';
 import { useUserStore } from '@/stores/users';
+import { useCodeEditorStore } from '@/stores/codeEditor';
+import { useSettingsStore } from '@/stores/settings';
 
 const assetStore = useAssetStore();
 const collectionStore = useCollectionStore();
@@ -85,12 +93,15 @@ const stage = useStageStore();
 const trayStates = useTrayStates();
 const untrackedItemStore = useUntrackedItemStore();
 const userStore = useUserStore();
+const codeEditor = useCodeEditorStore();
+const settingsStore = useSettingsStore();
 
 const { t } = useI18n();
 const { showLabel } = useRevealLabel();
 
 // refs
 const popUpMenu = ref(null);
+const canOpenInCodeEditor = ref(false);
 
 // props
 const props = defineProps({
@@ -230,6 +241,12 @@ const launchAssetWithCommand = async () => {
   menu.hideContextMenu();
 };
 
+const openInCodeEditor = async () => {
+  const item = untrackedItemStore.selectedUntrackedItem;
+  await codeEditor.openDocument(item.file_path, item, true);
+  menu.hideContextMenu();
+};
+
 // Prepares and shows the delete confirmation modal.
 const prepDeleteItemPopUpModal = () => {
   trayStates.popUpModalTitle = t('common.delete');
@@ -263,9 +280,13 @@ const revealInExplorer = () => {
 };
 
 // lifecycle hooks
-onMounted(() => {
+onMounted(async () => {
   menu.popUpMenuWidth = popUpMenu.value.getBoundingClientRect().width;
   menu.popUpMenu = popUpMenu.value;
+  const item = untrackedItemStore.selectedUntrackedItem;
+  if (item?.type !== 'untracked_asset' || !await FSService.Exists(item.file_path)) return;
+  const classification = await FSService.ClassifyCodeFile(item.file_path);
+  canOpenInCodeEditor.value = classification.text;
 });
 
 onBeforeUnmount(() => {

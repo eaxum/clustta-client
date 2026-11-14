@@ -37,6 +37,39 @@
 
         </div>
       </TransitionGroup>
+
+      <div class="tab-divider" v-if="codeEditor.documents.length"></div>
+
+      <TransitionGroup name="tab-list">
+        <div
+          v-for="document in codeEditor.documents"
+          :key="document.path"
+          :data-tab-key="document.path"
+          class="tab source-tab"
+          :class="{ active: isActiveDocument(document), preview: document.preview }"
+          @click="codeEditor.activateDocument(document.path)"
+          @dblclick="codeEditor.pinDocument(document.path)"
+        >
+          <div class="workspace-tab-meta">
+            <span class="file-type-badge">{{ document.name.split('.').pop().slice(0, 3).toUpperCase() }}</span>
+            <span class="tab-title">{{ document.name }}</span>
+            <button
+              v-if="document.dirty"
+              class="document-dirty"
+              type="button"
+              aria-label="Close modified file"
+              @click.stop="showDirtyCloseMenu($event, document)"
+            >●</button>
+            <button
+              v-else
+              class="document-close"
+              type="button"
+              aria-label="Close file"
+              @click.stop="codeEditor.closeDocument(document.path)"
+            >×</button>
+          </div>
+        </div>
+      </TransitionGroup>
       
       <span class="workspace-tab-button">
           <ActionButton v-if="addWorkspaceVisible" :icon="getAppIcon('plus-circle')" 
@@ -65,6 +98,9 @@ import { useCollectionStore } from '@/stores/collections';
 import { useCommonStore } from '@/stores/common';
 import { useProjectStore } from '@/stores/projects';
 import { useDesktopModalStore } from '@/stores/desktopModals';
+import { useCodeEditorStore } from '@/stores/codeEditor';
+import { useStageStore } from '@/stores/stages';
+import { useMenu } from '@/stores/menu';
 
 
 
@@ -74,6 +110,9 @@ const collectionStore = useCollectionStore();
 const commonStore = useCommonStore();
 const projectStore = useProjectStore();
 const modals = useDesktopModalStore();
+const codeEditor = useCodeEditorStore();
+const stage = useStageStore();
+const menu = useMenu();
 const { t } = useI18n();
 
 // computed props
@@ -128,8 +167,33 @@ const refreshWorkspace = () => emitter.emit('refresh-browser', {
 });
 
 const isActiveTab = (workspace) => {
-  return activeWorkspace.value === workspace.name
+  return stage.activeStage === 'browser' && activeWorkspace.value === workspace.name
 };
+
+const isActiveDocument = (document) => (
+  stage.activeStage === 'codeEditor' && codeEditor.activePath === document.path
+);
+
+const showDirtyCloseMenu = (event, document) => menu.showCodeEditorMenu(event, [
+  {
+    id: 'save-close',
+    label: 'Save and Close',
+    icon: 'circle-check',
+    action: async () => {
+      await codeEditor.saveDocument(document.path);
+      codeEditor.closeDocument(document.path);
+    },
+  },
+  {
+    id: 'discard-close',
+    label: 'Discard and Close',
+    icon: 'close',
+    action: () => {
+      document.dirty = false;
+      codeEditor.closeDocument(document.path);
+    },
+  },
+], { anchor: true, position: 'bottom' });
 
 const rightTabPosition = (index) => {
   return activeWorkspaceIndex.value + 1 < index;
@@ -188,8 +252,9 @@ const waitForAnimationFrame = () => {
 const updateSelectionIndicator = () => {
   if (!tabBar.value) return;
 
-  const selectedElement = workspaceTabElements.value.find((element) => {
-    return element.dataset.workspaceName === activeWorkspace.value;
+  const activeKey = stage.activeStage === 'codeEditor' ? codeEditor.activePath : activeWorkspace.value;
+  const selectedElement = Array.from(tabBar.value.querySelectorAll('.tab')).find((element) => {
+    return element.dataset.tabKey === activeKey || element.dataset.workspaceName === activeKey;
   });
 
   if (!selectedElement) {
@@ -265,9 +330,10 @@ const transitionSelectionIndicator = async () => {
 
 const setWorkspace = (workspaceName) => {
   // Do nothing if already on the workspace being set
-  if (commonStore.activeWorkspace === workspaceName) {
+  if (commonStore.activeWorkspace === workspaceName && stage.activeStage === 'browser') {
     return;
   }
+  stage.setStageVisibility('browser', true);
   
   if (workspaceName === 'Project') {
     setDefaultWorkspace();
@@ -389,6 +455,9 @@ const updateTabRects = () => {
 
 watch(activeWorkspace, transitionSelectionIndicator);
 watch(workspaceTabs, scheduleSelectionIndicatorUpdate, { deep: true });
+watch(() => codeEditor.activePath, scheduleSelectionIndicatorUpdate);
+watch(() => stage.activeStage, scheduleSelectionIndicatorUpdate);
+watch(() => codeEditor.documents.length, scheduleSelectionIndicatorUpdate);
 
 onMounted(async () => {
   updateTabRects()
@@ -527,6 +596,55 @@ const getTabStyle = (index) => {
   /* align-items: flex-end; */
   /* background-color: crimson; */
   align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tab-divider {
+  flex: 0 0 1px;
+  height: 18px;
+  background-color: var(--surface-4);
+}
+
+.source-tab.preview .tab-title {
+  font-style: italic;
+}
+
+.file-type-badge {
+  flex: 0 0 auto;
+  margin-right: .45rem;
+  color: var(--selected);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.document-dirty,
+.document-close {
+  flex: 0 0 auto;
+  color: var(--text);
+}
+
+.document-dirty {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.document-close {
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--small-radius);
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.document-close:hover {
+  background-color: var(--surface-4);
 }
 
 .selection-indicator {

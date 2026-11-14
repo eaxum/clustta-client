@@ -791,6 +791,16 @@ func (s *SettingsService) SetShowFileTypeIcons(enabled bool) error {
 	return settings.SetShowFileTypeIcons(enabled)
 }
 
+// GetOpenTextFilesInClustta returns whether text files open in Clustta by default.
+func (s *SettingsService) GetOpenTextFilesInClustta() (bool, error) {
+	return settings.GetOpenTextFilesInClustta()
+}
+
+// SetOpenTextFilesInClustta sets the default text-file launch behavior.
+func (s *SettingsService) SetOpenTextFilesInClustta(enabled bool) error {
+	return settings.SetOpenTextFilesInClustta(enabled)
+}
+
 // GetIntegrationCredential retrieves integration credentials for an integration.
 // Credentials are stored per user per integration (not per project).
 func (s *SettingsService) GetIntegrationCredential(integrationId string) (settings.IntegrationCredential, error) {

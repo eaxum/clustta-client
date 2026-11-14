@@ -31,6 +31,7 @@
     "cropperjs": "^1.6.2",
     "fzstd": "^0.1.1",
     "mitt": "^3.0.1",
+    "monaco-editor": "^0.57.0",
     "pako": "^2.1.0",
     "pinia": "^2.1.7",
     "postcss": "8.5.31",

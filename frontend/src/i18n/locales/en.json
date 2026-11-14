@@ -88,6 +88,8 @@
     "ok": "OK",
     "open": "Open",
     "openWith": "Open With",
+    "openInClustta": "Open in Clustta",
+    "openExternally": "Open Externally",
     "paste": "Paste",
     "refresh": "Refresh",
     "remove": "Remove",
@@ -840,7 +842,9 @@
     "deleteIgnorePresetTitle": "Delete \"{name}\"?",
     "deleteIgnorePresetMessage": "This will permanently remove this saved ignore list preset.",
     "overwriteDroppedFiles": "Overwrite dropped files",
-    "overwriteDroppedFilesDescription": "When an OS file is dropped into Clustta, overwrite a matching destination file instead of creating a numbered copy. If the file belongs to a tracked asset, create a checkpoint."
+    "overwriteDroppedFilesDescription": "When an OS file is dropped into Clustta, overwrite a matching destination file instead of creating a numbered copy. If the file belongs to a tracked asset, create a checkpoint.",
+    "openTextFilesInClustta": "Open text files in Clustta",
+    "openTextFilesInClusttaDescription": "Use the Code Editor as the default application for supported text files."
   },
   "modals": {
     "export": {

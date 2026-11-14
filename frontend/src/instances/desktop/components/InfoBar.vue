@@ -44,6 +44,8 @@
 
         <div class="spacer"></div>
 
+        <CodeEditorStatus v-if="stage.activeStage === 'codeEditor'" />
+
 
         <div v-if="notification" ref="notificationItem" :class="['message', notification.type]" @mouseenter="stopTimer()"
             @mouseleave="showMessage(notification)">
@@ -82,6 +84,7 @@ import ActionButton from '@/instances/desktop/components/ActionButton.vue';
 import { useActivityStore } from '@/stores/activity';
 import ActivityPanel from '@/instances/desktop/components/ActivityPanel.vue';
 import DebugConsole from '@/instances/desktop/components/DebugConsole.vue';
+import CodeEditorStatus from '@/instances/desktop/codeEditor/CodeEditorStatus.vue';
 
 // stores
 import { useIconStore } from '@/stores/icons';
@@ -89,6 +92,7 @@ import { useNotificationStore } from '@/stores/notifications';
 import { usePlatformStore } from '@/stores/platform';
 import { useSettingsStore } from '@/stores/settings';
 import { useUpdateStore } from '@/stores/updates';
+import { useStageStore } from '@/stores/stages';
 
 const iconStore = useIconStore();
 const notificationStore = useNotificationStore();
@@ -96,6 +100,7 @@ const platformStore = usePlatformStore();
 const settingsStore = useSettingsStore();
 const updateStore = useUpdateStore();
 const activity = useActivityStore();
+const stage = useStageStore();
 let stopActivityEvents;
 
 // props

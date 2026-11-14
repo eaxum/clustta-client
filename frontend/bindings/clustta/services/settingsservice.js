@@ -304,6 +304,14 @@ export function GetMotionPreference() {
 }
 
 /**
+ * GetOpenTextFilesInClustta returns whether text files open in Clustta by default.
+ * @returns {$CancellablePromise<boolean>}
+ */
+export function GetOpenTextFilesInClustta() {
+    return $Call.ByID(4031106867);
+}
+
+/**
  * GetOverwriteDroppedFiles returns whether OS file drops overwrite matching files.
  * @returns {$CancellablePromise<boolean>}
  */
@@ -684,6 +692,15 @@ export function SetMinimizeOnClose(enabled) {
  */
 export function SetMotionPreference(preference) {
     return $Call.ByID(1491064737, preference);
+}
+
+/**
+ * SetOpenTextFilesInClustta sets the default text-file launch behavior.
+ * @param {boolean} enabled
+ * @returns {$CancellablePromise<void>}
+ */
+export function SetOpenTextFilesInClustta(enabled) {
+    return $Call.ByID(1513471151, enabled);
 }
 
 /**

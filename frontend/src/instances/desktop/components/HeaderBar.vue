@@ -3,7 +3,7 @@
 
 		<div v-if="!platformStore.isWeb" class="header-bar-breadcrumbs-parent">
 
-			<div v-if="projectIsActive && stage.activeStage === 'browser'" class="header-bar-tabs">
+			<div v-if="projectIsActive && ['browser', 'codeEditor'].includes(stage.activeStage)" class="header-bar-tabs">
 				<WorkspaceTabs />
 			</div>
 
@@ -18,7 +18,7 @@
 		</div>
 		<div class="header-bar-actions">
 
-			<div class="local-project-actions" v-if="stage.selectedStage === 'browser'">
+			<div class="local-project-actions" v-if="['browser', 'codeEditor'].includes(stage.activeStage)">
 				<ActionButton v-if="userStore.canDo('delete_asset')" :icon="getAppIcon('trash')" @click="goToTrash()"
 					v-tooltip="$t('components.headerBar.trash')" />
 				<ActionButton v-if="canOpenProjectSettings" :icon="getAppIcon('briefcase-cog')"
@@ -107,7 +107,7 @@ const canOpenProjectSettings = computed(() => projectStore.activeProjectCanQuery
 const { t } = useI18n();
 
 const emits = defineEmits(["update-search", "toggle-search"]);
-const enabledStages = ref(['browser']);
+const enabledStages = ref(['browser', 'codeEditor']);
 
 // computed props
 const projectIsActive = computed(() => { return projectStore.getActiveProject && (platformStore.isWeb || projectStore.getActiveProject.is_downloaded) });

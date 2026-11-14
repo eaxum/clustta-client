@@ -134,19 +134,20 @@ type IntegrationCredential struct {
 }
 
 type Settings struct {
-	IconScheme            string `json:"icon_scheme"`
-	Theme                 string `json:"theme"`
-	ThemeTint             string `json:"theme_tint"`
-	InterfaceFont         string `json:"interface_font,omitempty"`
-	InterfaceTextSize     int    `json:"interface_text_size,omitempty"`
-	Language              string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
-	EulaAccepted          bool   `json:"eula_accepted"`
-	ProjectGridView       bool   `json:"project_grid_view"`
-	DefaultViewMode       string `json:"default_view_mode"`
-	UntrackedVisibility   *bool  `json:"untracked_visibility,omitempty"`
-	ShowUntrackedProjects bool   `json:"show_untracked_projects"`
-	ShowTypeIcons         *bool  `json:"show_type_icons,omitempty"`
-	ShowFileTypeIcons     *bool  `json:"show_file_type_icons,omitempty"`
+	IconScheme             string `json:"icon_scheme"`
+	Theme                  string `json:"theme"`
+	ThemeTint              string `json:"theme_tint"`
+	InterfaceFont          string `json:"interface_font,omitempty"`
+	InterfaceTextSize      int    `json:"interface_text_size,omitempty"`
+	Language               string `json:"language"` // User's language preference (e.g., "en", "es", "fr")
+	EulaAccepted           bool   `json:"eula_accepted"`
+	ProjectGridView        bool   `json:"project_grid_view"`
+	DefaultViewMode        string `json:"default_view_mode"`
+	UntrackedVisibility    *bool  `json:"untracked_visibility,omitempty"`
+	ShowUntrackedProjects  bool   `json:"show_untracked_projects"`
+	ShowTypeIcons          *bool  `json:"show_type_icons,omitempty"`
+	ShowFileTypeIcons      *bool  `json:"show_file_type_icons,omitempty"`
+	OpenTextFilesInClustta *bool  `json:"open_text_files_in_clustta,omitempty"`
 
 	ProjectsDir         string `json:"projects_dir"`
 	ProjectsDirBookmark []byte `json:"projects_dir_bookmark,omitempty"`
@@ -877,6 +878,28 @@ func SetShowFileTypeIcons(enabled bool) error {
 		return err
 	}
 	settings.ShowFileTypeIcons = &enabled
+	return saveSettings(settings)
+}
+
+// GetOpenTextFilesInClustta returns whether text files open in Clustta by default.
+func GetOpenTextFilesInClustta() (bool, error) {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return false, err
+	}
+	if settings.OpenTextFilesInClustta == nil {
+		return false, nil
+	}
+	return *settings.OpenTextFilesInClustta, nil
+}
+
+// SetOpenTextFilesInClustta sets the default text-file launch behavior.
+func SetOpenTextFilesInClustta(enabled bool) error {
+	settings, err := loadUserSettings()
+	if err != nil {
+		return err
+	}
+	settings.OpenTextFilesInClustta = &enabled
 	return saveSettings(settings)
 }
 

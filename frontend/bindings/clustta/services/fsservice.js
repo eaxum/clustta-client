@@ -45,6 +45,16 @@ export function BaseName(path) {
 }
 
 /**
+ * @param {string} path
+ * @returns {$CancellablePromise<$models.CodeFileClassification>}
+ */
+export function ClassifyCodeFile(path) {
+    return $Call.ByID(160714497, path).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType0($result);
+    }));
+}
+
+/**
  * DeleteFile removes a single file from the file system.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
@@ -147,7 +157,7 @@ export function FileHash(path) {
  */
 export function FileStat(path) {
     return $Call.ByID(3553147132, path).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType0($result);
+        return $$createType1($result);
     }));
 }
 
@@ -199,7 +209,7 @@ export function GetFileIcon(ext) {
  */
 export function GetImageResolution(path) {
     return $Call.ByID(1528345435, path).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType1($result);
+        return $$createType2($result);
     }));
 }
 
@@ -223,7 +233,7 @@ export function GetOSThumbnail(filePath, size) {
  */
 export function GetOSThumbnails(filePaths, size) {
     return $Call.ByID(4150854623, filePaths, size).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType2($result);
+        return $$createType3($result);
     }));
 }
 
@@ -243,7 +253,7 @@ export function GetPersonalProjectsDirectory() {
  */
 export function GetPreLaunchTrust(projectPath, assetID) {
     return $Call.ByID(1649701236, projectPath, assetID).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
     }));
 }
 
@@ -257,7 +267,7 @@ export function GetPreLaunchTrust(projectPath, assetID) {
  */
 export function ImportClusttaFiles(sourcePaths, destinationDirectory) {
     return $Call.ByID(2186594820, sourcePaths, destinationDirectory).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType4($result);
+        return $$createType5($result);
     }));
 }
 
@@ -310,6 +320,15 @@ export function LaunchProjectAsset(projectPath, assetID) {
 }
 
 /**
+ * @returns {$CancellablePromise<$models.CodeFileType[]>}
+ */
+export function ListCodeFileTypes() {
+    return $Call.ByID(3007903824).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType7($result);
+    }));
+}
+
+/**
  * MakeDirs creates a directory and all necessary parent directories.
  * @param {string} path
  * @returns {$CancellablePromise<void>}
@@ -326,7 +345,17 @@ export function MakeDirs(path) {
  */
 export function PreparePreLaunch(projectPath, remoteURL, assetID) {
     return $Call.ByID(3115365191, projectPath, remoteURL, assetID).then(/** @type {($result: any) => any} */(($result) => {
-        return $$createType3($result);
+        return $$createType4($result);
+    }));
+}
+
+/**
+ * @param {string} path
+ * @returns {$CancellablePromise<$models.CodeFileDocument>}
+ */
+export function ReadCodeFile(path) {
+    return $Call.ByID(1966118135, path).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType8($result);
     }));
 }
 
@@ -380,6 +409,18 @@ export function RevealInExplorer(path) {
 }
 
 /**
+ * @param {string} root
+ * @param {string} query
+ * @param {number} maximumResults
+ * @returns {$CancellablePromise<$models.CodeFileSearchResult[]>}
+ */
+export function SearchCodeFiles(root, query, maximumResults) {
+    return $Call.ByID(2017726548, root, query, maximumResults).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType10($result);
+    }));
+}
+
+/**
  * SetApp sets the application instance for the FSService.
  * Required for emitting events to the frontend application.
  * @param {application$0.App | null} app
@@ -424,6 +465,18 @@ export function UserProjectTemplatesPath() {
 }
 
 /**
+ * @param {string} path
+ * @param {string} content
+ * @param {string} expectedIdentity
+ * @returns {$CancellablePromise<$models.CodeFileDocument>}
+ */
+export function WriteCodeFile(path, content, expectedIdentity) {
+    return $Call.ByID(1061941608, path, content, expectedIdentity).then(/** @type {($result: any) => any} */(($result) => {
+        return $$createType8($result);
+    }));
+}
+
+/**
  * WriteFile writes base64-encoded data to a file.
  * Decodes the data before writing to disk.
  * @param {string} path
@@ -435,8 +488,14 @@ export function WriteFile(path, data) {
 }
 
 // Private type creation functions
-const $$createType0 = $models.FileInfo.createFrom;
-const $$createType1 = $models.ImageResolution.createFrom;
-const $$createType2 = $Create.Map($Create.Any, $Create.Any);
-const $$createType3 = $models.PreLaunchTrustInfo.createFrom;
-const $$createType4 = $Create.Array($Create.Any);
+const $$createType0 = $models.CodeFileClassification.createFrom;
+const $$createType1 = $models.FileInfo.createFrom;
+const $$createType2 = $models.ImageResolution.createFrom;
+const $$createType3 = $Create.Map($Create.Any, $Create.Any);
+const $$createType4 = $models.PreLaunchTrustInfo.createFrom;
+const $$createType5 = $Create.Array($Create.Any);
+const $$createType6 = $models.CodeFileType.createFrom;
+const $$createType7 = $Create.Array($$createType6);
+const $$createType8 = $models.CodeFileDocument.createFrom;
+const $$createType9 = $models.CodeFileSearchResult.createFrom;
+const $$createType10 = $Create.Array($$createType9);

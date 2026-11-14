@@ -33,6 +33,7 @@ export const useMenu = defineStore("useMenu", {
       viewMenu: false,
       checkpointSelectionMenu: false,
       roleSelectionMenu: false,
+      codeEditorMenu: false,
     },
 
     // Sub-menu navigation state
@@ -62,8 +63,11 @@ export const useMenu = defineStore("useMenu", {
       'sortMenu',
       'viewMenu',
       'checkpointSelectionMenu',
-      'roleSelectionMenu'
+      'roleSelectionMenu',
+      'codeEditorMenu',
     ],
+
+    codeEditorMenuData: [],
 
     checkpointSelectionMenuData: {
       key: '',
@@ -218,6 +222,11 @@ export const useMenu = defineStore("useMenu", {
         onSelect: data.onSelect || null,
       };
       await this.showContextMenu(event, 'roleSelectionMenu', true, { anchor: true, position: 'bottom' });
+    },
+
+    async showCodeEditorMenu(event, items, options = false) {
+      this.codeEditorMenuData = items;
+      await this.showContextMenu(event, 'codeEditorMenu', true, options);
     },
 
     hideContextMenu(event) {

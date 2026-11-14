@@ -29,6 +29,11 @@
             :switchValueProp="overwriteDroppedFiles"
             @click="toggleOverwriteDroppedFiles"
           />
+          <ToggleSwitch
+            v-else-if="item.id === 'open-text-files-in-clustta'"
+            :switchValueProp="openTextFilesInClustta"
+            @click="toggleOpenTextFilesInClustta"
+          />
         </template>
       </SettingsCard>
 
@@ -68,6 +73,7 @@ const MOTION_OFF = 'off';
 
 const minimizeOnClose = computed(() => settingsStore.minimizeOnClose);
 const overwriteDroppedFiles = computed(() => settingsStore.overwriteDroppedFiles);
+const openTextFilesInClustta = computed(() => settingsStore.openTextFilesInClustta);
 const motionPreference = computed(() => settingsStore.motionPreference);
 const currentViewLabel = computed(() => {
   if (commonStore.defaultViewMode === 'columns') return t('settings.columns');
@@ -111,6 +117,12 @@ const behaviorItems = computed(() => [
     icon: getAppIcon('data-download'),
     label: t('settings.overwriteDroppedFiles'),
     description: t('settings.overwriteDroppedFilesDescription'),
+  },
+  {
+    id: 'open-text-files-in-clustta',
+    icon: getAppIcon('code-bracket'),
+    label: t('settings.openTextFilesInClustta'),
+    description: t('settings.openTextFilesInClusttaDescription'),
   },
 ]);
 const dataManagementItems = computed(() => [
@@ -169,6 +181,15 @@ const toggleOverwriteDroppedFiles = async () => {
   }
 };
 
+const toggleOpenTextFilesInClustta = async () => {
+  try {
+    await settingsStore.toggleOpenTextFilesInClustta();
+  } catch (error) {
+    console.error(error);
+    notificationStore.addNotification(t('common.error'), t('notifications.failedToUpdate'), 'error');
+  }
+};
+
 const clearRecents = async () => {
   await SettingsService.ClearRecentProject();
   projectStore.recentProjects = [];
@@ -178,5 +199,6 @@ const clearRecents = async () => {
 onMounted(async () => {
   await settingsStore.initializeMinimizeOnClose();
   await settingsStore.initializeOverwriteDroppedFiles();
+  await settingsStore.initializeOpenTextFilesInClustta();
 });
 </script>

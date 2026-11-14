@@ -522,6 +522,7 @@ onMounted(async () => {
     await settingsStore.initializeShowTypeIcons();
     await settingsStore.initializeShowFileTypeIcons();
     await settingsStore.initializeOverwriteDroppedFiles();
+    await settingsStore.initializeOpenTextFilesInClustta();
     if (!platformStore.isWeb) {
         startCheckSycnTokenInterval();
         startConnectivityCheckInterval();

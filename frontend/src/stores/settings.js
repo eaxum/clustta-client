@@ -28,6 +28,7 @@ export const useSettingsStore = defineStore("settings", {
     minimizeOnClose: true,
     motionPreference: 'system',
     overwriteDroppedFiles: true,
+    openTextFilesInClustta: false,
     pendingTab: null,
     showTypeIcons: true,
     showFileTypeIcons: true,
@@ -254,6 +255,21 @@ export const useSettingsStore = defineStore("settings", {
       const newValue = !this.overwriteDroppedFiles;
       await SettingsService.SetOverwriteDroppedFiles(newValue);
       this.overwriteDroppedFiles = newValue;
+    },
+
+    async initializeOpenTextFilesInClustta() {
+      try {
+        this.openTextFilesInClustta = await SettingsService.GetOpenTextFilesInClustta();
+      } catch (error) {
+        console.error(error);
+        this.openTextFilesInClustta = false;
+      }
+    },
+
+    async toggleOpenTextFilesInClustta() {
+      const newValue = !this.openTextFilesInClustta;
+      await SettingsService.SetOpenTextFilesInClustta(newValue);
+      this.openTextFilesInClustta = newValue;
     },
 
     // Loads the show type icons state from user settings.

@@ -9,6 +9,8 @@ import { useNotificationStore } from '@/stores/notifications';
 import { useProjectStore } from '@/stores/projects';
 import { useTrayStates } from '@/stores/TrayStates';
 import { useUserStore } from '@/stores/users';
+import { useCodeEditorStore } from '@/stores/codeEditor';
+import { useSettingsStore } from '@/stores/settings';
 
 export const useAssetLauncher = () => {
   const browserTreeStore = useBrowserTreeStore();
@@ -17,6 +19,8 @@ export const useAssetLauncher = () => {
   const projectStore = useProjectStore();
   const trayStates = useTrayStates();
   const userStore = useUserStore();
+  const codeEditor = useCodeEditorStore();
+  const settingsStore = useSettingsStore();
   const { t } = useI18n();
 
   const preLaunchTrustKey = (trust) => {
@@ -123,6 +127,14 @@ export const useAssetLauncher = () => {
     if (asset.local_path) {
       confirmRenameBeforeLaunch(asset);
       return;
+    }
+    const filePath = asset.pointer || asset.file_path;
+    if (settingsStore.openTextFilesInClustta && await FSService.Exists(filePath)) {
+      const classification = await FSService.ClassifyCodeFile(filePath);
+      if (classification.text) {
+        await codeEditor.openDocument(filePath, asset, false);
+        return;
+      }
     }
     await launchAssetFile(asset);
   };

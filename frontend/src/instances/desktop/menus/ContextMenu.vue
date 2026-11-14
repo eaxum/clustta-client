@@ -46,6 +46,7 @@ import SortMenu from '@/instances/desktop/menus/SortMenu.vue';
 import TypeFilterMenu from '@/instances/desktop/menus/TypeFilterMenu.vue';
 import UntrackedItemMenu from '@/instances/desktop/menus/UntrackedItemMenu.vue';
 import ViewMenu from '@/instances/desktop/menus/ViewMenu.vue';
+import CodeEditorMenu from '@/instances/desktop/menus/CodeEditorMenu.vue';
 
 // stores
 import { useMenu } from '@/stores/menu';
@@ -86,6 +87,7 @@ const menuComponents = {
   typeFilterMenu: TypeFilterMenu,
   untrackedItemMenu: UntrackedItemMenu,
   viewMenu: ViewMenu,
+  codeEditorMenu: CodeEditorMenu,
 };
 
 // computed properties

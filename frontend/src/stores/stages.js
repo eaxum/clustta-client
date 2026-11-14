@@ -15,6 +15,7 @@ export const useStageStore = defineStore("stages", {
     stages: {
       projects: false,
       browser: false,
+      codeEditor: false,
       trash: false,
       settings: false,
       projectSettings: false,

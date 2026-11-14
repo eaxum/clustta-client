@@ -816,6 +816,305 @@ export class ClusttaFileInfo {
     }
 }
 
+export class CodeFileClassification {
+    /**
+     * Creates a new CodeFileClassification instance.
+     * @param {Partial<CodeFileClassification>} [$$source = {}] - The source object to create the CodeFileClassification.
+     */
+    constructor($$source = {}) {
+        if (!("recognized" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["recognized"] = false;
+        }
+        if (!("text" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["text"] = false;
+        }
+        if (!("language_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["language_id"] = "";
+        }
+        if (!("encoding" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["encoding"] = "";
+        }
+        if (!("line_ending" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["line_ending"] = "";
+        }
+        if (!("editable" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["editable"] = false;
+        }
+        if (!("diffable" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["diffable"] = false;
+        }
+        if (!("searchable" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["searchable"] = false;
+        }
+        if (!("read_only" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["read_only"] = false;
+        }
+        if (!("reason" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["reason"] = "";
+        }
+        if (!("size" in $$source)) {
+            /**
+             * @member
+             * @type {number}
+             */
+            this["size"] = 0;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CodeFileClassification instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CodeFileClassification}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CodeFileClassification(/** @type {Partial<CodeFileClassification>} */($$parsedSource));
+    }
+}
+
+export class CodeFileDocument {
+    /**
+     * Creates a new CodeFileDocument instance.
+     * @param {Partial<CodeFileDocument>} [$$source = {}] - The source object to create the CodeFileDocument.
+     */
+    constructor($$source = {}) {
+        if (!("path" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["path"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("content" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["content"] = "";
+        }
+        if (!("content_identity" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["content_identity"] = "";
+        }
+        if (!("classification" in $$source)) {
+            /**
+             * @member
+             * @type {CodeFileClassification}
+             */
+            this["classification"] = (new CodeFileClassification());
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CodeFileDocument instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CodeFileDocument}
+     */
+    static createFrom($$source = {}) {
+        const $$createField4_0 = $$createType5;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("classification" in $$parsedSource) {
+            $$parsedSource["classification"] = $$createField4_0($$parsedSource["classification"]);
+        }
+        return new CodeFileDocument(/** @type {Partial<CodeFileDocument>} */($$parsedSource));
+    }
+}
+
+export class CodeFileSearchResult {
+    /**
+     * Creates a new CodeFileSearchResult instance.
+     * @param {Partial<CodeFileSearchResult>} [$$source = {}] - The source object to create the CodeFileSearchResult.
+     */
+    constructor($$source = {}) {
+        if (!("path" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["path"] = "";
+        }
+        if (!("name" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["name"] = "";
+        }
+        if (!("language_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["language_id"] = "";
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {number | undefined}
+             */
+            this["line"] = undefined;
+        }
+        if (/** @type {any} */(false)) {
+            /**
+             * @member
+             * @type {string | undefined}
+             */
+            this["preview"] = undefined;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CodeFileSearchResult instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CodeFileSearchResult}
+     */
+    static createFrom($$source = {}) {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new CodeFileSearchResult(/** @type {Partial<CodeFileSearchResult>} */($$parsedSource));
+    }
+}
+
+export class CodeFileType {
+    /**
+     * Creates a new CodeFileType instance.
+     * @param {Partial<CodeFileType>} [$$source = {}] - The source object to create the CodeFileType.
+     */
+    constructor($$source = {}) {
+        if (!("id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["id"] = "";
+        }
+        if (!("language_id" in $$source)) {
+            /**
+             * @member
+             * @type {string}
+             */
+            this["language_id"] = "";
+        }
+        if (!("extensions" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["extensions"] = [];
+        }
+        if (!("filenames" in $$source)) {
+            /**
+             * @member
+             * @type {string[]}
+             */
+            this["filenames"] = [];
+        }
+        if (!("can_open" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["can_open"] = false;
+        }
+        if (!("can_edit" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["can_edit"] = false;
+        }
+        if (!("can_diff" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["can_diff"] = false;
+        }
+        if (!("can_search" in $$source)) {
+            /**
+             * @member
+             * @type {boolean}
+             */
+            this["can_search"] = false;
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new CodeFileType instance from a string or object.
+     * @param {any} [$$source = {}]
+     * @returns {CodeFileType}
+     */
+    static createFrom($$source = {}) {
+        const $$createField2_0 = $$createType6;
+        const $$createField3_0 = $$createType6;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("extensions" in $$parsedSource) {
+            $$parsedSource["extensions"] = $$createField2_0($$parsedSource["extensions"]);
+        }
+        if ("filenames" in $$parsedSource) {
+            $$parsedSource["filenames"] = $$createField3_0($$parsedSource["filenames"]);
+        }
+        return new CodeFileType(/** @type {Partial<CodeFileType>} */($$parsedSource));
+    }
+}
+
 /**
  * Collaborator represents a project collaborator returned by the server.
  */
@@ -954,13 +1253,13 @@ export class CollectionChildrenState {
      * @returns {CollectionChildrenState}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
-        const $$createField1_0 = $$createType5;
-        const $$createField2_0 = $$createType5;
-        const $$createField3_0 = $$createType5;
-        const $$createField4_0 = $$createType5;
-        const $$createField5_0 = $$createType6;
-        const $$createField6_0 = $$createType7;
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType7;
+        const $$createField2_0 = $$createType7;
+        const $$createField3_0 = $$createType7;
+        const $$createField4_0 = $$createType7;
+        const $$createField5_0 = $$createType8;
+        const $$createField6_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("modified_assets" in $$parsedSource) {
             $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
@@ -1031,10 +1330,10 @@ export class CollectionItems {
      * @returns {CollectionItems}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
-        const $$createField1_0 = $$createType8;
-        const $$createField2_0 = $$createType6;
-        const $$createField3_0 = $$createType7;
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType10;
+        const $$createField2_0 = $$createType8;
+        const $$createField3_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
@@ -1439,7 +1738,7 @@ export class DragOutRequest {
      * @returns {DragOutRequest}
      */
     static createFrom($$source = {}) {
-        const $$createField2_0 = $$createType9;
+        const $$createField2_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("asset_ids" in $$parsedSource) {
             $$parsedSource["asset_ids"] = $$createField2_0($$parsedSource["asset_ids"]);
@@ -1565,10 +1864,10 @@ export class EntitlementBundle {
      * @returns {EntitlementBundle}
      */
     static createFrom($$source = {}) {
-        const $$createField10_0 = $$createType10;
-        const $$createField11_0 = $$createType11;
-        const $$createField12_0 = $$createType9;
-        const $$createField13_0 = $$createType9;
+        const $$createField10_0 = $$createType11;
+        const $$createField11_0 = $$createType12;
+        const $$createField12_0 = $$createType6;
+        const $$createField13_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("limits" in $$parsedSource) {
             $$parsedSource["limits"] = $$createField10_0($$parsedSource["limits"]);
@@ -1776,8 +2075,8 @@ export class ExportPreview {
      * @returns {ExportPreview}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType13;
-        const $$createField1_0 = $$createType15;
+        const $$createField0_0 = $$createType14;
+        const $$createField1_0 = $$createType16;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("columns" in $$parsedSource) {
             $$parsedSource["columns"] = $$createField0_0($$parsedSource["columns"]);
@@ -1840,8 +2139,8 @@ export class ExportRequest {
      * @returns {ExportRequest}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType9;
-        const $$createField2_0 = $$createType9;
+        const $$createField0_0 = $$createType6;
+        const $$createField2_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("asset_ids" in $$parsedSource) {
             $$parsedSource["asset_ids"] = $$createField0_0($$parsedSource["asset_ids"]);
@@ -1880,7 +2179,7 @@ export class FetchResult {
      * @returns {FetchResult}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType9;
+        const $$createField0_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("restored_asset_ids" in $$parsedSource) {
             $$parsedSource["restored_asset_ids"] = $$createField0_0($$parsedSource["restored_asset_ids"]);
@@ -2045,8 +2344,8 @@ export class ImportItems {
      * @returns {ImportItems}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
-        const $$createField1_0 = $$createType8;
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType10;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
@@ -2088,8 +2387,8 @@ export class ItemsForCheckpoint {
      * @returns {ItemsForCheckpoint}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
-        const $$createField1_0 = $$createType6;
+        const $$createField0_0 = $$createType7;
+        const $$createField1_0 = $$createType8;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("modified_assets" in $$parsedSource) {
             $$parsedSource["modified_assets"] = $$createField0_0($$parsedSource["modified_assets"]);
@@ -2124,7 +2423,7 @@ export class ItemsForUpdate {
      * @returns {ItemsForUpdate}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType5;
+        const $$createField0_0 = $$createType7;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("outdated_assets" in $$parsedSource) {
             $$parsedSource["outdated_assets"] = $$createField0_0($$parsedSource["outdated_assets"]);
@@ -2330,7 +2629,7 @@ export class Plan {
      * @returns {Plan}
      */
     static createFrom($$source = {}) {
-        const $$createField14_0 = $$createType9;
+        const $$createField14_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("feature_keys" in $$parsedSource) {
             $$parsedSource["feature_keys"] = $$createField14_0($$parsedSource["feature_keys"]);
@@ -2390,7 +2689,7 @@ export class PreLaunchTrustInfo {
      * @returns {PreLaunchTrustInfo}
      */
     static createFrom($$source = {}) {
-        const $$createField4_0 = $$createType9;
+        const $$createField4_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("scripts" in $$parsedSource) {
             $$parsedSource["scripts"] = $$createField4_0($$parsedSource["scripts"]);
@@ -2618,7 +2917,7 @@ export class PurgeRecursiveUntrackedItemsResult {
      * @returns {PurgeRecursiveUntrackedItemsResult}
      */
     static createFrom($$source = {}) {
-        const $$createField3_0 = $$createType9;
+        const $$createField3_0 = $$createType6;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("errors" in $$parsedSource) {
             $$parsedSource["errors"] = $$createField3_0($$parsedSource["errors"]);
@@ -2985,8 +3284,8 @@ export class UntrackedItems {
      * @returns {UntrackedItems}
      */
     static createFrom($$source = {}) {
-        const $$createField0_0 = $$createType6;
-        const $$createField1_0 = $$createType7;
+        const $$createField0_0 = $$createType8;
+        const $$createField1_0 = $$createType9;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("assets" in $$parsedSource) {
             $$parsedSource["assets"] = $$createField0_0($$parsedSource["assets"]);
@@ -3301,11 +3600,11 @@ export class UserProfile {
      * @returns {UserProfile}
      */
     static createFrom($$source = {}) {
-        const $$createField8_0 = $$createType17;
-        const $$createField9_0 = $$createType17;
-        const $$createField25_0 = $$createType19;
-        const $$createField26_0 = $$createType21;
-        const $$createField27_0 = $$createType23;
+        const $$createField8_0 = $$createType18;
+        const $$createField9_0 = $$createType18;
+        const $$createField25_0 = $$createType20;
+        const $$createField26_0 = $$createType22;
+        const $$createField27_0 = $$createType24;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("country_id" in $$parsedSource) {
             $$parsedSource["country_id"] = $$createField8_0($$parsedSource["country_id"]);
@@ -3497,22 +3796,23 @@ const $$createType1 = $Create.Array($$createType0);
 const $$createType2 = models$0.Checkpoint.createFrom;
 const $$createType3 = AssetStateItem.createFrom;
 const $$createType4 = $Create.Array($$createType3);
-const $$createType5 = $Create.Array($Create.Any);
+const $$createType5 = CodeFileClassification.createFrom;
 const $$createType6 = $Create.Array($Create.Any);
 const $$createType7 = $Create.Array($Create.Any);
 const $$createType8 = $Create.Array($Create.Any);
 const $$createType9 = $Create.Array($Create.Any);
-const $$createType10 = EntitlementLimits.createFrom;
-const $$createType11 = EntitlementUsage.createFrom;
-const $$createType12 = ExportColumn.createFrom;
-const $$createType13 = $Create.Array($$createType12);
-const $$createType14 = $Create.Map($Create.Any, $Create.Any);
-const $$createType15 = $Create.Array($$createType14);
-const $$createType16 = NullString.createFrom;
-const $$createType17 = $Create.Nullable($$createType16);
-const $$createType18 = UserTool.createFrom;
-const $$createType19 = $Create.Array($$createType18);
-const $$createType20 = UserSkill.createFrom;
-const $$createType21 = $Create.Array($$createType20);
-const $$createType22 = UserStudio.createFrom;
-const $$createType23 = $Create.Array($$createType22);
+const $$createType10 = $Create.Array($Create.Any);
+const $$createType11 = EntitlementLimits.createFrom;
+const $$createType12 = EntitlementUsage.createFrom;
+const $$createType13 = ExportColumn.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = $Create.Map($Create.Any, $Create.Any);
+const $$createType16 = $Create.Array($$createType15);
+const $$createType17 = NullString.createFrom;
+const $$createType18 = $Create.Nullable($$createType17);
+const $$createType19 = UserTool.createFrom;
+const $$createType20 = $Create.Array($$createType19);
+const $$createType21 = UserSkill.createFrom;
+const $$createType22 = $Create.Array($$createType21);
+const $$createType23 = UserStudio.createFrom;
+const $$createType24 = $Create.Array($$createType23);
