@@ -210,7 +210,6 @@ onBeforeUnmount(async () => {
 	width: 100%;
 	height: 100%;
 	overflow: hidden;
-	padding: .4rem;
 	padding-bottom: 0;
 	padding-top: 0;
 	background-color: forestgreen;

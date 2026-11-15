@@ -570,7 +570,7 @@ onUnmounted(() => {
 
 .project-stage-root {
 	box-sizing: border-box;
-	/* padding: .4rem; */
+	padding: 0 .4rem;
 	display: flex;
 	align-items: center;
 	justify-content: center;
